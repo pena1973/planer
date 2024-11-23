@@ -1,0 +1,224 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+.container_tCardOper {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    height: auto;
+    margin: 5px;
+    border-radius: 10px; /* Скругленные углы */
+    background-color: #f0f0f0; /* Светло-серый фон */
+    border: 1px solid #ccc; /* Равномерная серая граница */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень для глубины */
+    transition: box-shadow 0.3s ease; /* Плавный переход для эффекта при наведении */
+    position: relative;
+}
+
+.container_tCardOper:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
+}
+
+.container_tCardOper > .content {
+    flex: 1; /* Разделяет пространство для содержимого */
+    padding: 10px; /* Отступы для содержимого */
+    color: #333; /* Темно-серый цвет текста */
+    font-weight: normal; /* Обычный текст */
+    font-family: Arial, sans-serif; /* Шрифт для офисного стиля */
+}
+
+.container_tCardOper {
+    display: flex; /* Используем Flexbox для расположения блоков в ряд */
+    justify-content: space-between; /* Равномерное распределение пространства между блоками */
+    width: 100%; /* Ширина контейнера */
+}
+
+.container_tCardOper_out,
+.container_tCardOper_in{
+    flex: 1; 
+    display: flex; 
+    flex-direction: column;
+}
+.container_tCardOper_action{    
+    display: flex; 
+    flex-direction: column;
+    width: auto;
+}
+.tCardOper_out,
+.tCardOper_action,
+.tCardOper_in {    
+    flex: 1; /* Каждый блок займет равное пространство */
+    margin: 3px; /* Отступы между блоками */
+    padding: 2px 2px; /* Внутренние отступы для содержимого */
+    background-color: #ffffff; /* Белый фон для блоков */
+    border: 1px solid #ccc; /* Серая граница */
+    border-radius: 5px; /* Скругленные углы */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Легкая тень для блоков */
+    height: auto;
+}
+.tCardOper_action{
+    display: flex;
+    flex-direction: row;
+}
+
+.tCardOper_out_title,
+.tCardOper_action_title,
+.tCardOper_in_title {
+    font-weight: bold; /* Жирный текст для заголовков */    
+    color: #333; /* Темно-серый цвет текста */
+    text-align: center;
+    height: auto;
+}
+
+.tCardOper_oper_title,
+.tCardOper_oper_ms
+.tCardOper_oper_qtu  {
+    font-size: 12px; /* Размер шрифта для информации о времени */
+    color: #666; /* Светло-серый цвет для дополнительной информации */
+    margin: 10px 5px;
+    text-align: center;
+}
+
+.tCardOper_oper_ms{
+    margin: 3px 5px;
+}
+//----OUT IN-----
+.container_in_out_item {    
+    display: flex; /* Используем Flexbox для расположения ячеек в строке */    
+    justify-content: space-between; /* Равномерное распределение пространства между ячейками */
+    padding: 2px 0; /* Внутренние отступы для ячеек */
+    // border-bottom: 1px solid #ccc; /* Нижняя граница для разделения строк */
+    font-size: 12px;
+    width: 100%;
+}
+
+.container_in_out_item:last-child {
+    border-bottom: none; /* Убираем границу у последней строки */
+}
+
+.in_out_item_code,
+.in_out_item_uom,
+.in_out_item_qtu {
+    // flex: 1; /* Каждая ячейка занимает равное пространство */
+    text-align: center; /* Выравнивание текста по центру */
+}
+.in_out_item_uom,
+.in_out_item_qtu {
+    margin: 0 2px; /* Отступ между ячейками для количества и единицы измерения */
+    color: #666; /* Светло-серый цвет для количества и единицы измерения */
+    // width: 20%;
+    // background-color: #ccc;
+}
+
+/* Дополнительные стили для улучшения внешнего вида */
+.container_in_out_item:hover {
+    background-color: #f9f9f9; /* Изменение фона при наведении */
+}
+
+//------inputs---------
+
+.in_out_item_code {
+    flex: 1; /* Каждый инпут занимает равное пространство */
+    // margin: 0 5px; /* Отступы между инпутами */
+    padding: 2px; /* Внутренние отступы для инпутов */
+    border: 1px solid #ccc; /* Серая граница для инпутов */
+    border-radius: 4px; /* Скругленные углы */
+    font-size: 12px; /* Размер шрифта */
+    font-weight: bold; /* Жирный текст для кода */
+    width: 80%;
+}
+
+.in_out_item_code:focus {
+    // border-color: #007bff; /* Синий цвет границы при фокусе */
+    outline: none; /* Убираем стандартное выделение */
+}
+
+.in_out_item_qtu {
+    -moz-appearance: textfield; /* Убираем стрелки для числового инпута в Firefox */
+    -webkit-appearance: none;  /* Убираем стрелки для числового инпута в Chrome, Safari */
+    appearance: none;          /* Стандарт для других браузеров */
+    padding: 2px; /* Внутренние отступы для инпутов */
+    border: 1px solid #ccc; /* Серая граница для инпутов */
+    border-radius: 4px; /* Скругленные углы */
+    font-size: 12px; /* Размер шрифта */
+    font-weight: bold; /* Жирный текст для кода */
+    width: 20%;
+}
+
+/* Дополнительно, для удаления стрелочек на мобильных устройствах (например, на iOS) */
+.in_out_item_qtu::-webkit-outer-spin-button,
+.in_out_item_qtu::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.in_out_item_code[type="number"]::-webkit-outer-spin-button,
+.in_out_item_code[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none; /* Убираем стрелки для числового инпута в Chrome */
+}
+
+// /* Стили для выпадающего списка */
+// .in_out_item_select {
+//     flex: 1; /* Для выпадающего списка тоже задаем равное пространство */
+//     margin: 0 5px; /* Отступы между инпутами */
+//     padding: 8px; /* Внутренние отступы для выпадающего списка */
+//     border: 1px solid #ccc; /* Серая граница для выпадающего списка */
+//     border-radius: 4px; /* Скругленные углы */
+//     font-size: 14px; /* Размер шрифта */
+//     background-color: #ffffff; /* Белый фон для выпадающего списка */
+//     width: 10%;
+// }
+
+// .in_out_item_select:focus {
+//     // border-color: #007bff; /* Синий цвет границы при фокусе */
+//     outline: none; /* Убираем стандартное выделение */
+// }
+
+
+
+
+
+
+.container_icon_edit_save{
+    display: flex;
+    flex-direction: row;
+    // position: absolute;
+    // top: 0;
+    // left: 0;
+    cursor: pointer;
+    // border-top-left-radius: 5px;
+}
+.icon_edit_save{
+       
+    border-top-left-radius: 5px;
+}
+.icon_del{
+   cursor: pointer;
+}
+
+.tCardOper_buttons_container{
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+}
+.container_buttons_row{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    border-top: 1px solid #ccc; /* Серая граница */
+    // background-color: aquamarine;
+    width: calc(100% - 4px);
+    // position: absolute;
+    // right: 0;
+    // top: 0;
+    overflow: hidden;
+}
+
+.message{
+    font-size: 12px; /* Размер шрифта для информации о времени */
+    color: #666; /* Светло-серый цвет для дополнительной информации */    
+    text-align: center;    
+    width: 100%;
+    color: red;
+}

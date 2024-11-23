@@ -1,0 +1,363 @@
+@import '@/styles/colors.scss';
+
+
+.tk_container_left_inner {
+    max-height: calc(100% - 100px);
+    // background: rgb(173, 168, 160);
+     background: $sidebar_background;
+    overflow: hidden;
+    flex: 1;
+}
+
+.tk_container_cards_title {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    margin: 10px 0;
+    padding: 5px;
+}
+
+.tk_container_cards {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100% - 330px);
+    overflow: auto;
+    // background-color: aliceblue;
+}
+
+.container_card {
+    padding: 10px 15px;
+    cursor: pointer;
+}
+.container_card_edit {
+    font-weight: bold;    
+}
+.container_buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding-top: 10px;
+}
+
+.container_cards_lack {
+    display: flex;
+    flex-direction: column;
+    margin: 10px 0;
+    border-top: 1px solid black;
+    height: 200px;
+    // max-height: 210px;
+    overflow: auto;
+    background-color: rgb(191, 207, 236);
+}
+///////////////Загрузка файла////////////
+// .container_card_load {
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     text-align: center;
+//     font-size: 40;
+//     min-height: 100px;
+//     width: 100%;
+//     border-radius: 5px;
+//     border: 2px solid $button_border;   
+//     justify-self: center;
+// }
+
+.container_card_load {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 16px;  // Более сдержанный размер шрифта
+    min-height: 100px;
+    width: 100%;
+    border-radius: 5px; // Скругленные углы
+    border: 2px solid rgb(200, 200, 200); // Легкая серая граница для согласования с остальной цветовой гаммой
+    background-color: rgb(245, 245, 245); // Светло-серый фон для сдержанности
+    color: rgb(100, 100, 100); // Темно-серый текст, чтобы было легко читать
+    cursor: pointer;  // Курсор указывает, что это область для перетаскивания
+    transition: background-color 0.3s ease, border-color 0.3s ease; // Плавный переход для фона и границы
+}
+
+/* Эффект при наведении */
+.container_card_load:hover {
+    background-color: rgb(230, 230, 230); // Чуть более темный серый фон при наведении
+    border-color: rgb(180, 180, 180); // Тонкая темная граница при наведении
+}
+
+/* Эффект при перетаскивании файла */
+.container_card_load.dragover {
+    background-color: rgb(220, 220, 220); // Еще более темный фон при перетаскивании
+    border-color: rgb(160, 160, 160); // Более темная граница при перетаскивании
+}
+//////////////////
+
+
+
+.container_right_inner {
+    // background-color: aliceblue;
+    height: 100%;
+    width: 120%;
+    overflow: scroll;
+    // flex: 1;
+}
+
+.container_stage_title {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    width: 100%;
+}
+
+.container_stage_item {
+    display: flex;
+    flex-direction: row;
+    width: 400px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.container_products {
+    display: flex;
+    flex-direction: column;
+    min-width: 250px;
+    width: 250px;
+    align-items: center;
+    padding: 5px;
+    height: max-content;
+}
+
+.container_materials {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    width: 150px;
+    align-items: center;
+    padding: 5px;
+    height: max-content;
+}
+
+.container_stage {
+    display: flex;
+    flex-direction: column;
+    // border: 1px solid rgb(0, 0, 0);
+    // background: rgb(114, 173, 173);
+    min-width: 450px;
+    width: 450px;
+    align-items: center;
+    padding: 5px;
+    height: max-content;
+}
+
+.container_stage_result {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgb(0, 0, 0);
+    width: 140px;
+}
+
+.container_stage_result_title {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    width: 100%;
+}
+
+.container_stage_result_item {
+    display: flex;
+    flex-direction: row;
+}
+
+.container_stage_result_item_code {
+    padding: 5px;
+}
+
+.container_stage_result_item_qty {
+    padding: 5px;
+}
+
+.container_stage_operation {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgb(0, 0, 0);
+    width: 140px;
+}
+
+.container_stage_operation_name {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    width: 100%;
+}
+
+.container_stage_operation_qty {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    width: 100%;
+}
+
+.container_stage_sourse {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgb(0, 0, 0);
+    width: 140px;
+}
+
+.container_stage_sourse_title {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    width: 100%;
+}
+
+.container_stage_sourse_item {
+    display: flex;
+    flex-direction: row;
+    // cursor: grab;
+    // z-index: 100;
+    // background-color: aqua;
+}
+
+.container_stage_sourse_item1 {
+    display: flex;
+    flex-direction: row;
+    // position: absolute;
+    top: 0;
+    left: 0;
+    // cursor: grab;
+}
+
+.container_stage_sourse_item_code {
+    padding: 5px;
+}
+
+.container_stage_sourse_item_qty {
+    padding: 5px;
+}
+
+///////////////////
+.container_stage_new_block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid rgb(0, 0, 0);
+    margin: 5px;
+}
+
+.container_stage_new_item {
+    display: flex;
+    flex-direction: row;
+    width: 400px;
+
+    border-radius: 5px;
+}
+
+.container_stage_new_result {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgb(0, 0, 0);
+    border-bottom: 1px solid rgb(0, 0, 0);
+    width: 140px;
+}
+
+.container_stage_new_result_item_code {
+    width: 80px;
+    margin: 2px;
+}
+
+.container_stage_new_result_item_qty {
+    margin: 2px;
+    width: 40px;
+}
+
+.container_stage_new_operation {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid rgb(0, 0, 0);
+    width: 140px;
+}
+
+.container_stage_new_operation_name {
+    margin: 2px;
+    width: 130px;
+    align-self: center;
+}
+
+.container_stage_new_operation_container_qty {
+    display: flex;
+    flex-direction: row;
+    align-self: center;
+}
+
+.container_stage_new_operation_qty {
+    width: 40px;
+}
+
+
+
+.container_stage_new_sourse {
+    display: flex;
+    flex-direction: column;
+
+    border-left: 1px solid rgb(0, 0, 0);
+    border-bottom: 1px solid rgb(0, 0, 0);
+    width: 140px;
+}
+
+.container_stage_new_sourse_item_code {
+    width: 80px;
+    margin: 2px;
+}
+
+.container_stage_new_sourse_item_qty {
+    margin: 2px;
+    width: 40px;
+}
+
+.grab_container {
+    position: relative;
+}
+
+
+
+
+
+// .container_cards_lack_title {
+//     display: flex;
+//     flex-direction: row;
+//     width: 100%;
+//     justify-content: center;
+//     margin: 10px 0;
+//     padding: 5px;
+// }
+
+.container_cards_lack_item {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    padding: 5px 15px;
+}
+
+.container_cards_lack_code {
+    width: 100px;
+}
+
+.container_cards_lack_qty {
+    width: 50px;
+}
+

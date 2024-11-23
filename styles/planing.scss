@@ -1,0 +1,126 @@
+@import '@/styles/colors.scss';
+
+.pl_container_left_inner {
+    max-height: 100%;
+    background: rgb(173, 168, 160);
+    overflow: hidden;
+    flex: 1;
+}
+
+.pl_container_cards {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100% - 300px);
+    overflow: auto;
+    background-color: aliceblue;
+}
+
+.pl_container_cards_title {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    margin: 10px 0;
+    padding: 5px;
+}
+
+.pl_container_cards_n {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 200px;
+    overflow: auto;
+    background-color: aliceblue;
+}
+
+// срдержание правой области
+.pl_container_right {
+    flex-direction: column;
+}
+.pl_container_title {
+    width: fit-content;
+    // background-color: rgb(255, 244, 88);
+    min-height: 30px;
+    padding: 10px;
+    font-weight: bold;
+}
+// .pl_container_resources {
+//     width: max-content;    
+//     // background-color: rgb(199, 197, 167);
+//     min-height: 100px;
+
+// }
+
+// .pl_container_partners {
+//     width: 100%;
+//     background-color: rgb(233, 232, 217);
+//     min-height: 100px;
+// }
+
+.pl_container_tk {
+    width: 100%;
+    background-color: rgb(241, 238, 182);
+    min-height: 100px;
+}
+.pl_container_unit_scale{
+    padding: 10px 0;
+    height: 50px;
+    // background-color: rgb(195, 212, 166);
+    display: flex;
+    flex-direction: row;
+    margin: 10px ;
+    width: max-content;
+}
+
+.pl_scale_name{
+    width: 100%;
+    padding: 10px;
+    // background-color: rgb(235, 228, 137);
+    min-height: 50px;
+    font-weight: bold;  
+    min-width: 100px;
+    width: 100px;
+}
+.pl_scale{
+    width: 100%;
+    background-color: rgb(182, 179, 134);
+    min-height: 30px;
+    
+}
+
+.timeScaleH{
+    flex-direction: row;    
+    border-left: 1px solid rgb(134, 139, 182);
+    min-width: 10px;
+}
+.timeScaleD{
+    flex-direction: row;    
+    border-left: 1px solid rgb(134, 139, 182);
+    min-width: 240px;
+}
+.timeScaleL{
+    flex-direction: row;    
+    background-color: rgb(20, 39, 209);
+    min-width: 240px;
+}
+.timeScaleE{
+    flex-direction: row;    
+    border-left: 1px solid rgb(134, 139, 182);
+    min-width: 240px;
+}
+.pl_container_scale{
+    display: flex;
+    flex-direction: column; 
+    width: max-content; 
+    height: 30px;  
+    background-color: aliceblue;
+    justify-content: flex-end;
+}
+.pl_container_scale1{
+    display: flex;
+    flex-direction: row;  
+    width: 100%;   
+    height: 10px;
+    background-color: rgb(184, 201, 216);
+}

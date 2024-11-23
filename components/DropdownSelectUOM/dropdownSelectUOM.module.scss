@@ -1,0 +1,37 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+.in_out_item_select {
+    // flex: 1; /* Каждый элемент занимает равное пространство */
+    padding: 2px; /* Внутренние отступы для инпута */
+    border: 1px solid #ccc; /* Серая граница */
+    border-radius: 4px; /* Скругленные углы */
+    font-size: 12px; /* Размер шрифта */
+    font-weight: bold; /* Жирный текст для кода */
+    max-width:  60px; /* Ширина компонента */
+    background-color: #fff; /* Белый фон для выпадающего списка */
+    color: #333; /* Цвет текста */
+    
+}
+
+/* Цвет фона и границы при фокусе */
+.in_out_item_select:focus {
+    // border-color: #007bff; /* Синий цвет границы при фокусе */
+    outline: none; /* Убираем стандартное выделение */
+}
+
+/* Стиль для опций выпадающего списка */
+.in_out_item_select option {
+    font-size: 12px; /* Размер шрифта для опций */
+}
+
+/* Чтобы применить тот же цвет границы и для выпадающего списка */
+.in_out_item_select {
+    border-color: #ccc; /* Цвет границы, как у инпута */
+    background-color: #fff; /* Белый фон для выпадающего списка */
+}
+
+/* Применение скругления для самого выпадающего списка */
+.in_out_item_select::-ms-expand {
+    display: none; /* Убираем стрелочку для IE */
+}
