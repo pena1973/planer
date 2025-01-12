@@ -14,6 +14,19 @@
     transition: box-shadow 0.3s ease; /* Плавный переход для эффекта при наведении */
     position: relative;
 }
+.tCardOper_id{
+    position: absolute;
+    margin: 5px;
+}
+.icon_cancel {
+    border-radius: 10px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;    
+}
 
 .container_tCardOper:hover {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
@@ -68,6 +81,7 @@
     color: #333; /* Темно-серый цвет текста */
     text-align: center;
     height: auto;
+    margin: 2px;
 }
 
 .tCardOper_oper_title,
@@ -95,13 +109,14 @@
 .container_in_out_item:last-child {
     border-bottom: none; /* Убираем границу у последней строки */
 }
-
 .in_out_item_code,
+.in_out_item_title,
 .in_out_item_uom,
 .in_out_item_qtu {
     // flex: 1; /* Каждая ячейка занимает равное пространство */
     text-align: center; /* Выравнивание текста по центру */
 }
+.in_out_item_title,
 .in_out_item_uom,
 .in_out_item_qtu {
     margin: 0 2px; /* Отступ между ячейками для количества и единицы измерения */
@@ -110,14 +125,27 @@
     // background-color: #ccc;
 }
 
-/* Дополнительные стили для улучшения внешнего вида */
-.container_in_out_item:hover {
-    background-color: #f9f9f9; /* Изменение фона при наведении */
+// /* Дополнительные стили для улучшения внешнего вида */
+// .container_in_out_item:hover {
+//     background-color: #f9f9f9; /* Изменение фона при наведении */
+// }
+
+//------inputs.outputs---------
+.in_out_item_code_out {   
+    min-width: 60px;
+    margin: 5px 0;
 }
-
-//------inputs---------
-
-.in_out_item_code {
+.in_out_item_codeS {   
+    max-width: 60px; 
+    flex: 1; /* Каждый инпут занимает равное пространство */    
+    padding: 2px; /* Внутренние отступы для инпутов */
+    border: 1px solid #ccc; /* Серая граница для инпутов */
+    border-radius: 4px; /* Скругленные углы */
+    font-size: 12px; /* Размер шрифта */
+    font-weight: bold; /* Жирный текст для кода */
+    
+}
+.in_out_item_title {
     flex: 1; /* Каждый инпут занимает равное пространство */
     // margin: 0 5px; /* Отступы между инпутами */
     padding: 2px; /* Внутренние отступы для инпутов */
@@ -128,7 +156,7 @@
     width: 80%;
 }
 
-.in_out_item_code:focus {
+.in_out_item_title:focus {
     // border-color: #007bff; /* Синий цвет границы при фокусе */
     outline: none; /* Убираем стандартное выделение */
 }

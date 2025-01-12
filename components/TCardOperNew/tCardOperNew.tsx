@@ -16,6 +16,7 @@ import save from "@/public/save-rem.png";
 import edit from "@/public/edit-rem.png";
 import del from "@/public/del2.png";
 import add from "@/public/add-rem.png";
+import cancel from "@/public/cancel.png";
 
 import { useRouter, usePathname } from 'next/navigation';
 import { mock } from "node:test";
@@ -26,7 +27,7 @@ _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 
 export interface TCardOperNewProps {
-    id: number,
+    idc: number,
     inn: TCardProductItem[],
     out: TCardProductItem[],
     action: ActionItem | null,
@@ -37,17 +38,23 @@ export interface TCardOperNewProps {
         inn: TCardProductItem[],
         out: TCardProductItem[],
         action: ActionItem | null,
-        duration: number) => void
+        duration: number) => void,
+    cancelOperHandler: (id: number) => void,
+    useUniqueId: () => number
+    setCartEdited: () => void,
 }
 
 export default function TCardOperNew({
-    id,
+    idc,
     inn,
     out,
     action,
     duration,
     deleteOperHandler,
-    saveOperHandler
+    saveOperHandler,
+    cancelOperHandler,
+    useUniqueId,
+    setCartEdited
 }: TCardOperNewProps) {
     const { push, back } = useRouter();
     const pathname = usePathname();
@@ -72,11 +79,20 @@ export default function TCardOperNew({
     })
 
     useEffect(() => {
+
         setInnValue(inn);
         setOutValue(out);
         setActionValue(action);
         setDurationValue(duration)
-    }, [inn, out, duration, action]);
+    }, []);
+
+    const cancelHandler = () => {
+        setInnValue(inn);
+        setOutValue(out);
+        setActionValue(action);
+        setDurationValue(duration)
+        cancelOperHandler(idc);
+    };
 
 
     const checkUOMFilled = (arr: TCardProductItem[]): boolean => {
@@ -90,22 +106,25 @@ export default function TCardOperNew({
     };
 
     const addRowHandler = (mode: string) => {
-        setEdited(true)
-        if (mode === "inn") {
-            setInnValue([...innValue, {} as TCardProductItem]);
+        const idinn = useUniqueId();
+        setEdited(true);
+        setCartEdited();
+        if (mode === "I") {
+            setInnValue([...innValue, { idc: useUniqueId(), codeS: "" } as TCardProductItem]);
         }
-        if (mode === "out") {
-            setOutValue([...outValue, {} as TCardProductItem]);
+        if (mode === "O") {
+            setOutValue([...outValue, { idc: useUniqueId(), codeS: `C${idc}O` + idinn } as TCardProductItem]);
         }
     }
     const delRowHandler = (mode: string, indexToRemove: number) => {
         setEdited(true)
-        if (mode === "inn") {
+        setCartEdited();
+        if (mode === "I") {
             const updatedInnValue = [...innValue];
             updatedInnValue.splice(indexToRemove, 1);
             setInnValue(updatedInnValue);
         }
-        if (mode === "out") {
+        if (mode === "O") {
             const updatedOutValue = [...outValue];
             updatedOutValue.splice(indexToRemove, 1);
             setOutValue(updatedOutValue);
@@ -114,9 +133,9 @@ export default function TCardOperNew({
     // ! событие перевод строки на другую по кнопке enter
     const onKeyDown = (e: React.KeyboardEvent<HTMLElement>, id: number, pref: string) => {
         if (e.key === 'Enter') {
-            let index = out.findIndex(elem => elem.id === id);
+            let index = out.findIndex(elem => elem.idc === id);
             let focusElem = out[(index === out.length - 1) ? index : index + 1];
-            document.getElementById(pref + focusElem.id)?.focus();
+            document.getElementById(pref + focusElem.idc)?.focus();
         }
     }
     // Это событие ввода в инпуты
@@ -124,21 +143,24 @@ export default function TCardOperNew({
 
         if (fieldName === "qtu" && !/^\d*$/.test(String(value))) return
 
+        let value1 = (fieldName === "qtu") ? Number(value) : value
+
         setEdited(true);
-        if (in_out === "in") {
+        setCartEdited();
+        if (in_out === "I") {
             let innValueUpdated = innValue.map((product, index1) => {
                 if (index1 === index) {
-                    return { ...product, [fieldName]: value };
+                    return { ...product, [fieldName]: value1 };
                 }
                 return product;
             });
             setInnValue(innValueUpdated);
         }
 
-        if (in_out === "out") {
+        if (in_out === "O") {
             let outValueUpdated = outValue.map((product, index1) => {
                 if (index1 === index) {
-                    return { ...product, [fieldName]: value };
+                    return { ...product, [fieldName]: value1 };
                 }
                 return product;
             });
@@ -146,26 +168,29 @@ export default function TCardOperNew({
         }
     }
 
-    const handleUOMSelectOut = (id: number, uom: { id: number, title: string } | null) => {
+    const handleUOMSelectOut = (idc: number, uom: { id: number, title: string } | null) => {
         if (!uom) return;
         const outUpdated = outValue.map(product =>
-            (product.id === id) ? { ...product, uom: uom } : product
+            (product.idc === idc) ? { ...product, uom: uom } : product
         )
         setOutValue(outUpdated);
         setEdited(true);
+        setCartEdited();
     };
 
-    const handleUOMSelectInn = (id: number, uom: { id: number, title: string } | null) => {
+    const handleUOMSelectInn = (idc: number, uom: { id: number, title: string } | null) => {
         if (!uom) return;
         const innUpdated = innValue.map(product =>
-            (product.id === id) ? { ...product, uom: uom } : product
+            (product.idc === idc) ? { ...product, uom: uom } : product
         )
         setInnValue(innUpdated);
         setEdited(true);
+        setCartEdited();
 
     };
     const handleSelectOper = (oper: { id: number, title: string } | null) => {
         setEdited(true);
+        setCartEdited();
         setActionValue(oper);
     };
 
@@ -175,23 +200,27 @@ export default function TCardOperNew({
                 <Image className={styles.icon_del}
                     src={del}
                     alt="arrow" width={20} height={20}
-                    onClick={() => delRowHandler("out", index)}
+                    onClick={() => delRowHandler("O", index)}
                 />
-                <input className={styles.in_out_item_code}
-                    id={"out" + elem2.id} autoComplete="off"
-                    value={elem2.code} type="text"
-                    onChange={e => { setInOutHandler(e.target.value, index, "code", "out"); }}
-                    onKeyDown={e => onKeyDown(e, index, "out-code-")}
+                {/* код результата операции */}
+                <div className={styles.in_out_item_code_out}>{elem2.codeS}</div>
+
+                <input className={styles.in_out_item_title}
+                    id={"O-title-" + elem2.idc} autoComplete="off"
+                    value={elem2.title} type="text"
+                    onChange={e => { setInOutHandler(e.target.value, index, "title", "O"); }}
+                    onKeyDown={e => onKeyDown(e, index, "O-title-")}
                 />
 
-                <input className={styles.in_out_item_qtu} id={"out" + elem2.id} autoComplete="off"
+                <input className={styles.in_out_item_qtu}
+                    id={"O-qtu-" + elem2.idc} autoComplete="off"
                     value={elem2.qtu} type="number"
-                    onChange={e => { setInOutHandler(e.target.value, index, "qtu", "out") }}
-                    onKeyDown={e => onKeyDown(e, index, "out-qtu-")} />
+                    onChange={e => { setInOutHandler(e.target.value, index, "qtu", "O") }}
+                    onKeyDown={e => onKeyDown(e, index, "O-qtu-")} />
 
                 <DropdownSelectUOM
                     options={uoms}
-                    onSelect={(uom) => { handleUOMSelectOut(elem2.id, uom) }}
+                    onSelect={(uom) => { handleUOMSelectOut(elem2.idc, uom) }}
                     selectedValue={elem2.uom ? elem2.uom.id : null}
                 // selectedValue={selectedUnitOut ? selectedUnitOut.id : null}
                 />
@@ -206,23 +235,32 @@ export default function TCardOperNew({
                 <Image className={styles.icon_del}
                     src={del}
                     alt="arrow" width={20} height={20}
-                    onClick={() => delRowHandler("inn", index)}
+                    onClick={() => delRowHandler("I", index)}
                 />
-                <input className={styles.in_out_item_code}
-                    id={"in" + elem3.code} autoComplete="off"
-                    value={elem3.code} type="text"
-                    onChange={e => { setInOutHandler(e.target.value, index, "code", "in") }}
-                    onKeyDown={e => onKeyDown(e, elem3.id, "in-code-")} />
+                {/* код источника */}
+                <input className={styles.in_out_item_codeS}
+                    id={"in-title-" + elem3.idc} autoComplete="off"
+                    value={elem3.codeS} type="text"
+                    onChange={e => { setInOutHandler(e.target.value, index, "codeS", "I") }}
+                    onKeyDown={e => onKeyDown(e, elem3.idc, "in-codeS")} />
+
+                {/* <div className={styles.tCardProduct_code}>{elem3.codeS}</div>  */}
+
+                <input className={styles.in_out_item_title}
+                    id={"in-title-" + elem3.idc} autoComplete="off"
+                    value={elem3.title} type="text"
+                    onChange={e => { setInOutHandler(e.target.value, index, "title", "I") }}
+                    onKeyDown={e => onKeyDown(e, elem3.idc, "in-title-")} />
 
                 <input className={styles.in_out_item_qtu}
-                    id={"in" + elem3.id} autoComplete="off"
+                    id={"in-qtu-" + elem3.idc} autoComplete="off"
                     value={elem3.qtu} type="number"
-                    onChange={e => { setInOutHandler(e.target.value, index, "qtu", "in") }}
-                    onKeyDown={e => onKeyDown(e, elem3.id, "in-qtu-")} />
+                    onChange={e => { setInOutHandler(e.target.value, index, "qtu", "I") }}
+                    onKeyDown={e => onKeyDown(e, elem3.idc, "in-qtu-")} />
 
                 <DropdownSelectUOM
                     options={uoms}
-                    onSelect={(uom) => { handleUOMSelectInn(elem3.id, uom) }}
+                    onSelect={(uom) => { handleUOMSelectInn(elem3.idc, uom) }}
                     selectedValue={elem3.uom ? elem3.uom.id : null}
                 />
             </div>
@@ -232,14 +270,21 @@ export default function TCardOperNew({
 
     return (
         <div key={0} className={styles.container_tCardOper}>
+            <div className={styles.tCardOper_id}> C{idc}</div>
+            <Image className={styles.icon_cancel}
+                src={cancel}
+                alt="arrow" width={24} height={24}
+                onClick={() => { cancelHandler() }}
+            />
             <div className={styles.container_tCardOper_out}>
                 <div className={styles.tCardOper_out_title}>result</div>
                 <div className={styles.tCardOper_out}>
                     {resultReactNodes}
                     <div className={styles.tCardOper_buttons_container} >
-                        <button onClick={() => addRowHandler("out")}>добавить</button>
+                        <button onClick={() => addRowHandler("O")}>добавить</button>
                     </div>
                 </div>
+
 
             </div>
 
@@ -254,6 +299,9 @@ export default function TCardOperNew({
                     <input className={styles.in_out_item_qtu}
                         id={"duration"} autoComplete="off"
                         value={durationValue} type="number"
+                        max={2147483647}
+                        maxLength={6}
+                        min={0}
                         onChange={e => {
                             const value = e.target.value;
                             if (/^\d*$/.test(value)) {
@@ -270,7 +318,7 @@ export default function TCardOperNew({
                 <div className={styles.tCardOper_in}>
                     {sourceReactNodes}
                     <div className={styles.tCardOper_buttons_container} >
-                        <button onClick={() => addRowHandler("inn")}>добавить</button>
+                        <button onClick={() => addRowHandler("I")}>добавить</button>
                     </div>
                 </div>
             </div>
@@ -281,22 +329,22 @@ export default function TCardOperNew({
                         src={save}
                         alt="arrow" width={20} height={20}
                         onClick={() => {
-                            if (checkUOMFilled(innValue) && checkUOMFilled(outValue)){
+                            if (checkUOMFilled(innValue) && checkUOMFilled(outValue)) {
                                 setMessage("");
                                 saveOperHandler(
-                                    id,
+                                    idc,
                                     innValue,
                                     outValue,
                                     actionValue,
                                     durationValue,)
-                                } else setMessage("Заполните единицу измерения!")
+                            } else setMessage("Заполните единицу измерения!")
                         }}
                     />
 
                 </div> {edited && <div>*</div>}
                 <Image className={styles.icon_del}
                     src={del} alt="del" width={20} height={20}
-                    onClick={() => deleteOperHandler(id)}
+                    onClick={() => deleteOperHandler(idc)}
                 />
             </div>
         </div>

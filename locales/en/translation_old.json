@@ -1,0 +1,15 @@
+{
+  "index": {
+    "text10": "Motivator",
+    "text20": "an application for learning foreign languages based on artificial intelligence",
+    "text30": "Learn words every day",
+    "text40": "Study grammar",
+    "text50": "Learn to perceive speech by ear",
+    "text60": "Solve tasks and check yourself with the help of AI",
+    "text70": "Learn over 100 conversational topics",
+    "text80": "Consolidate knowledge in practice with a tutor"
+  },
+  "register": {
+    "buttonRecovery": "Restore!"
+  }
+}

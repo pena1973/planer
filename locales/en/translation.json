@@ -1,0 +1,29 @@
+{
+  "service": {
+    "loginNotEntered": "",
+    "serverUnavailable": "",
+    "recoveryMailSent": "",
+    "noConnection": "",
+    "loginLengthMustBe": "",
+    "passLengthMustBe": "",
+    "roleNotSelected": "",
+    "nicknameNotSelected": "",
+    "pass1NotEqualPass2": ""
+  },
+  "login": {
+    "email": "Login(email)",
+    "pass": "Password",
+    "buttonForgot": "Forgot password!",
+    "buttonLogin": "Login!",
+    "register": "Register!"
+  },
+  "register": {
+    "email": "Login(email)",
+    "pass": "Password",
+    "compare": "Doesn't match",
+    "nickname": "Nickname",
+    "visible": "(visible to everyone)",
+    "buttonRegister": "Register!",
+    "login": "Login!"
+  }
+}

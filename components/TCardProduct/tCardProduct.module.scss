@@ -27,6 +27,7 @@
 }
 
 .tCardProduct_title,
+.tCardProduct_code,
 .tCardProduct_qtu,
 .tCardProduct_uom
  {
@@ -35,19 +36,27 @@
      text-align: end;
 }
 .tCardProduct_title{
-    min-width: 140px;
+    min-width: 80px;
     // background-color: antiquewhite;    
     text-align: start;
     font-weight: bold;   
 }
+.tCardProduct_code{
+    min-width: 100px;    
+    text-align: start;
+    font-weight: bold;   
+    // background-color: aqua;
+}
+
+
 .tCardProduct_qtu{
     min-width: 50px;
     // background-color: azure;
     
 }
 .tCardProduct_uom{
-    min-width: 40px;      
-    text-align: center;
+    min-width: 54px;      
+    text-align: start;
     // background-color: blanchedalmond;
 }
 

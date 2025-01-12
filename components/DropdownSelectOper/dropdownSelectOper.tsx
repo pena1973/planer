@@ -19,14 +19,17 @@ interface DropdownSelectOperProps {
 const DropdownSelectOper: React.FC<DropdownSelectOperProps> = ({ options, onSelect, selectedValue }) => {
     return (
         <select 
-            className={styles.in_out_item_select} 
+            // className={styles.oper_select} 
+            className= {(selectedValue !== null)? styles.oper_select:styles.oper_select_placeholder}
             value={selectedValue !== null ? selectedValue : ''} 
             onChange={e => {
                 const selectedOption = options.find(option => option.id === Number(e.target.value)) || null;
                 onSelect(selectedOption); // Вызываем колбэк с выбранной опцией
             }}
         >
-            <option value="" disabled></option> {/* Плейсхолдер */}
+            {/* Плейсхолдер */}
+            <option className={styles.placeholder} value="" disabled>Выберите</option> 
+            {/* <option value="" disabled></option> */}
             {options.map(option => (
                 <option key={option.id} value={option.id}>
                     {option.title}

@@ -14,23 +14,29 @@ const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
-export interface TCardProductProps {
-    id: number,
+export interface TCardProductNewProps {
+    idc: number,   
+    prefix:string, 
+    codeS: string,
     title: string,
     qtu: number,
     uom: UOMItem | null,
-    deleteProductHandler: (id: number) => void,
-    saveProductHandler: (id: number, code: string, qtu: number, uom: UOMItem) => void
+    deleteProductHandler: (index: number) => void,
+    changeProductHandler: (index:number, id: number,  title: string, qtu: number, uom: UOMItem | null) => void,
+    index:number
 }
 
-export default function TCardProduct({
-    id,
+export default function TCardProductNew({
+    idc,   
+    prefix, 
+    codeS,
     title,
     qtu,
     uom,
     deleteProductHandler,
-    saveProductHandler
-}: TCardProductProps) {
+    changeProductHandler,
+    index
+}: TCardProductNewProps) {
 
     // const [editMode, setEditMode] = useState(false);
     const [edited, setEdited] = useState(false);
@@ -38,8 +44,8 @@ export default function TCardProduct({
     const [titleValue, setTitleValue] = useState("");
     const [qtuValue, setQtuValue] = useState(0);
     const [uomValue, setUomValue] = useState<UOMItem | null>(null);
-    
-    const [message, setMessage] = useState("");
+
+    // const [message, setMessage] = useState("");
 
     useEffect(() => {
         setTitleValue(title);
@@ -55,68 +61,44 @@ export default function TCardProduct({
         if (uom) {
             setUomValue(uom);
             setEdited(true);
+            changeProductHandler(index,idc, titleValue, qtuValue, uom)
         }
     };
-    const checkUOMFilled = (uom: UOMItem|null): boolean => {
-        // проверяем uom заполнен
-        return ( uom !== null &&
-            uom !== undefined &&
-            uom.id !== undefined &&
-            uom.title !== undefined &&
-            uom.title.trim() !== ""
-        );
-    };
-   
+
     return (
-        <div key={id} className={styles.container_tCardProduct} >
-            <div className={styles.container_row}>
 
-                <input className={styles.tCardProduct_title}
-                    id={"title" + id} autoComplete="off"
-                    value={titleValue} type="text"
-                    onChange={e => {
-                        setTitleValue(e.target.value);
-                        setEdited(true);
-                    }} />
+        <div className={styles.container_row}>
+            <Image className={styles.icon_del}
+                src={del} alt="del" width={20} height={20}
+                onClick={() => deleteProductHandler(index)}
+            />
+            <div className={styles.tCardProduct_code}>{"P"+idc}|{codeS}</div>
+            <input className={styles.tCardProduct_title}
+                id={"title" + idc} autoComplete="off"
+                value={titleValue} type="text"
+                onChange={e => {
+                    setTitleValue(e.target.value);
+                    setEdited(true);
+                    changeProductHandler(index,idc, e.target.value, qtuValue, uomValue)
+                }} />
 
-                <input className={styles.tCardProduct_qtu}
-                    id={"qtu" + id} autoComplete="off"
-                    value={qtuValue} type="number"
-                    onChange={e => {
-                        setQtuValue(Number(e.target.value));
-                        setEdited(true);
-                    }}
-                />
+            <input className={styles.tCardProduct_qtu}
+                id={"qtu" + idc} autoComplete="off"
+                value={qtuValue} type="number"
+                onChange={e => {
+                    setQtuValue(Number(e.target.value));
+                    setEdited(true);
+                    changeProductHandler(index,idc, titleValue, Number(e.target.value), uomValue)
+                }}
+            />
 
-                <DropdownSelectUOM
-                    options={uoms}
-                    onSelect={handleSelectUOM}
-                    selectedValue={uomValue ? uomValue.id : null}
-                />
-
-            </div>
-            <div className={styles.container_row}>
-            <div className={styles.message}>{message}</div>
-                <div className={styles.container_icon_edit_save}>
-                    <Image className={styles.icon_edit_save}
-                        src={save}
-                        alt="arrow" width={20} height={20}
-                        onClick={() => {
-                            if (uomValue!==null && checkUOMFilled(uomValue)){
-                            setMessage("");
-                            saveProductHandler(id, titleValue, qtuValue, uomValue)
-                        } else {
-                            setMessage("Заполните единицу измерения!");}
-                        }}
-                    />
-                    {edited && <div>*</div>}
-                </div>
-                <Image className={styles.icon_del}
-                    src={del} alt="del" width={20} height={20}
-                    onClick={() => deleteProductHandler(id)}
-                />
-            </div>
+            <DropdownSelectUOM
+                options={uoms}
+                onSelect={handleSelectUOM}
+                selectedValue={uomValue ? uomValue.id : null}
+            />
 
         </div>
+
     )
 }

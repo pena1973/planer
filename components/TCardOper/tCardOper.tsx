@@ -33,8 +33,8 @@ export interface TCardOperProps {
     positionY: number,
     handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,
     // index: number
-    deleteOperHandler:  (id:number) =>void,
-    editOperHandler: (id:number) =>void
+    deleteOperHandler: (id: number) => void,
+    editOperHandler: (id: number) => void
 }
 
 export default function TCardOper({
@@ -55,53 +55,55 @@ export default function TCardOper({
 }: TCardOperProps) {
     const dispatch = useAppDispatch();
 
-    let resultReactNodes;
+    let outReactNodes;
     if (tCardOperation.out) {
-        resultReactNodes = tCardOperation.out.map((elem2, index1) => {
+        outReactNodes = tCardOperation.out.map((elem2, index1) => {
             return (
                 <div key={index1} className={styles.container_in_out_item}
                     onDragOver={(e) => dragOverHandler(e)}
                     onDrop={(e) => dropHandler(e)}
                     draggable={true}
                     onMouseDown={(e) => {
-                        setCurrentDraggingElement(tCardOperation.id + "-" + index1);
+                        setCurrentDraggingElement("C"+tCardOperation.idc+"O"+index1);                        
                         handleMouseDown(e)
                     }}
                     onMouseLeave={handleMouseUp}
                     style={{
 
-                        left: isDragging && (currentDraggingElement === tCardOperation.id + "-" + index1) ? positionX : 0,
-                        top: isDragging && (currentDraggingElement === tCardOperation.id + "-" + index1) ? positionY : 0,
-                        cursor: isDragging && (currentDraggingElement === tCardOperation.id + "-" + index1) ? 'grabbing' : 'grab'
+                        left: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index1) ? positionX : 0,
+                        top: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index1) ? positionY : 0,
+                        cursor: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index1) ? 'grabbing' : 'grab'
                     }}>
-                    <div className={styles.in_out_item_code}>{elem2.code}</div>
+                    <div className={styles.in_out_item_code}>{elem2.codeS}</div>
+                    <div className={styles.in_out_item_title}>{elem2.title}</div>
                     <div className={styles.in_out_item_qty}>{elem2.qtu}</div>
                     <div className={styles.in_out_item_uom}>{elem2.uom.title}</div>
                 </div>
             )
         })
     }
-    let sourceReactNodes;
+    let innReactNodes;
     if (tCardOperation.inn) {
-        sourceReactNodes = tCardOperation.inn.map((elem3, index2) => {
+        innReactNodes = tCardOperation.inn.map((elem3, index2) => {
             return (
                 <div key={index2} className={styles.container_in_out_item}
                     onDragOver={(e) => dragOverHandler(e)}
                     onDrop={(e) => dropHandler(e)}
                     draggable={true}
                     onMouseDown={(e) => {
-                        setCurrentDraggingElement(tCardOperation.id + "-" + index2);
+                        setCurrentDraggingElement("C"+tCardOperation.idc+"I"+index2);                        
                         handleMouseDown(e)
                     }}
                     onMouseLeave={handleMouseUp}
                     style={{
 
-                        left: isDragging && (currentDraggingElement === tCardOperation.id + "-" + index2) ? positionX : 0,
-                        top: isDragging && (currentDraggingElement === tCardOperation.id + "-" + index2) ? positionY : 0,
-                        cursor: isDragging && (currentDraggingElement === tCardOperation.id + "-" + index2) ? 'grabbing' : 'grab'
+                        left: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index2) ? positionX : 0,
+                        top: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index2) ? positionY : 0,
+                        cursor: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index2) ? 'grabbing' : 'grab'
                     }}
                 >
-                    <div className={styles.in_out_item_code}>{elem3.code}</div>
+                    <div className={styles.in_out_item_code}>{elem3.codeS}</div>
+                    <div className={styles.in_out_item_title}>{elem3.title}</div>
                     <div className={styles.in_out_item_qty}>{elem3.qtu}</div>
                     <div className={styles.in_out_item_uom}>{elem3.uom.title}</div>
 
@@ -111,7 +113,8 @@ export default function TCardOper({
     }
 
     return (
-        <div className={styles.container_tCardOper} >
+        <div className={styles.container_tCardOper}>
+            <div className={styles.tCardOper_id}> C{tCardOperation.idc}</div>
             <div className={styles.container_tCardOper_body}>
                 {/* <div className={styles.container_icon_edit_save}>
                     <Image className={styles.icon_edit_save}
@@ -124,26 +127,27 @@ export default function TCardOper({
                 <div className={styles.container_tCardOper_out}>
                     <div className={styles.tCardOper_out_title}>result</div>
                     <div className={styles.tCardOper_out}
-                        onDrop={(e) => {
-                            //  handleDrop(e, 'Target 1') 
-                        }}
+                        onDrop={(e) => { handleDrop(e, `O${tCardOperation.idc}`) }}
                         onDragOver={(e) => e.preventDefault()} // Обязательно для возможности сброса
                     >
-                        {resultReactNodes}
+                        {outReactNodes}
                     </div>
                 </div>
                 <div className={styles.container_tCardOper_action}>
                     <div className={styles.tCardOper_action_title}>action</div>
                     <div className={styles.tCardOper_action}>
-                        
+
                         <div className={styles.tCardOper_oper_title}>{tCardOperation.action.title}</div>
                         <div className={styles.tCardOper_oper_qtu}>{tCardOperation.duration} ms</div>
                     </div>
                 </div>
                 <div className={styles.container_tCardOper_in}>
                     <div className={styles.tCardOper_in_title}>sourse</div>
-                    <div className={styles.tCardOper_in}>
-                        {sourceReactNodes}
+                    <div className={styles.tCardOper_in}
+                        onDrop={(e) => { handleDrop(e, `I${tCardOperation.idc}`) }}
+                        onDragOver={(e) => e.preventDefault()} // Обязательно для возможности сброса
+                    >
+                        {innReactNodes}
                     </div>
                 </div>
             </div>
@@ -152,13 +156,13 @@ export default function TCardOper({
                     <Image className={styles.icon_edit_save}
                         src={edit}
                         alt="arrow" width={20} height={20}
-                    onClick={() => { editOperHandler(tCardOperation.id) }}
+                        onClick={() => { editOperHandler(tCardOperation.idc) }}
                     />
 
                 </div>
                 <Image className={styles.icon_del}
                     src={del} alt="del" width={20} height={20}
-                onClick={() => deleteOperHandler(tCardOperation.id)}
+                    onClick={() => deleteOperHandler(tCardOperation.idc)}
                 />
             </div>
 

@@ -1,0 +1,101 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+.container_tCardProduct {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+    height: auto;
+    min-height: 30px;
+    justify-content: flex-end;
+    margin: 5px;
+    border-radius: 10px;
+    /* Скругленные углы */
+    background-color: #f0f0f0;
+    /* Светло-серый фон */
+    border: 1px solid #ccc;
+    /* Равномерная серая граница */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Легкая тень для глубины */
+    transition: box-shadow 0.3s ease;
+    /* Плавный переход для эффекта при наведении */
+    // position: relative;
+     padding: 2px;
+    // padding: 17px 2px 2px 2px;
+    // background-color: aqua;
+    // height: 100px;
+    font-size: 12px;    
+
+}
+
+.tCardProduct_title,
+.tCardProduct_qtu,
+.tCardProduct_uom
+ {
+    align-items: center;
+     padding: 5px;   
+     text-align: end;
+}
+.tCardProduct_title{
+    min-width: 130px;
+    // background-color: antiquewhite;    
+    text-align: start;
+    font-weight: bold;   
+}
+.tCardProduct_qtu{
+    min-width: 50px;
+    // background-color: azure;
+    
+}
+.tCardProduct_uom{
+    min-width: 54px;      
+    text-align: start;
+    // background-color: blanchedalmond;
+}
+
+
+.icon_del{
+width: 20px;
+height: 20px;
+    cursor: pointer;
+}
+
+.container_row{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    // background-color: aquamarine;
+    width: 100%;
+}
+.container_buttons_row{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    border-top: 1px solid #ccc; /* Серая граница */
+    // background-color: aquamarine;
+    width: calc(100% - 4px);
+    // position: absolute;
+    // right: 0;
+    // top: 0;
+    overflow: hidden;
+}
+.container_icon_edit_save{
+     display: flex;
+     flex-direction: row;
+     align-items: center;   
+     cursor: pointer;   
+}
+.icon_edit_save{       
+    border-top-left-radius: 5px;
+}
+
+.message{
+    font-size: 12px; /* Размер шрифта для информации о времени */
+    color: #666; /* Светло-серый цвет для дополнительной информации */    
+    text-align: center;    
+    width: 100%;
+    color: red;
+}

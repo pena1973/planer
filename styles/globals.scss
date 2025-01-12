@@ -107,14 +107,21 @@ button {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-width: 200px;
+    min-width: 220px;
     border-right: 2px solid rgb(0, 0, 0);
     // height: calc(100% - 55px);
     height: 100%;
     // background: antiquewhite;
     overflow: hidden;
+    background: $sidebar_background;
 }
-
+.container_left_inner {
+    max-height: calc(100% - 100px);
+    // background: rgb(173, 168, 160);
+    background: $sidebar_background;
+    overflow: hidden;
+    flex: 1;
+}
 /* //////////////////// */
 .container_right {
     display: flex;
@@ -124,3 +131,17 @@ button {
     overflow: auto;
 
 }
+
+// table{
+    
+//     margin: 5px;    
+//     width: 400px;
+//     height: auto;
+//     margin: 5px;
+//     border-radius: 10px; /* Скругленные углы */
+//     background-color: #f0f0f0; /* Светло-серый фон */
+//     border: 1px solid #ccc; /* Равномерная серая граница */
+//     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень для глубины */
+//     transition: box-shadow 0.3s ease; /* Плавный переход для эффекта при наведении */
+//     position: relative
+// }

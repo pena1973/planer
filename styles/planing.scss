@@ -1,5 +1,69 @@
 @import '@/styles/colors.scss';
 
+// background: rgb(240, 240, 240); 
+
+.container_planing_title {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    margin: 10px 0 5px 0;
+    
+}
+.container_planing_title_n {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    margin: 10px 0 5px 0;
+    border-top: 1px solid black;
+}
+
+.container_planing {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100% - 370px);
+    overflow: auto;
+    // background-color: aliceblue;
+}
+.container_planing_n {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100% - 600px);
+    overflow: auto;
+    // background-color: aliceblue;
+}
+
+.container_plan {
+    display: flex;
+    flex-direction: row;
+    padding: 10px 5px 10px 10px;
+    cursor: grab;
+    width: 100%;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.container_plan_edit {
+    display: flex;
+    font-size: 14px;    
+    font-weight: bold;
+    align-items: center;
+}
+
+.container_buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding-top: 10px;
+}
+
+
+
+
 .pl_container_left_inner {
     max-height: 100%;
     background: rgb(173, 168, 160);
@@ -13,7 +77,7 @@
     width: 100%;
     height: calc(100% - 300px);
     overflow: auto;
-    background-color: aliceblue;
+    // background-color: aliceblue;
 }
 
 .pl_container_cards_title {
@@ -31,12 +95,16 @@
     width: 100%;
     height: 200px;
     overflow: auto;
-    background-color: aliceblue;
+    // background-color: aliceblue;
 }
 
 // срдержание правой области
 .pl_container_right {
     flex-direction: column;
+    
+    // background-color: rgb(245, 243, 240);
+    background-color:rgb(240, 240, 240)
+    // background-color: rgb(241, 238, 182);
 }
 .pl_container_title {
     width: fit-content;
@@ -60,7 +128,8 @@
 
 .pl_container_tk {
     width: 100%;
-    background-color: rgb(241, 238, 182);
+    // background-color: rgb(241, 238, 182);
+    background-color: rgb(245, 243, 240);
     min-height: 100px;
 }
 .pl_container_unit_scale{

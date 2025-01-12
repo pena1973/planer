@@ -1,18 +1,25 @@
 import Layout from "@/components/Layout/layout";
-import Arrow1 from "@/components/Arrow1/arrow1";
+import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
+import UOMSCatalog from "@/components/catalogs/UOMSCatalog/uomsCatalog";
+import ActionsCatalog from "@/components/catalogs/ActionsCatalog/аctionsCatalog";
+
+import UnitsCatalog from "@/components/catalogs/UnitsCatalog/unitsCatalog";
+// import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
-
+import { ActionItem, UOMItem, UnitItem } from '@/types'
 
 import Image from 'next/image';
-import { useAppDispatch } from "@/pages/_app";
-import { useRouter } from 'next/navigation';
 
+import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState, useAppDispatch } from "@/pages/_app";
 
 
 import {
 
 } from '@/store/slices';
+import { Index } from "typeorm";
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
@@ -26,104 +33,120 @@ export default function Resources({ }: ResourcesProps) {
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();
+  const [message, setMessage] = useState(''); // индикация сообщения об ошибках
+  const [resource, setResource] = useState(1); // переключатель между каталогами
 
-  let resources = [
-    { id: 100 },
-    { id: 123 },
-    { id: 513 },
-    { id: 145 },
-    { id: 100 },
-    { id: 123 },
-    { id: 513 },
-    { id: 145 },
-    { id: 100 },
-    { id: 123 },
-    { id: 513 },
-    { id: 145 },
-    { id: 100 },
-    { id: 123 },
-    { id: 513 },
-    { id: 145 },
-    { id: 100 },
-    { id: 123 },
-    { id: 513 },
-    { id: 145 },
-    { id: 100 },
-    { id: 123 },
-    { id: 513 },
-    { id: 145 },
-  ] as { id: number }[]
+  // загружает настройки
+  const selectSetting = async () => {
+    setResource(1);
 
-  // нужна проверка количества и последователшьности стадий
+  };
+  // загружает действия которые делают юниты
+  // Разные юниты могут делать одно и тоже действие  
+  const selectActions = async () => {
+    setResource(2);
+  }
 
-  let resourcesReactNodes = resources.map((elem, index) => {
-    return (
-      <div key={index} className="resources_container_unit">Ресурс {elem.id}</div>
-    );
-  })
+  // загружает единицы измерения
+  const selectUOMs = async () => {
+    setResource(3);
+    try {
+      const res = await fetch(`/api/tcards-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)        
+        if (receivedData.success) {
+          // //   Обновим текущую карту
+          // let tCards = receivedData.tCards as TCardItem[]
+          // // Сортируем tCards по номеру (если number это число)
+          // let tCards_ = tCards.sort((a, b) => a.number - b.number);
+          // let tCardsUpdated = tCards_.map(card => { return { ...card, date: new Date(card.date) } });
+          // dispatch(setTCards(tCardsUpdated));
+          // setMessage("Карты успешно получены");
+        }
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+  };
+  // загружает рабочие центры Юниты
+  const selectSUnits = async () => {
+    setResource(4);
+  }
 
-  const [startX, setStartX] = useState(50);
-  const [startY, setStartY] = useState(50);
-  const [endX, setEndX] = useState(200);
-  const [endY, setEndY] = useState(200);
+  // Начальный загруз
+  useEffect(() => {
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setEndX(prev => prev + 1); // Пример плавного движения
-  //     setEndY(prev => prev + 10); // Пример плавного движения
-  //   }, 100);
+  }, []);
 
-  //   return () => clearInterval(interval); // Очистка интервала
-  // }, []);
+
+  const onFocusUnitHandler = (code: string) => {
+
+    console.log('Code:', code);
+    // Дальнейшая обработка данных
+  };
+  // Загрузка файла
+  const onFileUpload = (content: UOMItem | ActionItem | UnitItem) => {
+    console.log('File uploaded with content:', content);
+    // Дальнейшая обработка данных
+  };
+
+
 
   return (
     <Layout>
-      <div className="resources_container" >
-        <div className="resources_container_left">
-          <div className="resources_container_units">
-            <div className="resources_container_units">
-              {resourcesReactNodes}
+      <div className="container" >
+        <div className="container_left">
+          <div className="container_left_inner">
+
+            <div className="container_catalogs">
+              <div className="resources_container_catalog" onClick={selectSetting}>Настройки</div>
+              <div className="resources_container_catalog" onClick={selectActions}>Действия</div>
+              <div className="resources_container_catalog" onClick={selectUOMs}>Единицы измерения</div>
+              <div className="resources_container_catalog" onClick={selectSUnits}>Юниты</div>
+
             </div>
-            <button>Добавить</button>
+            <div className="container_cards_title">Пояснение</div>
+            <div className="container_message">{message}</div>
           </div>
-        </div>
-        {/* <ReactArrowExample/> */}
-        <Arrow1 startX={300} startY={300} endX={400} endY={450} strokeWidth={1} strokeStyle='solid' />
-        <div style={{ position: 'relative', width: '500px', height: '500px', border: '1px solid black' }}>
-          <Arrow1 startX={startX} startY={startY} endX={endX} endY={endY} strokeWidth={1} strokeStyle="dashed" />
-        </div>
-        {/* <div className="resources_container_right">
-        <div className="souces_container_right_unit">
-          <div className="souces_container_right_unit_title">Операции</div>
-          <div className="souces_container_right_operation">Сборка 1</div>
-          <div className="souces_container_right_operation">Сборка 2</div>
-          <div className="souces_container_right_operation">Сборка 3</div>
-          <div className="souces_container_right_operation">Сборка 4</div>
-          <div className="souces_container_right_operation_new">
-            <input className="souces_container_right_operation_new_name" />
-            <button > сохранить</button>
-          </div>
+          {/* Загрузка справочников для начала работы */}
+          <FileUploadButton
+            onFileUpload={onFileUpload}
+            expectedInterface={{} as UOMItem} />
 
         </div>
-        <div className="souces_container_right_unit">
-          <div className="souces_container_right_unit_title">Материалы</div>
-          <div className="souces_container_right_operation">сверло </div>
-          <div className="souces_container_right_operation">наконечник</div>
-          <div className="souces_container_right_operation_new">
-            <input className="souces_container_right_operation_new_name" />
-            <button > сохранить</button>
-          </div>
+        <div className="container_right">
+          {/* Настройки */}
+          {resource === 1 && <div></div>}
+          {/* Действия */}
+          {resource === 2 && <div className="contaitainer_catalog">
+            <div className="catalog_title"> Каталог производственных операций предприятия</div>
+            <ActionsCatalog setMessage={setMessage}/>
+          </div>}
+          {/* ЕдИзм */}
+          {resource === 3 &&
+            <div className="contaitainer_catalog">
+              <div className="catalog_title"> Каталог единиц измерения</div>
+              <UOMSCatalog setMessage={setMessage}/>
+            </div>}
+          {/* Юниты */}
+          {resource === 4 && <div className="contaitainer_catalog">            
+            <UnitsCatalog setMessage={setMessage} />
+          </div>}
         </div>
-        <div className="souces_container_right_unit">
-          <div className="souces_container_right_unit_title">Прочая информация</div>
-          <div className="souces_container_right_operation">Резка 10</div>
-          <div className="souces_container_right_operation_new">
-            <input className="souces_container_right_operation_new_name" />
-            <button > сохранить</button>
-          </div>
-        </div>
-      </div> */}
-
 
       </div>
     </Layout >

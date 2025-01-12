@@ -1,0 +1,42 @@
+
+///////////////Загрузка файла////////////
+// .container_card_load {
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     text-align: center;
+//     font-size: 40;
+//     min-height: 100px;
+//     width: 100%;
+//     border-radius: 5px;
+//     border: 2px solid $button_border;   
+//     justify-self: center;
+// }
+
+.container_card_load {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 16px; // Более сдержанный размер шрифта
+    min-height: 100px;
+    width: 100%;
+    border-radius: 5px; // Скругленные углы
+    border: 2px solid rgb(200, 200, 200); // Легкая серая граница для согласования с остальной цветовой гаммой
+    background-color: rgb(245, 245, 245); // Светло-серый фон для сдержанности
+    color: rgb(100, 100, 100); // Темно-серый текст, чтобы было легко читать
+    cursor: pointer; // Курсор указывает, что это область для перетаскивания
+    transition: background-color 0.3s ease, border-color 0.3s ease; // Плавный переход для фона и границы
+}
+
+/* Эффект при наведении */
+.container_card_load:hover {
+    background-color: rgb(230, 230, 230); // Чуть более темный серый фон при наведении
+    border-color: rgb(180, 180, 180); // Тонкая темная граница при наведении
+}
+
+/* Эффект при перетаскивании файла */
+.container_card_load.dragover {
+    background-color: rgb(220, 220, 220); // Еще более темный фон при перетаскивании
+    border-color: rgb(160, 160, 160); // Более темная граница при перетаскивании
+}

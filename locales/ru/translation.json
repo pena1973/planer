@@ -1,0 +1,29 @@
+{
+  "service": {
+    "loginNotEntered": "",
+    "serverUnavailable": "",
+    "recoveryMailSent": "",
+    "noConnection": "",
+    "loginLengthMustBe": "",
+    "passLengthMustBe": "",
+    "roleNotSelected": "",
+    "nicknameNotSelected": "",
+    "pass1NotEqualPass2": ""
+  },
+  "login": {
+    "email": "Логин(email)",
+    "pass": "Пароль",
+    "buttonForgot": "Забыл пароль!",
+    "buttonLogin": "Логин!",
+    "register": "Зарегистрироватся!"
+  },
+  "register": {
+    "email": "Логин(email)",
+    "pass": "Пароль",
+    "compare": "Не совпадает",
+    "nickname": "Псевдоним",
+    "visible": "(виден всем)",
+    "buttonRegister": "Зарегистрироватся!",
+    "login": "Логин!"
+  }
+}

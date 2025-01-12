@@ -1,21 +1,20 @@
 
 import '@/styles/globals.scss';
+import '@/styles/index.scss';
 import '@/styles/cards.scss';
 import '@/styles/planing.scss';
 import '@/styles/resources.scss';
+
+import "reflect-metadata"
+
 import type { AppProps } from 'next/app'
-import React, { StrictMode, Suspense } from 'react';
+import React, { StrictMode, Suspense} from 'react';
+
 // это пакет редукс
 import { Provider, useDispatch } from 'react-redux';
 // это набор утилит для редукс облегчающий его настройку
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import {
-  authSlice,
-    catalogSlice, 
-  dataSlice, 
-  //textSlice, statSlice, tutorSlice
-
-} from '@/store/slices';
+import {authSlice, catalogSlice,  dataSlice} from '@/store/slices';
 
 import {
   persistReducer,
@@ -36,20 +35,15 @@ import { PersistGate } from 'redux-persist/integration/react'
 export const rootReducer = combineReducers({
   authSlice: authSlice.reducer,
   catalogSlice: catalogSlice.reducer,
-  dataSlice: dataSlice.reducer,
-  // textSlice: textSlice.reducer,
-  // statSlice: statSlice.reducer,
-  // tutorSlice: tutorSlice.reducer,
+  dataSlice: dataSlice.reducer,  
 });
 
 // // key нужен чтобы создавать несколько хранилищ
 const persistConfig = {
   key: 'myPersistKeyword',
-  storage: storageSession,
-  // storage: storage,
-  whitelist: ['authSlice1',
-    //  'playSlice', 'advSlice', 'textSlice', 'statSlice', 'tutorSlice'
-  ]
+  storage: storageSession,  
+  whitelist: ['authSlice', 'catalogSlice', 'dataSlice'],
+  // timeout: 1000,
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
