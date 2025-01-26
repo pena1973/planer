@@ -2,6 +2,7 @@ import Layout from "@/components/Layout/layout";
 import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
 import UOMSCatalog from "@/components/catalogs/UOMSCatalog/uomsCatalog";
 import ActionsCatalog from "@/components/catalogs/ActionsCatalog/аctionsCatalog";
+import CompanySchedule from "@/components/catalogs/CompanySchedule/сompanySchedule";
 
 import UnitsCatalog from "@/components/catalogs/UnitsCatalog/unitsCatalog";
 // import Arrow1 from "@/components/Arrow1/arrow1";
@@ -130,7 +131,10 @@ export default function Resources({ }: ResourcesProps) {
         </div>
         <div className="container_right">
           {/* Настройки */}
-          {resource === 1 && <div></div>}
+          {resource === 1 && <div className="contaitainer_catalog">
+            <div className="catalog_title"> Расписание работы предприятия</div>
+            <CompanySchedule setMessage={setMessage}/>
+            </div>}
           {/* Действия */}
           {resource === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Каталог производственных операций предприятия</div>

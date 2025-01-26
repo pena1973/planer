@@ -1,50 +1,26 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import styles from "./planScaleContainer.module.scss";
-import { CalendarItem, LoadItem, DateLoadItem, UnitLoadItem, UnitBelongEnum, UnitTypeEnum, UnitItem } from "@/types";
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, OperStatusEnum, UnitItem } from "@/types";
 import { setUnits } from '@/store/slices';
 
-// генерация одного дня на шкале
-const generateCalendarItem = (day: Date): CalendarItem => {
-  const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-  currentDate.setHours(0, 0, 0, 0);
-
-  const dayOfWeek = currentDate.getDay();  // День недели для учета выходных
-
-  // Создаем объект CalendarItem
-  const calendarItem: CalendarItem = {
-    idDay: idDay(currentDate),
-    date: new Date(currentDate),  // Текущая дата
-    mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
-    day: true,  // Указываем, что это день
-    timeStartWork: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 540 : 0,  // Время начала работы (9:00, если не выходной)
-    timeFinishWork: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 1020 : 0,  // Время окончания работы (17:00, если не выходной)
-    timeStartBreack1: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 780 : 0,  // Перерыв 1 (13:00, если не выходной)
-    timeFinishBreack1: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 840 : 0,  // Перерыв 1 (14:00, если не выходной)
-    timeStartBreack2: 0,  // Перерыв 2 (не используется в этой логике)
-    timeFinishBreack2: 0,  // Перерыв 2 (не используется в этой логике)
-    timeStartBreack3: 0,  // Перерыв 3 (не используется в этой логике)
-    timeFinishBreack3: 0,  // Перерыв 3 (не используется в этой логике)
-  };
-  return calendarItem;  // Возвращаем один элемент календаря
-};
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
   // Если scale 100%, widthDay = totalWidth
   // Если scale 10%, widthDay = totalWidth / 100
   return (totalWidth * scale) / 100;
 };
-// генерация привычной нам даты - ее использую как id дня
-const idDay = (date: Date): string => {
-  const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-  const year = date.getFullYear();  // Год
 
-  return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-};
-
-
-const PlanScaleContainer: React.FC = () => {
+export interface PlanScaleContainerProps {
+  generateCalendarItem: (day: Date) => CalendarItem,
+  idDay: (date: Date) => string,
+  unitLoads: UnitLoadItem[]
+}
+export default function PlanScaleContainer({
+  generateCalendarItem,
+  idDay,
+  unitLoads
+}: PlanScaleContainerProps) {
 
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
   const [dayWidth, setDayWidth] = useState(0); // ширина дня на шкале
@@ -54,10 +30,10 @@ const PlanScaleContainer: React.FC = () => {
   const [calendarViewPlus, setCalendarViewPlus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени планирование при изменении]
   const [calendarViewMinus, setCalendarViewMinus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени история при изменении]
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
-  const [scale, setScale] = useState(500); // содержит Масштаб (10% - 500%)  
+  const [scale, setScale] = useState(100); // содержит Масштаб (10% - 500%)  
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
 
-  let unitsLoad = useRef([] as UnitLoadItem[]); // массив юнитов  
+  // let unitsLoad = useRef(unitLoads as UnitLoadItem[]); // массив юнитов  
   let unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   let unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
 
@@ -68,220 +44,12 @@ const PlanScaleContainer: React.FC = () => {
     todayDateRef.current = idDay(today);
   }
 
-  // Функция для изменения масштаба
-  const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-
-    const newScale = Number(event.target.value);
-    let newShift = shift * (newScale / scale);  // Пропорциональное изменение сдвига
-
-    setScale(newScale);
-    setShift(newShift);
-  };
-  // Функция для изменения масштаба
-  const getUnits = () => {
-    // mock
-    // массив юнитов с загрузкой
-    const units: UnitLoadItem[] = [
-      {
-        unit: {
-          id: 1,
-          title: " Артур",
-          code: "12",
-          actions: [],
-          retool: 2000,
-          modified: false,
-          belong: UnitBelongEnum.I,
-          type: UnitTypeEnum.P,
-        },
-        loads: [{
-          date: new Date(2025, 0, 12, 0, 0, 0,),
-          operations: [{
-            idc_oper: 45,
-            id_tCard: 33,
-            msStart: 32400000, // начало интервала загрузки в ms от начала дня
-            msFinish: 64800000 // конец интервала загрузки в ms от начала дня
-          }, {
-            idc_oper: 46,
-            id_tCard: 37,
-            msStart: 54800000,
-            msFinish: 64800000
-          }
-          ]
-        }, {
-          date: new Date(2025, 0, 13, 0, 0, 0,),
-          operations: [{
-            idc_oper: 45,
-            id_tCard: 33,
-            msStart: 32400000,
-            msFinish: 44800000
-          }, {
-            idc_oper: 46,
-            id_tCard: 37,
-            msStart: 54800000,
-            msFinish: 64800000
-          }
-          ]
-        }]
-      },
-      {
-        unit: {
-          id: 2,
-          title: " Сергей",
-          code: "11",
-          actions: [],
-          retool: 2000,
-          modified: false,
-          belong: UnitBelongEnum.I,
-          type: UnitTypeEnum.P,
-        },
-        loads: [{
-          date: new Date(2025, 0, 13, 0, 0, 0,),
-          operations: [{
-            idc_oper: 45,
-            id_tCard: 33,
-            msStart: 32400000,
-            msFinish: 38400000
-          }, {
-            idc_oper: 46,
-            id_tCard: 37,
-            msStart: 48400000,
-            msFinish: 64800000
-          }
-          ]
-        }, {
-          date: new Date(2025, 0, 12, 0, 0, 0,),
-          operations: [{
-            idc_oper: 45,
-            id_tCard: 33,
-            msStart: 32400000,
-            msFinish: 38400000
-          }, {
-            idc_oper: 46,
-            id_tCard: 37,
-            msStart: 48400000,
-            msFinish: 64800000
-          }
-          ]
-        }]
-      },
-      {
-        unit: {
-          id: 3,
-          title: " Хранилище",
-          code: "15",
-          actions: [],
-          retool: 2000,
-          modified: false,
-          belong: UnitBelongEnum.I,
-          type: UnitTypeEnum.K,
-        },
-        loads: []
-      },
-      {
-        unit: {
-          id: 10,
-          title: " SIA Outer",
-          code: "120",
-          actions: [],
-          retool: 2000,
-          modified: false,
-          belong: UnitBelongEnum.O,
-          type: UnitTypeEnum.P,
-        },
-        loads: [{
-          date: new Date(2025, 0, 12, 0, 0, 0,),
-          operations: [{
-            idc_oper: 45,
-            id_tCard: 33,
-            msStart: 32400000, // начало интервала загрузки в ms от начала дня
-            msFinish: 64800000 // конец интервала загрузки в ms от начала дня
-          }, {
-            idc_oper: 46,
-            id_tCard: 37,
-            msStart: 54800000,
-            msFinish: 64800000
-          }
-          ]
-        }, {
-          date: new Date(2025, 0, 13, 0, 0, 0,),
-          operations: [{
-            idc_oper: 45,
-            id_tCard: 33,
-            msStart: 32400000,
-            msFinish: 44800000
-          }, {
-            idc_oper: 46,
-            id_tCard: 37,
-            msStart: 54800000,
-            msFinish: 64800000
-          }
-          ]
-        }]
-      },
-      {
-        unit: {
-          id: 20,
-          title: " SIA Ontec",
-          code: "11",
-          actions: [],
-          retool: 2000,
-          modified: false,
-          belong: UnitBelongEnum.O,
-          type: UnitTypeEnum.P,
-        },
-        loads: [{
-          date: new Date(2025, 0, 13, 0, 0, 0,),
-          operations: [{
-            idc_oper: 45,
-            id_tCard: 33,
-            msStart: 32400000,
-            msFinish: 38400000
-          }, {
-            idc_oper: 46,
-            id_tCard: 37,
-            msStart: 48400000,
-            msFinish: 64800000
-          }
-          ]
-        }, {
-          date: new Date(2025, 0, 12, 0, 0, 0,),
-          operations: [{
-            idc_oper: 45,
-            id_tCard: 33,
-            msStart: 32400000,
-            msFinish: 38400000
-          }, {
-            idc_oper: 46,
-            id_tCard: 37,
-            msStart: 48400000,
-            msFinish: 64800000
-          }
-          ]
-        }]
-      },
-      {
-        unit: {
-          id: 30,
-          title: " SIA Open Store",
-          code: "15",
-          actions: [],
-          retool: 2000,
-          modified: false,
-          belong: UnitBelongEnum.O,
-          type: UnitTypeEnum.K,
-        },
-        loads: []
-      }
-
-    ];
-    return units
-  };
-
-  // Инициализация
+  
+  // изменение при смене массива загрузки, может прорисоватся и при сохранении и при накидывании драфта
   useEffect(() => {
     //  получаем  планировку юнитов
-    unitsLoad.current = getUnits();
-    let unitsView = unitsLoad.current.map(elem => { return elem.unit })
+    // Из загрузки вытаскиваем список юнитов и делим его на свой чужой;
+    let unitsView = unitLoads.map(elem => { return elem.unit })
     unitsViewInner.current = unitsView.filter(elem => elem.belong === UnitBelongEnum.I);
     unitsViewOuter.current = unitsView.filter(elem => elem.belong === UnitBelongEnum.O);
     // Стартовый масштаб всегда 100% и в нем помещается один день  временно 500
@@ -313,8 +81,19 @@ const PlanScaleContainer: React.FC = () => {
       window.removeEventListener('resize', updateSize);
     };
 
-  }, []);
+  }, [unitLoads]);
 
+  //// ШКАЛА
+  // Функция для изменения масштаба
+  const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+    const newScale = Number(event.target.value);
+    let newShift = shift * (newScale / scale);  // Пропорциональное изменение сдвига
+
+    setScale(newScale);
+    setShift(newShift);
+  };
+      
   // Обработка визуализации сдвига при изменении шкалы и размера окна и сдвига от левого края
   useEffect(() => {
     if (timelineWidth === 0) return
@@ -428,12 +207,10 @@ const PlanScaleContainer: React.FC = () => {
     for (let i = 0; i < 288; i++) { // 288 5 минуток в дне (24 часа * 60/5 минут)
       const intervTime = i * 5;
       const isWorkTime = intervTime >= calendarItem.timeStartWork && intervTime < calendarItem.timeFinishWork;
-      const isBreakTime = (
-        (intervTime >= calendarItem.timeStartBreack1 && intervTime < calendarItem.timeFinishBreack1) ||
-        (intervTime >= calendarItem.timeStartBreack2 && intervTime < calendarItem.timeFinishBreack2) ||
-        (intervTime >= calendarItem.timeStartBreack3 && intervTime < calendarItem.timeFinishBreack3)
+      const isBreakTime = calendarItem.breaks.some(breakPeriod =>
+        intervTime >= breakPeriod.timeStart && intervTime < breakPeriod.timeFinish
       );
-
+      
       //  расписание предприятия
       const timeStyle = isBreakTime
         ? styles.breakTime  // Если время перерыв, применяем стиль для перерыва
@@ -487,44 +264,55 @@ const PlanScaleContainer: React.FC = () => {
       //  вычисление визуализации загруза юнитов
       // Проверяем загрузку юнитов
 
-
       let unitLoadBlockseReactNodesInner = unitsViewInner.current.map(unitView => {
-        let unitLoad = unitsLoad.current.find(elem => elem.unit.id === unitView.id);
-        if (!unitLoad) return (<div className={styles.unit_unload} >1</div>);
-        // Ищем загрузки юнитов для конкретной даты
-        const dateLoad = unitLoad.loads.find(load =>
-          load.date.toDateString() === calendarItem.date.toDateString()
-        );
-
+        let dateLoad = unitLoads.filter(elem => {
+          return (elem.unit.id === unitView.id && 
+            new Date(elem.date).toDateString() === new Date(calendarItem.date).toDateString())
+        });
+         
         if (dateLoad) {
           // Проверяем, попадает ли текущий интервал в загрузку этого юнита
-          const isUnitLoaded = dateLoad.operations.some(operation => {
-
-            return intervTime >= operation.msStart / (1000 * 60) && intervTime < operation.msFinish / (1000 * 60);
+          const isUnitLoaded = dateLoad.some(operation => {
+            return intervTime >= operation.timeStart && intervTime < operation.timeFinish;
           });
-
-          // Добавляем блок загрузки юнита, если интервал совпадает
+        
+          // Если интервал совпадает, проверяем статус draft для первой загрузки
           if (isUnitLoaded) {
-            return (<div className={styles.unit_load} ></div>);
+            // Если операция помечена как draft
+            const isDraft = dateLoad.some(load => load.status === OperStatusEnum.D);
+            
+            // Добавляем блок загрузки юнита в зависимости от значения draft
+            if (isDraft) {
+              return (<div className={styles.unit_load_draft}></div>); // Для операций с draft
+            } else {
+              return (<div className={styles.unit_load}></div>); // Для обычных операций
+            }
+          } else {
+            return (<div className={styles.unit_unload}></div>); // Если нет совпадений
           }
-          else return (<div className={styles.unit_unload} ></div>);
-
         }
-        else return (<div className={styles.unit_unload} ></div>);
+
       });
+
       let unitLoadBlockseReactNodesOuter = unitsViewOuter.current.map(unitView => {
-        let unitLoad = unitsLoad.current.find(elem => elem.unit.id === unitView.id);
-        if (!unitLoad) return (<div className={styles.unit_unload} >1</div>);
-        // Ищем загрузки юнитов для конкретной даты
-        const dateLoad = unitLoad.loads.find(load =>
-          load.date.toDateString() === calendarItem.date.toDateString()
-        );
+        
+        // let unitLoad = unitLoads.find(elem => elem.unit.id === unitView.id);
+        // if (!unitLoad) return (<div className={styles.unit_unload} >1</div>);
+        // // Ищем загрузки юнитов для конкретной даты
+        // const dateLoad = unitLoad.unitDates.find(unitDate =>
+        //   unitDate.date.toDateString() === calendarItem.date.toDateString()
+        // );
+
+        let dateLoad = unitLoads.filter(elem => {
+          return (elem.unit.id === unitView.id && 
+            new Date(elem.date).toDateString() === new Date(calendarItem.date).toDateString())
+        });
 
         if (dateLoad) {
           // Проверяем, попадает ли текущий интервал в загрузку этого юнита
-          const isUnitLoaded = dateLoad.operations.some(operation => {
+          const isUnitLoaded = dateLoad.some(operation => {
 
-            return intervTime >= operation.msStart / (1000 * 60) && intervTime < operation.msFinish / (1000 * 60);
+            return intervTime >= operation.timeStart  && intervTime < operation.timeFinish;
           });
 
           // Добавляем блок загрузки юнита, если интервал совпадает
@@ -539,7 +327,7 @@ const PlanScaleContainer: React.FC = () => {
 
       dayScale.push(
         <div
-          key={i}
+          key={`${calendarItem.day}+${i}}`}
           className={`${styles.timeBlock} ${timeStyle} ${hourStyle}`}
           style={{ width: `${dayWidth / 288}px` }} // Делаем каждый блок 1/288 ширины
         >
@@ -681,4 +469,4 @@ const PlanScaleContainer: React.FC = () => {
 };
 
 
-export default PlanScaleContainer;
+// export default PlanScaleContainer;

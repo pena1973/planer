@@ -1,19 +1,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnits } from './handlers';  // расчеты
+import { getExceptions } from './handlers';  // расчеты
 
 import { Repository, In } from 'typeorm';
-
-import { UnitTable } from '@/pages/db/models/catalogs/units'
-
 import { CompanyTable } from '@/pages/db/models/catalogs/companies'
-import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions'
 
-
-import { UnitItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum } from '@/types';
+import { UnitItem, UnitExceptionItem } from '@/types';
 
 interface RequestBody {
-  unit: UnitItem;
+  exceptions: UnitExceptionItem
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -23,28 +19,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Используем репозиторий для работы с сущностью TCardTable
     const companiesRepository = dbConnection.getRepository(CompanyTable);
-    const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
+    // const unitRepository = dbConnection.getRepository(UnitTable);
+    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
     // userId, companyId в любом случае
     const { userId, companyId } = req.query;
 
     switch (req.method) {
       case 'GET':
-        const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
+        const exceptions_ = await getExceptions(Number(companyId), unitExceptionsRepository)
 
-        units_.sort((a, b) => {
-          // Проверяем, что id определено
-          if (a.id === undefined || b.id === undefined) {
-            return 0; // Если id не определено, оставляем элементы на своих местах
+        exceptions_.sort((a, b) => {
+          // Проверяем, что даты определены
+          if (a.date === undefined || b.date === undefined) {
+            return 0; // Если дата не определена, оставляем элементы на своих местах
           }
-          return a.id - b.id; // Сортировка по id
+          
+          // Сортируем по дате (по возрастанию)
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
         });
 
         // отправляем ответ
         res.status(200).json({
           success: true,
-          units: units_,
+          exceptions: exceptions_,
         });
 
         break;

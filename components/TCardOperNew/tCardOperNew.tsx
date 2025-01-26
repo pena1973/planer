@@ -189,9 +189,11 @@ export default function TCardOperNew({
 
     };
     const handleSelectOper = (oper: { id: number, title: string } | null) => {
+
+        let foundOper = actions.find(elem=>{return elem.id === oper?.id } )
         setEdited(true);
         setCartEdited();
-        setActionValue(oper);
+        setActionValue((!foundOper)?null:foundOper);
     };
 
     let resultReactNodes = outValue.map((elem2, index) => {

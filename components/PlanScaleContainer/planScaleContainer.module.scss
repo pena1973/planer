@@ -12,13 +12,15 @@
   // background-color: #f0f0f0;
   /* Светло-серый фон */
   // border-bottom: 1px solid #ccc;
- 
+
 }
-.plug{
+
+.plug {
   height: 82px;
   width: 100%;
   // background-color: cadetblue;
 }
+
 .plan_scale_container_right {
   display: flex;
   flex-direction: column;
@@ -29,11 +31,11 @@
   // background-color: aliceblue;
   padding: 10px;
   // padding-top: 85px; // верхняя граница шкалы
-  
+
 }
 
 .plan_scale_container_left {
-  
+
   display: flex;
   flex-direction: column;
   width: calc(100% - 200px);
@@ -44,7 +46,7 @@
   /* Светло-серый фон */
   border-bottom: 1px solid #ccc;
   /* Граница снизу */
-  
+
   /* Граница справа */
   // background-color: aliceblue;
 }
@@ -202,12 +204,12 @@
 //  Временная шкала часы
 /* Пример CSS для выделения времени */
 .timeBlock {
-  
+
   display: flex;
   flex-direction: column;
   // background-color: rgb(235, 222, 222);
-  
-  
+
+
 }
 
 .workTime {
@@ -254,17 +256,17 @@
 //ok
 .day_scale {
 
-  
+
   height: 100%;
   // background-color: rgb(224, 173, 173);
   position: relative;
   display: flex;
   flex-direction: column;
   position: relative;
-  
+
   // border-bottom: 1px solid #ccc;
   /* Граница снизу */
-  
+
   /* Граница справа */
 }
 
@@ -277,7 +279,7 @@
   flex-direction: row;
   height: 100%;
   width: 100%;
-    // background-color: rgb(173, 224, 180);
+  // background-color: rgb(173, 224, 180);
 }
 
 
@@ -313,7 +315,7 @@
   // height: 20px;
   height: 100%;
   // background-color: #999;  /* Более темная серая */
-  
+
   border-left: 1px solid #999;
 }
 
@@ -323,7 +325,7 @@
   // height: 40px;
   height: 100%;
   // background-color: #555;  /* Та же, что и для часового интервала */
-  
+
   border-left: 1px solid #555;
 }
 
@@ -333,51 +335,61 @@
   height: 100%;
   // background-color: #555;  /* Та же, что и для часового интервала */
   border-left: 1px solid #020202;
-  
+
 
 }
 
 
 ///// UNITS
 /// 
-.unit_name{
-margin: 10px;
-width: 100%;
-// padding-left: 10px;
-// background-color: rgb(235, 228, 137);
-min-height: 30px;
-font-weight: bold;  
-
-}
-.units_title{
+.unit_name {
   margin: 10px;
   width: 100%;
   // padding-left: 10px;
   // background-color: rgb(235, 228, 137);
   min-height: 30px;
-  font-weight: lighter;  
-  
-  }
-  
+  font-weight: bold;
 
-.unit_load{
+}
+
+.units_title {
+  margin: 10px;
+  width: 100%;
+  // padding-left: 10px;
+  // background-color: rgb(235, 228, 137);
+  min-height: 30px;
+  font-weight: lighter;
+
+}
+
+.unit_load_draft {
+  margin-top: 30px;
+  width: 100%;
+  background-color: rgb(172, 169, 132);
+  min-height: 20px;
+  // font-weight: bold;    
+}
+
+.unit_load {
   margin-top: 30px;
   width: 100%;
   background-color: rgb(119, 116, 69);
   min-height: 20px;
   // font-weight: bold;    
-  }
-  .unit_unload{
-    margin-top: 30px;
-    width: 100%;
-    // background-color: rgb(255, 251, 199);
-    min-height: 20px;
-    // font-weight: bold;    
-    }
-  .unit_gap{
-    margin-top: 30px;
-    width: 100%;
-    //  background-color: rgb(243, 222, 182);
-    min-height: 20px;
-    // font-weight: bold;    
-    }
+}
+
+.unit_unload {
+  margin-top: 30px;
+  width: 100%;
+  // background-color: rgb(255, 251, 199);
+  min-height: 20px;
+  // font-weight: bold;    
+}
+
+.unit_gap {
+  margin-top: 30px;
+  width: 100%;
+  //  background-color: rgb(243, 222, 182);
+  min-height: 20px;
+  // font-weight: bold;    
+}

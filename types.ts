@@ -13,12 +13,19 @@ export interface TCardOperationItem {
     action: ActionItem,
     duration: number, // в милисекундах   
     mode?: boolean // для целей редактирования на форме
+    status:OperStatusEnum
 }
-
+export enum OperStatusEnum {
+    D = 'draft', // создан
+    P = 'planed', // запланирован
+    R = 'ready', // выполнен
+    C = 'canceled', // отменен
+    F = 'faulty', // бракован
+}
 export interface TCardProductItem {
     id?: number,  // id BD
     idc: number, //  id на клиенте
-    codeS: string,
+    codeS: string, //  код источника
     title: string,
     qtu: number,
     uom: UOMItem,
@@ -48,13 +55,14 @@ export interface ActionItem {
     title: string,
     code?: string, // для синхронизации 
     modified?: boolean, // указание что модифицирована и не сохранена
+    interruptible:boolean, // можно ли прервать операцию с окончанием смены а потом продолжитть на след день
 }
 export interface UnitItem {
     id?: number,
     title: string,
     code: string, // для синхронизации 
     actions: UnitActionItem[],
-    retool: number, // общее время на переналадку станка между каждой операцией 
+    retool: number, // общее время на переналадку станка между каждой операцией  в минутах
     modified: boolean, // указание что модифицирована и не сохранена
     belong: UnitBelongEnum,
     type: UnitTypeEnum,
@@ -94,8 +102,39 @@ export enum UnitBelongEnum {
     O = 'outer',
 }
 
+// компания
+export interface CompanyItem {
+    id:number,
+    title: string;  
+    coment: string,
+    prefix: string,
+}
+
 // Шкала времени
-// рабочее и три перерыва
+///////////////////////////// 
+export enum DaysOfWeek {
+   
+    SUNDAY = "SUNDAY",
+    MONDAY = "MONDAY",
+    TUESDAY = "TUESDAY",
+    WEDNESDAY = "WEDNESDAY",
+    THURSDAY = "THURSDAY",
+    FRIDAY = "FRIDAY",
+    SATURDAY = "SATURDAY"
+  }
+
+// рабочее  время компании
+export interface CompanyScheduleItem {
+    company: CompanyItem,    
+    timeStartWork: number, // минут с начала дня 
+    timeFinishWork: number, // минут с начала дня 
+    breaks:{ timeStart:number, timeFinish:number}[] // минут с начала дня 
+    holidays:Date[], // даты не работы в рабочие дни (празднии) 
+    weekends:DaysOfWeek[], // дни недели по номерам   - понедельник 1, воскресенье 7 
+    workdays:{ date:Date,timeStart:number, timeFinish:number}[], // даты работы в выходные  (переносы)
+}
+
+// Описание дня
 export interface CalendarItem {
     idDay: string,
     date: Date,
@@ -103,30 +142,49 @@ export interface CalendarItem {
     day: boolean,
     timeStartWork: number, // минут с начала дня 
     timeFinishWork: number, // минут с начала дня 
-    timeStartBreack1: number, // минут с начала дня 
-    timeFinishBreack1: number, // минут с начала дня 
-    timeStartBreack2: number, // минут с начала дня 
-    timeFinishBreack2: number, // минут с начала дня 
-    timeStartBreack3: number, // минут с начала дня 
-    timeFinishBreack3: number, // минут с начала дня 
+    breaks:{timeStart:number,timeFinish:number}[] // минут с начала дня 
 }
 
-// Загрузка Юнита
-// Интервал загрузки юнита ms от начала дня
-export interface LoadItem {
-    idc_oper: number,
-    id_tCard: number,
-    msStart: number,
-    msFinish: number
-}
-// загрузка какогото юнита на конкретную дату
-export interface DateLoadItem {
-    date: Date,
-    operations: LoadItem[]
-}
+// // загрузка юнита  с массивом дат загрузки
+// export interface UnitLoadItem {
+//     unit: UnitItem,
+//     unitDates: UnitDateItem[]
+// }
 
-// загрузка юнита  с массивом дат загрузки
+// Описание операции (отрезка времени) на временной шкале юнита
 export interface UnitLoadItem {
-    unit: UnitItem,
-    loads: DateLoadItem[]
+    id?:number,
+    unit:UnitItem,  //  добавить и убрать лишние сущтности
+    date:Date,
+    idc_oper: number,    
+    id_tCard: number,
+    timeStart: number, // здесь в минутах
+    timeFinish: number,
+    status:OperStatusEnum
+}
+// 
+// описание дня работы юнита
+export enum TimeTypeEnum {
+    W = 'work',
+    N = 'not work',
+    B = 'breack',
+}
+
+// // загрузка и отклонения в расписании
+// export interface UnitDateItem {
+//     date: Date,    
+//     loads: LoadItem[],
+//     calendarExceptions?: {type: TimeTypeEnum, timeStart:number,timeFinish:number}[] // минут с начала дня     
+//     // не обязательный параметр   показывает отклонения юнита от общего расписания работы
+// }
+
+//  отклонения юнита от расписания
+export interface UnitExceptionItem {
+    id:number,
+    unitId:number, 
+    date:Date,
+    type: TimeTypeEnum, 
+    timeStart:number,
+    timeFinish:number
+    
 }

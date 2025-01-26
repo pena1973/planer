@@ -4,6 +4,7 @@ import connectDb from '@/pages/db/database';  // Импортируем функ
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { Repository } from 'typeorm';
 import { UOMItem } from '@/types';
+import { getUOMs } from './handlers';  // расчеты
 
 interface RequestBody {
   uoms: UOMItem[];
@@ -21,25 +22,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     switch (req.method) {
       case 'GET':
-       // Строим фильтр для поиска
-       const filter: any = {};
-       if (companyId) {
-         filter.company_id = companyId;
-       }
-
-       // Выполняем запрос с фильтрацией
-       const receivedUOMS = await uomsRepository.find({
-         where: filter,  // Применяем фильтр к запросу
-       });
-       console.log(receivedUOMS);
-
-       const uoms__ = receivedUOMS
-         .map(uom => {
-           return {
-             id: uom.id,
-             title: uom.title,
-           };
-         });
+        const uoms__ = await getUOMs(Number(companyId),uomsRepository)
+      
+        uoms__.sort((a, b) => {
+          // Проверяем, что id определено
+          if (a.id === undefined || b.id === undefined) {
+            return 0; // Если id не определено, оставляем элементы на своих местах
+          }
+          return a.id - b.id; // Сортировка по id
+        });
 
        // отправляем ответ
        res.status(200).json({

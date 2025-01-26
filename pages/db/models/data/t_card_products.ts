@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, OneToMan
 import { TCardTable } from './t_cards'; // Импортируем зависимую сущность
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 
-import { TypeEnum } from '@/pages/db/models/emums';
+import { TypeEnum } from '@/pages/db/models/enums';
 
 import { TCardOperationTable } from './t_card_operations'; // Импортируем зависимую сущность
 

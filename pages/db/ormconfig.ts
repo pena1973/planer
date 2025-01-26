@@ -12,7 +12,11 @@ import { CompanyTable } from '@/pages/db/models/catalogs/companies'
 import { UserTable } from '@/pages/db/models/catalogs/users'
 import { UnitTable } from '@/pages/db/models/catalogs/units'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { TypeEnum } from '@/pages/db/models/emums';
+import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule'
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions'
+import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads'
+
+import { TypeEnum } from '@/pages/db/models/enums';
 
 const host = String(process.env.NEXT_PUBLIC_DB_HOST);
 const username = String(process.env.NEXT_PUBLIC_DB_USERNAME);
@@ -29,7 +33,8 @@ const config: ConnectionOptions = {
   synchronize: true, // Включить синхронизацию схемы (не рекомендуется для продакшн-среды)
   logging: true, // Включите логирование SQL-запросов (можно отключить в продакшн-среде)
   entities: [TCardTable, TCardOperationTable,TCardProductTable,TCardStageTable,
-    UOMsTable,ActionTable,UnitTable,UserTable,CompanyTable,UnitActionTable
+    UOMsTable,ActionTable,UnitTable,UserTable,CompanyTable,UnitActionTable,
+    CompanyScheduleTable,UnitExceptionTable,UnitLoadTable
   ],
   migrations: ["/pages/db/migrations/**/*.ts"],  // Путь к миграциям
   subscribers: [],

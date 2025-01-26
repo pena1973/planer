@@ -4,6 +4,7 @@ import connectDb from '@/pages/db/database';  // Импортируем функ
 import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { Repository } from 'typeorm';
 import { ActionItem } from '@/types';
+import { getActions } from './handlers';  // расчеты
 
 interface RequestBody {
   actions: ActionItem[];
@@ -22,26 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     switch (req.method) {
       case 'GET':
-        // Строим фильтр для поиска
-        const filter: any = {};
-        if (companyId) {
-          filter.company_id = companyId;
-        }
-
-        // Выполняем запрос с фильтрацией
-        const receivedActions = await actionsRepository.find({
-          where: filter,  // Применяем фильтр к запросу
-        });
-        console.log(receivedActions);
-
-        const actions__ = receivedActions
-          .map(action => {
-            return {
-              id: action.id,
-              title: action.title,
-            };
-          });
-
+        const actions__ = await getActions(Number(companyId), actionsRepository)
+       
+        actions__.sort((a, b) => a.id - b.id);
+        
         // отправляем ответ
         res.status(200).json({
           success: true,
@@ -72,8 +57,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return {
               id: action.id,
               title: action.title,
+              interruptible: action.interruptible,
             };
           });
+
+        actions_.sort((a, b) => a.id - b.id);
 
         // отправляем ответ
         res.status(200).json({
@@ -89,8 +77,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }
-
-
 
 // ДЕЙСТВИЯ
 async function updateActions(
@@ -126,6 +112,7 @@ async function updateActions(
   const newAction = actionToAdd.map(action => {
     return actionsRepository.create({
       title: action.title,
+      interruptible: action.interruptible,
       company_id: company_id,
     });
   });
@@ -139,7 +126,7 @@ async function updateActions(
     const existingAction = existingActions.find(existingAction => existingAction.id === action.id);
     if (existingAction) {
       existingAction.title = action.title; // Обновляем нужные поля
-
+      existingAction.interruptible = action.interruptible; // Обновляем нужные поля
       return actionsRepository.create(existingAction);
     }
     return null;

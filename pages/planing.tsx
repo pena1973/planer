@@ -13,8 +13,8 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 import { formatDate, padNumberToFourDigits } from "@/utils"
 
-import { UOMItem, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem } from "@/types";
-
+import { OperStatusEnum, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, UnitLoadItem, CalendarItem, UnitExceptionItem, TimeTypeEnum } from "@/types";
+import { setUnitLoads,setUnitExceptions } from '@/store/slices'
 import { } from '@/store/slices';
 
 const URL = process.env.NEXT_PUBLIC_URL;
@@ -41,11 +41,45 @@ interface LoadUnit {
   }[];  // Массив объектов load
 }
 
+// генерация одного дня на шкале
+const generateCalendarItem = (day: Date): CalendarItem => {
+  const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
+  currentDate.setHours(0, 0, 0, 0);
+
+  const dayOfWeek = currentDate.getDay();  // День недели для учета выходных
+  let timeStartBreack = (dayOfWeek !== 0 && dayOfWeek !== 6) ? 780 : 0;  // Перерыв 1 (13:00, если не выходной)
+  let timeFinishBreack = (dayOfWeek !== 0 && dayOfWeek !== 6) ? 840 : 0;  // Перерыв 1 (14:00, если не выходной)
+
+  // Создаем объект CalendarItem
+  const calendarItem: CalendarItem = {
+    idDay: idDay(currentDate),
+    date: new Date(currentDate),  // Текущая дата
+    mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+    day: true,  // Указываем, что это день
+    timeStartWork: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 540 : 0,  // Время начала работы (9:00, если не выходной)
+    timeFinishWork: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 1020 : 0,  // Время окончания работы (17:00, если не выходной)
+    breaks: [{ timeStart: timeStartBreack, timeFinish: timeFinishBreack }],
+  };
+  return calendarItem;  // Возвращаем один элемент календаря
+};
+
+
+// генерация привычной нам даты - ее использую как id дня
+const idDay = (date: Date): string => {
+  const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
+  const year = date.getFullYear();  // Год
+
+  return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
+};
+
 
 export default function Planing({ }: IndexProps) {
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();
+
+  const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
 
   const tCards = useSelector((state: RootState) => {
     return state.dataSlice.tCards;
@@ -53,27 +87,14 @@ export default function Planing({ }: IndexProps) {
   const tCardCurrent = useSelector((state: RootState) => {
     return state.dataSlice.tCardCurrent;
   })
-  // const tCardCurrentMaxIdc = useSelector((state: RootState) => {
-  //   return state.dataSlice.tCardCurrentMaxIdc;
-  // })
-  // const tCardCurrentProducts = useSelector((state: RootState) => {
-  //   return state.dataSlice.tCardCurrentProducts;
-  // })
-  // const tCardCurrentWastes = useSelector((state: RootState) => {
-  //   return state.dataSlice.tCardCurrentWastes;
-  // })
-  // const tCardCurrentOperations = useSelector((state: RootState) => {
-  //   return state.dataSlice.tCardCurrentOperations;
-  // })
-  // const tCardCurrentMaterials = useSelector((state: RootState) => {
-  //   return state.dataSlice.tCardCurrentMaterials;
-  // })
-  // const tCardCurrentStages = useSelector((state: RootState) => {
-  //   return state.dataSlice.tCardCurrentStages;
-  // })
-
+  const unitLoads = useSelector((state: RootState) => {
+    return state.planSlice.unitLoads;
+  })
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
   const [loaderCard, setLoaderCard] = useState(NaN); // состояние это id категории  
+  let idsTCardPlaned = useRef([] as number[]); //  список id  запланированных карт
+  let idsTCardToPlan = useRef([] as number[]); //  список id  карт которые надо запланировать
+
 
   const selectTCardHandler = async (selectedTCard: TCardItem) => {
     // если новая карта не сохраненная
@@ -92,8 +113,241 @@ export default function Planing({ }: IndexProps) {
     setLoaderCard(NaN);
   };
 
+
+  //  получает с сервера список ids запланированных и незапланированных карт
+  const selectTCardsPlan = async () => {
+    try {
+      const res = await fetch(`/api/tcards-plan-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)        
+        if (receivedData.success) {
+          //   Обновим текущую карту
+          idsTCardPlaned.current = receivedData.idsTCardPlaned as number[]
+          idsTCardToPlan.current = receivedData.idsTCardToPlan as number[]
+
+          // setMessage("Карты успешно получены");
+        }
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+
+  };
+
+// запрос Загрузки
+const getUnutsLoads = async () => {
+  
+  try {
+    const res = await fetch(`/api/load-api?userId=${1}&companyId=${1}`,
+      {
+        method: 'get',
+        headers: new Headers({
+          // 'Authorization': 'Basic ' + token,
+          'Content-Type': 'application/json'
+        }),
+      }
+    );
+    if (res.status !== 200) {
+      const receivedData = await res.json();
+      let error = receivedData.error;
+      setMessage(error);
+      // setMessage(t('service.serverUnavailable') + res.status);
+    } else {
+      const receivedData = await res.json();
+      // console.log("receivedData", receivedData)        
+      if (receivedData.success) {
+        //  массив юнитов с загрузками
+    
+        let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
+        .map(unitLoad => {
+          unitLoad.date
+          return {...unitLoad, date: new Date(unitLoad.date)}         
+        });
+
+        dispatch(setUnitLoads(unitsLoads));
+        // setMessage("Карты успешно получены");
+      }
+    }
+  } catch (e: any) {
+    // setMessage(t('service.noConnection') + e.message)            
+  }
+
+
+  // }
+
+  // // Обновим сообщение для пользователя
+  // setMessage(`Элемент с id: ${itemId} был перемещен`);
+};
+// запрос Отклонений графиков юнитов от графика компании
+const getUnutsExceptions = async () => {
+  
+  try {
+    const res = await fetch(`/api/exceptions-api?userId=${1}&companyId=${1}`,
+      {
+        method: 'get',
+        headers: new Headers({
+          // 'Authorization': 'Basic ' + token,
+          'Content-Type': 'application/json'
+        }),
+      }
+    );
+    if (res.status !== 200) {
+      const receivedData = await res.json();
+      let error = receivedData.error;
+      setMessage(error);
+      // setMessage(t('service.serverUnavailable') + res.status);
+    } else {
+      const receivedData = await res.json();
+      // console.log("receivedData", receivedData)        
+      if (receivedData.success) {
+        //  массив отклонений Юнитов 
+    
+        let unitsExceptions = (receivedData.unitsExceptions as UnitExceptionItem[])
+        .map(unitEx => {
+          unitEx.date
+          return {...unitEx, date: new Date(unitEx.date)}
+          
+        });
+
+        dispatch(setUnitExceptions(unitsExceptions));
+        // setMessage("Карты успешно получены");
+      }
+    }
+  } catch (e: any) {
+    // setMessage(t('service.noConnection') + e.message)            
+  }
+
+
+  // }
+
+  // // Обновим сообщение для пользователя
+  // setMessage(`Элемент с id: ${itemId} был перемещен`);
+};
+
+
+  // Начальный загруз
+  useEffect(() => {
+    getUnutsLoads();
+    getUnutsExceptions();
+    // selectTCardsPlan();
+  }, []);
+
+
+  // Для изменения курсора
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true); // Включаем перетаскивание
+
+    const onMouseUp = () => {
+      setIsDragging(false); // Завершаем перетаскивание
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+    window.addEventListener('mouseup', onMouseUp); // Обработчик отпускания кнопки мыши
+  };
+
+  // Хендлер для начала перетаскивания
+  const handleDragStart = (event: React.DragEvent, itemId: number) => {
+    // Устанавливаем данные, которые будут переданы в event
+    event.dataTransfer.setData("itemId", String(itemId));
+
+    // // Можно добавить визуальные эффекты или логику на этапе захвата элемента
+    // console.log(`Перетаскивается элемент с id: ${itemId}`);
+  };
+
+  // Хендлер для перетаскивания элемента на целевой контейнер
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault(); // Необходимо, чтобы можно было "бросить" элемент
+  };
+
+  // Хендлер для отпускания элемента в целевой контейнер
+  const handleDrop = async (event: React.DragEvent) => {
+    event.preventDefault();
+    const itemId = event.dataTransfer.getData("itemId"); // Получаем id перетаскиваемого элемента
+    setIsDragging(false); // Завершаем перетаскивание 
+    console.log(`Отпущен элемент с id: ${itemId}`);
+    //!!!!!!!!!! отправляем на сервер  карту  и там планируем
+
+
+    // Обработаем событие перемещения элемента (например, добавим в новое место)
+    // Здесь вы можете обновить состояние, переместив элемент между массивами
+    // const item = tCardsToPlan.find(item => item.id === Number(itemId));
+
+    // const item = tCards.find(item => item.id === Number(itemId));
+    // if (item) {
+
+
+    // planTCard(item);  // запланируем карту
+    // передаем на сервер
+
+    //  в базу пока не пишем это предварительный расчет
+    try {
+      const res = await fetch(`/api/plan-api?userId=${1}&companyId=${1}&tcardId=${itemId}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)        
+        if (receivedData.success) {
+          //   Обновим  массив загрузок          
+
+          let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
+          .map(unitLoad => {
+            unitLoad.date
+            return {...unitLoad, date: new Date(unitLoad.date)}         
+          });
+
+
+          // // Сортируем tCards по номеру (если number это число)
+          // let tCards_ = tCards.sort((a, b) => a.number - b.number);
+          // let tCardsUpdated = tCards_.map(card => { return { ...card, date: new Date(card.date) } });
+          dispatch(setUnitLoads(unitsLoads));
+          setMessage("Карта успешно запланирована");
+        } else{
+          setMessage("Карту запланировать не удалось");
+        }
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+
+
+    // }
+
+    // // Обновим сообщение для пользователя
+    // setMessage(`Элемент с id: ${itemId} был перемещен`);
+  };
+
+
+  // временно уберу фильтр  нужен признак по которому я пойму какая карта запланирована а какая нет
+  let tCardsToPlan = tCards.filter(tCard => (tCard.tCardOperations?.some(oper => oper.status === OperStatusEnum.D)))
+
+  let tCardsPlaned = tCards.filter(tCard => (tCard.tCardOperations?.some(oper => oper.status !== OperStatusEnum.D)))
   // Карты
-  let tCardsReactNodes = tCards.map((elem, index4) => {
+  let tCardsPlanedReactNodes = tCardsPlaned.map((elem, index4) => {
     let date = "";
     if (elem.date)
       date = formatDate(elem.date);
@@ -111,13 +365,20 @@ export default function Planing({ }: IndexProps) {
     );
   })
   // Карты
-  let tCards_n_ReactNodes = tCards.map((elem, index) => {
+  let tCardsToPlanReactNodes = tCards.map((elem, index) => {
     let date = "";
     if (elem.date)
       date = formatDate(elem.date);
 
+    // style={{cursor: isDragging ? 'grabbing' : 'grab' }}
+    // onMouseDown={handleMouseDown} // Добавляем обработчик нажатия мыши
+
     return (
-      <div key={index} className="container_plan">
+      <div key={index} className="container_plan draggable-item" style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        onMouseDown={handleMouseDown} // Добавляем обработчик нажатия мыши при перетаскивании        
+        draggable
+        onDragStart={(e) => handleDragStart(e, elem.id)}
+      >
         <div className={`${elem.id === tCardCurrent.id ? "container_plan_edit" : ""}`}
           onClick={() => selectTCardHandler(elem)}>
           {loaderCard === elem.id && <ButtonLoader />}
@@ -135,237 +396,35 @@ export default function Planing({ }: IndexProps) {
       </div>
     );
   })
-  // ///  ПЛАНИРОВАНИЕ
-  // const fullScale = 100 * 24 * 60 * 60 * 1000; // в миллисекундах
-  // const hoursInScale = fullScale / (1000 * 60 * 60); // количество часов
-  // const dayInScale = fullScale / (1000 * 60 * 60 * 24); // количество дней
-
-  // // создадим почасовую шкалу
-  // let timeHScaleReactNodes = Array.from({ length: hoursInScale }, (_, index) => {
-  //   return (
-  //     <div key={index} className="timeScaleH">
-  //       {/* {index + 1} Или любое другое содержимое для отображения */}
-  //     </div>
-  //   );
-  // });
-  // // создадим подневную шкалу
-  // let timeDScaleReactNodes = Array.from({ length: dayInScale }, (_, index) => {
-  //   return (
-  //     <div key={index} className="timeScaleD">
-  //       {/* {index + 1} Или любое другое содержимое для отображения */}
-  //     </div>
-  //   );
-  // });
-
-  // let newTCardLoad = [{
-  //   id: 1,
-  //   resource: "unit 1",
-  //   load: [
-  //     { name: "A1F1", start: 0, finish: 36000000 },
-  //     { name: "A1B1C23", start: 36000000, finish: 400000000 },
-  //   ]
-  // },
-  // {
-  //   id: 1,
-  //   resource: "unit 1",
-  //   load: [
-  //     { name: "A1B1C2", start: 400000001, finish: 1400000000 },
-  //     { name: "A1C27", start: 1400000001, finish: 1500000000 },
-  //     { name: "A1F1", start: 1600000001, finish: 1800000000 },
-  //   ]
-  // },
-  // {
-  //   id: 1,
-  //   resource: "unit 1",
-  //   load: [
-  //     { name: "A1F1", start: 1500000001, finish: 1600000000 },
-  //   ]
-  // },] as LoadUnit[]
-
-
-  // let loading = [
-  //   { name: "A1F1", start: 3600000, finish: 108000000 },
-  //   { name: "A1B1C23", start: 200000000, finish: 400000000 },
-  //   { name: "A1B1C2", start: 1000000000, finish: 1400000000 },
-  //   { name: "A1C27", start: 2000000000, finish: 3000000000 },
-  // ] as { name: string, start: number, finish: number }[]
-
-
-
-  // let timeLScale = fillGaps(0, loading);
-  // let timeLScale = [] as { loaded: boolean, name: string, start: number, finish: number }[]
-  // // заполним пропуски
-  // let dataStart = 0;
-  // for (let index = 0; index < loading.length; index++) {
-  //   const element = loading[index];
-  //   if (dataStart < element.start) {
-  //     timeLScale.push({ loaded: false, name: "", start: dataStart, finish: element.start - 1 })
-  //     dataStart = element.start;
-  //     timeLScale.push({ loaded: true, name: element.name, start: dataStart, finish: element.finish })
-  //     dataStart = element.finish + 1;
-  //   } else if (dataStart = element.start) {
-  //     timeLScale.push({ loaded: true, name: "", start: dataStart, finish: element.finish })
-  //     dataStart = element.finish + 1;
-  //   } else if (dataStart > element.start) {
-  //     // Колизия
-  //     timeLScale.push({ loaded: true, name: "Конфликт:" + element.name, start: dataStart, finish: element.finish })
-  //     dataStart = element.finish + 1;
-  //   }
-
-  // }
-  // создадим шкалу загрузки
-
-  // let timeLScaleReactNodes = timeLScale.map((elem, index) => {
-  //   let minWidth = (elem.finish - elem.start) / (1000 * 60 * 60)
-  //   return (
-  //     <div key={index} className={elem.loaded ? "timeScaleL" : "timeScaleE"} style={{ minWidth: minWidth }}>
-  //     </div>
-  //   );
-  // })
-
-
-  // let timeLScaleUnit1 = fillGaps(0, newTCardLoad[0].load);
-  // создадим шкалу unit1
-  // let timeLScaleUnit1ReactNodes = timeLScaleUnit1.map((elem, index) => {
-  //   let minWidth = (elem.finish - elem.start) / (1000 * 60 * 60)
-  //   return (
-  //     <div key={index} className="timeScaleL" style={{ minWidth: minWidth }}>
-  //     </div>
-  //   );
-  // })
-  // let timeLScaleUnit2 = fillGaps(200000, newTCardLoad[1].load);
-  // // создадим шкалу unit2
-  // let timeLScaleUnit2ReactNodes = timeLScaleUnit2.map((elem, index) => {
-  //   let minWidth = (elem.finish - elem.start) / (1000 * 60 * 60)
-  //   return (
-  //     <div key={index} className="timeScaleL" style={{ minWidth: minWidth }}>
-  //     </div>
-  //   );
-  // })
-
-  // // создадим шкалу unit2
-  // let timeLScaleUnit3ReactNodes = newTCardLoad[2].load.map((elem, index) => {
-  //   let minWidth = (elem.finish - elem.start) / (1000 * 60 * 60)
-  //   return (
-  //     <div key={index} className="timeScaleL" style={{ minWidth: minWidth }}>
-  //     </div>
-  //   );
-  // })
 
   return (
     <Layout>
       <div className="container" >
         <div className="container_left">
-          {/* <div className="container_left_inner"> */}
           <div className="container_planing_title">запланированы</div>
           <div className="container_planing">
-            {tCardsReactNodes}
+            {tCardsPlanedReactNodes}
           </div>
           <div className="container_planing_title_n"> не запланированы</div>
           <div className="container_planing_n">
-            {tCards_n_ReactNodes}
+            {tCardsToPlanReactNodes}
           </div>
           <div className="container_planing_title">Пояснение</div>
-          <div className="container_message">{message} dgdgdg
+          <div className="container_message">{message}
             {/* </div> */}
           </div>
 
         </div>
-        <div className="container_right pl_container_right">
-          <PlanScaleContainer />
+        <div className="container_right pl_container_right"
 
-
-          {/* <div className="pl_container_tk">
-            <div className="pl_container_title"> моделируемая карта </div>
-
-            <div className="pl_container_unit_scale">
-              <div className="pl_scale_name">Unit 1 </div>
-              
-              <div className="pl_container_scale">
-                <div className="pl_container_scale1">
-              
-                  {timeLScaleUnit1ReactNodes}
-                </div>
-                <div className="pl_container_scale1">
-                  {timeDScaleReactNodes}
-                </div>
-                <div className="pl_container_scale1">
-                  {timeHScaleReactNodes}
-                </div>
-              </div>
-
-            </div>
-            <div className="pl_container_unit_scale">
-              <div className="pl_scale_name">Unit 2 </div>
-             
-              <div className="pl_container_scale">
-                <div className="pl_container_scale1">
-             
-                  {timeLScaleUnit2ReactNodes}
-                </div>
-                <div className="pl_container_scale1">
-                  {timeDScaleReactNodes}
-                </div>
-                <div className="pl_container_scale1">
-                  {timeHScaleReactNodes}
-                </div>
-              </div>
-
-            </div>
-            <div className="pl_container_unit_scale">
-              <div className="pl_scale_name">Unit 3 </div>
-              
-              <div className="pl_container_scale">
-                <div className="pl_container_scale1">
-              
-                  {timeLScaleUnit3ReactNodes}
-                </div>
-                <div className="pl_container_scale1">
-                  {timeDScaleReactNodes}
-                </div>
-                <div className="pl_container_scale1">
-                  {timeHScaleReactNodes}
-                </div>
-              </div>
-
-            </div>
-            <div className="pl_container_unit_scale">
-              <div className="pl_scale_name">Partner 1 </div>
-            
-              <div className="pl_container_scale">
-                <div className="pl_container_scale1">            
-                </div>
-                <div className="pl_container_scale1">
-                  {timeDScaleReactNodes}
-                </div>
-                <div className="pl_container_scale1">
-                  {timeHScaleReactNodes}
-                </div>
-              </div>
-
-            </div>
-            <div className="pl_container_unit_scale">
-              <div className="pl_scale_name">Partner 2 </div>
-              
-              <div className="pl_container_scale">
-                <div className="pl_container_scale1">              
-                </div>
-                <div className="pl_container_scale1">
-                  {timeDScaleReactNodes}
-                </div>
-                <div className="pl_container_scale1">
-                  {timeHScaleReactNodes}
-                </div>
-              </div>
-
-            </div>
-
-
-
-
-          </div> */}
+          onDragOver={handleDragOver} // Устанавливаем обработчик для перетаскивания
+          onDrop={handleDrop} // Обрабатываем отпускание элемента
+        >
+          <PlanScaleContainer
+            generateCalendarItem={generateCalendarItem}
+            idDay={idDay}
+            unitLoads={unitLoads} />
         </div>
-
 
       </div>
     </Layout>

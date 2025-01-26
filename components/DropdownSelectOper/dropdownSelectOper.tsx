@@ -5,7 +5,7 @@ import styles from './dropdownSelectOper.module.scss';
 // Определение типа для опций
 interface Option {
     id: number;
-    title: string;
+    title: string;    
 }
 
 // Определение типов для пропсов компонента

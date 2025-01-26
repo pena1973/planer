@@ -1,5 +1,6 @@
 import { UOMItem, ActionItem,UnitItem, 
-    TCardItem,TCardProductItem, TCardOperationItem,TCardStageItem } from '@/types';
+    TCardItem,TCardProductItem, TCardOperationItem,TCardStageItem,UnitLoadItem, 
+    UnitExceptionItem} from '@/types';
 import { createSlice } from '@reduxjs/toolkit';
 
 // типы
@@ -28,7 +29,11 @@ export type AuthState = {
     agreement:boolean,
     locale:string
 }
-
+export type PlanState = {
+    unitLoads: UnitLoadItem[],
+    unitExceptions:UnitExceptionItem[]
+    
+}
 // Начальное состояние
 const catalogIntialState: CatalogState = {
     uoms: [] as UOMItem[],
@@ -55,7 +60,10 @@ const authIntialState: AuthState = {
     agreement:false,
     locale:"ru"
 }
-
+const planIntialState: PlanState = {
+    unitLoads: [] as UnitLoadItem[],    
+    unitExceptions:[] as UnitExceptionItem[],
+}
 // хранилище
 const authSlice = createSlice({
     name: 'auth',
@@ -141,11 +149,29 @@ const dataSlice = createSlice({
     },
 
 })
+
+const planSlice = createSlice({
+    name: 'plan',
+    initialState: planIntialState,
+    reducers: {        
+        setUnitLoads: (state, action) => {
+            state.unitLoads = action.payload;
+        },
+        setUnitExceptions: (state, action) => {
+            state.unitExceptions = action.payload;
+        },
+        
+    },
+
+})
+
 export default function Foo() { return <></> }  // пустышка для билда
 
 export const { setActions, setUOMs,setUnits } = catalogSlice.actions;
 export const {setTCards,setTCardCurrent,setTCardCurrentStages,setTCardCurrentMaterials,setTCardCurrentOperations,setTCardCurrentProducts,settCardCurrentWastes,setTCardCurrentMaxIdc} = dataSlice.actions;
 export const {setToken,setLogin,setUserId,setRole,setNickname,setAgreeCookie,setAgreement, setLocale} = authSlice.actions;
 
-export { authSlice, catalogSlice, dataSlice};
+export const {setUnitLoads,setUnitExceptions} = planSlice.actions;
+
+export { authSlice, catalogSlice, dataSlice,planSlice};
 

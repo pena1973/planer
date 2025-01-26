@@ -19,13 +19,13 @@ import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
-export interface UOMSCatalogProps { 
-    setMessage:(message:string)=>void
+export interface UOMSCatalogProps {
+    setMessage: (message: string) => void
 }
 
 export default function UOMSCatalog({
     setMessage
- }: UOMSCatalogProps) {
+}: UOMSCatalogProps) {
     const dispatch = useAppDispatch();
 
     const actions = useSelector((state: RootState) => {
@@ -35,9 +35,42 @@ export default function UOMSCatalog({
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [actionsValue, setActionsValue] = useState([] as ActionItem[]);
-
+  
+    const downloadActions = async () => {
+        // Загружаем классификатор действий
+        try {
+          const res = await fetch(`api/actions-api?userId=${1}&companyId=${1}`,
+            {
+              method: 'get',
+              headers: new Headers({
+                // 'Authorization': 'Basic ' + token,
+                'Content-Type': 'application/json'
+              }),
+            }
+          );
+          if (res.status !== 200) {
+            const receivedData = await res.json();
+            let error = receivedData.error;
+            setMessage(error);
+            //  console.log(t('service.serverUnavailable') + res.status);
+            // setMessage(t('service.serverUnavailable') + res.status);
+    
+          } else {
+            const receivedData = await res.json();
+            if (receivedData.success) {
+              let actions_ = receivedData.actions as ActionItem[]             
+              setActionsValue(actions_); 
+              dispatch(setActions(actions_));
+            }
+            else setMessage(receivedData.error);
+          }
+        } catch (e: any) {
+          // setMessage(t('service.noConnection') + e.message)            
+        }
+    
+      }
     useEffect(() => {
-        setActionsValue(actions);
+        downloadActions()        
     }, []);
 
     // колбеки кнопки
@@ -48,9 +81,19 @@ export default function UOMSCatalog({
         setModified(true);
     };
 
-    const changeActionTitleHandler = (indexToChange: number, title: string) => {
+    const changeActionHandler = (indexToChange: number, value: string | boolean, field: string) => {
         let action = actionsValue[indexToChange];
-        let updatedAction = { ...action, title: title }
+        let updatedAction = action;
+        switch (field) {
+            case "interruptible":
+                updatedAction = { ...action, interruptible: value as boolean }
+                break;
+            case "title":
+                updatedAction = { ...action, title: value as string }
+                break;
+            default:
+                break;
+        }
         let actionsValueUpdated = [...actionsValue]
         actionsValueUpdated.splice(indexToChange, 1, updatedAction)
         setActionsValue(actionsValueUpdated)
@@ -90,7 +133,7 @@ export default function UOMSCatalog({
             } else {
                 const receivedData = await res.json();
                 console.log("receivedData", receivedData)
-                
+
                 if (receivedData.success) {
                     //   Обновим текущую карту
                     let actions_ = receivedData.actions as ActionItem[]
@@ -131,12 +174,24 @@ export default function UOMSCatalog({
 
                 <td>
                     <input className={styles.actions_title}
-                        id={"title" + elem.title}
+                        id={"title" + elem.id}
                         autoComplete="off"
                         value={elem.title} type="text"
                         onChange={e => {
                             setModified(true);
-                            changeActionTitleHandler(index, e.target.value)
+                            changeActionHandler(index, e.target.value,"title")
+                        }} />
+
+                </td>
+                <td className={styles.actions_td}>
+                    <input className={styles.actions_interruptible}
+                        id={"interruptible" + elem.id}
+                        autoComplete="off"
+                        checked={elem.interruptible}
+                        type="checkbox"
+                        onChange={e => {
+                            setModified(true);
+                            changeActionHandler(index, e.target.checked,"interruptible")
                         }} />
 
                 </td>
@@ -156,13 +211,14 @@ export default function UOMSCatalog({
                     <tr>
                         <th className={styles.icon_del_top}></th>
                         <th className={styles.actions_title_top}>Название</th>
+                        <th className={styles.actions_interruptible_top}>Можно прервать</th>
                     </tr>
                 </thead>
                 <tbody>
                     {unitFocusActionValueReactNodes}
                 </tbody>
             </table>
-            <div className={styles.container_buttons_row}>               
+            <div className={styles.container_buttons_row}>
                 <div className={styles.container_icon_edit_save}>
                     <Image className={styles.icon_edit_save}
                         src={add}
@@ -181,4 +237,5 @@ export default function UOMSCatalog({
 
             </div>
         </div>
-)}
+    )
+}

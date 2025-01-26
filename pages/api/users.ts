@@ -1,13 +1,13 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { UsersTable } from '@/pages/db/models/catalogs/users';
+import { UserTable } from '@/pages/db/models/catalogs/users';
 
 import { getRepository } from 'typeorm';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await connectDb();
-  const userRepository = getRepository(UsersTable);
+  const userRepository = getRepository(UserTable);
   
   switch (req.method) {
     case 'GET':

@@ -6,14 +6,16 @@ import { UnitTable } from '@/pages/db/models/catalogs/units'
 
 import { CompanyTable } from '@/pages/db/models/catalogs/companies'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions'
 
 
-import { UnitItem, UnitActionItem } from '@/types';
+import { UnitItem, UnitActionItem, UnitExceptionItem } from '@/types';
 import { Action } from 'redux';
 import { ActionTable } from '../db/models/catalogs/actions';
 
 interface RequestBody {
-  unit: UnitItem;
+  unit: UnitItem,
+  exceptions: UnitExceptionItem
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -25,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const companiesRepository = dbConnection.getRepository(CompanyTable);
     const unitRepository = dbConnection.getRepository(UnitTable);
     const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
+    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
     // userId, companyId в любом случае
     const { userId, companyId } = req.query;
@@ -44,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Извлекаем данные из тела запроса
         const { unit } = req.body as RequestBody;
         const unitActions = unit.actions as UnitActionItem[]
-
+        const unitExceptions = req.body.exceptions as UnitExceptionItem[]
 
         // ЮНИТ
         const resUnit = await updateUnit(unitRepository, unit, Number(userId), Number(companyId))
@@ -69,11 +72,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const savedUnitActions = resUnitActions.savedUnitActions as UnitActionTable[];
 
         const unitActions_ = savedUnitActions
-        .map(unitAction => { return { 
-          id: unitAction.id, 
-          action: unitAction.action, 
-          koef: unitAction.koef, 
-          }; });
+          .map(unitAction => {
+            return {
+              id: unitAction.id,
+              action: unitAction.action,
+              koef: unitAction.koef,
+            };
+          });
 
         // если дошли сюда значит при сохранении ничего не слетело 
         //  преобразуем  записи таблиц в наши типы но только с указанием id базы
@@ -92,11 +97,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           coment: savedUnit.coment
         }
 
+        // ОТКЛОНЕНИЯ ЮНИТА ОТ РАСПИСАНИЯ КОМПАНИИ
+        
+        const resEx = await updateExceptions(unitExceptionsRepository,unitExceptions, savedUnit,Number(companyId))
+
+        if (!resEx.success) {
+           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resEx.message });
+           return;
+         }
+        const exceptions_ = resEx.savedUnitExceptions as UnitExceptionTable[];
 
         // отправляем ответ
         res.status(200).json({
           success: true,
           unit: unit_,
+          exceptions: exceptions_,
         });
         break;
 
@@ -108,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   } catch (error) {
     console.error('Ошибка подключения или выполнения запроса:', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос'+ error});
+    res.status(500).json({ error: 'Не удалось обработать запрос' + error });
   }
 }
 
@@ -165,7 +180,7 @@ async function updateUnit(unitRepository: Repository<UnitTable>, unit: UnitItem,
 async function updateUnitActions(
   unitActionsRepository: Repository<UnitActionTable>,
   unitActions: UnitActionItem[],
-  savedUnit:  UnitTable,  
+  savedUnit: UnitTable,
 ) {
 
   // СПИСОК ЮНИТОВ в базе
@@ -196,9 +211,9 @@ async function updateUnitActions(
     return unitActionsRepository.create({
       koef: unitAction.koef,
       action_id: unitAction.action.id,
-      action:unitAction.action,
+      action: unitAction.action,
       unit_id: savedUnit.id,
-      unit:savedUnit,
+      unit: savedUnit,
     });
   });
   let savedNewUnitActions = [] as UnitActionTable[]
@@ -218,6 +233,7 @@ async function updateUnitActions(
 
   let savedUpdatedUnitActions = [] as UnitActionItem[]
   if (updatedUnitActions.length > 0) savedUpdatedUnitActions = await unitActionsRepository.save(updatedUnitActions);
+
   if (!savedUpdatedUnitActions) return { success: false, message: "Не удалось сохранить действия Юнита" }
 
   // Все действия юнита сохранены, проверка
@@ -230,7 +246,7 @@ async function updateUnitActions(
     console.log(error);
     return { success: false, message: error }
   }
-  
+
   // Проверка, что массив не пуст и все объекты имеют сгенерированный id
   if (savedUnitActions.length > 0 && unitActions.length > 0) {
     if (savedUnitActions.length > 0) {
@@ -251,4 +267,102 @@ async function updateUnitActions(
     }
   }
   return { success: true, savedUnitActions: savedUnitActions }
+}
+
+// ОТКЛОНЕНИЯ ОТ РАСПИСАНИЯ ЮНИТА
+async function updateExceptions(
+  unitExceptionsRepository: Repository<UnitExceptionTable>,
+  unitExceptions: UnitExceptionItem[],
+  savedUnit: UnitTable,
+  companyId:number
+) {
+
+  // СПИСОК ЮНИТОВ в базе
+  const existingUnitExceptions = await unitExceptionsRepository.find({ where: { unit_id: savedUnit.id } });
+
+  // 1. Найдём удалённые  отклонения Юнита
+  const unitExceptionsToDelete = existingUnitExceptions.filter(unitException =>
+    !unitExceptions.some(newUnitExceptions => newUnitExceptions.id === unitException.id)
+  );
+
+  // 2. Найдём новые отклонения Юнита, которых нет в базе
+  const unitExceptionsToAdd = unitExceptions.filter(unitException =>
+    !existingUnitExceptions.some(existingUnitException => existingUnitException.id === unitException.id)
+  );
+
+  // 3. Найдём существующие отклонения Юнита для обновления
+  const unitExceptionToUpdate = unitExceptions.filter(unitException =>
+    existingUnitExceptions.some(existingUnitException => existingUnitException.id === unitException.id)
+  );
+
+  // Удаляем старые отклонения Юнита
+  if (unitExceptionsToDelete.length > 0) {
+    await unitExceptionsRepository.remove(unitExceptionsToDelete);
+  }
+
+  // Добавляем новые действия Юнита
+  const newUnitException = unitExceptionsToAdd.map(unitException => {
+    return unitExceptionsRepository.create({
+      date: unitException.date,
+      type: unitException.type,
+      timeStart: unitException.timeStart,
+      timeFinish: unitException.timeFinish,
+      unit_id: savedUnit.id,
+      unit: savedUnit,
+      company_id:companyId,
+    });
+  });
+  let savedNewUnitExceptions = [] as UnitExceptionTable[]
+  if (newUnitException.length > 0) savedNewUnitExceptions = await unitExceptionsRepository.save(newUnitException);
+  if (!savedNewUnitExceptions) return { success: false, message: "Не удалось сохранить отклонения Юнита" }
+
+  // Обновляем существующие стадии
+  const updatedUnitExceptions = unitExceptionToUpdate.map(unitException => {
+    const existingUnitException = existingUnitExceptions.find(existingUnitException => existingUnitException.id === unitException.id);
+    if (existingUnitException) {
+      existingUnitException.date = unitException.date;
+      existingUnitException.timeFinish = unitException.timeFinish;
+      existingUnitException.timeStart = unitException.timeStart;
+      existingUnitException.type = unitException.type;      
+      return unitExceptionsRepository.create(existingUnitException);
+    }
+    return null;
+  }).filter(unitException => unitException !== null);
+
+  let savedUpdatedUnitExceptions = [] as UnitExceptionTable[]
+  if (updatedUnitExceptions.length > 0) savedUpdatedUnitExceptions = await unitExceptionsRepository.save(updatedUnitExceptions);
+
+  if (!savedUpdatedUnitExceptions) return { success: false, message: "Не удалось сохранить отклонения Юнита" }
+
+  // Все действия юнита сохранены, проверка
+  let error = ""
+  const savedUnitExceptions = [...savedNewUnitExceptions, ...savedUpdatedUnitExceptions] as UnitExceptionTable[]
+
+  // вход и выход массив операций не совпадает количество записей - чтото не сохранилось
+  if (savedUnitExceptions.length > 0 && unitExceptions.length !== savedUnitExceptions.length) {
+    error = `Не удалось сохранить стадии`;
+    console.log(error);
+    return { success: false, message: error }
+  }
+
+  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
+  if (savedUnitExceptions.length > 0 && unitExceptions.length > 0) {
+    if (savedUnitExceptions.length > 0) {
+
+      savedUnitExceptions.forEach((unitException, index) => {
+        if (unitException.id) {
+          console.log(`Отклонение юнита ${index + 1} успешно сохранено с id: ${unitException.id}`);
+        } else {
+          error = `Ошибка при сохранении отклонения ${index + 1}`;
+          console.log(error);
+          return { success: false, message: error }
+        }
+      });
+    } else {
+      error = `Не удалось сохранить отклонения расписания юнита`;
+      console.log(error);
+      return { success: false, message: error }
+    }
+  }
+  return { success: true, savedUnitExceptions: savedUnitExceptions }
 }

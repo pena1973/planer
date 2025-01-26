@@ -580,8 +580,7 @@ export default function Cards({ }: CardsProps) {
     setLoaderCard(selectedTCard.id);
     // запрос к базе на загрузку карты
 
-    try {
-      // запрос получение текста из БД вместе со словами     textId: number, userId:number
+    try {      
       const res = await fetch(`api/tcard-api?userId=${1}&companyId=${1}&tcardId=${selectedTCard.id}`,
         {
           method: 'get',

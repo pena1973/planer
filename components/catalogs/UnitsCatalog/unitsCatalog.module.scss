@@ -1,6 +1,28 @@
 @import '@/styles/colors.scss';
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
+
+.units {
+    display: flex;
+    flex-direction: column;
+}
+
+.contaitainer_catalog_left {
+    display: flex;
+
+    flex-direction: column;
+    // background-color: rgb(182, 217, 247);
+    margin-right: 10px;
+
+}
+
+.contaitainer_catalog_right {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    // background-color: antiquewhite;
+}
+
 .container_units {
     display: flex;
     flex-direction: column;
@@ -36,7 +58,22 @@
     position: relative;
 }
 
-
+.container_unit_exceptions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 380px;
+    height: auto;
+    margin: 5px;
+    border-radius: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+    position: relative;
+    padding: 5px;
+    position: relative;
+}
 
 .icon_del {
     width: 20px;
@@ -208,7 +245,7 @@
     text-align: center;
 
 }
-
+///Таблица действий///////////////////////////
 // Таблица действий
 .unit_action_top {
     min-width: 162px;
@@ -257,24 +294,48 @@
     margin: 0;
 }
 
-.units {
-    display: flex;
+///Отклонений от расписания///////////////////////////
 
-    flex-direction: row;
-}
-
-.contaitainer_catalog_left {
-    display: flex;
-
-    flex-direction: column;
-    // background-color: rgb(182, 217, 247);
-    margin-right: 10px;
+.exception_date {
+    width: 100px;
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
 
 }
 
-.contaitainer_catalog_right {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    // background-color: antiquewhite;
+.exception_date_top {
+    min-width: 102px;
+    width: 102px;
+    padding: 2px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;    
+}
+
+.exception_time {
+    width: 70px;
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.exception_time_top {
+    min-width: 72px;
+    padding: 2px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center; 
+}
+.exception_time_type_top {
+    min-width: 92px;
+    padding: 2px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    
 }

@@ -8,7 +8,7 @@ import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { CompanyTable } from '@/pages/db/models/catalogs/companies'
 
-import { TypeEnum } from '@/pages/db/models/emums';
+import { TypeEnum } from '@/pages/db/models/enums';
 import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem } from '@/types';
 
 interface RequestBody {

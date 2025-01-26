@@ -18,7 +18,10 @@ export class ActionTable {
 
   @Column({default:"",nullable:true})
   code!: string;
-
+  
+  @Column({default:true})
+  interruptible!: boolean;
+  
   @ManyToOne(() => CompanyTable, { eager: true, cascade:true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'company_id' }) // Указываем колонку, которая является внешним ключом
   company!: CompanyTable;  // Связь с таблицей UOMsTable
