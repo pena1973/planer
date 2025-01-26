@@ -14,11 +14,13 @@ const calculateWidthDay = (totalWidth: number, scale: number): number => {
 export interface PlanScaleContainerProps {
   generateCalendarItem: (day: Date) => CalendarItem,
   idDay: (date: Date) => string,
+  units: UnitItem[],
   unitLoads: UnitLoadItem[]
 }
 export default function PlanScaleContainer({
   generateCalendarItem,
   idDay,
+  units,
   unitLoads
 }: PlanScaleContainerProps) {
 
@@ -30,7 +32,7 @@ export default function PlanScaleContainer({
   const [calendarViewPlus, setCalendarViewPlus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени планирование при изменении]
   const [calendarViewMinus, setCalendarViewMinus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени история при изменении]
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
-  const [scale, setScale] = useState(100); // содержит Масштаб (10% - 500%)  
+  const [scale, setScale] = useState(50); // содержит Масштаб (10% - 500%)  
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
 
   // let unitsLoad = useRef(unitLoads as UnitLoadItem[]); // массив юнитов  
@@ -43,15 +45,14 @@ export default function PlanScaleContainer({
   if (idDay(today) !== todayDateRef.current) {
     todayDateRef.current = idDay(today);
   }
-
   
   // изменение при смене массива загрузки, может прорисоватся и при сохранении и при накидывании драфта
   useEffect(() => {
     //  получаем  планировку юнитов
     // Из загрузки вытаскиваем список юнитов и делим его на свой чужой;
-    let unitsView = unitLoads.map(elem => { return elem.unit })
-    unitsViewInner.current = unitsView.filter(elem => elem.belong === UnitBelongEnum.I);
-    unitsViewOuter.current = unitsView.filter(elem => elem.belong === UnitBelongEnum.O);
+    // let unitsView = unitLoads.map(elem => { return elem.unit })
+    unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.I);
+    unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.O);
     // Стартовый масштаб всегда 100% и в нем помещается один день  временно 500
     // реализуем ленивую загрузку
     // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно
@@ -270,6 +271,7 @@ export default function PlanScaleContainer({
             new Date(elem.date).toDateString() === new Date(calendarItem.date).toDateString())
         });
          
+
         if (dateLoad) {
           // Проверяем, попадает ли текущий интервал в загрузку этого юнита
           const isUnitLoaded = dateLoad.some(operation => {
@@ -283,7 +285,7 @@ export default function PlanScaleContainer({
             
             // Добавляем блок загрузки юнита в зависимости от значения draft
             if (isDraft) {
-              return (<div className={styles.unit_load_draft}></div>); // Для операций с draft
+              return (<div className={styles.unit_load_draft}> </div>); // Для операций с draft
             } else {
               return (<div className={styles.unit_load}></div>); // Для обычных операций
             }

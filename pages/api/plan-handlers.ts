@@ -179,7 +179,7 @@ function findAvailableTimeForOperation(
         };
         let dateReady = targetDate;
         let timeReady = loadItem.timeFinish;
-       
+
         return {
             updatedUnitLoad: loadItem,
             dateReady: dateReady,
@@ -194,14 +194,14 @@ function findAvailableTimeForOperation(
 
 
 // В этом модуле делаем расчет планирования, возврашаем готовую загрузку
-export const planTCard = (tCard: TCardItem, unitLoads: UnitLoadItem[]) => {
+export const planTCard = (tCard: TCardItem, units: UnitItem[], unitLoads: UnitLoadItem[]) => {
 
-    // Извлекаем объекты 'unit'
-    const units = unitLoads
-        .map(item => item.unit)
-        .filter((value, index, self) =>
-            index === self.findIndex((t) => (t.id === value.id)) // Проверяем, что юнит уникален
-        );
+    // // Извлекаем объекты 'unit'
+    // const units = unitLoads
+    //     .map(item => item.unit)
+    //     .filter((value, index, self) =>
+    //         index === self.findIndex((t) => (t.id === value.id)) // Проверяем, что юнит уникален
+    //     );
 
     let updatedUnitLoads = [...unitLoads];
     let today = new Date();
@@ -279,29 +279,24 @@ export const planTCard = (tCard: TCardItem, unitLoads: UnitLoadItem[]) => {
             let moment = 0;
 
             // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-            let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, unitLoads, operation, date, moment, stopDate);
+            let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, date, moment, stopDate);
 
             // если не удалось запланировать то прерываем расчет
             if (!resultPlaning) {
                 stoploop = true;
             } else {
                 let { updatedUnitLoad, dateReady, timeReady } = resultPlaning;
-                const unitIndex = updatedUnitLoads.findIndex(item => item.unit.id === updatedUnitLoad.unit.id);
-                // Если юнит найден, обновляем его загруз в массиве unitLoads
-                if (unitIndex !== -1) {
-                    updatedUnitLoads[unitIndex] = updatedUnitLoad; // Заменяем старую загрузку на новую
+                updatedUnitLoads.push(updatedUnitLoad);
+                //  Удаляем операцию из общего массива
+                const index = tCardOperations.findIndex(oper => oper.id === operation.id);
+                tCardOperations.splice(index, 1);
 
-                    //  Удаляем операцию из общего массива
-                    const index = tCardOperations.findIndex(oper => oper.id === operation.id);
-                    tCardOperations.splice(index, 1);
-
-                    //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                    
-                    if (operation.out) {
-                        let readyProductsOut = operation.out.map(elem => {
-                            return { product: elem, date: dateReady, time: timeReady };
-                        });
-                        readyProducts = [...readyProducts, ...readyProductsOut]
-                    }
+                //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                    
+                if (operation.out) {
+                    let readyProductsOut = operation.out.map(elem => {
+                        return { product: elem, date: dateReady, time: timeReady };
+                    });
+                    readyProducts = [...readyProducts, ...readyProductsOut]
                 }
             }
         });

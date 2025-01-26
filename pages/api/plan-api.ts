@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const unitLoadItems = await getUnitLoads(units_, unitLoadRepository)
 
       // Планируем карту
-      let unitLoads_ = planTCard(tCard, unitLoadItems)
+      let unitLoads_ = planTCard(tCard,units_, unitLoadItems)
       //  Если не удалось запланировать
       if (!unitLoads_) {
         res.status(200).json({
@@ -111,16 +111,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const savedUnitLoads = resLoads.savedUnitLoads as UnitLoadItem[];
 
-      // const loads_ = savedUnitLoads
-      //   .map(load => {
-      //     return {
-      //       // id: load.id,
-      //       // title: action.title,
-      //       // interruptible: action.interruptible,
-      //     };
-      //   });
-
-      // actions_.sort((a, b) => a.id - b.id);
 
       // отправляем ответ
       res.status(200).json({
@@ -129,12 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       break;
 
-
-      // const {email,login,pass,loginhash,locale,cookieagree,role,confirmed,coment,company_id } = req.body;
-      // const newUser = userRepository.create({ email, login, pass,loginhash,locale,cookieagree,role,confirmed,coment,company_id });
-      // await userRepository.save(newUser);
-      // res.status(201).json(newUser);
-      break;
+     
     default:
       res.status(405).end(); // Метод не поддерживается
   }

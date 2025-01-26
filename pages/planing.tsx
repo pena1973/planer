@@ -13,8 +13,8 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 import { formatDate, padNumberToFourDigits } from "@/utils"
 
-import { OperStatusEnum, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, UnitLoadItem, CalendarItem, UnitExceptionItem, TimeTypeEnum } from "@/types";
-import { setUnitLoads,setUnitExceptions } from '@/store/slices'
+import { OperStatusEnum, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, UnitItem, UnitLoadItem, CalendarItem, UnitExceptionItem, TimeTypeEnum } from "@/types";
+import { setUnitLoads, setUnitExceptions, setUnits } from '@/store/slices'
 import { } from '@/store/slices';
 
 const URL = process.env.NEXT_PUBLIC_URL;
@@ -87,9 +87,17 @@ export default function Planing({ }: IndexProps) {
   const tCardCurrent = useSelector((state: RootState) => {
     return state.dataSlice.tCardCurrent;
   })
+  const units = useSelector((state: RootState) => {
+    return state.catalogSlice.units;
+  })
   const unitLoads = useSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
+
+  const unitExceptions = useSelector((state: RootState) => {
+    return state.planSlice.unitExceptions;
+  })
+  
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
   const [loaderCard, setLoaderCard] = useState(NaN); // состояние это id категории  
   let idsTCardPlaned = useRef([] as number[]); //  список id  запланированных карт
@@ -148,99 +156,121 @@ export default function Planing({ }: IndexProps) {
 
   };
 
-// запрос Загрузки
-const getUnutsLoads = async () => {
-  
-  try {
-    const res = await fetch(`/api/load-api?userId=${1}&companyId=${1}`,
-      {
-        method: 'get',
-        headers: new Headers({
-          // 'Authorization': 'Basic ' + token,
-          'Content-Type': 'application/json'
-        }),
-      }
-    );
-    if (res.status !== 200) {
-      const receivedData = await res.json();
-      let error = receivedData.error;
-      setMessage(error);
-      // setMessage(t('service.serverUnavailable') + res.status);
-    } else {
-      const receivedData = await res.json();
-      // console.log("receivedData", receivedData)        
-      if (receivedData.success) {
-        //  массив юнитов с загрузками
-    
-        let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
-        .map(unitLoad => {
-          unitLoad.date
-          return {...unitLoad, date: new Date(unitLoad.date)}         
-        });
+  // запрос Юниты
 
-        dispatch(setUnitLoads(unitsLoads));
-        // setMessage("Карты успешно получены");
+  const getUnits = async () => {
+    // Загружаем классификатор действий
+    try {
+      const res = await fetch(`api/units-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+
+      } else {
+        const receivedData = await res.json();
+        if (receivedData.success) {
+          let units_ = receivedData.units as UnitItem[]
+          dispatch(setUnits(units_)); // Это ме надо?
+
+        }
+        else setMessage(receivedData.error);
       }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
     }
-  } catch (e: any) {
-    // setMessage(t('service.noConnection') + e.message)            
+
   }
+  const getUnutsExceptions = async () => {
+    // Загружаем классификатор действий
+    try {
+      const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
 
-
-  // }
-
-  // // Обновим сообщение для пользователя
-  // setMessage(`Элемент с id: ${itemId} был перемещен`);
-};
-// запрос Отклонений графиков юнитов от графика компании
-const getUnutsExceptions = async () => {
-  
-  try {
-    const res = await fetch(`/api/exceptions-api?userId=${1}&companyId=${1}`,
-      {
-        method: 'get',
-        headers: new Headers({
-          // 'Authorization': 'Basic ' + token,
-          'Content-Type': 'application/json'
-        }),
+      } else {
+        const receivedData = await res.json();
+        if (receivedData.success) {
+          let exceptions = receivedData.exceptions as UnitExceptionItem[]
+          dispatch(setUnitExceptions(exceptions));
+        }
+        else setMessage(receivedData.error);
       }
-    );
-    if (res.status !== 200) {
-      const receivedData = await res.json();
-      let error = receivedData.error;
-      setMessage(error);
-      // setMessage(t('service.serverUnavailable') + res.status);
-    } else {
-      const receivedData = await res.json();
-      // console.log("receivedData", receivedData)        
-      if (receivedData.success) {
-        //  массив отклонений Юнитов 
-    
-        let unitsExceptions = (receivedData.unitsExceptions as UnitExceptionItem[])
-        .map(unitEx => {
-          unitEx.date
-          return {...unitEx, date: new Date(unitEx.date)}
-          
-        });
-
-        dispatch(setUnitExceptions(unitsExceptions));
-        // setMessage("Карты успешно получены");
-      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
     }
-  } catch (e: any) {
-    // setMessage(t('service.noConnection') + e.message)            
+
   }
+  // запрос Загрузки
+  const getUnutsLoads = async () => {
+
+    try {
+      const res = await fetch(`/api/load-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)        
+        if (receivedData.success) {
+          //  массив юнитов с загрузками
+
+          let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
+            .map(unitLoad => {
+              unitLoad.date
+              return { ...unitLoad, date: new Date(unitLoad.date) }
+            });
+
+          dispatch(setUnitLoads(unitsLoads));
+          // setMessage("Карты успешно получены");
+        }
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
 
 
-  // }
+    // }
 
-  // // Обновим сообщение для пользователя
-  // setMessage(`Элемент с id: ${itemId} был перемещен`);
-};
-
-
+    // // Обновим сообщение для пользователя
+    // setMessage(`Элемент с id: ${itemId} был перемещен`);
+  };
+  
   // Начальный загруз
   useEffect(() => {
+    getUnits();    
     getUnutsLoads();
     getUnutsExceptions();
     // selectTCardsPlan();
@@ -313,12 +343,10 @@ const getUnutsExceptions = async () => {
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
           //   Обновим  массив загрузок          
-
           let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
-          .map(unitLoad => {
-            unitLoad.date
-            return {...unitLoad, date: new Date(unitLoad.date)}         
-          });
+            .map(unitLoad => {
+              return { ...unitLoad, date: new Date(unitLoad.date) }
+            });
 
 
           // // Сортируем tCards по номеру (если number это число)
@@ -326,7 +354,7 @@ const getUnutsExceptions = async () => {
           // let tCardsUpdated = tCards_.map(card => { return { ...card, date: new Date(card.date) } });
           dispatch(setUnitLoads(unitsLoads));
           setMessage("Карта успешно запланирована");
-        } else{
+        } else {
           setMessage("Карту запланировать не удалось");
         }
       }
@@ -423,6 +451,7 @@ const getUnutsExceptions = async () => {
           <PlanScaleContainer
             generateCalendarItem={generateCalendarItem}
             idDay={idDay}
+            units={units}
             unitLoads={unitLoads} />
         </div>
 

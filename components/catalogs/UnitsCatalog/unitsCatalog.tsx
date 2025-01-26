@@ -65,7 +65,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
         return newCode;
     }
-    const downloadUnits = async () => {
+    const getUnits = async () => {
         // Загружаем классификатор действий
         try {
             const res = await fetch(`api/units-api?userId=${1}&companyId=${1}`,
@@ -98,7 +98,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         }
 
     }
-    const downloadExceptions = async () => {
+    const getUnutsExceptions = async () => {
         // Загружаем классификатор действий
         try {
             const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
@@ -132,8 +132,8 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
     }
     useEffect(() => {
-        downloadUnits();
-        downloadExceptions()
+        getUnits();
+        getUnutsExceptions()
     }, []);
 
     // Таблица Юнитов   
