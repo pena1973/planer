@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnits } from './handlers';  // расчеты
+import { getUnits } from './handlers-get';  // расчеты
 
 import { Repository, In } from 'typeorm';
 

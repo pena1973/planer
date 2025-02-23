@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, OneToMany, } from 'typeorm';
 import { CompanyTable } from '@/pages/db/models/catalogs/companies'
 import { UserTable } from '@/pages/db/models/catalogs/users'
+import { StatusEnum } from '@/pages/db/models/enums';
 
 @Entity('t_cards')
 export class TCardTable {
@@ -33,4 +34,12 @@ export class TCardTable {
 
   @Column({ type: 'text', default: "" })
   coment?: string; 
+  
+  @Column({
+      type: 'enum',
+      enum: StatusEnum,      // Используем enum для ограничения значений
+      default: StatusEnum.Dr,  // Устанавливаем значение по умолчанию
+    })
+    status!: StatusEnum;
+  
 }

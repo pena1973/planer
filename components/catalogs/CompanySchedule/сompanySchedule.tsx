@@ -3,7 +3,7 @@ import styles from "./сompanySchedule.module.scss";
 
 import DropdownSelectWeekDay from "./DropdownSelectWeekDay/dropdownSelectWeekDay";
 
-import { DaysOfWeek, CompanyItem, CompanyScheduleItem } from '@/types'
+import { DaysOfWeek, CompanyItem, ScheduleItem } from '@/types'
 import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";
@@ -11,7 +11,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setUOMs, } from '@/store/slices'
+import { setSchedule, } from '@/store/slices'
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
@@ -27,10 +27,11 @@ export interface CompanyScheduleProps {
 }
 
 export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
+
     const dispatch = useAppDispatch();
 
-    const uoms = useSelector((state: RootState) => {
-        return state.catalogSlice.uoms;
+    const schedule = useSelector((state: RootState) => {
+        return state.catalogSlice.schedule;
     })
 
 
@@ -44,51 +45,16 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
     const [holidaysValue, setHolidaysValue] = useState([] as Date[]);
     const [weekendsValue, setWeekendsValue] = useState([] as (DaysOfWeek | null)[]);
     const [workdaysValue, setWorkdaysValue] = useState([] as { date: Date, timeStart: number, timeFinish: number }[]);
-
-
-    const downloadSchedule = async () => {
-        try {
-            const res = await fetch(`api/schedule-api?userId=${1}&companyId=${1}`,
-                {
-                    method: 'get',
-                    headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                let error = receivedData.error;
-                setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
-
-            } else {
-                const receivedData = await res.json();
-                if (receivedData.success) {
-                    let schedule = receivedData.schedule as CompanyScheduleItem
-                    // dispatch(setSchedule(schedule));
-                    setCompanyValue(schedule.company.title);
-                    setPrefixValue(schedule.company.prefix)
-                    setTimeStartWorkValue(schedule.timeStartWork);
-                    setTimeFinishWorkValue(schedule.timeFinishWork);
-                    setBreaksValue(schedule.breaks);
-                    setHolidaysValue(schedule.holidays);
-                    setWeekendsValue(schedule.weekends);
-                    setWorkdaysValue(schedule.workdays);
-                    setModified(false);
-                    setMessage("Прочитано расписание");
-                }
-                else setMessage(receivedData.error);
-            }
-        } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
-        }
-    }
-
+  
     useEffect(() => {
-        downloadSchedule();
+        setCompanyValue(schedule.company.title);
+        setPrefixValue(schedule.company.prefix)
+        setTimeStartWorkValue(schedule.timeStartWork);
+        setTimeFinishWorkValue(schedule.timeFinishWork);
+        setBreaksValue(schedule.breaks);
+        setHolidaysValue(schedule.holidays);
+        setWeekendsValue(schedule.weekends);
+        setWorkdaysValue(schedule.workdays);        
     }, []);
 
     // колбеки кнопки
@@ -133,8 +99,8 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
 
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let schedule = receivedData.schedule as CompanyScheduleItem
-                    // dispatch(setSchedule(schedule));
+                    let schedule = receivedData.schedule as ScheduleItem
+                    dispatch(setSchedule(schedule));
                     setCompanyValue(schedule.company.title);
                     setPrefixValue(schedule.company.prefix)
                     setTimeStartWorkValue(schedule.timeStartWork);
@@ -156,8 +122,15 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
     };
 
     const cancelScheduleHandler = () => {
-        // setUomsValue([...uoms]);
-        setModified(false)
+        setCompanyValue(schedule.company.title);
+        setPrefixValue(schedule.company.prefix)
+        setTimeStartWorkValue(schedule.timeStartWork);
+        setTimeFinishWorkValue(schedule.timeFinishWork);
+        setBreaksValue(schedule.breaks);
+        setHolidaysValue(schedule.holidays);
+        setWeekendsValue(schedule.weekends);
+        setWorkdaysValue(schedule.workdays);
+        setModified(false);        
     };
 
 
@@ -395,7 +368,7 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
                         className={styles.work_date}
                         id={`date-${index}`}
                         autoComplete="off"
-                        value={elem.date ? new Date(elem.date).toISOString().split('T')[0] : ""}
+                        value={elem.date ? new Date(elem.date).toLocaleDateString('en-CA') : ""}
                         type="date"
                         onChange={e => {
                             const date = new Date(e.target.value);
@@ -457,7 +430,7 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
                         className={styles.holiday_date}
                         id={`date-${index}`}
                         autoComplete="off"
-                        value={elem ? new Date(elem).toISOString().split('T')[0] : ""}
+                        value={elem ? (new Date(elem)).toLocaleDateString('en-CA') : ""}
                         type="date"
                         onChange={e => {
                             const date = new Date(e.target.value);

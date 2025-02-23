@@ -1,9 +1,9 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnits, getUnitLoads } from './handlers';  // расчеты
-import { planTCard } from './plan-handlers';  // планирование карты
-import { getTCard, getTCardMatOper } from './handlers';  // 
+import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
+import { planTCard } from './handlers-plan';  // планирование карты
+import { getTCard, getTCardMatOper } from './handlers-get';  // 
 
 
 import { Repository, In } from 'typeorm';

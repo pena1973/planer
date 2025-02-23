@@ -1,15 +1,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getCompanyShedule } from './handlers';  // расчеты
+import { getCompanyShedule } from './handlers-get';  // расчеты
 
 import { Repository, In } from 'typeorm';
 import { CompanyTable } from '@/pages/db/models/catalogs/companies'
 import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule'
 
-import { UnitItem, CompanyScheduleItem } from '@/types';
+import { UnitItem, ScheduleItem } from '@/types';
 
 interface RequestBody {
-  schedule: CompanyScheduleItem
+  schedule: ScheduleItem
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -73,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // ДЕЙСТВИЯ
 async function updateShedule(
   scheduleRepository: Repository<CompanyScheduleTable>,
-  schedule: CompanyScheduleItem,
+  schedule: ScheduleItem,
   company_id: number
 ) {
 
@@ -106,7 +106,7 @@ async function updateShedule(
     existingSchedule.timeStartWork = schedule.timeStartWork;
     existingSchedule.timeFinishWork = schedule.timeFinishWork;
     existingSchedule.breaks = schedule.breaks;
-    // existingSchedule.holidays = schedule.holidays.map(date => date.toISOString().split('T')[0]);
+    // existingSchedule.holidays = schedule.holidays.map(date => date.toLocaleDateString('en-CA'));
     existingSchedule.holidays = schedule.holidays;
     existingSchedule.weekends = schedule.weekends;
     existingSchedule.workdays = schedule.workdays.map(workday => ({

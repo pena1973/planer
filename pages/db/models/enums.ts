@@ -6,13 +6,14 @@ export enum TypeEnum {
   I = 'I',
   O = 'O',
 }
-// Статусы операций
+// Статусы операций  и карт
 export enum StatusEnum {
-  Dr = 'Draft',
-  Rd = 'Prepared',
-  Pl = 'Planed',
-  Cm = 'Completed',
-  Cn = 'Cancelled',
+  Dr = 'draft',
+  Pr = 'prepared',
+  Pl = 'planed',
+  Cm = 'completed',
+  Cn = 'cancelled',
+  Fl = 'faulty', // бракован
 }
 
 // роли
@@ -32,14 +33,7 @@ export enum UnitBelongEnum {
   I = 'inner',  
   O = 'outer',
 }
-// Статусы операций в карте
-export enum OperStatusEnum {
-  D = 'draft', // создан
-  P = 'planed', // запланирован
-  R = 'ready', // выполнен
-  C = 'canceled', // отменен
-  F = 'faulty', // бракован
-}
+
 
 // описание отклонений работы юнита
 export enum TimeTypeEnum {

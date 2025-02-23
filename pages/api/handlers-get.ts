@@ -13,9 +13,10 @@ import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions';
 import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule';
+import { SettingsTable} from '@/pages/db/models/plan/settings';
 // types
 import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek } from '@/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, OperStatusEnum, TCardStageItem, ActionItem, UOMItem, CompanyScheduleItem } from '@/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, StatusEnum, TCardStageItem, ActionItem, UOMItem, ScheduleItem,SettingsItem } from '@/types';
 
 
 export async function getUOMs(
@@ -158,8 +159,8 @@ export async function getUnitLoads(
   }
 
   const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
-    .where('unitLoad.date >= :today', { today })
-    .andWhere('unitLoad.unit.id IN (:...unitIds)', { unitIds }) // Фильтруем по unitIds
+    // .where('unitLoad.date >= :today', { today })
+    .andWhere('unitLoad.unit_id IN (:...unitIds)', { unitIds }) // Фильтруем по unitIds
     .getMany();
 
   const unitLoadItems: UnitLoadItem[] = unitLoads.map(unitLoad => {
@@ -169,12 +170,12 @@ export async function getUnitLoads(
     return {
       id: unitLoad.id,
       unit: (unit) ? unit : {} as UnitItem,  // он по любому существует
-      date: new Date(unitLoad.date),
+      date: String(unitLoad.date),
       idc_oper: unitLoad.idc_oper,
       id_tCard: unitLoad.id_tCard,
       timeStart: unitLoad.timeStart,
       timeFinish: unitLoad.timeFinish,
-      status:OperStatusEnum.D  // дописать из операции статус
+      status:StatusEnum.Pl  // дописать из операции статус
     };
   });
 
@@ -187,7 +188,7 @@ export async function getUnitLoads(
   //   const groupedByDate: { [key: string]: LoadItem[] } = {};
 
   //   unitLoadForUnit.forEach(load => {
-  //     const loadDate = load.date.toISOString().split('T')[0]; // Получаем строковое представление даты (YYYY-MM-DD)
+  //     const loadDate = load.date.toLocaleDateString('en-CA'); // Получаем строковое представление даты (YYYY-MM-DD)
 
   //     // Если для этой даты еще нет записи, создаем пустой массив
   //     if (!groupedByDate[loadDate]) {
@@ -253,6 +254,7 @@ export async function getTCard(
     modified: true,  // Например, помечаем, что карта изменена
     maxId: tCardtab.max_idc,
     coment: tCardtab.coment,
+    status:tCardtab.status 
   };
 
 }
@@ -318,7 +320,7 @@ export async function getTCardMatOper(
         inn: inn,
         action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible },
         duration: oper.duration, // в милисекундах   
-        status: OperStatusEnum.D
+        status: StatusEnum.Dr
       };
     });
 
@@ -361,7 +363,7 @@ export async function getExceptions(
 export async function getCompanyShedule(
   companyId: number,
   companyScheduleRepository: Repository<CompanyScheduleTable>
-): Promise<CompanyScheduleItem> {
+): Promise<ScheduleItem> {
   // Строим фильтр для поиска
   const filter: any = {};
   if (companyId) {
@@ -373,7 +375,7 @@ export async function getCompanyShedule(
     relations: ['company'], // Добавляем связь с таблицей company
   });
 
-  if (!receivedSchedule || receivedSchedule.length === 0) return {} as CompanyScheduleItem;
+  if (!receivedSchedule || receivedSchedule.length === 0) return {} as ScheduleItem;
 
   let scheduleTable = receivedSchedule[0]
   const schedule = {
@@ -390,8 +392,40 @@ export async function getCompanyShedule(
         timeFinish: workday.timeFinish
       }
     })
-  } as CompanyScheduleItem;
+  } as ScheduleItem;
 
 
   return schedule;
+}
+
+export async function getSettings(
+  companyId: number,
+  settingsRepository: Repository<SettingsTable>
+): Promise<SettingsItem> {
+  // Строим фильтр для поиска
+  const filter: any = {};
+  if (companyId) {
+    filter.company_id = companyId;
+  }
+
+  const receivedSettings = await settingsRepository.find({
+    where: filter,  // Применяем фильтр к запросу
+    relations: ['company'], // Добавляем связь с таблицей company
+  });
+
+  if (!receivedSettings || receivedSettings.length === 0) return {} as SettingsItem;
+
+  let settingsTable = receivedSettings[0]
+  const settings = {
+    company: settingsTable.company,
+    timeStartWork: settingsTable.timeStartWork,
+    timeFinishWork: settingsTable.timeFinishWork,
+    showHoliday: settingsTable.showHoliday,
+    showWeekend: settingsTable.showWeekend,
+    
+    
+  } as SettingsItem;
+
+
+  return settings;
 }

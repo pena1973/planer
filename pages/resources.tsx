@@ -3,6 +3,7 @@ import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
 import UOMSCatalog from "@/components/catalogs/UOMSCatalog/uomsCatalog";
 import ActionsCatalog from "@/components/catalogs/ActionsCatalog/аctionsCatalog";
 import CompanySchedule from "@/components/catalogs/CompanySchedule/сompanySchedule";
+import Settings from "@/components/catalogs/Settings/settings";
 
 import UnitsCatalog from "@/components/catalogs/UnitsCatalog/unitsCatalog";
 // import Arrow1 from "@/components/Arrow1/arrow1";
@@ -37,56 +38,6 @@ export default function Resources({ }: ResourcesProps) {
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
   const [resource, setResource] = useState(1); // переключатель между каталогами
 
-  // загружает настройки
-  const selectSetting = async () => {
-    setResource(1);
-
-  };
-  // загружает действия которые делают юниты
-  // Разные юниты могут делать одно и тоже действие  
-  const selectActions = async () => {
-    setResource(2);
-  }
-
-  // загружает единицы измерения
-  const selectUOMs = async () => {
-    setResource(3);
-    try {
-      const res = await fetch(`/api/tcards-api?userId=${1}&companyId=${1}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        let error = receivedData.error;
-        setMessage(error);
-        // setMessage(t('service.serverUnavailable') + res.status);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)        
-        if (receivedData.success) {
-          // //   Обновим текущую карту
-          // let tCards = receivedData.tCards as TCardItem[]
-          // // Сортируем tCards по номеру (если number это число)
-          // let tCards_ = tCards.sort((a, b) => a.number - b.number);
-          // let tCardsUpdated = tCards_.map(card => { return { ...card, date: new Date(card.date) } });
-          // dispatch(setTCards(tCardsUpdated));
-          // setMessage("Карты успешно получены");
-        }
-      }
-    } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
-    }
-  };
-  // загружает рабочие центры Юниты
-  const selectSUnits = async () => {
-    setResource(4);
-  }
 
   // Начальный загруз
   useEffect(() => {
@@ -95,17 +46,15 @@ export default function Resources({ }: ResourcesProps) {
 
 
   const onFocusUnitHandler = (code: string) => {
-
     console.log('Code:', code);
     // Дальнейшая обработка данных
   };
+
   // Загрузка файла
   const onFileUpload = (content: UOMItem | ActionItem | UnitItem) => {
     console.log('File uploaded with content:', content);
     // Дальнейшая обработка данных
   };
-
-
 
   return (
     <Layout>
@@ -114,10 +63,11 @@ export default function Resources({ }: ResourcesProps) {
           <div className="container_left_inner">
 
             <div className="container_catalogs">
-              <div className="resources_container_catalog" onClick={selectSetting}>Настройки</div>
-              <div className="resources_container_catalog" onClick={selectActions}>Действия</div>
-              <div className="resources_container_catalog" onClick={selectUOMs}>Единицы измерения</div>
-              <div className="resources_container_catalog" onClick={selectSUnits}>Юниты</div>
+              <div className="resources_container_catalog" onClick={()=> setResource(1)}>Расписание</div>
+              <div className="resources_container_catalog" onClick={()=> setResource(2)}>Действия</div>
+              <div className="resources_container_catalog" onClick={()=> setResource(3)}>Единицы измерения</div>
+              <div className="resources_container_catalog" onClick={()=> setResource(4)}>Юниты</div>
+              <div className="resources_container_catalog" onClick={()=> setResource(5)}>Настройки</div>
 
             </div>
             <div className="container_cards_title">Пояснение</div>
@@ -147,8 +97,14 @@ export default function Resources({ }: ResourcesProps) {
               <UOMSCatalog setMessage={setMessage}/>
             </div>}
           {/* Юниты */}
-          {resource === 4 && <div className="contaitainer_catalog">            
+          {resource === 4 && <div className="contaitainer_catalog">         
+            <div className="catalog_title"> Настройки юнитов</div>   
             <UnitsCatalog setMessage={setMessage} />
+          </div>}
+           {/* Визуальные настройки календаря */}
+           {resource === 5 && <div className="contaitainer_catalog"> 
+            <div className="catalog_title"> Настройки календаря</div>              
+            <Settings setMessage={setMessage} />
           </div>}
         </div>
 

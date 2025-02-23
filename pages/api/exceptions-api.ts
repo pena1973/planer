@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getExceptions } from './handlers';  // расчеты
+import { getExceptions } from './handlers-get';  // расчеты
 
 import { Repository, In } from 'typeorm';
 import { CompanyTable } from '@/pages/db/models/catalogs/companies'

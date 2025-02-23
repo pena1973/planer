@@ -15,6 +15,7 @@ import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule'
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions'
 import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads'
+import { SettingsTable} from '@/pages/db/models/plan/settings'
 
 import { TypeEnum } from '@/pages/db/models/enums';
 
@@ -34,7 +35,7 @@ const config: ConnectionOptions = {
   logging: true, // Включите логирование SQL-запросов (можно отключить в продакшн-среде)
   entities: [TCardTable, TCardOperationTable,TCardProductTable,TCardStageTable,
     UOMsTable,ActionTable,UnitTable,UserTable,CompanyTable,UnitActionTable,
-    CompanyScheduleTable,UnitExceptionTable,UnitLoadTable
+    CompanyScheduleTable,UnitExceptionTable,UnitLoadTable,SettingsTable
   ],
   migrations: ["/pages/db/migrations/**/*.ts"],  // Путь к миграциям
   subscribers: [],

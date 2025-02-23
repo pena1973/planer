@@ -505,7 +505,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                         className={styles.exception_date}
                         id={`date-${elem.id}`}
                         autoComplete="off"
-                        value={elem.date ? new Date(elem.date).toISOString().split('T')[0] : ""}
+                        value={elem.date ? (new Date(elem.date)).toLocaleDateString('en-CA') : ""}
                         type="date"
                         onChange={e => {
                             const date = new Date(e.target.value);

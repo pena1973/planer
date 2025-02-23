@@ -1,7 +1,18 @@
 import Layout from "@/components/Layout/layout";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
-import { UnitItem,UOMItem, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, UserItem, UserRoleEnum } from "@/types";
+
+import {
+  UnitItem, UOMItem,
+  ActionItem,
+  TCardItem,
+  UserItem,
+  UserRoleEnum,
+  SettingsItem,
+  ScheduleItem
+
+} from "@/types";
+
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 // import DropDownList from "@/components/DropDownList/dropDownList";
 import DropdownSelectRole from "@/components/DropdownSelectRole/dropdownSelectRole";
@@ -12,7 +23,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setActions, setUOMs, setUnits, } from '@/store/slices'
+import { setActions, setUOMs, setUnits, setTCards, setSettings, setSchedule } from '@/store/slices'
 
 import words from "@/public/add.jpg";
 import net from "@/public/add.jpg";
@@ -377,10 +388,114 @@ export default function Index({ }: IndexProps) {
 
   }
 
+  // загружает активные карты  
+  const downloadTCards = async () => {
+    try {
+      const res = await fetch(`/api/tcards-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)        
+        if (receivedData.success) {
+          let tCards = receivedData.tCards as TCardItem[]
+          // Сортируем tCards по номеру (если number это число)
+          let tCards_ = tCards.sort((a, b) => a.number - b.number);
+          let tCardsUpdated = tCards_.map(card => { return { ...card, date: new Date(card.date), status: card.status } });
+          dispatch(setTCards(tCardsUpdated));
+          setMessage("Карты успешно получены");
+        }
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+  };
+
+  // загружает настройки отображения календаря
+  const downloadSettings = async () => {
+    try {
+      const res = await fetch(`api/settings-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+
+      } else {
+        const receivedData = await res.json();
+        if (receivedData.success) {
+          let settings = receivedData.schedule as SettingsItem
+          dispatch(setSettings(settings));
+
+
+          setMessage("Прочитаны настройки");
+        }
+        else setMessage(receivedData.error);
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+  }
+
+  // загружает  расписание работы компании
+  const downloadSchedule = async () => {
+    try {
+      const res = await fetch(`api/schedule-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+
+      } else {
+        const receivedData = await res.json();
+        if (receivedData.success) {
+          let schedule = receivedData.schedule as ScheduleItem
+          dispatch(setSchedule(schedule));
+        }
+        else setMessage(receivedData.error);
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+  }
+
   useEffect(() => {
     downloadUoms();
     downloadActions();
     downloadUnits();
+    downloadTCards();
+    downloadSettings();
+    downloadSchedule();
   }, []);
 
   const [selectedRole, setSelectedRole] = useState<UserRoleEnum | null>(null);

@@ -1,7 +1,7 @@
 import {
     UnitActionItem, TCardProductItem, TCardOperationItem,
     TCardItem, UnitLoadItem,
-    CalendarItem, TimeTypeEnum, OperStatusEnum,
+    CalendarItem, TimeTypeEnum, StatusEnum,
     UnitItem
 } from "@/types";
 
@@ -56,7 +56,7 @@ function findAvailableTimeForOperation(
 
     // Константы для рабочего времени
     const workDay = generateCalendarItem(targetDate); // Получаем объект календаря для текущего дня   
-    const operationDuration = operation.duration / (1000 * 60); // Продолжительность операции в минутах
+    const operationDuration = Math.ceil(operation.duration / (1000 * 60)); // Продолжительность операции в минутах округленное в большую сторону
     const interruptible = operation.action.interruptible; // можно прервать
     const possibleUnits: { unit: UnitItem, availableStart: number }[] = [];
 
@@ -78,7 +78,8 @@ function findAvailableTimeForOperation(
         });
 
         // Ищем загрузку для указанной даты
-        const dateLoad = loads.filter(load => load.date.getDate() === targetDate.getDate());
+        // const dateLoad = loads.filter(load => load.date.getDate() === targetDate.getDate());
+        const dateLoad = loads.filter(load => load.date === targetDate.toLocaleDateString('en-CA'));
 
         //  а здесь определим возможный рабочий день Юнита по календарю
         let workStart = workDay.timeStartWork
@@ -128,6 +129,7 @@ function findAvailableTimeForOperation(
         let availableStart = workStart;
 
         for (let period of busyPeriods) {
+            
             // Если операция может вписаться в промежуток до начала текущего занятого периода
             if (availableStart + operationDuration + retool <= period.start) {
                 // Проверяем, что операция помещается в рабочие часы
@@ -147,7 +149,7 @@ function findAvailableTimeForOperation(
         }
 
         // Если после всех занятых промежутков остается время до конца рабочего дня
-        if (availableStart + operationDuration + retool <= workEnd) {
+        if (availableStart +  operationDuration + retool <= workEnd) {
             const unitAvailableTime = availableStart;
 
             // Добавляем юнита и его возможное время начала в массив возможных юнитов
@@ -171,11 +173,11 @@ function findAvailableTimeForOperation(
         const loadItem: UnitLoadItem = {
             idc_oper: operation.idc,
             unit: unit,
-            date: targetDate,
+            date: targetDate.toLocaleDateString('en-CA'),
             id_tCard: tCard.id, // id карты
             timeStart: possibleUnits[0].availableStart,
             timeFinish: possibleUnits[0].availableStart + operationDuration + unit.retool,
-            status: OperStatusEnum.D
+            status: StatusEnum.Dr
         };
         let dateReady = targetDate;
         let timeReady = loadItem.timeFinish;
@@ -193,7 +195,7 @@ function findAvailableTimeForOperation(
 }
 
 
-// В этом модуле делаем расчет планирования, возврашаем готовую загрузку
+// В этом модуле делаем РАСЧЕТ ПЛАНИРОВАНИЯ, возврашаем готовую загрузку
 export const planTCard = (tCard: TCardItem, units: UnitItem[], unitLoads: UnitLoadItem[]) => {
 
     // // Извлекаем объекты 'unit'

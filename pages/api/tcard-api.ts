@@ -396,6 +396,7 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
 
   // генерим пользовательский номер карты
   let newCardNumber = Number(tCard.number);
+
   if (tCard.number === 0) {
     newCardNumber = await generateNewNumberForCompany(tCardRepository);
     if (!newCardNumber) {
@@ -408,6 +409,7 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
   // Если id карты положительный, то обновляем, если нет - создаем новую
   if (tCard.id && tCard.id > 0) {
     // Обновляем существующую карту
+  
     savedTCard = await tCardRepository.save({
       ...tCard,  // сохраняем все поля карты, включая id
       user_id: Number(userId),
@@ -415,7 +417,8 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
       max_idc: tCardMaxIdc,
       coment: tCard.coment
     });
-    console.log('Карта успешно обновлена с id:', savedTCard.id);
+
+    // console.log('Карта успешно обновлена с id:', savedTCard.id);
   } else {
     // Создаем новую карту
     const newTCard = tCardRepository.create({

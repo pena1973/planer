@@ -1,14 +1,17 @@
-import { UOMItem, ActionItem,UnitItem, 
-    TCardItem,TCardProductItem, TCardOperationItem,TCardStageItem,UnitLoadItem, 
+import { UOMItem, ActionItem,UnitItem, SettingsItem,
+    TCardItem,TCardProductItem, TCardOperationItem,TCardStageItem,UnitLoadItem, ScheduleItem,
     UnitExceptionItem} from '@/types';
 import { createSlice } from '@reduxjs/toolkit';
 
 // типы
 export type CatalogState = {
     uoms: UOMItem[],
-    actions: ActionItem[]
-    units: UnitItem[]
+    actions: ActionItem[],
+    units: UnitItem[],
+    settings: SettingsItem,
+    schedule:ScheduleItem,
 }
+
 export type DataState = {
     tCards: TCardItem[],
     tCardCurrent: TCardItem,
@@ -30,6 +33,8 @@ export type AuthState = {
     locale:string
 }
 export type PlanState = {
+    tCardPlaned: TCardItem,
+    tCardPrepared: TCardItem,
     unitLoads: UnitLoadItem[],
     unitExceptions:UnitExceptionItem[]
     
@@ -38,7 +43,9 @@ export type PlanState = {
 const catalogIntialState: CatalogState = {
     uoms: [] as UOMItem[],
     actions: [] as ActionItem[],
-    units: [] as UnitItem[]
+    units: [] as UnitItem[],
+    settings:{} as SettingsItem,
+    schedule:{} as ScheduleItem,
 }
 const dataIntialState: DataState = {
     tCards: [] as TCardItem[],
@@ -61,6 +68,8 @@ const authIntialState: AuthState = {
     locale:"ru"
 }
 const planIntialState: PlanState = {
+    tCardPlaned:{} as TCardItem,
+    tCardPrepared:{} as TCardItem,    
     unitLoads: [] as UnitLoadItem[],    
     unitExceptions:[] as UnitExceptionItem[],
 }
@@ -113,6 +122,12 @@ const catalogSlice = createSlice({
         setUnits: (state, action) => {
             state.units = action.payload;
         },
+        setSettings: (state, action) => {
+            state.settings= action.payload;
+        },
+        setSchedule: (state, action) => {
+            state.schedule= action.payload;
+        },        
     },
 
 })
@@ -153,7 +168,13 @@ const dataSlice = createSlice({
 const planSlice = createSlice({
     name: 'plan',
     initialState: planIntialState,
-    reducers: {        
+    reducers: {     
+        setTCardPlaned : (state, action) => {
+            state.tCardPlaned = action.payload;
+        }, 
+        setTCardPrepared : (state, action) => {
+            state.tCardPrepared = action.payload;
+        },     
         setUnitLoads: (state, action) => {
             state.unitLoads = action.payload;
         },
@@ -167,11 +188,11 @@ const planSlice = createSlice({
 
 export default function Foo() { return <></> }  // пустышка для билда
 
-export const { setActions, setUOMs,setUnits } = catalogSlice.actions;
+export const { setActions, setUOMs,setUnits,setSettings,setSchedule } = catalogSlice.actions;
 export const {setTCards,setTCardCurrent,setTCardCurrentStages,setTCardCurrentMaterials,setTCardCurrentOperations,setTCardCurrentProducts,settCardCurrentWastes,setTCardCurrentMaxIdc} = dataSlice.actions;
 export const {setToken,setLogin,setUserId,setRole,setNickname,setAgreeCookie,setAgreement, setLocale} = authSlice.actions;
 
-export const {setUnitLoads,setUnitExceptions} = planSlice.actions;
+export const {setTCardPlaned,setTCardPrepared, setUnitLoads,setUnitExceptions} = planSlice.actions;
 
 export { authSlice, catalogSlice, dataSlice,planSlice};
 

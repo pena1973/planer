@@ -13,14 +13,15 @@ export interface TCardOperationItem {
     action: ActionItem,
     duration: number, // в милисекундах   
     mode?: boolean // для целей редактирования на форме
-    status:OperStatusEnum
+    status:StatusEnum
 }
-export enum OperStatusEnum {
-    D = 'draft', // создан
-    P = 'planed', // запланирован
-    R = 'ready', // выполнен
-    C = 'canceled', // отменен
-    F = 'faulty', // бракован
+export enum StatusEnum {
+    Dr = 'draft',
+    Pr = 'prepared',
+    Pl = 'planed',
+    Cm = 'completed',
+    Cn = 'cancelled',
+    Fl = 'faulty', // бракован
 }
 export interface TCardProductItem {
     id?: number,  // id BD
@@ -41,7 +42,8 @@ export interface TCardItem {
     tCardOperations?: TCardOperationItem[],
     tCardMaterials?: TCardProductItem[],
     maxId: number, // это счетчик id в пределах карты  -  обеспечивает сквозную id в карте
-    coment?: string
+    coment?: string,
+    status:StatusEnum
 }
 
 export interface UOMItem {
@@ -124,7 +126,7 @@ export enum DaysOfWeek {
   }
 
 // рабочее  время компании
-export interface CompanyScheduleItem {
+export interface ScheduleItem {
     company: CompanyItem,    
     timeStartWork: number, // минут с начала дня 
     timeFinishWork: number, // минут с начала дня 
@@ -155,12 +157,12 @@ export interface CalendarItem {
 export interface UnitLoadItem {
     id?:number,
     unit:UnitItem,  //  добавить и убрать лишние сущтности
-    date:Date,
+    date:string, //  дата в строковом формате // формат: YYYY-MM-DD
     idc_oper: number,    
     id_tCard: number,
     timeStart: number, // здесь в минутах
     timeFinish: number,
-    status:OperStatusEnum
+    status:StatusEnum
 }
 // 
 // описание дня работы юнита
@@ -186,5 +188,13 @@ export interface UnitExceptionItem {
     type: TimeTypeEnum, 
     timeStart:number,
     timeFinish:number
+    
+}
+//  отклонения юнита от расписания
+export interface SettingsItem {
+    timeStartWork:number,
+    timeFinishWork:number, 
+    showWeekend:boolean,
+    showHoliday: boolean, 
     
 }

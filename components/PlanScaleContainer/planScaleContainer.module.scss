@@ -362,13 +362,102 @@
 
 }
 
-.unit_load_draft {
-  margin-top: 30px;
-  width: 100%;
-  background-color: rgb(172, 169, 132);
-  min-height: 20px;
-  // font-weight: bold;    
+// .unit_load_draft {
+//   position: relative;
+//   margin-top: 30px;
+//   width: 100%;
+//   background-color: rgb(172, 169, 132);
+//   min-height: 20px;
+//   // font-weight: bold;    
+// }
+
+// .interval_planned {
+//   font-size: 12px;
+//   position: absolute;
+//   /* Позиционируем элемент на шкале */
+//   background-color: rgb(172, 169, 132);
+//   height: 20px;
+//   /* Увеличиваем высоту блока для лучшего отображения */
+//   // width: 60px;  /* Устанавливаем ширину */
+//   z-index: 1;
+//   border: 1px solid #ccc;
+//   border-radius: 10px;
+
+//   /* Центрируем текст внутри блока */
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+
+//   /* Добавляем выпуклый эффект */
+//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+// }
+
+// .interval_draft {
+//   font-size: 12px;
+//   position: absolute;
+//   background-color: rgb(172, 169, 132); 
+//   height: 20px;
+//   // width: 40px;
+//   z-index: 1;
+//   border: 1px solid #ccc;
+//   border-radius: 10px;
+
+//   /* Центрируем текст вертикально и горизонтально */
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+
+//   /* Добавляем выпуклый эффект */
+//   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
+// }
+
+.interval {
+  font-size: 12px;
+  position: absolute;
+  height: 20px;
+  z-index: 1;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  /* Центрируем текст вертикально и горизонтально */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+.contextMenu {
+  font-size: 12px;
+  position: absolute;
+  height: 60px;
+  z-index: 10;
+  background-color: #ec0505;
+  top: 20px;
+  border-radius: 10px;
+}
+.planed { 
+  background-color: rgb(172, 169, 132);
+  /* Добавляем выпуклый эффект */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  
+}
+
+.draft {
+  background-color: rgb(219, 218, 204);
+  /* Добавляем выпуклый эффект */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.ready {
+  background-color: rgba(107, 170, 7, 0.753);
+  /* Добавляем выпуклый эффект */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.faulty {
+  background-color: rgb(255, 143, 79);
+  /* Добавляем выпуклый эффект */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+
+}
+
 
 .unit_load {
   margin-top: 30px;
@@ -379,6 +468,7 @@
 }
 
 .unit_unload {
+  position: relative;
   margin-top: 30px;
   width: 100%;
   // background-color: rgb(255, 251, 199);

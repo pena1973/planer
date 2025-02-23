@@ -4,7 +4,7 @@ import connectDb from '@/pages/db/database';  // Импортируем функ
 import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { Repository } from 'typeorm';
 import { ActionItem } from '@/types';
-import { getActions } from './handlers';  // расчеты
+import { getActions } from './handlers-get';  // расчеты
 
 interface RequestBody {
   actions: ActionItem[];

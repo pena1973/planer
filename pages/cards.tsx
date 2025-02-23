@@ -259,45 +259,45 @@ export default function Cards({ }: CardsProps) {
   }
 
 
-  // загружает активные карты  
-  const selectTCards = async () => {
-    try {
-      const res = await fetch(`/api/tcards-api?userId=${1}&companyId=${1}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        let error = receivedData.error;
-        setMessage(error);
-        // setMessage(t('service.serverUnavailable') + res.status);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)        
-        if (receivedData.success) {
-          //   Обновим текущую карту
-          let tCards = receivedData.tCards as TCardItem[]
-          // Сортируем tCards по номеру (если number это число)
-          let tCards_ = tCards.sort((a, b) => a.number - b.number);
-          let tCardsUpdated = tCards_.map(card => { return { ...card, date: new Date(card.date) } });
-          dispatch(setTCards(tCardsUpdated));
-          setMessage("Карты успешно получены");
-        }
-      }
-    } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
-    }
-    setModified(false);
-  };
+  // // загружает активные карты  
+  // const selectTCards = async () => {
+  //   try {
+  //     const res = await fetch(`/api/tcards-api?userId=${1}&companyId=${1}`,
+  //       {
+  //         method: 'get',
+  //         headers: new Headers({
+  //           // 'Authorization': 'Basic ' + token,
+  //           'Content-Type': 'application/json'
+  //         }),
+  //       }
+  //     );
+  //     if (res.status !== 200) {
+  //       const receivedData = await res.json();
+  //       let error = receivedData.error;
+  //       setMessage(error);
+  //       // setMessage(t('service.serverUnavailable') + res.status);
+  //     } else {
+  //       const receivedData = await res.json();
+  //       // console.log("receivedData", receivedData)        
+  //       if (receivedData.success) {
+  //         //   Обновим текущую карту
+  //         let tCards = receivedData.tCards as TCardItem[]
+  //         // Сортируем tCards по номеру (если number это число)
+  //         let tCards_ = tCards.sort((a, b) => a.number - b.number);
+  //         let tCardsUpdated = tCards_.map(card => { return { ...card, date: new Date(card.date) } });
+  //         dispatch(setTCards(tCardsUpdated));
+  //         setMessage("Карты успешно получены");
+  //       }
+  //     }
+  //   } catch (e: any) {
+  //     // setMessage(t('service.noConnection') + e.message)            
+  //   }
+  //   setModified(false);
+  // };
 
   // Начальный загруз
   useEffect(() => {
-    selectTCards();
+    // selectTCards();
     dispatch(setTCardCurrent({} as TCardItem));
     dispatch(setTCardCurrentMaxIdc(0))
     dispatch(setTCardCurrentStages([] as TCardStageItem[]));

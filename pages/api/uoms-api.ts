@@ -4,7 +4,7 @@ import connectDb from '@/pages/db/database';  // Импортируем функ
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { Repository } from 'typeorm';
 import { UOMItem } from '@/types';
-import { getUOMs } from './handlers';  // расчеты
+import { getUOMs } from './handlers-get';  // расчеты
 
 interface RequestBody {
   uoms: UOMItem[];

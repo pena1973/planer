@@ -25,9 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Выполняем запрос с фильтрацией
         const tCards = await tCardRepository.find({
           where: filter,  // Применяем фильтр к запросу
-          select: ['id', 'date', 'number', 'coment'],  // Указываем, какие поля нужно вернуть
+          select: ['id', 'date', 'number', 'coment', 'status'],  // Указываем, какие поля нужно вернуть
         });
 
+        
         // Возвращаем результат
         res.status(200).json({ success: true,tCards:tCards});
         break;
