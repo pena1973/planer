@@ -6,7 +6,7 @@ import { Repository, In } from 'typeorm';
 import { CompanyTable } from '@/pages/db/models/catalogs/companies'
 import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule'
 
-import { UnitItem, ScheduleItem } from '@/types';
+import { UnitItem, ScheduleItem, TimeZoneEnum } from '@/types';
 
 interface RequestBody {
   schedule: ScheduleItem
@@ -93,7 +93,8 @@ async function updateShedule(
         date: String(workday.date).split('T')[0], 
         timeStart: workday.timeStart,
         timeFinish: workday.timeFinish
-      }))
+      })),
+      timeZone:schedule.timeZone
     });
 
     const savedNewSchedule = await scheduleRepository.save(newSchedule);
@@ -107,17 +108,21 @@ async function updateShedule(
     existingSchedule.timeFinishWork = schedule.timeFinishWork;
     existingSchedule.breaks = schedule.breaks;
     // existingSchedule.holidays = schedule.holidays.map(date => date.toLocaleDateString('en-CA'));
-    existingSchedule.holidays = schedule.holidays;
+    existingSchedule.holidays = schedule.holidays.map(date => new Date(date));
     existingSchedule.weekends = schedule.weekends;
     existingSchedule.workdays = schedule.workdays.map(workday => ({
       date: String(workday.date).split('T')[0],
       timeStart: workday.timeStart,
       timeFinish: workday.timeFinish
     }));
+    
+    existingSchedule.timeZone = schedule.timeZone;
+
 
     const savedUpdatedSchedule = await scheduleRepository.save(existingSchedule);
     if (!savedUpdatedSchedule) return { success: false, message: "Не удалось обновить расписание" };
 
+    
     return { success: true, savedSchedule: savedUpdatedSchedule };
   }
 }

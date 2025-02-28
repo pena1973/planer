@@ -1,17 +1,31 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import styles from "./planScaleContainer.module.scss";
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, StatusEnum, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek } from "@/types";
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, StatusEnum, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem } from "@/types";
 import { setUnits } from '@/store/slices';
 
+import { useSelector } from 'react-redux';
+import { RootState, useAppDispatch } from "@/pages/_app";
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
   // Если scale 100%, widthDay = totalWidth
   // Если scale 10%, widthDay = totalWidth / 100
   return (totalWidth * scale) / 100;
 };
+
+//  функция определяемт входит ли  дата в список дат дополнительного времени работы
+const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
+
+  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+
+  // Проверяем, есть ли дата в массиве праздников
+  return schedule.workdays.some(workday =>
+    new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+  );
+}
 //  функция определяемт входит ли  дата в список выходных расписания
-const isWeekend = (date: Date,schedule: ScheduleItem): boolean => {
+const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
 
   let dayString = DaysOfWeek.SUNDAY;
@@ -43,6 +57,16 @@ const isWeekend = (date: Date,schedule: ScheduleItem): boolean => {
   // Проверяем, является ли день выходным
   return schedule.weekends.includes(dayString);
 }
+//  функция определяемт входит ли  дата в список праздниклв расписания
+const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
+  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+
+  // Проверяем, есть ли дата в массиве праздников
+  return schedule.holidays.some(holiday =>
+    new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+  );
+}
 
 // генерация привычной нам даты - ее использую как id дня
 const idDay = (date: Date): string => {
@@ -58,9 +82,31 @@ const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem =
   const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
   currentDate.setHours(0, 0, 0, 0);
 
-  const _isWeekend = isWeekend(currentDate,schedule);  // День недели для учета выходных
-  let timeStartBreack = !_isWeekend ? 780 : 0;  // Перерыв 1 (13:00, если не выходной)
-  let timeFinishBreack = !_isWeekend ? 840 : 0;  // Перерыв 1 (14:00, если не выходной)
+  const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
+  const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
+  const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
+
+  let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
+  let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
+  let breaks = _isWeekend || _isHoliday ? [] : [...schedule.breaks];
+
+  if (_isAdditionalTime) {
+    const workday = schedule.workdays.find(
+      workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+    // если дата есть, то нужно просто взять дополнительное время из workday  
+    if (workday) {
+      if (_isWeekend || _isHoliday) {
+        timeStartWork = workday.timeStart;
+        timeFinishWork = workday.timeFinish;
+      } else {
+        timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
+        timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
+      }
+      //  проверим перерывы и если попадают в рабочий период вставим
+      breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
+    }
+  }
+
 
   // Создаем объект CalendarItem
   const calendarItem: CalendarItem = {
@@ -68,30 +114,29 @@ const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem =
     date: new Date(currentDate),  // Текущая дата
     mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
     day: true,  // Указываем, что это день
-    timeStartWork: !_isWeekend ? schedule.timeStartWork : 0,  // Время начала работы (если не выходной)
-    timeFinishWork: !_isWeekend ? schedule.timeFinishWork : 0,  // Время окончания работы (если не выходной)
-    breaks: [{ timeStart: timeStartBreack, timeFinish: timeFinishBreack }],
+    timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
+    timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
+    breaks: breaks,
   };
   return calendarItem;  // Возвращаем один элемент календаря
 };
 
 export interface PlanScaleContainerProps {
-  // generateCalendarItem: (day: Date,schedule:ScheduleItem) => CalendarItem,
-  // idDay: (date: Date) => string,
   units: UnitItem[],
   unitLoads: UnitLoadItem[],
   settings: SettingsItem,
   schedule: ScheduleItem,
-
+  tCardPrepared: TCardItem,
+  tCardPlaned: TCardItem,
 }
 
 export default function PlanScaleContainer({
-  // generateCalendarItem,
-  // idDay,
   units,
   unitLoads,
   settings,
-  schedule
+  schedule,
+  tCardPrepared,
+  tCardPlaned,
 }: PlanScaleContainerProps) {
 
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
@@ -115,11 +160,19 @@ export default function PlanScaleContainer({
 
   let today = new Date();
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  // если стартовый день приходится на выходные  и в настройках указано что мы скрываем выходные
-  // крутим сегодня до первого буднего дня
-  while (!settings.showWeekend && isWeekend(today,schedule)) {
+
+  // если  день приходится на выходные  и в настройках указано что мы скрываем выходные но нет доп часов на это время
+  // крутим до первого буднего дня
+  while (!settings.showWeekend && isWeekend(today, schedule) && !isAdditionalTime(today, schedule)) {
     today.setDate(today.getDate() + 1);
   }
+  // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
+  // крутим до первого буднего дня
+  while (!settings.showHoliday && isHoliday(today, schedule) && !isAdditionalTime(today, schedule)) {
+    today.setDate(today.getDate() + 1);
+  }
+
+
   const todayDateRef = useRef(idDay(today));
   if (idDay(today) !== todayDateRef.current) {
     todayDateRef.current = idDay(today);
@@ -132,7 +185,7 @@ export default function PlanScaleContainer({
     // let unitsView = unitLoads.map(elem => { return elem.unit })
     unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.I);
     unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.O);
-    // Стартовый масштаб всегда 100% и в нем помещается один день  временно 500
+    // Стартовый масштаб всегда 100% и в нем помещается один день  
     // реализуем ленивую загрузку   
     // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно    
     if (!calendarPlus.current.find(elem => elem.idDay === idDay(today))) {
@@ -250,11 +303,21 @@ export default function PlanScaleContainer({
 
     while (_timelineWidth > 0) {
 
+      // Если этот день входит в дополнительные часы работы (isAdditionalTime) то проверку на выходной пропускаем
+      //  его по любому надо рисовать в шкале
+
+
       // если  день приходится на выходные  и в настройках указано что мы скрываем выходные
       // крутим до первого буднего дня
-      while (!settings.showWeekend && isWeekend(_day,schedule)) {
-        _day.setDate(today.getDate() + 1);
+      while (!settings.showWeekend && isWeekend(_day, schedule) && !isAdditionalTime(_day, schedule)) {
+        _day.setDate(_day.getDate() + 1);
       }
+      // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
+      // крутим до первого буднего дня
+      while (!settings.showHoliday && isHoliday(_day, schedule) && !isAdditionalTime(_day, schedule)) {
+        _day.setDate(_day.getDate() + 1);
+      }
+
 
       // уменьшаем ширину на ширину дня
       _timelineWidth = _timelineWidth - dayWidth
@@ -293,10 +356,15 @@ export default function PlanScaleContainer({
       _dayPast.setDate(today.getDate() - 1);
 
       while (_shift > 0) {
-        // если  день приходится на выходные  и в настройках указано что мы скрываем выходные
-        // крутим до первого буднего дня
 
-        while (!settings.showWeekend && isWeekend(_dayPast,schedule)) {
+        // если  день приходится на выходные  и в настройках указано что мы скрываем выходные и нет доп часов
+        // крутим до первого буднего дня
+        while (!settings.showWeekend && isWeekend(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
+          _dayPast.setDate(_dayPast.getDate() - 1);
+        }
+        // если  день приходится на праздники  и в настройках указано что мы скрываем праздники и нет доп часов
+        // крутим до первого буднего дня
+        while (!settings.showHoliday && isHoliday(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
           _dayPast.setDate(_dayPast.getDate() - 1);
         }
 
@@ -320,6 +388,12 @@ export default function PlanScaleContainer({
 
   // Для перетаскивания
   const handleMouseDown = (e: React.MouseEvent) => {
+    // Нажата правая кнопка мыши 2 - тащим шкалу
+    // Нажата правая кнопка мыши 1 - тащим операцию на шкале
+    if (e.button === 0) {
+      return;
+    }
+
     setIsDragging(true); // Включаем перетаскивание
     let isDragging_ = true; // Включаем перетаскивание
     const startX = e.clientX; // Сохраняем начальную позицию мыши
@@ -417,6 +491,7 @@ export default function PlanScaleContainer({
 
       //  вычисление визуализации загруза юнитов
       // Проверяем загрузку юнитов
+      // Внутренние   
       let unitLoadBlockseReactNodesInner = unitsViewInner.current.map(unitView => {
         let dateLoad = unitLoads.filter(elem => {
           return (elem.unit.id === unitView.id &&
@@ -437,6 +512,7 @@ export default function PlanScaleContainer({
             let width = (operation.timeFinish - operation.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
             let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
+
             switch (operation.status) {
               case StatusEnum.Dr:
                 intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
@@ -445,7 +521,7 @@ export default function PlanScaleContainer({
                 intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
                 break;
               case StatusEnum.Pr:
-                intervalClass = `${styles.interval} ${styles.ready}`; // Если статус "ready"
+                intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
                 break;
               case StatusEnum.Fl:
                 intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
@@ -454,8 +530,8 @@ export default function PlanScaleContainer({
                 intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
                 break;
             }
-
-
+            // Выделяем операции текущей карты
+            if (tCardPlaned.id === operation.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
 
             return (
               <>
@@ -474,39 +550,69 @@ export default function PlanScaleContainer({
           })
           return (<div className={styles.unit_unload}>{operBlocksReactNodes}</div>)
         }
-
         return (<div className={styles.unit_unload}></div>); // Если нет совпадений
       });
 
+      //  внешние
       let unitLoadBlockseReactNodesOuter = unitsViewOuter.current.map(unitView => {
-
-        // let unitLoad = unitLoads.find(elem => elem.unit.id === unitView.id);
-        // if (!unitLoad) return (<div className={styles.unit_unload} >1</div>);
-        // // Ищем загрузки юнитов для конкретной даты
-        // const dateLoad = unitLoad.unitDates.find(unitDate =>
-        //   unitDate.date.toDateString() === calendarItem.date.toDateString()
-        // );
-
         let dateLoad = unitLoads.filter(elem => {
           return (elem.unit.id === unitView.id &&
             new Date(elem.date).toDateString() === new Date(calendarItem.date).toDateString())
         });
-
-        if (dateLoad) {
-          // Проверяем, попадает ли текущий интервал в загрузку этого юнита
-          const isUnitLoaded = dateLoad.some(operation => {
-
-            return intervTime >= operation.timeStart && intervTime < operation.timeFinish;
+        if (dateLoad.length > 0) {
+          // ищем позиции которые начинаются а этом интервале
+          const operBlocks = dateLoad.filter(operation => {
+            return intervTime <= operation.timeStart && operation.timeStart < (intervTime + 5);
           });
 
-          // Добавляем блок загрузки юнита, если интервал совпадает
-          if (isUnitLoaded) {
-            return (<div className={styles.unit_load} ></div>);
-          }
-          else return (<div className={styles.unit_unload} ></div>);
+          // Расставляем блоки интервалов на шкале
+          const operBlocksReactNodes = operBlocks.map(operation => {
+            let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
+            let shift = operation.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
+            let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
+            let width = (operation.timeFinish - operation.timeStart) * blockwidth / 5; // длительность операции в пикселях           
+
+            let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
+
+            switch (operation.status) {
+              case StatusEnum.Dr:
+                intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
+                break;
+              case StatusEnum.Pl:
+                intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
+                break;
+              case StatusEnum.Pr:
+                intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
+                break;
+              case StatusEnum.Fl:
+                intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
+                break;
+              default:
+                intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
+                break;
+            }
+            // Выделяем операции текущей карты
+            if (tCardPlaned.id === operation.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
+
+            return (
+              <>
+                <div className={intervalClass}
+                  id={String(operation.id)}
+                  style={{ width: `${width}px`, left: `${left}px` }}
+                  onContextMenu={(event) => handleRightClickMenu(event, operation.id)}>{`C${operation.idc_oper}`}
+                </div>
+
+                {contectMenuShow === operation.id && <div className={styles.contextMenu}
+                  style={{ width: `${30}px`, left: `${left + width - 15}px` }} >
+                </div>}
+
+              </>
+            )
+          })
+          return (<div className={styles.unit_unload}>{operBlocksReactNodes}</div>)
         }
-        else return (<div className={styles.unit_unload} ></div>);
+        return (<div className={styles.unit_unload}></div>); // Если нет совпадений
       });
 
       dayScale.push(

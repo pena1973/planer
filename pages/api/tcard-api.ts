@@ -72,6 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           modified: true,  // Например, помечаем, что карта изменена
           maxId: tCardtab.max_idc,
           coment: tCardtab.coment,
+          status: tCardtab.status
         };
 
         // Преобразуем стадии    
@@ -164,6 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               inn: inn,
               action: { id: oper.action.id, title: oper.action.title },
               duration: oper.duration, // в милисекундах   
+              status:oper.status,
             };
           });
 
@@ -318,6 +320,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               inn: inn,
               action: { id: oper.action.id, title: oper.action.title },
               duration: oper.duration, // в милисекундах   
+              status: oper.status,
             };
           });
 
@@ -329,6 +332,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           modified: false, // Например, установка true, так как мы только что сохранили
           maxId: savedTCard.max_idc,
           coment: savedTCard.coment,
+          status:savedTCard.status,
         };
 
         // отправляем ответ
@@ -415,7 +419,8 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
       user_id: Number(userId),
       company_id: Number(companyId),
       max_idc: tCardMaxIdc,
-      coment: tCard.coment
+      coment: tCard.coment,
+      status: tCard.status,
     });
 
     // console.log('Карта успешно обновлена с id:', savedTCard.id);
@@ -427,7 +432,8 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
       company_id: Number(companyId),
       number: newCardNumber,
       max_idc: tCardMaxIdc,
-      coment: tCard.coment
+      coment: tCard.coment,
+      status: tCard.status,
     });
 
     savedTCard = await tCardRepository.save(newTCard);
@@ -638,6 +644,7 @@ async function updateOperations(
         action: operation.action,
         duration: operation.duration,
         tcard_id: savedTCard.id,
+        status: operation.status,
       }));
   }
 
@@ -683,6 +690,7 @@ async function updateOperations(
     existingOperation.action_id = operation.action.id;
     //  existingOperation.action = operation.action; // не буду обновлять поскольку это пристегнутый клаччификатор
     existingOperation.duration = operation.duration;
+    existingOperation.status = operation.status;    
     updatedOperations.push(existingOperation);
   }
 

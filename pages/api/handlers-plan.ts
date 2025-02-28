@@ -2,8 +2,9 @@ import {
     UnitActionItem, TCardProductItem, TCardOperationItem,
     TCardItem, UnitLoadItem,
     CalendarItem, TimeTypeEnum, StatusEnum,
-    UnitItem
+    UnitItem,ScheduleItem,DaysOfWeek
 } from "@/types";
+import { scheduler } from "timers/promises";
 
 
 // генерация привычной нам даты - ее использую как id дня
@@ -14,28 +15,126 @@ const idDay = (date: Date): string => {
 
     return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
 };
+//  функция определяемт входит ли  дата в список дат дополнительного времени работы
+const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
+
+  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+
+  // Проверяем, есть ли дата в массиве праздников
+  return schedule.workdays.some(workday =>
+    new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+  );
+}
+//  функция определяемт входит ли  дата в список выходных расписания
+const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
+  const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
+
+  let dayString = DaysOfWeek.SUNDAY;
+
+  switch (dayOfWeek) {
+    case 1:
+      dayString = DaysOfWeek.MONDAY;
+      break;
+    case 2:
+      dayString = DaysOfWeek.TUESDAY;
+      break;
+    case 3:
+      dayString = DaysOfWeek.WEDNESDAY;
+      break;
+    case 4:
+      dayString = DaysOfWeek.THURSDAY;
+      break;
+    case 5:
+      dayString = DaysOfWeek.FRIDAY;
+      break;
+    case 6:
+      dayString = DaysOfWeek.SATURDAY;
+      break;
+    default:
+      dayString = DaysOfWeek.SUNDAY;
+      break;
+  }
+
+  // Проверяем, является ли день выходным
+  return schedule.weekends.includes(dayString);
+}
+//  функция определяемт входит ли  дата в список праздниклв расписания
+const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
+  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+
+  // Проверяем, есть ли дата в массиве праздников
+  return schedule.holidays.some(holiday =>
+    new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+  );
+}
 
 // генерация одного дня на шкале
-const generateCalendarItem = (day: Date): CalendarItem => {
-    const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-    currentDate.setHours(0, 0, 0, 0);
+const generateCalendarItemOnServer = (day: Date, schedule: ScheduleItem): CalendarItem => {
+  const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
+  currentDate.setHours(0, 0, 0, 0);
 
-    const dayOfWeek = currentDate.getDay();  // День недели для учета выходных
-    let timeStartBreack = (dayOfWeek !== 0 && dayOfWeek !== 6) ? 780 : 0;  // Перерыв 1 (13:00, если не выходной)
-    let timeFinishBreack = (dayOfWeek !== 0 && dayOfWeek !== 6) ? 840 : 0;  // Перерыв 1 (14:00, если не выходной)
+  const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
+  const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
+  const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
 
-    // Создаем объект CalendarItem
-    const calendarItem: CalendarItem = {
-        idDay: idDay(currentDate),
-        date: new Date(currentDate),  // Текущая дата
-        mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
-        day: true,  // Указываем, что это день
-        timeStartWork: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 540 : 0,  // Время начала работы (9:00, если не выходной)
-        timeFinishWork: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 1020 : 0,  // Время окончания работы (17:00, если не выходной)
-        breaks: [{ timeStart: timeStartBreack, timeFinish: timeFinishBreack }],
-    };
-    return calendarItem;  // Возвращаем один элемент календаря
+  let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
+  let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
+  let breaks = _isWeekend || _isHoliday ? [] : [...schedule.breaks];
+
+  if (_isAdditionalTime) {
+    const workday = schedule.workdays.find(
+      workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+    // если дата есть, то нужно просто взять дополнительное время из workday  
+    if (workday) {
+      if (_isWeekend || _isHoliday) {
+        timeStartWork = workday.timeStart;
+        timeFinishWork = workday.timeFinish;
+      } else {
+        timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
+        timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
+      }
+      //  проверим перерывы и если попадают в рабочий период вставим
+      breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
+    }
+  }
+
+
+  // Создаем объект CalendarItem
+  const calendarItem: CalendarItem = {
+    idDay: idDay(currentDate),
+    date: new Date(currentDate),  // Текущая дата
+    mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+    day: true,  // Указываем, что это день
+    timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
+    timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
+    breaks: breaks,
+  };
+  return calendarItem;  // Возвращаем один элемент календаря
 };
+
+// // генерация одного дня на шкале
+// const generateCalendarItem = (day: Date): CalendarItem => {
+//     const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
+//     currentDate.setHours(0, 0, 0, 0);
+
+//     const dayOfWeek = currentDate.getDay();  // День недели для учета выходных
+//     let timeStartBreack = (dayOfWeek !== 0 && dayOfWeek !== 6) ? 780 : 0;  // Перерыв 1 (13:00, если не выходной)
+//     let timeFinishBreack = (dayOfWeek !== 0 && dayOfWeek !== 6) ? 840 : 0;  // Перерыв 1 (14:00, если не выходной)
+
+//     // Создаем объект CalendarItem
+//     const calendarItem: CalendarItem = {
+//         idDay: idDay(currentDate),
+//         date: new Date(currentDate),  // Текущая дата
+//         mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+//         day: true,  // Указываем, что это день
+//         timeStartWork: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 540 : 0,  // Время начала работы (9:00, если не выходной)
+//         timeFinishWork: (dayOfWeek !== 0 && dayOfWeek !== 6) ? 1020 : 0,  // Время окончания работы (17:00, если не выходной)
+//         breaks: [{ timeStart: timeStartBreack, timeFinish: timeFinishBreack }],
+//     };
+//     return calendarItem;  // Возвращаем один элемент календаря
+// };
 
 
 function findAvailableTimeForOperation(
@@ -45,7 +144,8 @@ function findAvailableTimeForOperation(
     operation: TCardOperationItem, // операция с продолжительностью
     targetDate: Date, // дата для выполнения операции
     moment: number, // время операции
-    stopDate: Date// Дата дальше которой планирование не рассчитываем
+    stopDate: Date,// Дата дальше которой планирование не рассчитываем
+    schedule:ScheduleItem
 ): { updatedUnitLoad: UnitLoadItem, dateReady: Date, timeReady: number } | undefined {
 
     // Проверяем, если текущая дата больше стоп даты
@@ -55,7 +155,7 @@ function findAvailableTimeForOperation(
     }
 
     // Константы для рабочего времени
-    const workDay = generateCalendarItem(targetDate); // Получаем объект календаря для текущего дня   
+    const workDay = generateCalendarItemOnServer(targetDate,schedule); // Получаем объект календаря для текущего дня   
     const operationDuration = Math.ceil(operation.duration / (1000 * 60)); // Продолжительность операции в минутах округленное в большую сторону
     const interruptible = operation.action.interruptible; // можно прервать
     const possibleUnits: { unit: UnitItem, availableStart: number }[] = [];
@@ -191,22 +291,15 @@ function findAvailableTimeForOperation(
 
     // Если для этой даты не нашли, проверяем следующий день
     targetDate.setDate(targetDate.getDate() + 1); // Следующий день
-    return findAvailableTimeForOperation(tCard, compatibleuUnits, unitLoadItems, operation, targetDate, moment, stopDate); // Рекурсивный вызов для следующего дня
+    return findAvailableTimeForOperation(tCard, compatibleuUnits, unitLoadItems, operation, targetDate, moment, stopDate,schedule); // Рекурсивный вызов для следующего дня
 }
 
 
 // В этом модуле делаем РАСЧЕТ ПЛАНИРОВАНИЯ, возврашаем готовую загрузку
-export const planTCard = (tCard: TCardItem, units: UnitItem[], unitLoads: UnitLoadItem[]) => {
-
-    // // Извлекаем объекты 'unit'
-    // const units = unitLoads
-    //     .map(item => item.unit)
-    //     .filter((value, index, self) =>
-    //         index === self.findIndex((t) => (t.id === value.id)) // Проверяем, что юнит уникален
-    //     );
-
+export const planTCard = (tCard: TCardItem, units: UnitItem[],shedule_:ScheduleItem, unitLoads: UnitLoadItem[],today_:string) => {
+ 
     let updatedUnitLoads = [...unitLoads];
-    let today = new Date();
+    let today = new Date(today_);
     today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
     const stopDate = new Date();
     stopDate.setDate(stopDate.getDate() + 90);
@@ -219,10 +312,10 @@ export const planTCard = (tCard: TCardItem, units: UnitItem[], unitLoads: UnitLo
             return { product: material, date: today, time: 0 };
         });
 
-    // Массив всех операций, которые должны быть запланированы (статус драфт )
+    // Массив всех операций, которые должны быть запланированы (статус prepared )
     let tCardOperations: TCardOperationItem[] = [];
     if (tCard.tCardOperations)
-        tCardOperations = tCard.tCardOperations.filter(elem => elem.status === "draft")
+        tCardOperations = tCard.tCardOperations.filter( elem => elem.status === StatusEnum.Pr)
 
     // Массив для отобранных операций  (они готовы для планирования с учетом последовательности))
     let selectedOperations: TCardOperationItem[] = [];
@@ -281,7 +374,7 @@ export const planTCard = (tCard: TCardItem, units: UnitItem[], unitLoads: UnitLo
             let moment = 0;
 
             // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-            let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, date, moment, stopDate);
+            let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, date, moment, stopDate,shedule_);
 
             // если не удалось запланировать то прерываем расчет
             if (!resultPlaning) {

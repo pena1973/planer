@@ -152,6 +152,7 @@ export default function TCardOper({
                 </div>
             </div>
             <div className={styles.container_buttons_row}>
+            <div>{String(tCardOperation.status)}</div>
                 <div className={styles.container_icon_edit_save}>
                     <Image className={styles.icon_edit_save}
                         src={edit}

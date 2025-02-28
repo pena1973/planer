@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
 import { planTCard } from './handlers-plan';  // планирование карты
-import { getTCard, getTCardMatOper } from './handlers-get';  // 
+import { getTCard, getTCardMatOper,getCompanyShedule } from './handlers-get';  // 
 
 
 import { Repository, In } from 'typeorm';
@@ -44,18 +44,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const tCardRepository = dbConnection.getRepository(TCardTable);
   const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
   const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
+  const companyScheduleRepository = dbConnection.getRepository(CompanyScheduleTable);
 
-
-  // const unitCalendarRepository = dbConnection.getRepository(UnitCalendarTable);
+  //  const unitCalendarRepository = dbConnection.getRepository(UnitCalendarTable);
 
   // userId, companyId в любом случае
-  const { userId, companyId, tcardId } = req.query;
+  const { userId, companyId, tcardId,today } = req.query;
 
   switch (req.method) {
     // ПРЕДВАРИТЕЛЬНОЕ ПЛАНИРОВАНИЕ
     case 'GET':
       // получаем карту из базы  по id  со всеми параметрами    
-      let tCard1 = {} as TCardItem;
+      // let tCard1 = {} as TCardItem;
 
       let tCard_ = await getTCard(Number(tcardId), tCardRepository)
       if (!tCard_) {
@@ -65,20 +65,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       let { tCardMaterials, tCardOperations } = await getTCardMatOper(
         Number(tcardId), tCardOperationsRepository, tCardProductRepository)
-
-      tCard1 = { ...tCard_ } as TCardItem
-      tCard1.tCardMaterials = [...tCardMaterials] as TCardProductItem[];
-      tCard1.tCardOperations = [...tCardOperations] as TCardOperationItem[]
+      
+      tCard_.tCardMaterials = [...tCardMaterials] as TCardProductItem[];
+      tCard_.tCardOperations = [...tCardOperations] as TCardOperationItem[]
 
       // запросим юниты
       const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
 
-      //  получим юниты с загрузкой  до планирования новой карты   
-      //   UnitLoadItem
+      // запросим расписание компании
+      const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
+
+      //  получим загрузку юнитов  до планирования новой карты         
       const unitLoadItems = await getUnitLoads(units_, unitLoadRepository)
 
       // Планируем карту
-      let unitLoads_ = planTCard(tCard1, units_, unitLoadItems)
+      let unitLoads_ = planTCard(tCard_, units_, shedule_,unitLoadItems, String(today))
       //  Если не удалось запланировать
       if (!unitLoads_) {
         res.status(200).json({

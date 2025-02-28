@@ -13,10 +13,10 @@ import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions';
 import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule';
-import { SettingsTable} from '@/pages/db/models/plan/settings';
+import { SettingsTable } from '@/pages/db/models/plan/settings';
 // types
-import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek } from '@/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, StatusEnum, TCardStageItem, ActionItem, UOMItem, ScheduleItem,SettingsItem } from '@/types';
+import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum } from '@/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, StatusEnum, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem } from '@/types';
 
 
 export async function getUOMs(
@@ -144,12 +144,6 @@ export async function getUnitLoads(
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Убираем время, чтобы сравнивать только дату
 
-  // Получаем записи из таблицы UnitLoadTable, которые относятся к сегодняшнему и последующим дням
-  // const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
-  //   .where('unitLoad.date >= :today', { today })
-  //   .leftJoinAndSelect('unitLoad.company', 'company')
-  //   .leftJoinAndSelect('unitLoad.unit', 'unit')
-  //   .getMany();
 
   const unitIds = units.map(unit => unit.id); // Получаем массив идентификаторов
 
@@ -175,7 +169,7 @@ export async function getUnitLoads(
       id_tCard: unitLoad.id_tCard,
       timeStart: unitLoad.timeStart,
       timeFinish: unitLoad.timeFinish,
-      status:StatusEnum.Pl  // дописать из операции статус
+      status: StatusEnum.Pl  // дописать из операции статус
     };
   });
 
@@ -254,7 +248,7 @@ export async function getTCard(
     modified: true,  // Например, помечаем, что карта изменена
     maxId: tCardtab.max_idc,
     coment: tCardtab.coment,
-    status:tCardtab.status 
+    status: tCardtab.status
   };
 
 }
@@ -320,7 +314,7 @@ export async function getTCardMatOper(
         inn: inn,
         action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible },
         duration: oper.duration, // в милисекундах   
-        status: StatusEnum.Dr
+        status: oper.status,
       };
     });
 
@@ -383,15 +377,15 @@ export async function getCompanyShedule(
     timeStartWork: scheduleTable.timeStartWork,
     timeFinishWork: scheduleTable.timeFinishWork,
     breaks: scheduleTable.breaks,
-    holidays: scheduleTable.holidays,
+    holidays: scheduleTable.holidays.map(date => date.toLocaleDateString('en-CA')),
     weekends: scheduleTable.weekends,
     workdays: scheduleTable.workdays.map(workday => {
       return {
-        date: new Date(workday.date), // Преобразуем строку в объект Date
+        date: new Date(workday.date).toLocaleDateString('en-CA'),
         timeStart: workday.timeStart,
         timeFinish: workday.timeFinish
-      }
-    })
+      }}),
+    timeZone: scheduleTable.timeZone as TimeZoneEnum,
   } as ScheduleItem;
 
 
@@ -422,8 +416,8 @@ export async function getSettings(
     timeFinishWork: settingsTable.timeFinishWork,
     showHoliday: settingsTable.showHoliday,
     showWeekend: settingsTable.showWeekend,
-    
-    
+
+
   } as SettingsItem;
 
 

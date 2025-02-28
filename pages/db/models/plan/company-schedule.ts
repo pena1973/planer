@@ -1,9 +1,8 @@
 
-
-
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { CompanyTable } from '../catalogs/companies'; // Подключаем сущность для связи
 import { DaysOfWeek } from '../enums'; // Подключаем сущность для связи
+import { TimeZoneEnum } from '../enums'; // Подключаем сущность для связи
 
 @Entity("company_schedule")
 export class CompanyScheduleTable {
@@ -38,5 +37,8 @@ export class CompanyScheduleTable {
   
   @Column()
   company_id!: number;
+
+  @Column('varchar', {default:"", length: 255 })
+  timeZone!: TimeZoneEnum; // Зона в которой работает основное расписание, от нее будем пересчитывать работников
 }
 

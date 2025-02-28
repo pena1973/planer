@@ -14,7 +14,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 
 import { } from '@/store/slices';
-import { UOMItem, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem } from "@/types";
+import { UOMItem, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum } from "@/types";
 import { checkReconcilation } from "@/cardsHandlers";
 
 import { setTCards, setTCardCurrent, setTCardCurrentMaterials, setTCardCurrentOperations, setTCardCurrentProducts, settCardCurrentWastes, setTCardCurrentStages, setTCardCurrentMaxIdc } from '@/store/slices'
@@ -552,7 +552,7 @@ export default function Cards({ }: CardsProps) {
     const currentDate = new Date();
 
     // const updatedTCards = tCards.map((card) => { return (card.active) ? { ...card, active: false } : card; });
-    let newTCard = { id: -tCards.length - 1, date: currentDate, number: 0, modified: true } as TCardItem
+    let newTCard = { id: -tCards.length - 1, date: currentDate, number: 0, modified: true, status: StatusEnum.Dr } as TCardItem
 
     dispatch(setTCards([...tCards, newTCard]));
     dispatch(setTCardCurrent(newTCard));
@@ -580,7 +580,7 @@ export default function Cards({ }: CardsProps) {
     setLoaderCard(selectedTCard.id);
     // запрос к базе на загрузку карты
 
-    try {      
+    try {
       const res = await fetch(`api/tcard-api?userId=${1}&companyId=${1}&tcardId=${selectedTCard.id}`,
         {
           method: 'get',
@@ -637,6 +637,24 @@ export default function Cards({ }: CardsProps) {
     updatedTCards.splice(indexCurrentCard, 1, { ...tCards[indexCurrentCard], modified: true })
     dispatch(setTCards(updatedTCards));
     dispatch(setTCardCurrent({ ...tCardCurrent, active: true }))
+  }
+  const setCartPrepared = async () => {
+    let tCardCurrentOperations_ = tCardCurrentOperations.map(oper => {
+      if (oper.status === StatusEnum.Dr)
+        return { ...oper, status: StatusEnum.Pr }
+      else return oper
+    })
+    dispatch(setTCardCurrentOperations(tCardCurrentOperations_));
+
+    dispatch(setTCardCurrent({ ...tCardCurrent, status: StatusEnum.Pr,modified: true }))
+
+    // нужно обновить в списке карт 
+    const idCurrentCard = tCardCurrent.id;
+    const indexCurrentCard = tCards.findIndex(card => card.id === idCurrentCard);
+    let updatedTCards = [...tCards];
+    updatedTCards.splice(indexCurrentCard, 1, { ...tCards[indexCurrentCard], status: StatusEnum.Pr,modified: true })
+    dispatch(setTCards(updatedTCards));
+
   }
 
   ///////////////// ФАЙЛЫ
@@ -759,7 +777,7 @@ export default function Cards({ }: CardsProps) {
     dispatch(setTCardCurrentMaterials(tCardMaterialsUpdated));
     dispatch(setTCardCurrentProducts(tCardProductsUpdated));
   };
-  
+
   const cancelOperHandler = (idToCancel: number) => {
     setModified(false);
     const tOperToUpdate = tCardCurrentOperations.find(tOper => tOper.idc === idToCancel);
@@ -767,7 +785,7 @@ export default function Cards({ }: CardsProps) {
       const updatedOper = { ...tOperToUpdate, mode: false }
       // Обновляем в исходном массиве
       const tCardOperationsUpdated1 = tCardCurrentOperations.map(oper => oper.idc === idToCancel ? updatedOper : oper);
-      dispatch(setTCardCurrentOperations(tCardOperationsUpdated1))      
+      dispatch(setTCardCurrentOperations(tCardOperationsUpdated1))
     };
 
   };
@@ -779,7 +797,7 @@ export default function Cards({ }: CardsProps) {
 
     const tOperToUpdate = tCardCurrentOperations.find(tOper => tOper.idc === idTosave);
     if (tOperToUpdate) {
-      const updatedOper = { ...tOperToUpdate, inn: [...inn], out: [...out], action: { ...action1 }, duration: duration, mode: !tOperToUpdate.mode }
+      const updatedOper = { ...tOperToUpdate, inn: [...inn], out: [...out], action: { ...action1 }, duration: duration, mode: !tOperToUpdate.mode, status: StatusEnum.Dr }
       // Обновляем в исходном массиве
       const tCardOperationsUpdated1 = tCardCurrentOperations.map(product => product.idc === idTosave ? updatedOper : product);
       dispatch(setTCardCurrentOperations(tCardOperationsUpdated1))
@@ -789,6 +807,7 @@ export default function Cards({ }: CardsProps) {
       dispatch(settCardCurrentWastes(tCardWastesUpdated));
       dispatch(setTCardCurrentMaterials(tCardMaterialsUpdated));
       dispatch(setTCardCurrentProducts(tCardProductsUpdated));
+      dispatch(setTCardCurrent({ ...tCardCurrent, status: StatusEnum.Dr }));
     };
 
   };
@@ -797,7 +816,7 @@ export default function Cards({ }: CardsProps) {
     setModified(true);
     const tCardOperationsUpdated = tCardCurrentOperations.map(tOper => {
       if (tOper.idc === idc) {
-        return { ...tOper, mode: !tOper.mode, };
+        return { ...tOper, mode: !tOper.mode };
       }
       return tOper;
     });
@@ -814,6 +833,7 @@ export default function Cards({ }: CardsProps) {
       out: [] as TCardProductItem[],
       action: {} as ActionItem,
       duration: 0,
+      status: StatusEnum.Dr,
     } as TCardOperationItem;
     dispatch(setTCardCurrentOperations([...tCardCurrentOperations, newOper]))
   };
@@ -886,7 +906,7 @@ export default function Cards({ }: CardsProps) {
   let tCardsReactNodes = tCards.map((elem, index4) => {
     let date = "";
     if (elem.date)
-      date = formatDate(elem.date);
+      date = formatDate(new Date(elem.date));
 
     return (
       <div key={index4} className="container_card">
@@ -951,6 +971,10 @@ export default function Cards({ }: CardsProps) {
 
         </div>
         {(tCardCurrent.id) && <div className="container_right">
+          <button
+            className={`button_prepared ${tCardCurrent.status === StatusEnum.Dr ? '' : 'pressed'}`}
+            onClick={setCartPrepared}
+          >{tCardCurrent.status}</button>
           {/* Продукты */}
           <div className="container_products">
             <div className="container_stage_title">

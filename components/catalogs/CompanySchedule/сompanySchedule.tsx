@@ -2,8 +2,9 @@
 import styles from "./сompanySchedule.module.scss";
 
 import DropdownSelectWeekDay from "./DropdownSelectWeekDay/dropdownSelectWeekDay";
+import DropdownSelectTimeZone from "./DropdownSelectTimeZone/dropdownSelectTimeZone";
 
-import { DaysOfWeek, CompanyItem, ScheduleItem } from '@/types'
+import { DaysOfWeek, CompanyItem, ScheduleItem,TimeZoneEnum } from '@/types'
 import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";
@@ -39,14 +40,16 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
 
     const [companyValue, setCompanyValue] = useState("");
     const [prefixValue, setPrefixValue] = useState("");
+    const [timeZoneValue, setTimeZoneValue] = useState("");
     const [timeStartWorkValue, setTimeStartWorkValue] = useState(0);
     const [timeFinishWorkValue, setTimeFinishWorkValue] = useState(0);
     const [breaksValue, setBreaksValue] = useState([] as { timeStart: number, timeFinish: number }[]);
-    const [holidaysValue, setHolidaysValue] = useState([] as Date[]);
+    const [holidaysValue, setHolidaysValue] = useState([] as string[]);
     const [weekendsValue, setWeekendsValue] = useState([] as (DaysOfWeek | null)[]);
-    const [workdaysValue, setWorkdaysValue] = useState([] as { date: Date, timeStart: number, timeFinish: number }[]);
-  
+    const [workdaysValue, setWorkdaysValue] = useState([] as { date: string, timeStart: number, timeFinish: number }[]);
+
     useEffect(() => {
+        
         setCompanyValue(schedule.company.title);
         setPrefixValue(schedule.company.prefix)
         setTimeStartWorkValue(schedule.timeStartWork);
@@ -54,13 +57,13 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
         setBreaksValue(schedule.breaks);
         setHolidaysValue(schedule.holidays);
         setWeekendsValue(schedule.weekends);
-        setWorkdaysValue(schedule.workdays);        
+        setWorkdaysValue(schedule.workdays);
+        setTimeZoneValue(schedule.timeZone);
     }, []);
 
     // колбеки кнопки
 
-
-    const saveUOMSHandler = async () => {
+    const saveScheduleHandler = async () => {
         setMessage("");
         let schedule = {
             company: { id: 1, title: companyValue, coment: "", prefix: prefixValue } as CompanyItem,
@@ -70,6 +73,7 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
             holidays: holidaysValue,
             weekends: weekendsValue,
             workdays: workdaysValue,
+            timeZone: timeZoneValue
         }
 
         // запрос на сохранение
@@ -109,6 +113,7 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
                     setHolidaysValue(schedule.holidays);
                     setWeekendsValue(schedule.weekends);
                     setWorkdaysValue(schedule.workdays);
+                    setTimeZoneValue(schedule.timeZone);
                     setModified(false);
                     setMessage("Обновлено расписание");
                 } else setMessage(receivedData.error);
@@ -130,11 +135,12 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
         setHolidaysValue(schedule.holidays);
         setWeekendsValue(schedule.weekends);
         setWorkdaysValue(schedule.workdays);
-        setModified(false);        
+        setTimeZoneValue(schedule.timeZone);
+        setModified(false);
     };
 
 
-    const changeHandler = (value: string | number, field: string) => {
+    const changeHandler = (value: string | number|TimeZoneEnum|null, field: string) => {
 
         switch (field) {
             case "company":
@@ -148,23 +154,27 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
             case "prefix":
                 setPrefixValue(value as string);
                 break;
+            case "timeZone":
+                setTimeZoneValue(value as TimeZoneEnum);
+                break;                
             default:
                 break;
         }
 
         setModified(true);
     };
-    const changeRowHandler = (indexToChange: number, value: string | number | Date | DaysOfWeek | null, field: string) => {
+    const changeRowHandler = (indexToChange: number, value: string | number  | DaysOfWeek | null, field: string) => {
 
         switch (field) {
             // Доп рабочие дни
             case "workDayDate":
-                {
+                {if (value) {
                     let workday = workdaysValue[indexToChange];
-                    let updatedworkday = { ...workday, date: value as Date }
+                    let updatedworkday = { ...workday, date: value as string }
+                    // let updatedworkday = { ...workday, date: value.toLocaleString().split(',')[0] }
                     let workdaysValueUpdated = [...workdaysValue]
                     workdaysValueUpdated.splice(indexToChange, 1, updatedworkday)
-                    setWorkdaysValue(workdaysValueUpdated)
+                    setWorkdaysValue(workdaysValueUpdated)}
                 }
                 break;
             case "workTimeStart":
@@ -219,12 +229,12 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
                 }
                 break;
             case "holidayDate":
-                {
-                    let updatedholiday = value as Date;
+                {if (value) {
+                    // let updatedholiday = value.toLocaleString().split(',')[0];
                     let holidaysValueUpdated = [...holidaysValue]
-                    holidaysValueUpdated.splice(indexToChange, 1, updatedholiday)
+                    holidaysValueUpdated.splice(indexToChange, 1, value as string)
                     setHolidaysValue(holidaysValueUpdated)
-                }
+                }}
 
             default:
                 break;
@@ -270,12 +280,12 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
         setModified(true);
     };
     const addHolidayHandler = () => {
-        let newHoliday = new Date();
+        let newHoliday = new Date().toLocaleDateString("en-CA").split(',')[0];
         setHolidaysValue([...holidaysValue, newHoliday])
         setModified(true);
     };
     const addWorkdayHandler = () => {
-        let newWorkday = { timeStart: 0, timeFinish: 0 } as { date: Date, timeStart: number, timeFinish: number };
+        let newWorkday = {date:"", timeStart: 0, timeFinish: 0 } as { date: string, timeStart: number, timeFinish: number };
         setWorkdaysValue([...workdaysValue, newWorkday])
         setModified(true);
     };
@@ -371,9 +381,9 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
                         value={elem.date ? new Date(elem.date).toLocaleDateString('en-CA') : ""}
                         type="date"
                         onChange={e => {
-                            const date = new Date(e.target.value);
-                            date.setHours(0, 0, 0, 0);
-                            changeRowHandler(index, date, "workDayDate");
+                            // const date = new Date(e.target.value);
+                            // date.setHours(0, 0, 0, 0);
+                            changeRowHandler(index, e.target.value, "workDayDate");
                         }}
                     />
                 </td>
@@ -433,9 +443,9 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
                         value={elem ? (new Date(elem)).toLocaleDateString('en-CA') : ""}
                         type="date"
                         onChange={e => {
-                            const date = new Date(e.target.value);
-                            date.setHours(0, 0, 0, 0);
-                            changeRowHandler(index, date, "holidayDate");
+                            // const date = new Date(e.target.value);
+                            // date.setHours(0, 0, 0, 0);
+                            changeRowHandler(index, e.target.value, "holidayDate");
 
                         }}
                     />
@@ -607,17 +617,30 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
                 </div>
             </div>
 
+            <div className={styles.field_container}>
+                <div className={styles.title}>Тайм зона</div>
+                <DropdownSelectTimeZone
+                    onSelect={(value) => {
+                        changeHandler(value, "timeZone");
+                    }}
+                    selectedValue={timeZoneValue || null}
+                />
+
+            </div>
+
             <div className={styles.container_buttons_row}>
                 <div className={styles.container_icon_edit_save}>
                     <Image className={styles.icon_edit_save}
                         src={save}
                         alt="arrow" width={20} height={20}
-                        onClick={() => { saveUOMSHandler() }}
+                        onClick={() => { saveScheduleHandler() }}
                     />
                     {modified && <div>*</div>}
                 </div>
 
             </div>
+
+
         </div>
 
 

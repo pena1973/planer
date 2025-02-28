@@ -61,6 +61,8 @@ export default function Index({ }: IndexProps) {
   const [passMessage, setpassMessage] = useState('');
   const [nicknameValue, setNicknameValue] = useState('');
   const [loaderButtonRegister, setLoaderButtonRegister] = useState(false);
+  
+  // const [downloadedAllValue, setdownloadedAllValue] = useState(0);
 
   const options = [
     { id: UserRoleEnum.OPERATOR, title: "Оператор" },
@@ -293,6 +295,7 @@ export default function Index({ }: IndexProps) {
     setLoaderButtonRegister(false)
   }
 
+  // НАЧАЛЬАЯ ЗАГРУЗКА
   const downloadUoms = async () => {
     try {
       const res = await fetch(`api/uoms-api?userId=${1}&companyId=${1}`,
@@ -316,13 +319,17 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let uoms_ = receivedData.uoms as UOMItem[]
           dispatch(setUOMs(uoms_));
+          setMessage("Загружены единицы измерения")          
+          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
+          // setdownloadedAllValue(downloadedAllValue+1);
         }
         else setMessage(receivedData.error);
       }
     } catch (e: any) {
       // setMessage(t('service.noConnection') + e.message)            
     }
-  }
+  }  
+
   const downloadActions = async () => {
     // Загружаем классификатор действий
     try {
@@ -347,6 +354,9 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let actions_ = receivedData.actions as ActionItem[]
           dispatch(setActions(actions_));
+          setMessage("Загружены действия")
+          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
+          //   setdownloadedAllValue(downloadedAllValue+1);
         }
         else setMessage(receivedData.error);
       }
@@ -379,6 +389,9 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let units_ = receivedData.units as UnitItem[]
           dispatch(setUnits(units_));
+          setMessage("Загружены юниты")
+          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
+          //   setdownloadedAllValue(downloadedAllValue+1);
         }
         else setMessage(receivedData.error);
       }
@@ -387,7 +400,6 @@ export default function Index({ }: IndexProps) {
     }
 
   }
-
   // загружает активные карты  
   const downloadTCards = async () => {
     try {
@@ -412,16 +424,17 @@ export default function Index({ }: IndexProps) {
           let tCards = receivedData.tCards as TCardItem[]
           // Сортируем tCards по номеру (если number это число)
           let tCards_ = tCards.sort((a, b) => a.number - b.number);
-          let tCardsUpdated = tCards_.map(card => { return { ...card, date: new Date(card.date), status: card.status } });
+          let tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
           dispatch(setTCards(tCardsUpdated));
-          setMessage("Карты успешно получены");
+          setMessage("Загружены карты");
+          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
+          //   setdownloadedAllValue(downloadedAllValue+1);
         }
       }
     } catch (e: any) {
       // setMessage(t('service.noConnection') + e.message)            
     }
   };
-
   // загружает настройки отображения календаря
   const downloadSettings = async () => {
     try {
@@ -446,17 +459,17 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let settings = receivedData.schedule as SettingsItem
           dispatch(setSettings(settings));
-
-
-          setMessage("Прочитаны настройки");
+          setMessage("Загружены настройки календаря");
+          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
+          //   setdownloadedAllValue(downloadedAllValue+1);
         }
-        else setMessage(receivedData.error);
+        else
+          setMessage(receivedData.error);
       }
     } catch (e: any) {
       // setMessage(t('service.noConnection') + e.message)            
     }
   }
-
   // загружает  расписание работы компании
   const downloadSchedule = async () => {
     try {
@@ -481,6 +494,9 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let schedule = receivedData.schedule as ScheduleItem
           dispatch(setSchedule(schedule));
+          setMessage("Загружено расписание")
+          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
+          //   setdownloadedAllValue(downloadedAllValue+1);
         }
         else setMessage(receivedData.error);
       }
@@ -489,14 +505,21 @@ export default function Index({ }: IndexProps) {
     }
   }
 
-  useEffect(() => {
-    downloadUoms();
-    downloadActions();
-    downloadUnits();
-    downloadTCards();
-    downloadSettings();
-    downloadSchedule();
+  const downloadAll = async () => {
+   await downloadUoms();
+   await downloadActions();
+   await downloadUnits(); 
+   await downloadSettings();
+   await downloadSchedule();
+   await downloadTCards();
+   setMessage("Загружено все")
+  }
+
+  useEffect(() => {    
+    downloadAll();
+  
   }, []);
+
 
   const [selectedRole, setSelectedRole] = useState<UserRoleEnum | null>(null);
 
