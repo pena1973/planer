@@ -318,11 +318,17 @@ function findAvailableSegmentsDay(
       busyPeriods.push({ type: TimeTypeEnum.breack, start: b.timeStart, end: b.timeFinish });
     });
   }
-  
+
   busyPeriods.sort((a, b) => a.start - b.start);
 
   // Прерываемая операция: можем разбить выполнение на несколько сегментов.
   let availableStart = Math.max(workStart, moment);
+
+  // если начало выпадает на занятый интервал  сдвигаем начало на окончание занятого интервала
+  let currentbusyPeriod = busyPeriods.find(p => p.start <= availableStart && p.end > availableStart)
+  if (currentbusyPeriod)
+     availableStart = Math.max(availableStart, currentbusyPeriod.end);
+
   let onPlaned = onPlaned_; // сколько минут операции запланировано c ретулом
 
   // в этом  массиве что на вход уже запланирована часть операции
@@ -367,6 +373,26 @@ function findAvailableSegmentsDay(
         availableStart = Math.max(availableStart, nextPeriod.end);
       } else {
         break;
+      }
+    }
+
+    if (!found) {
+      // проверим еще интервал от возможного старта до конца рабочего дня    
+      let freeInterval = workEnd - availableStart;
+      //1. убедимся что в найденный интервал влазит ретул
+      // если есть и влазит - планируем
+      if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
+        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+        availableStart = availableStart + retoolTime;
+        freeInterval = freeInterval - retoolTime
+        isRetoolSegmentDefined = true;
+      }
+      //1. убедимся что в оставшийся интервал влазит операция
+      // если есть и влазит - планируем
+      if (freeInterval >= opRequired && isRetoolSegmentDefined) {
+        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+        availableStart += opRequired;
+        found = true;
       }
     }
 
