@@ -283,10 +283,12 @@ function findAvailableSegmentsDay(
 
   // Массив занятых интервалов (будем заполнять его интервалами, когда юнит занят)
   const busyPeriods: { type: TimeTypeEnum; start: number; end: number }[] = [];
+
   // Проверяем исключения (например, изменённые рамки рабочего дня или дополнительные перерывы)
   const exceptionsWorkDayNext = exceptionItems.filter(elem =>
     elem.unitId === unit.id && elem.date === targetDate.toLocaleDateString("en-CA")
   );
+
   if (exceptionsWorkDayNext.length > 0) {
     exceptionsWorkDayNext.forEach(ex => {
       if (ex.type === TimeTypeEnum.work) {
@@ -310,10 +312,13 @@ function findAvailableSegmentsDay(
   loads.forEach(load => {
     busyPeriods.push({ type: TimeTypeEnum.busy, start: load.timeStart, end: load.timeFinish });
   });
-  // Добавляем перерывы из календаря
-  workDay.breaks.forEach(b => {
-    busyPeriods.push({ type: TimeTypeEnum.breack, start: b.timeStart, end: b.timeFinish });
-  });
+  // Добавляем перерывы из календаря  если нет исключений
+  if (exceptionsWorkDayNext.length === 0) {
+    workDay.breaks.forEach(b => {
+      busyPeriods.push({ type: TimeTypeEnum.breack, start: b.timeStart, end: b.timeFinish });
+    });
+  }
+  
   busyPeriods.sort((a, b) => a.start - b.start);
 
   // Прерываемая операция: можем разбить выполнение на несколько сегментов.
@@ -387,35 +392,35 @@ function findAvailableSegmentsDay(
         isRetoolSegmentDefined
       )
     }
-    
+
     // если все удачно запланировалось смотирим можем ли мы  уменьшить интервал между retool и самой операцией не залазя на перерывы breack
-// чатик допиши здесь код сдвига retool ближе к началу операции на времеенной шкале (не пересекаясь с перерывами)
+    // чатик допиши здесь код сдвига retool ближе к началу операции на времеенной шкале (не пересекаясь с перерывами)
 
-if (opSegments.length >= 2) {
-  const retoolSeg = opSegments[0];
-  const opSeg = opSegments[1];
-  const opStart = opSeg.start; // начало выполнения операции
+    if (opSegments.length >= 2) {
+      const retoolSeg = opSegments[0];
+      const opSeg = opSegments[1];
+      const opStart = opSeg.start; // начало выполнения операции
 
-  // Ищем, есть ли период breack между ретул-сегментом и началом операции.
-  let breackStartCandidate: number | undefined = undefined;
-  busyPeriods.forEach(period => {
-    if (period.type === TimeTypeEnum.breack && period.start >= retoolSeg.start && period.start < opStart) {
-      if (breackStartCandidate === undefined || period.start < breackStartCandidate) {
-        breackStartCandidate = period.start;
-      }
+      // Ищем, есть ли период breack между ретул-сегментом и началом операции.
+      let breackStartCandidate: number | undefined = undefined;
+      busyPeriods.forEach(period => {
+        if (period.type === TimeTypeEnum.breack && period.start >= retoolSeg.start && period.start < opStart) {
+          if (breackStartCandidate === undefined || period.start < breackStartCandidate) {
+            breackStartCandidate = period.start;
+          }
+        }
+      });
+
+      // Если найден период breack, завершаем ретул в его начале, иначе – в начале операции.
+      const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
+      // Вычисляем новое начало ретула так, чтобы его длина была равна retoolTime.
+      // При этом не допускаем, чтобы начало ретула было раньше рабочего времени.
+      const newRetoolStart = Math.max(workStart, desiredRetoolFinish - retoolTime);
+
+      // Обновляем ретул-сегмент
+      retoolSeg.start = newRetoolStart;
+      retoolSeg.finish = desiredRetoolFinish;
     }
-  });
-
-  // Если найден период breack, завершаем ретул в его начале, иначе – в начале операции.
-  const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
-  // Вычисляем новое начало ретула так, чтобы его длина была равна retoolTime.
-  // При этом не допускаем, чтобы начало ретула было раньше рабочего времени.
-  const newRetoolStart = Math.max(workStart, desiredRetoolFinish - retoolTime);
-
-  // Обновляем ретул-сегмент
-  retoolSeg.start = newRetoolStart;
-  retoolSeg.finish = desiredRetoolFinish;
-}
 
     return {
       success: true,

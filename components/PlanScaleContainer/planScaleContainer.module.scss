@@ -213,13 +213,16 @@
 }
 
 .workTime {
-  background-color: rgb(208, 226, 208);
+  // background-color: rgb(208, 226, 208);
+  background-color: rgb(216, 226, 216);
   /* Задайте цвет для рабочего времени */
 }
 
 .breakTime {
   background-color: rgb(235, 224, 205);
+  
   /* Цвет для перерывов */
+  // background-color: rgb(61, 10, 30)
 }
 
 .nonWorkTime {
@@ -364,59 +367,12 @@
 
 }
 
-// .unit_load_draft {
-//   position: relative;
-//   margin-top: 30px;
-//   width: 100%;
-//   background-color: rgb(172, 169, 132);
-//   min-height: 20px;
-//   // font-weight: bold;    
-// }
-
-// .interval_planned {
-//   font-size: 12px;
-//   position: absolute;
-//   /* Позиционируем элемент на шкале */
-//   background-color: rgb(172, 169, 132);
-//   height: 20px;
-//   /* Увеличиваем высоту блока для лучшего отображения */
-//   // width: 60px;  /* Устанавливаем ширину */
-//   z-index: 1;
-//   border: 1px solid #ccc;
-//   border-radius: 10px;
-
-//   /* Центрируем текст внутри блока */
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-
-//   /* Добавляем выпуклый эффект */
-//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-// }
-
-// .interval_draft {
-//   font-size: 12px;
-//   position: absolute;
-//   background-color: rgb(172, 169, 132); 
-//   height: 20px;
-//   // width: 40px;
-//   z-index: 1;
-//   border: 1px solid #ccc;
-//   border-radius: 10px;
-
-//   /* Центрируем текст вертикально и горизонтально */
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-
-//   /* Добавляем выпуклый эффект */
-//   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
-// }
 
 .interval {
   font-size: 12px;
   position: absolute;
   height: 20px;
+  margin: 20px 0;
   z-index: 1;
   border: 1px solid #ccc;
   border-radius: 10px;
@@ -464,34 +420,38 @@
 .retool {
   background-color: rgb(241, 241, 241);
   height: 14px;
-  margin: 3px 0;
+  margin: 23px 0;
 }
 
-.current {
-  background-color: rgb(235, 221, 73);
+.lighted {  
+  box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
+
 }
 
 .unit_load {
-  margin-top: 30px;
+  // margin-top: 20px;
   width: 100%;
   background-color: rgb(119, 116, 69);
-  min-height: 20px;
+  min-height: 50px;
+  padding: 10px 0;
   // font-weight: bold;    
 }
 
 .unit_unload {
   position: relative;
-  margin-top: 30px;
+  // margin-top: 20px;  
   width: 100%;
   // background-color: rgb(255, 251, 199);
-  min-height: 20px;
+  min-height: 50px;
   // font-weight: bold;    
+  
+  border-bottom: 1px dashed #ccc;
 }
 
 .unit_gap {
-  margin-top: 30px;
+  margin-top: 20px;
   width: 100%;
   //  background-color: rgb(243, 222, 182);
-  min-height: 20px;
+  min-height: 30px;
   // font-weight: bold;    
 }

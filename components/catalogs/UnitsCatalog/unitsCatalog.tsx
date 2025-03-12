@@ -43,7 +43,9 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     const actions = useSelector((state: RootState) => {
         return state.catalogSlice.actions;
     })
-
+    const unitExceptions = useSelector((state: RootState) => {
+        return state.planSlice.unitExceptions;
+    })
     const [unitsValue, setUnitsValue] = useState([] as UnitItem[]); //временное хранилище юнитов
     const [exceptionsValue, setExceptionsValue] = useState([] as UnitExceptionItem[]); //отклонения распиания юнитов от общего расписания
 
@@ -65,75 +67,75 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
         return newCode;
     }
-    const getUnits = async () => {
-        // Загружаем классификатор действий
-        try {
-            const res = await fetch(`api/units-api?userId=${1}&companyId=${1}`,
-                {
-                    method: 'get',
-                    headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                let error = receivedData.error;
-                setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+    // const getUnits = async () => {
+    //     // Загружаем классификатор действий
+    //     try {
+    //         const res = await fetch(`api/units-api?userId=${1}&companyId=${1}`,
+    //             {
+    //                 method: 'get',
+    //                 headers: new Headers({
+    //                     // 'Authorization': 'Basic ' + token,
+    //                     'Content-Type': 'application/json'
+    //                 }),
+    //             }
+    //         );
+    //         if (res.status !== 200) {
+    //             const receivedData = await res.json();
+    //             let error = receivedData.error;
+    //             setMessage(error);
+    //             //  console.log(t('service.serverUnavailable') + res.status);
+    //             // setMessage(t('service.serverUnavailable') + res.status);
 
-            } else {
-                const receivedData = await res.json();
-                if (receivedData.success) {
-                    let units_ = receivedData.units as UnitItem[]
-                    dispatch(setUnits(units_)); // Это ме надо?
-                    setUnitsValue(units_);
-                }
-                else setMessage(receivedData.error);
-            }
-        } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
-        }
+    //         } else {
+    //             const receivedData = await res.json();
+    //             if (receivedData.success) {
+    //                 let units_ = receivedData.units as UnitItem[]
+    //                 dispatch(setUnits(units_)); // Это ме надо?
+    //                 setUnitsValue(units_);
+    //             }
+    //             else setMessage(receivedData.error);
+    //         }
+    //     } catch (e: any) {
+    //         // setMessage(t('service.noConnection') + e.message)            
+    //     }
 
-    }
-    const getUnutsExceptions = async () => {
-        // Загружаем классификатор действий
-        try {
-            const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
-                {
-                    method: 'get',
-                    headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                let error = receivedData.error;
-                setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+    // }
+    // const getUnutsExceptions = async () => {
+    //     // Загружаем классификатор действий
+    //     try {
+    //         const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
+    //             {
+    //                 method: 'get',
+    //                 headers: new Headers({
+    //                     // 'Authorization': 'Basic ' + token,
+    //                     'Content-Type': 'application/json'
+    //                 }),
+    //             }
+    //         );
+    //         if (res.status !== 200) {
+    //             const receivedData = await res.json();
+    //             let error = receivedData.error;
+    //             setMessage(error);
+    //             //  console.log(t('service.serverUnavailable') + res.status);
+    //             // setMessage(t('service.serverUnavailable') + res.status);
 
-            } else {
-                const receivedData = await res.json();
-                if (receivedData.success) {
-                    let exceptions = receivedData.exceptions as UnitExceptionItem[]
-                    dispatch(setUnitExceptions(exceptions)); // Это ме надо?
-                    setExceptionsValue(exceptions);
-                }
-                else setMessage(receivedData.error);
-            }
-        } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
-        }
+    //         } else {
+    //             const receivedData = await res.json();
+    //             if (receivedData.success) {
+    //                 let exceptions = receivedData.exceptions as UnitExceptionItem[]
+    //                 dispatch(setUnitExceptions(exceptions)); // Это ме надо?
+    //                 setExceptionsValue(exceptions);
+    //             }
+    //             else setMessage(receivedData.error);
+    //         }
+    //     } catch (e: any) {
+    //         // setMessage(t('service.noConnection') + e.message)            
+    //     }
 
-    }
+    // }
     useEffect(() => {
-        getUnits();
-        getUnutsExceptions()
+        setExceptionsValue(unitExceptions)
+        setUnitsValue(units)       
     }, []);
 
     // Таблица Юнитов   
@@ -245,6 +247,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                     let updatetExceptions = exceptionsValue.filter(exception => exception.unitId !== unit.id)
                     // добавляем сохраненные
                     setExceptionsValue([...updatetExceptions, ...exceptions])
+                    dispatch(setUnitExceptions([...updatetExceptions, ...exceptions]));
                 } else setMessage(receivedData.error);
             }
 

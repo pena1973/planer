@@ -1,13 +1,14 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import styles from "./planScaleContainer.module.scss";
-import { CalendarItem, UnitLoadItem, UnitBelongEnum,UnitExceptionItem, StatusEnum, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem } from "@/types";
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, StatusEnum, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
 import { setUnits } from '@/store/slices';
 
 import ContexMenu from "./ContextMenu/contextMenu";
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
+import { TypeEnum } from '@/pages/db/models/enums';
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
   // Если scale 100%, widthDay = totalWidth
@@ -131,7 +132,7 @@ export interface PlanScaleContainerProps {
   schedule: ScheduleItem,
   tCardPrepared: TCardItem,
   tCardLighted: TCardItem,
-  unitExceptions:UnitExceptionItem[]
+  unitExceptions: UnitExceptionItem[]
 }
 
 export default function PlanScaleContainer({
@@ -446,7 +447,7 @@ export default function PlanScaleContainer({
       );
 
       //  расписание предприятия
-      const timeStyle = isBreakTime
+      let timeStyle = isBreakTime
         ? styles.breakTime  // Если время перерыв, применяем стиль для перерыва
         : isWorkTime
           ? styles.workTime  // Если это рабочее время, применяем стиль для рабочего времени
@@ -495,12 +496,34 @@ export default function PlanScaleContainer({
 
       const { hourStyle, hoursValue, minutesValue } = hourStyleFoo(scale, hours, minutes)
 
-
-      //   //  вычисление визуализации загруза юнитов
-      //   // Проверяем загрузку юнитов
-      //   // Внутренние   
+      //  вычисление визуализации загруза юнитов
+      // Внутренние   
       let unitLoadBlockseReactNodesInner = unitsViewInner.current.map(unitView => {
+        let unit_unloadEx = "";
+        let exs = unitExceptions.filter(ex => ex.unitId === unitView.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
 
+        if (exs.length > 0) {
+          // Если есть исключения устанавливатся новое время работы  индивидуально юниту
+          // в этом случае оно заменяет общее расписание (Type Work)
+          //  также устанавливаютсядругие перерывы на эту дату если изменилось время работы
+          // либо может быть установлено не работа
+
+          let exNotWork = exs.find(ex =>
+            ex.type === TimeTypeEnum.notWork && intervTime >= ex.timeStart && intervTime < ex.timeFinish)
+          if (exNotWork) unit_unloadEx = styles.nonWorkTime
+
+          let exWork = exs.find(ex => ex.type === TimeTypeEnum.work)
+          if (exWork) { unit_unloadEx = (intervTime >= exWork.timeStart && intervTime < exWork.timeFinish) ? styles.workTime : styles.nonWorkTime }
+
+          let exBreack = exs.filter(ex => ex.type === TimeTypeEnum.breack)
+          const isBreakTimeEx = exBreack.some(breakPeriod =>
+            intervTime >= breakPeriod.timeStart && intervTime < breakPeriod.timeFinish
+          );
+          unit_unloadEx = isBreakTimeEx ? styles.breakTime : unit_unloadEx
+
+          console.log("unit_unloadEx", unit_unloadEx);
+
+        }
         let dateLoad = unitLoads.filter(elem => {
           return (elem.unit.id === unitView.id &&
             new Date(elem.date).toDateString() === new Date(calendarItem.date).toDateString())
@@ -512,7 +535,7 @@ export default function PlanScaleContainer({
           });
 
           // Расставляем блоки интервалов на шкале
-          const operBlocksReactNodes = operBlocks.map((load,index) => {
+          const operBlocksReactNodes = operBlocks.map((load, index) => {
             let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
             let shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
@@ -538,10 +561,10 @@ export default function PlanScaleContainer({
                 intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
                 break;
             }
-            intervalClass = load.isRetool?`${intervalClass} ${styles.retool}`:intervalClass; 
+            intervalClass = load.isRetool ? `${intervalClass} ${styles.retool}` : intervalClass;
 
             // Выделяем операции текущей карты
-            if (tCardLighted.id === load.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
+            if (tCardLighted.id === load.id_tCard) intervalClass = `${intervalClass} ${styles.lighted}`
 
             let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
             if (!tCard) tCard = {} as TCardItem;
@@ -549,7 +572,7 @@ export default function PlanScaleContainer({
             return (
               <>
                 <div className={intervalClass}
-                  id={String(load.idc+"_"+index)}
+                  id={String(load.idc + "_" + index)}
                   style={{ width: `${width}px`, left: `${left}px` }}
                   onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`C${load.idc_oper}`}
                 </div>
@@ -560,15 +583,15 @@ export default function PlanScaleContainer({
                     load={load}
                     left={left}
                     width={width}
-                    erazLoadHandler={erazLoadHandler}          
+                    erazLoadHandler={erazLoadHandler}
                     retool={unitView.retool}
                   />}
               </>
             )
           })
-          return (<div className={styles.unit_unload}>{operBlocksReactNodes}</div>)
+          return (<div className={`${styles.unit_unload} ${unit_unloadEx}`}>{operBlocksReactNodes}</div>)
         }
-        return (<div className={styles.unit_unload}></div>); // Если нет совпадений
+        return (<div className={`${styles.unit_unload} ${unit_unloadEx}`}></div>); // Если нет совпадений
       });
 
       //  внешние

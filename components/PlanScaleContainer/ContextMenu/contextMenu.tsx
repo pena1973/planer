@@ -42,7 +42,7 @@ export default function ContexMenu({
 }: ContexMenuProps) {
     // const dispatch = useAppDispatch();
 
-     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
+    //  const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
 
     // useEffect(() => {
 
@@ -51,13 +51,13 @@ export default function ContexMenu({
         const hours = Math.floor(totalMinutes / 60);
         const minutes = totalMinutes % 60;
         return { hours, minutes };
-      }
-    let dur = load.isRetool ? retool :load.loadInfo?.duration;
+    }
+    let dur = load.isRetool ? retool : load.loadInfo?.duration;
     const time = convertMinutes(Number(dur));
 
     return (
         <div className={styles.container_context_menu}
-            style={{ left: `${left + width - width/2-10}px` }} >
+            style={{ left: `${left + width - width / 2 - 10}px` }} >
             {/* Треугольник (стрелка) */}
             <div className={styles.contextMenuTriangle} />
 
@@ -66,25 +66,25 @@ export default function ContexMenu({
             </div>
 
             <div className={styles.coment}>
-                <span className={styles.title}>operation</span> {`: C${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`} 
+                <span className={styles.title}>operation</span> {`: C${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
             </div>
             <div className={styles.coment}>
-                <span className={styles.title}>duration</span> {`: ${load.isRetool ? retool :load.loadInfo?.duration} min (${time.hours} h, ${time.minutes} m)` }            
-            </div>
-            
-            <div className={styles.coment}>
-                <span className={styles.title}>interruptible</span> {`: ${load.loadInfo?.interruptible ? "yes" : "no"}`}            
-            </div>
-            
-            <div className={styles.coment}>
-                <span className={styles.title}>unit koef</span> {`: ${load.loadInfo?.koef}`}            
-            </div>
-            
-            <div className={styles.coment}>
-                <span className={styles.title}>status</span> {`: ${load.status}`}            
+                <span className={styles.title}>duration</span> {`: ${load.isRetool ? retool : load.loadInfo?.duration} min (${time.hours} h, ${time.minutes} m)`}
             </div>
 
-            
+            <div className={styles.coment}>
+                <span className={styles.title}>interruptible</span> {`: ${load.loadInfo?.interruptible ? "yes" : "no"}`}
+            </div>
+
+            <div className={styles.coment}>
+                <span className={styles.title}>unit koef</span> {`: ${load.loadInfo?.koef}`}
+            </div>
+
+            <div className={styles.coment}>
+                <span className={styles.title}>status</span> {`: ${load.status}`}
+            </div>
+
+
             {/* <button> отменить</button> */}
             <div className={styles.container_icon}>
                 <Image className={styles.icon_edit_save}

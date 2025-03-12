@@ -98,14 +98,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // ОТКЛОНЕНИЯ ЮНИТА ОТ РАСПИСАНИЯ КОМПАНИИ
-        
-        const resEx = await updateExceptions(unitExceptionsRepository,unitExceptions, savedUnit,Number(companyId))
+
+        const resEx = await updateExceptions(unitExceptionsRepository, unitExceptions, savedUnit, Number(companyId))
 
         if (!resEx.success) {
-           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resEx.message });
-           return;
-         }
-        const exceptions_ = resEx.savedUnitExceptions as UnitExceptionTable[];
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resEx.message });
+          return;
+        }
+        let exceptions_ = [] as UnitExceptionItem[];
+
+        if (resEx.savedUnitExceptions) {
+          exceptions_ = resEx.savedUnitExceptions
+            .map(ex => {
+              return {
+                id: ex.id,
+                date: ex.date.toLocaleDateString("en-CA"),
+                timeFinish: ex.timeFinish,
+                timeStart: ex.timeStart,
+                type: ex.type,
+                unitId: unit.id
+              } as UnitExceptionItem;
+            });
+        }
+
 
         // отправляем ответ
         res.status(200).json({
@@ -274,7 +289,7 @@ async function updateExceptions(
   unitExceptionsRepository: Repository<UnitExceptionTable>,
   unitExceptions: UnitExceptionItem[],
   savedUnit: UnitTable,
-  companyId:number
+  companyId: number
 ) {
 
   // СПИСОК ЮНИТОВ в базе
@@ -302,7 +317,7 @@ async function updateExceptions(
 
   // Добавляем новые действия Юнита
   const newUnitException = unitExceptionsToAdd.map(unitException => {
-    let date = new  Date(unitException.date);
+    let date = new Date(unitException.date);
     return unitExceptionsRepository.create({
       date: date,
       type: unitException.type,
@@ -310,7 +325,7 @@ async function updateExceptions(
       timeFinish: unitException.timeFinish,
       unit_id: savedUnit.id,
       unit: savedUnit,
-      company_id:companyId,
+      company_id: companyId,
     });
   });
   let savedNewUnitExceptions = [] as UnitExceptionTable[]
@@ -324,7 +339,7 @@ async function updateExceptions(
       existingUnitException.date = new Date(unitException.date);
       existingUnitException.timeFinish = unitException.timeFinish;
       existingUnitException.timeStart = unitException.timeStart;
-      existingUnitException.type = unitException.type;      
+      existingUnitException.type = unitException.type;
       return unitExceptionsRepository.create(existingUnitException);
     }
     return null;

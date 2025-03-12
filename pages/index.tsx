@@ -9,7 +9,8 @@ import {
   UserItem,
   UserRoleEnum,
   SettingsItem,
-  ScheduleItem
+  ScheduleItem,
+  UnitExceptionItem
 
 } from "@/types";
 
@@ -23,7 +24,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setActions, setUOMs, setUnits, setTCards, setSettings, setSchedule } from '@/store/slices'
+import { setUnitExceptions, setActions, setUOMs, setUnits, setTCards, setSettings, setSchedule } from '@/store/slices'
 
 import words from "@/public/add.jpg";
 import net from "@/public/add.jpg";
@@ -61,7 +62,7 @@ export default function Index({ }: IndexProps) {
   const [passMessage, setpassMessage] = useState('');
   const [nicknameValue, setNicknameValue] = useState('');
   const [loaderButtonRegister, setLoaderButtonRegister] = useState(false);
-  
+
   // const [downloadedAllValue, setdownloadedAllValue] = useState(0);
 
   const options = [
@@ -319,7 +320,7 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let uoms_ = receivedData.uoms as UOMItem[]
           dispatch(setUOMs(uoms_));
-          setMessage("Загружены единицы измерения")          
+          setMessage("Загружены единицы измерения")
           // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
           // setdownloadedAllValue(downloadedAllValue+1);
         }
@@ -328,7 +329,7 @@ export default function Index({ }: IndexProps) {
     } catch (e: any) {
       // setMessage(t('service.noConnection') + e.message)            
     }
-  }  
+  }
 
   const downloadActions = async () => {
     // Загружаем классификатор действий
@@ -400,6 +401,40 @@ export default function Index({ }: IndexProps) {
     }
 
   }
+  const downloadUnutsExceptions = async () => {
+    // Загружаем классификатор действий
+    try {
+      const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+
+      } else {
+        const receivedData = await res.json();
+        if (receivedData.success) {
+          let exceptions = receivedData.exceptions as UnitExceptionItem[]
+          dispatch(setUnitExceptions(exceptions)); // Это ме надо?
+          setMessage("Загружены исключения юнитов")
+        }
+        else setMessage(receivedData.error);
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+
+  }
+
   // загружает активные карты  
   const downloadTCards = async () => {
     try {
@@ -507,17 +542,18 @@ export default function Index({ }: IndexProps) {
 
   const downloadAll = async () => {
     await downloadUoms();
-   await downloadActions();
-    await downloadUnits(); 
+    await downloadActions();
+    await downloadUnits();
+    await downloadUnutsExceptions();
     await downloadSettings();
     await downloadSchedule();
     await downloadTCards();
-   setMessage("Загружено все")
+    setMessage("Загружено все")
   }
 
-  useEffect(() => {    
+  useEffect(() => {
     downloadAll();
-  
+
   }, []);
 
 
