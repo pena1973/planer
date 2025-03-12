@@ -1,12 +1,7 @@
 import React from 'react';
 import styles from './dropdownSelectRole.module.scss'; 
 
-// Определение enum для ролей пользователя
-export enum UserRoleEnum {
-    OPERATOR = "оператор",
-    PLANNER = "планер",
-    UNIT = "юнит"
-}
+import {UserRoleEnum,} from "@/types";
 
 // Определение типа для опций
 interface Option {

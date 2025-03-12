@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса:', error);
+    console.error('Ошибка подключения или выполнения запроса (schedule-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }

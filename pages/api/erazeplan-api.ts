@@ -35,7 +35,7 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await connectDb();
+  try{ 
   // Убедимся, что подключение установлено    
   const dbConnection = await connectDb();  // Получаем подключение
 
@@ -118,7 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
        }
 
       // Статус Карты  меняем на prepared
-       const resCard = await updateStatusCard(tCardRepository, tCard_id, StatusEnum.Pr)
+       const resCard = await updateStatusCard(tCardRepository, tCard_id, StatusEnum.prepared)
        if (!resCard.success) {
          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
          return;
@@ -135,6 +135,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     default:
       res.status(405).end(); // Метод не поддерживается
   }
+} catch (error) {
+  console.error('Ошибка подключения или выполнения запроса (erazeplan-api):', error);
+  res.status(500).json({ error: 'Не удалось обработать запрос' + error });
+}
 }
 // ЗАГРУЗКИ ЮНИТОВ ПО КАРТЕ
 async function deleteLoads(

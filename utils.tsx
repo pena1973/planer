@@ -75,3 +75,22 @@ export function padNumberToFourDigits(number: number): string {
   return number.toString().padStart(4, '0');
 }
 
+export function convertMillisecondsToTime(ms: number): {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
+} {
+  const hours = Math.floor(ms / 3600000);
+  const remainderAfterHours = ms % 3600000;
+  const minutes = Math.floor(remainderAfterHours / 60000);
+  const remainderAfterMinutes = remainderAfterHours % 60000;
+  const seconds = Math.floor(remainderAfterMinutes / 1000);
+  const milliseconds = remainderAfterMinutes % 1000;
+
+  return { hours, minutes, seconds, milliseconds };
+}
+
+export function convertTimeToMilliseconds(hours: number, minutes: number, seconds: number, milliseconds: number): number {
+  return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds;
+}

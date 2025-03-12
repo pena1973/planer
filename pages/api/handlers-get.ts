@@ -33,7 +33,7 @@ export async function getUOMs(
   const receivedUOMS = await uomsRepository.find({
     where: filter,  // Применяем фильтр к запросу
   });
-  console.log(receivedUOMS);
+  // console.log(receivedUOMS);
 
   const uoms__ = receivedUOMS
     .map(uom => {
@@ -60,7 +60,7 @@ export async function getActions(
   const receivedActions = await actionsRepository.find({
     where: filter,  // Применяем фильтр к запросу
   });
-  console.log(receivedActions);
+  // console.log(receivedActions);
 
   const actions__ = receivedActions
     .map(action => {
@@ -137,13 +137,13 @@ export async function getUnits(
 
 export async function getUnitLoads(
   units: UnitItem[],
-  unitLoadRepository: Repository<UnitLoadTable>
+  unitLoadRepository: Repository<UnitLoadTable>,
+  // today_:string,
 ): Promise<UnitLoadItem[]> {
 
-  // Получаем загрузки юнитов начиная с начала сегодняшнего дня
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Убираем время, чтобы сравнивать только дату
-
+  // Получаем все агрузки юнитов начиная с начала сегодняшнего дня 
+  // const today = new Date(today_);
+  // today.setHours(0, 0, 0, 0); // Убираем время, чтобы сравнивать только дату
 
   const unitIds = units.map(unit => unit.id); // Получаем массив идентификаторов
 
@@ -152,71 +152,31 @@ export async function getUnitLoads(
     return [];
   }
 
-  const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
-    // .where('unitLoad.date >= :today', { today })
+  const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')   
     .andWhere('unitLoad.unit_id IN (:...unitIds)', { unitIds }) // Фильтруем по unitIds
     .getMany();
 
   const unitLoadItems: UnitLoadItem[] = unitLoads.map(unitLoad => {
 
     let unit = units.find(unit => unit.id === unitLoad.unit_id)
-
     return {
       id: unitLoad.id,
-      unit: (unit) ? unit : {} as UnitItem,  // он по любому существует
+      idc: unitLoad.idc,  // добавлено
+      unit: unit ? unit : {} as UnitItem, // гарантированно существует
       date: String(unitLoad.date),
+      id_oper: unitLoad.id_oper,
       idc_oper: unitLoad.idc_oper,
       id_tCard: unitLoad.id_tCard,
       timeStart: unitLoad.timeStart,
       timeFinish: unitLoad.timeFinish,
-      status: StatusEnum.Pl  // дописать из операции статус
-    };
+      status: unitLoad.status,
+      version:unitLoad.version,
+      isActive:unitLoad.isActive,
+      isRetool:unitLoad.isRetool,
+    };    
   });
 
-  // // Группируем загрузки по юнитам
-  // const unitLoadItems: UnitLoadItem[] = units.map((unit) => {
-  //   // Фильтруем загрузки для текущего юнита
-  //   const unitLoadForUnit = unitLoads.filter(load => load.unit.id === unit.id);
-
-  //   // Группируем загрузки по дате
-  //   const groupedByDate: { [key: string]: LoadItem[] } = {};
-
-  //   unitLoadForUnit.forEach(load => {
-  //     const loadDate = load.date.toLocaleDateString('en-CA'); // Получаем строковое представление даты (YYYY-MM-DD)
-
-  //     // Если для этой даты еще нет записи, создаем пустой массив
-  //     if (!groupedByDate[loadDate]) {
-  //       groupedByDate[loadDate] = [];
-  //     }
-
-  //     // Добавляем загрузку в массив для этой даты
-  //     groupedByDate[loadDate].push({
-  //       idc_oper: load.idc_oper,
-  //       id_tCard: load.id_tCard,
-  //       timeStart: load.timeStart,
-  //       timeFinish: load.timeFinish,
-  //       draft: true,
-  //     });
-  //   });
-
-  //   // Преобразуем в формат UnitDateItem, где для каждой даты свой список загрузок
-  //   const unitDates: UnitDateItem[] = Object.keys(groupedByDate).map(date => {
-  //     return {
-  //       date: new Date(date), // Конвертируем строку обратно в объект Date
-  //       loads: groupedByDate[date] // Загружаем операции для этой даты
-  //     };
-  //   });
-
-  //   // Сортируем unitDates по дате
-  //   unitDates.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-  //   // Возвращаем объект с юнитом и его датами загрузки
-  //   return {
-  //     unit,
-  //     unitDates
-  //   };
-  // });
-
+  
   return unitLoadItems;
 }
 
@@ -252,6 +212,7 @@ export async function getTCard(
   };
 
 }
+
 export async function getTCardMatOper(
   tcardId: number,
   tCardOperationsRepository: Repository<TCardOperationTable>,
@@ -344,15 +305,19 @@ export async function getExceptions(
       return {
         id: exception.id,
         unitId: exception.unit_id,
-        date: exception.date,
+        date: String(exception.date),
         type: exception.type as TimeTypeEnum,
         timeStart: exception.timeStart,
         timeFinish: exception.timeFinish,
+
       } as UnitExceptionItem;
     });
 
   return excertions;
 }
+
+
+
 
 export async function getCompanyShedule(
   companyId: number,

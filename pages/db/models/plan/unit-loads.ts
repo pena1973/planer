@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { CompanyTable } from '../catalogs/companies'; // Подключаем сущность для связи
 import { UnitTable } from '../catalogs/units'; // Подключаем сущность для связи
+import { StatusEnum } from '@/pages/db/models/enums';
 
 @Entity("unit_loads")
 export class UnitLoadTable {
@@ -10,8 +11,14 @@ export class UnitLoadTable {
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
     
+    @Column()
+    idc!: number;
+
     @Column('date')
     date!: Date; // дата операции
+
+    @Column('int')
+    id_oper!: number; // Идентификатор операции
 
     @Column('int')
     idc_oper!: number; // Идентификатор операции
@@ -38,4 +45,21 @@ export class UnitLoadTable {
      
     @Column()
     unit_id!: number  
+
+    @Column({
+        type: 'enum',
+        enum: StatusEnum,      // Используем enum для ограничения значений
+        default: StatusEnum.planed,  // Устанавливаем значение по умолчанию планирован
+      })
+      status!: StatusEnum;
+
+      @Column('int',{nullable:true})
+      version!: number; // Идентификатор версии планирования если лоад разбит на части (прерываемый)
+     
+      @Column('boolean', {default:true} )
+      isActive!: boolean; // активная
+      
+      @Column('boolean', {default:false} )
+      isRetool!: boolean; // Это ретул
+    
 }

@@ -38,7 +38,7 @@ export class TCardTable {
   @Column({
       type: 'enum',
       enum: StatusEnum,      // Используем enum для ограничения значений
-      default: StatusEnum.Dr,  // Устанавливаем значение по умолчанию
+      default: StatusEnum.draft,  // Устанавливаем значение по умолчанию
     })
     status!: StatusEnum;
   

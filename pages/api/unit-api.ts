@@ -122,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса:', error);
+    console.error('Ошибка подключения или выполнения запроса (unit-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' + error });
   }
 }
@@ -302,8 +302,9 @@ async function updateExceptions(
 
   // Добавляем новые действия Юнита
   const newUnitException = unitExceptionsToAdd.map(unitException => {
+    let date = new  Date(unitException.date);
     return unitExceptionsRepository.create({
-      date: unitException.date,
+      date: date,
       type: unitException.type,
       timeStart: unitException.timeStart,
       timeFinish: unitException.timeFinish,
@@ -320,7 +321,7 @@ async function updateExceptions(
   const updatedUnitExceptions = unitExceptionToUpdate.map(unitException => {
     const existingUnitException = existingUnitExceptions.find(existingUnitException => existingUnitException.id === unitException.id);
     if (existingUnitException) {
-      existingUnitException.date = unitException.date;
+      existingUnitException.date = new Date(unitException.date);
       existingUnitException.timeFinish = unitException.timeFinish;
       existingUnitException.timeStart = unitException.timeStart;
       existingUnitException.type = unitException.type;      

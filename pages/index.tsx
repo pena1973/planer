@@ -506,12 +506,12 @@ export default function Index({ }: IndexProps) {
   }
 
   const downloadAll = async () => {
-   await downloadUoms();
+    await downloadUoms();
    await downloadActions();
-   await downloadUnits(); 
-   await downloadSettings();
-   await downloadSchedule();
-   await downloadTCards();
+    await downloadUnits(); 
+    await downloadSettings();
+    await downloadSchedule();
+    await downloadTCards();
    setMessage("Загружено все")
   }
 

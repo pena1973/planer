@@ -272,6 +272,8 @@
 
 .day_title {
   height: 30px;
+  border-left: 1px solid rgb(0, 0, 0);
+  padding-left: 3px;
 }
 
 .time_container {
@@ -423,6 +425,7 @@
   justify-content: center;
   align-items: center;
 }
+
 .contextMenu {
   font-size: 12px;
   position: absolute;
@@ -432,11 +435,12 @@
   top: 20px;
   border-radius: 10px;
 }
-.planed { 
+
+.planed {
   background-color: rgb(172, 169, 132);
   /* Добавляем выпуклый эффект */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-  
+
 }
 
 .draft {
@@ -455,8 +459,14 @@
   background-color: rgb(255, 143, 79);
   /* Добавляем выпуклый эффект */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-
 }
+
+.retool {
+  background-color: rgb(241, 241, 241);
+  height: 14px;
+  margin: 3px 0;
+}
+
 .current {
   background-color: rgb(235, 221, 73);
 }
@@ -464,7 +474,7 @@
 .unit_load {
   margin-top: 30px;
   width: 100%;
-  background-color: rgb(119, 116, 69);  
+  background-color: rgb(119, 116, 69);
   min-height: 20px;
   // font-weight: bold;    
 }

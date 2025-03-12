@@ -438,7 +438,7 @@ export default function Cards({ }: CardsProps) {
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
-        console.log("receivedData", receivedData)
+        // console.log("receivedData", receivedData)
         // setMessage(receivedData.error);
         if (receivedData.success) {
           //   Обновим текущую карту
@@ -511,7 +511,7 @@ export default function Cards({ }: CardsProps) {
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
-        console.log("receivedData", receivedData)
+        // console.log("receivedData", receivedData)
         // setMessage(receivedData.error);
         if (receivedData.success) {
 
@@ -552,7 +552,7 @@ export default function Cards({ }: CardsProps) {
     const currentDate = new Date();
 
     // const updatedTCards = tCards.map((card) => { return (card.active) ? { ...card, active: false } : card; });
-    let newTCard = { id: -tCards.length - 1, date: currentDate, number: 0, modified: true, status: StatusEnum.Dr } as TCardItem
+    let newTCard = { id: -tCards.length - 1, date: currentDate, number: 0, modified: true, status: StatusEnum.draft } as TCardItem
 
     dispatch(setTCards([...tCards, newTCard]));
     dispatch(setTCardCurrent(newTCard));
@@ -598,7 +598,7 @@ export default function Cards({ }: CardsProps) {
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
-        console.log("receivedData", receivedData)
+        // console.log("receivedData", receivedData)
         // setMessage(receivedData.error);
         if (receivedData.success) {
           //   Обновим текущую карту
@@ -640,19 +640,19 @@ export default function Cards({ }: CardsProps) {
   }
   const setCartPrepared = async () => {
     let tCardCurrentOperations_ = tCardCurrentOperations.map(oper => {
-      if (oper.status === StatusEnum.Dr)
-        return { ...oper, status: StatusEnum.Pr }
+      if (oper.status === StatusEnum.draft)
+        return { ...oper, status: StatusEnum.prepared }
       else return oper
     })
     dispatch(setTCardCurrentOperations(tCardCurrentOperations_));
 
-    dispatch(setTCardCurrent({ ...tCardCurrent, status: StatusEnum.Pr,modified: true }))
+    dispatch(setTCardCurrent({ ...tCardCurrent, status: StatusEnum.prepared, modified: true }))
 
     // нужно обновить в списке карт 
     const idCurrentCard = tCardCurrent.id;
     const indexCurrentCard = tCards.findIndex(card => card.id === idCurrentCard);
     let updatedTCards = [...tCards];
-    updatedTCards.splice(indexCurrentCard, 1, { ...tCards[indexCurrentCard], status: StatusEnum.Pr,modified: true })
+    updatedTCards.splice(indexCurrentCard, 1, { ...tCards[indexCurrentCard], status: StatusEnum.prepared, modified: true })
     dispatch(setTCards(updatedTCards));
 
   }
@@ -741,7 +741,7 @@ export default function Cards({ }: CardsProps) {
           dispatch(setTCardCurrentOperations([...parsedContent.tCardOperations]));
         if (parsedContent.tCardProducts)
           dispatch(setTCardCurrentProducts([...parsedContent.tCardProducts]));
-        console.log(parsedContent);
+        // console.log(parsedContent);
 
       } catch (err) {
         alert('Невозможно прочитать или распарсить файл.');
@@ -797,7 +797,7 @@ export default function Cards({ }: CardsProps) {
 
     const tOperToUpdate = tCardCurrentOperations.find(tOper => tOper.idc === idTosave);
     if (tOperToUpdate) {
-      const updatedOper = { ...tOperToUpdate, inn: [...inn], out: [...out], action: { ...action1 }, duration: duration, mode: !tOperToUpdate.mode, status: StatusEnum.Dr }
+      const updatedOper = { ...tOperToUpdate, inn: [...inn], out: [...out], action: { ...action1 }, duration: duration, mode: !tOperToUpdate.mode, status: StatusEnum.draft }
       // Обновляем в исходном массиве
       const tCardOperationsUpdated1 = tCardCurrentOperations.map(product => product.idc === idTosave ? updatedOper : product);
       dispatch(setTCardCurrentOperations(tCardOperationsUpdated1))
@@ -807,9 +807,34 @@ export default function Cards({ }: CardsProps) {
       dispatch(settCardCurrentWastes(tCardWastesUpdated));
       dispatch(setTCardCurrentMaterials(tCardMaterialsUpdated));
       dispatch(setTCardCurrentProducts(tCardProductsUpdated));
-      dispatch(setTCardCurrent({ ...tCardCurrent, status: StatusEnum.Dr }));
+      dispatch(setTCardCurrent({ ...tCardCurrent, status: StatusEnum.draft }));
     };
 
+  };
+
+  const setOperStatus = (idc: number, status: StatusEnum) => {
+    setModified(true);
+    const tCardCurrentOperations_ = tCardCurrentOperations.map(tOper => {
+      if (tOper.idc === idc) {
+        return { ...tOper, status: status };
+      }
+      return tOper;
+    });
+
+    dispatch(setTCardCurrentOperations(tCardCurrentOperations_))
+    //  прроверим статус карты
+    const allNonDraft = tCardCurrentOperations_.every(tOper => tOper.status !== StatusEnum.draft);
+
+    if (!allNonDraft) return
+
+    // обновляем статус если все операции подготовлены
+    dispatch(setTCardCurrent({ ...tCardCurrent, status: StatusEnum.prepared, modified: true }))
+    // нужно обновить в списке карт 
+    const idCurrentCard = tCardCurrent.id;
+    const indexCurrentCard = tCards.findIndex(card => card.id === idCurrentCard);
+    let updatedTCards = [...tCards];
+    updatedTCards.splice(indexCurrentCard, 1, { ...tCards[indexCurrentCard], status: StatusEnum.prepared, modified: true })
+    dispatch(setTCards(updatedTCards));
   };
 
   const editOperHandler = (idc: number) => {
@@ -822,6 +847,8 @@ export default function Cards({ }: CardsProps) {
     });
     dispatch(setTCardCurrentOperations(tCardOperationsUpdated))
   };
+
+
   const addOperHandler = (tStage: TCardStageItem) => {
     setModified(true);
     // console.log(tStage);
@@ -833,7 +860,7 @@ export default function Cards({ }: CardsProps) {
       out: [] as TCardProductItem[],
       action: {} as ActionItem,
       duration: 0,
-      status: StatusEnum.Dr,
+      status: StatusEnum.draft,
     } as TCardOperationItem;
     dispatch(setTCardCurrentOperations([...tCardCurrentOperations, newOper]))
   };
@@ -862,6 +889,7 @@ export default function Cards({ }: CardsProps) {
           handleDrop={handleDrop}
           deleteOperHandler={deleteOperHandler}
           editOperHandler={editOperHandler}
+          setOperStatus={setOperStatus}
         />}
 
         {tCardOperation.mode && <TCardOperNew
@@ -970,71 +998,53 @@ export default function Cards({ }: CardsProps) {
           > Загрузите файл JSON сюда </div>
 
         </div>
-        {(tCardCurrent.id) && <div className="container_right">
-          <button
-            className={`button_prepared ${tCardCurrent.status === StatusEnum.Dr ? '' : 'pressed'}`}
-            onClick={setCartPrepared}
-          >{tCardCurrent.status}</button>
-          {/* Продукты */}
-          <div className="container_products">
-            <div className="container_stage_title">
-              {/* <div></div> */}
-              Продукция
-              <Image className="icon_add_stage"
-                src={add} alt="del" width={20} height={20}
-                onClick={() => addStage(0)}
-              />
-            </div>
-            <TCardProducts
-              tCardCurrentProducts={tCardCurrentProducts}
-              saveCurrentProductsHandler={saveCurrentProductsHandler}
-              dragOverHandler={dragOverHandler}
-              dropHandler={dropHandler}
-              setCurrentDraggingElement={setCurrentDraggingElement}
-              handleMouseDown={handleMouseDown}
-              handleMouseUp={handleMouseUp}
-              isDragging={isDragging}
-              currentDraggingElement={currentDraggingElement}
-              positionX={position.x}
-              positionY={position.y}
-              handleDrop={handleDrop}
-              possibleEdit={true}
-              prefix={"P"}
-              useUniqueId={useUniqueId}
-              setCartEdited={setCartEdited}
-            />
-            {/* Отходы */}
-            <div className="container_stage_title">
-              Отходы
-            </div>
-            <TCardProducts
-              tCardCurrentProducts={tCardCurrentWastes}
-              saveCurrentProductsHandler={saveCurrentProductsHandler}
-              dragOverHandler={dragOverHandler}
-              dropHandler={dropHandler}
-              setCurrentDraggingElement={setCurrentDraggingElement}
-              handleMouseDown={handleMouseDown}
-              handleMouseUp={handleMouseUp}
-              isDragging={isDragging}
-              currentDraggingElement={currentDraggingElement}
-              positionX={position.x}
-              positionY={position.y}
-              handleDrop={handleDrop}
-              possibleEdit={false}
-              prefix={"W"}
-              useUniqueId={useUniqueId}
-              setCartEdited={setCartEdited}
-            />
+        {(tCardCurrent.id) && <div className="container_right card_container_right">
+
+          <div className={`container_status`}>
+            status: {tCardCurrent.status}
+            {(tCardCurrent.status === StatusEnum.draft)
+              && <button
+                className={`button_prepared`}
+                onClick={setCartPrepared}>
+                готов к планированию
+              </button>}
           </div>
-          {/* Обработка */}
-          {tCardStagesReactNodes}
-          {tCardCurrentMaterials.length > 0 &&
+
+          <div className="container_right_inner">
+            {/* Продукты */}
             <div className="container_products">
               <div className="container_stage_title">
-                Склад
+                {/* <div></div> */}
+                Продукция
+                <Image className="icon_add_stage"
+                  src={add} alt="del" width={20} height={20}
+                  onClick={() => addStage(0)}
+                />
               </div>
               <TCardProducts
-                tCardCurrentProducts={tCardCurrentMaterials}
+                tCardCurrentProducts={tCardCurrentProducts}
+                saveCurrentProductsHandler={saveCurrentProductsHandler}
+                dragOverHandler={dragOverHandler}
+                dropHandler={dropHandler}
+                setCurrentDraggingElement={setCurrentDraggingElement}
+                handleMouseDown={handleMouseDown}
+                handleMouseUp={handleMouseUp}
+                isDragging={isDragging}
+                currentDraggingElement={currentDraggingElement}
+                positionX={position.x}
+                positionY={position.y}
+                handleDrop={handleDrop}
+                possibleEdit={true}
+                prefix={"P"}
+                useUniqueId={useUniqueId}
+                setCartEdited={setCartEdited}
+              />
+              {/* Отходы */}
+              <div className="container_stage_title">
+                Отходы
+              </div>
+              <TCardProducts
+                tCardCurrentProducts={tCardCurrentWastes}
                 saveCurrentProductsHandler={saveCurrentProductsHandler}
                 dragOverHandler={dragOverHandler}
                 dropHandler={dropHandler}
@@ -1047,12 +1057,40 @@ export default function Cards({ }: CardsProps) {
                 positionY={position.y}
                 handleDrop={handleDrop}
                 possibleEdit={false}
-                prefix={"M"}
+                prefix={"W"}
                 useUniqueId={useUniqueId}
                 setCartEdited={setCartEdited}
               />
-            </div>}
-        </div >}
+            </div>
+            {/* Обработка */}
+            {tCardStagesReactNodes}
+            {tCardCurrentMaterials.length > 0 &&
+              <div className="container_products">
+                <div className="container_stage_title">
+                  Склад
+                </div>
+                <TCardProducts
+                  tCardCurrentProducts={tCardCurrentMaterials}
+                  saveCurrentProductsHandler={saveCurrentProductsHandler}
+                  dragOverHandler={dragOverHandler}
+                  dropHandler={dropHandler}
+                  setCurrentDraggingElement={setCurrentDraggingElement}
+                  handleMouseDown={handleMouseDown}
+                  handleMouseUp={handleMouseUp}
+                  isDragging={isDragging}
+                  currentDraggingElement={currentDraggingElement}
+                  positionX={position.x}
+                  positionY={position.y}
+                  handleDrop={handleDrop}
+                  possibleEdit={false}
+                  prefix={"M"}
+                  useUniqueId={useUniqueId}
+                  setCartEdited={setCartEdited}
+                />
+              </div>}
+          </div >
+        </div >
+        }
       </div >
     </Layout >
   )

@@ -119,7 +119,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                 // setMessage(t('service.serverUnavailable') + res.status);
             } else {
                 const receivedData = await res.json();
-                console.log("receivedData", receivedData)
+                // console.log("receivedData", receivedData)
 
                 if (receivedData.success) {
                     //   Обновим текущую карту

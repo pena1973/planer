@@ -366,7 +366,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса:', error);
+    console.error('Ошибка подключения или выполнения запроса (tcard-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }
@@ -385,7 +385,7 @@ async function generateNewNumberForCompany(tCardRepository: Repository<TCardTabl
   // Если результат не null, возвращаем максимальное значение, иначе 
   const maxNumber = result?.maxNumber || 0;
 
-  console.log(maxNumber);
+  // console.log(maxNumber);
 
   // Шаг 3: Генерируем новый номер
   const newNumber = maxNumber + 1;

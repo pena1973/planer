@@ -8,21 +8,23 @@ export enum TypeEnum {
 }
 // Статусы операций  и карт
 export enum StatusEnum {
-  Dr = 'draft',
-  Pr = 'prepared',
-  Pl = 'planed',
-  Cm = 'completed',
-  Cn = 'cancelled',
-  Fl = 'faulty', // бракован
+  draft     = 'draft', // черновик
+  prepared  = 'prepared', // готов к началу планирования
+  planed    = 'planed', // запланирован
+  performed = 'performed',// выполнен юнитом
+  ready     = 'ready', // готов (проверен на брак)
+  defective = 'defective', // бракован
+  cancelled = 'cancelled', // отменен   
 }
 
 // роли
-export enum RoleEnum {
-  Dr = 'Operator',
-  Rd = 'Planer',
-  Pl = 'Unit',
-  
+export enum UserRoleEnum {
+  OPERATOR = "оператор",
+  PLANNER = "планер",
+  UNIT = "юнит",
+  CONTROL = "контролер"
 }
+
 // хранить обрабатывать
 export enum UnitTypeEnum {
   K = 'Keep',
@@ -37,10 +39,13 @@ export enum UnitBelongEnum {
 
 // описание отклонений работы юнита
 export enum TimeTypeEnum {
-  W = 'work',
-  N = 'not work',
-  B = 'breack',
+  work = 'work',
+  notWork = 'not work',
+  breack = 'breack',
+  busy = 'busy', // загружен операцией
+  retool = 'retool',
 }
+
 export enum DaysOfWeek {
    
   SUNDAY = "SUNDAY",

@@ -1,6 +1,7 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
 import {CompanyTable} from './companies'
+
 @Entity("units")
 export class UnitTable {
   
@@ -27,12 +28,10 @@ export class UnitTable {
 
   @Column()
   type!: string;
-
-  @ManyToOne(() => CompanyTable, { eager: true }) // Указываем связь "многие к одному"
+  
+  @ManyToOne(() => CompanyTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'company_id' }) // Указываем колонку, которая является внешним ключом
   company!: CompanyTable;  // Связь с таблицей UOMsTable
   @Column()
   company_id!: number;
-
-  
 }

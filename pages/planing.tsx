@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
 import { StatusEnum, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, UnitItem, UnitLoadItem, CalendarItem, UnitExceptionItem, TimeTypeEnum, SettingsItem, ScheduleItem } from "@/types";
-import { setUnitLoads, setUnitExceptions, setUnits, setTCardPlaned, setTCardPrepared, setTCards } from '@/store/slices'
+import { setUnitLoads, setUnitExceptions, setUnits, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
 import { } from '@/store/slices';
 
 const URL = process.env.NEXT_PUBLIC_URL;
@@ -28,6 +28,8 @@ interface IndexProps {
 import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import eraz from "@/public/erazer1-rem.png";
+import light from "@/public/light-rem.png";
+import lighton from "@/public/light-on-rem.png";
 import add from "@/public/add-rem.png";
 
 
@@ -48,8 +50,8 @@ export default function Planing({ }: IndexProps) {
   const tCardPrepared = useSelector((state: RootState) => {
     return state.planSlice.tCardPrepared;
   })
-  const tCardPlaned = useSelector((state: RootState) => {
-    return state.planSlice.tCardPlaned;
+  const tCardLighted = useSelector((state: RootState) => {
+    return state.planSlice.tCardLighted;
   })
   const unitLoads = useSelector((state: RootState) => {
     return state.planSlice.unitLoads;
@@ -71,9 +73,9 @@ export default function Planing({ }: IndexProps) {
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
 
   // Выбор запланированной карты
-  const selectTCardHandler = async (selectedTCard: TCardItem) => {
-    //  необходимо потом прорисовать изменение цвета выбранной карты 
-    dispatch(setTCardPlaned(selectedTCard))
+  const lightTCardHandler = async (selectedTCard: TCardItem, on: boolean) => {
+    if (on) dispatch(setTCardLighted(selectedTCard))
+    else dispatch(setTCardLighted({} as TCardItem))
   }
 
   // Запись запланированной карты
@@ -113,10 +115,10 @@ export default function Planing({ }: IndexProps) {
 
           //  поменяем статус карты  и после этого она перерисуется в запланированные
           let index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
-          let updatedTCard = { ...tCards[index], status: StatusEnum.Pl }
+          let updatedTCard = { ...tCards[index], status: StatusEnum.planed }
           let _tCards = [...tCards]
           _tCards.splice(index, 1, updatedTCard);
-          dispatch(setTCardPlaned(updatedTCard))
+          dispatch(setTCardLighted(updatedTCard))
           dispatch(setTCardPrepared({} as TCardItem));
           dispatch(setTCards(_tCards));
 
@@ -132,12 +134,12 @@ export default function Planing({ }: IndexProps) {
   // Затираем планирование карты только шкалу вперед  - все что прошло уже необратимо
   const erazCardHandler = async (id: number) => {
     // это предварительное планирование  -  просто стираем
-    if (id === tCardPrepared.id) {
-      let updatedUnitLoads = unitLoads.filter(load => {
-        return (load.id_tCard !== id || load.date < (new Date().toLocaleDateString("en-CA")))
-      })
-      dispatch(setUnitLoads(updatedUnitLoads));
-    }
+    // if (id === tCardPrepared.id) {
+    let updatedUnitLoads = unitLoads.filter(load => {
+      return (load.id_tCard !== id || load.date < (new Date().toLocaleDateString("en-CA")))
+    })
+    dispatch(setUnitLoads(updatedUnitLoads));
+    // }
 
     // эта карта запланирована  затираем planed на prepared) на сервере начиная с текущей даты  -  историю не трогаем
     if (tCardsPlaned.some(tcard => tcard.id === id)) {
@@ -145,7 +147,7 @@ export default function Planing({ }: IndexProps) {
       // setLoaderCard(tCardPrepared.id);
       // 
       let tCardLoads = unitLoads.filter(load => {
-        return (load.id_tCard === id && load.status === StatusEnum.Pl && load.date >= today.toLocaleDateString("en-CA"))
+        return (load.id_tCard === id && load.status === StatusEnum.planed && load.date >= today.toLocaleDateString("en-CA"))
       })
       try {
         const res = await fetch(`/api/erazeplan-api?userId=${1}&companyId=${1}`,
@@ -177,16 +179,16 @@ export default function Planing({ }: IndexProps) {
               const updatedLoads = unitLoads.filter(load => !tCardLoads.some(l => l.id === load.id));
               dispatch(setUnitLoads(updatedLoads));
             }
-            
+
             //   уберем звезду модифицированности
 
             //  поменяем статус карты  и после этого она перерисуется в запланированные
-            let index = tCards.findIndex(tCard => tCard.id === tCardPlaned.id);
-            let updatedTCard = { ...tCards[index], status: StatusEnum.Pr }
+            let index = tCards.findIndex(tCard => tCard.id === tCardLighted.id);
+            let updatedTCard = { ...tCards[index], status: StatusEnum.prepared }
             let _tCards = [...tCards]
             _tCards.splice(index, 1, updatedTCard);
             dispatch(setTCardPrepared(updatedTCard))
-            dispatch(setTCardPlaned({} as TCardItem));
+            dispatch(setTCardLighted({} as TCardItem));
             dispatch(setTCards(_tCards));
 
             //        setMessage("Планировка карты успешно записана");
@@ -374,23 +376,18 @@ export default function Planing({ }: IndexProps) {
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
-        // console.log("receivedData", receivedData)        
+        let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
+        dispatch(setUnitLoads(unitsLoads));
         if (receivedData.success) {
-          //   Обновим  массив загрузок          
-          let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
-          // .map(unitLoad => {
-          //   return { ...unitLoad, date: new Date(unitLoad.date) }
-          // });
-
-          dispatch(setUnitLoads(unitsLoads));
           setMessage("Карта успешно предварительно запланирована НО НЕЗАПИСАНА! Если все в порядке ЗАПИШИ!");
         } else {
-          setMessage("Карту запланировать не удалось");
+          setMessage(receivedData.message);
         }
       }
     } catch (e: any) {
       // setMessage(t('service.noConnection') + e.message)            
     }
+
 
   };
   ///////////////////////////
@@ -398,9 +395,9 @@ export default function Planing({ }: IndexProps) {
 
   /// ВИЗУАЛИЗАЦИЯ СПИСКА КАРТ
   // временно уберу фильтр  нужен признак по которому я пойму какая карта запланирована а какая нет
-  let tCardsToPlan = tCards.filter(tCard => (tCard.status === StatusEnum.Pr)) // подготовлен
+  let tCardsToPlan = tCards.filter(tCard => (tCard.status === StatusEnum.prepared)) // подготовлен
 
-  let tCardsPlaned = tCards.filter(tCard => (tCard.status === StatusEnum.Pl)) // запланирован
+  let tCardsPlaned = tCards.filter(tCard => (tCard.status === StatusEnum.planed)) // запланирован
   // Карты
   let tCardsPlanedReactNodes = tCardsPlaned.map((elem, index4) => {
     let date = "";
@@ -409,11 +406,16 @@ export default function Planing({ }: IndexProps) {
 
     return (
       <div key={index4} className="container_card">
-        <div className={`${elem.id === tCardPlaned?.id ? "container_card_edit" : ""}`}
-          onClick={() => selectTCardHandler(elem)}>
+        <div className="container_card1">
           {loaderCard === elem.id && <ButtonLoader />}
-          {loaderCard !== elem.id && <>&nbsp; C &nbsp; </>}
-          &nbsp; {padNumberToFourDigits(elem.number)} -  {date}
+          {loaderCard !== elem.id &&
+            (elem.id === tCardLighted.id ?
+              <Image className="icon_edit_save" src={lighton} alt="lighton"
+                width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
+              : <Image className="icon_edit_save" src={light} alt="light"
+                width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
+          }
+          <div className="container_card_text">&nbsp; {padNumberToFourDigits(elem.number)} -  {date}</div>
         </div>
 
         <div className="container_icon_edit_save">
@@ -422,7 +424,7 @@ export default function Planing({ }: IndexProps) {
             alt="eraz" width={20} height={20}
             onClick={() => erazCardHandler(elem.id)}
           />
-          {tCardPlaned?.id === elem.id}
+          {tCardLighted?.id === elem.id}
         </div>
       </div>
     );
@@ -440,28 +442,30 @@ export default function Planing({ }: IndexProps) {
         draggable
         onDragStart={(e) => handleDragStartTCard(e, elem.id)}
       >
-        <div className={`${elem.id === tCardPrepared?.id ? "container_plan_edit" : ""}`}
-          onClick={() => selectTCardHandler(elem)}>
+
+        <div className={`container_card1 ${elem.id === tCardPrepared?.id ? "container_plan_edit" : ""}`}>
           {loaderCard === elem.id && <ButtonLoader />}
-          {loaderCard !== elem.id && <>&nbsp; C &nbsp; </>}
-          &nbsp; {padNumberToFourDigits(elem.number)} -  {date}
+          {loaderCard !== elem.id &&
+            (elem.id === tCardLighted.id ?
+              <Image className="icon_edit_save" src={lighton} alt="lighton"
+                width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
+              : <Image className="icon_edit_save" src={light} alt="light"
+                width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
+          }
+          <div className="container_card_text1">&nbsp; {padNumberToFourDigits(elem.number)} -  {date}</div>
         </div>
+
         <div className="container_icon_edit_save">
+          {tCardPrepared?.id === elem.id && <Image className="icon_edit_save"
+            src={save}
+            alt="arrow" width={20} height={20}
+            onClick={() => saveCardHandler()}
+          />}
           <Image className="icon_edit_save"
             src={eraz}
             alt="eraz" width={20} height={20}
             onClick={() => erazCardHandler(elem.id)}
           />
-          {tCardPrepared?.id === elem.id}
-        </div>
-
-        <div className="container_icon_edit_save">
-          <Image className="icon_edit_save"
-            src={save}
-            alt="arrow" width={20} height={20}
-            onClick={() => saveCardHandler()}
-          />
-          {tCardPrepared?.id === elem.id && <div>*</div>}
         </div>
       </div>
     );
@@ -491,13 +495,14 @@ export default function Planing({ }: IndexProps) {
           onDrop={handleDropTCard} // Обрабатываем отпускание элемента
         >
           <PlanScaleContainer
-
+            tCards={tCards}
             units={units}
             unitLoads={unitLoads}
             settings={settings}
             schedule={schedule}
             tCardPrepared={tCardPrepared}
-            tCardPlaned={tCardPlaned}
+            tCardLighted={tCardLighted}
+            unitExceptions={unitExceptions}
           />
         </div>
 

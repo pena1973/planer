@@ -46,13 +46,13 @@ export default function Resources({ }: ResourcesProps) {
 
 
   const onFocusUnitHandler = (code: string) => {
-    console.log('Code:', code);
+    // console.log('Code:', code);
     // Дальнейшая обработка данных
   };
 
   // Загрузка файла
   const onFileUpload = (content: UOMItem | ActionItem | UnitItem) => {
-    console.log('File uploaded with content:', content);
+    // console.log('File uploaded with content:', content);
     // Дальнейшая обработка данных
   };
 

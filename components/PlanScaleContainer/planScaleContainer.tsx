@@ -1,8 +1,10 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import styles from "./planScaleContainer.module.scss";
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, StatusEnum, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem } from "@/types";
+import { CalendarItem, UnitLoadItem, UnitBelongEnum,UnitExceptionItem, StatusEnum, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem } from "@/types";
 import { setUnits } from '@/store/slices';
+
+import ContexMenu from "./ContextMenu/contextMenu";
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
@@ -122,21 +124,25 @@ const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem =
 };
 
 export interface PlanScaleContainerProps {
+  tCards: TCardItem[],
   units: UnitItem[],
   unitLoads: UnitLoadItem[],
   settings: SettingsItem,
   schedule: ScheduleItem,
   tCardPrepared: TCardItem,
-  tCardPlaned: TCardItem,
+  tCardLighted: TCardItem,
+  unitExceptions:UnitExceptionItem[]
 }
 
 export default function PlanScaleContainer({
+  tCards,
   units,
   unitLoads,
   settings,
   schedule,
   tCardPrepared,
-  tCardPlaned,
+  tCardLighted,
+  unitExceptions,
 }: PlanScaleContainerProps) {
 
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
@@ -489,62 +495,74 @@ export default function PlanScaleContainer({
 
       const { hourStyle, hoursValue, minutesValue } = hourStyleFoo(scale, hours, minutes)
 
-      //  вычисление визуализации загруза юнитов
-      // Проверяем загрузку юнитов
-      // Внутренние   
+
+      //   //  вычисление визуализации загруза юнитов
+      //   // Проверяем загрузку юнитов
+      //   // Внутренние   
       let unitLoadBlockseReactNodesInner = unitsViewInner.current.map(unitView => {
+
         let dateLoad = unitLoads.filter(elem => {
           return (elem.unit.id === unitView.id &&
             new Date(elem.date).toDateString() === new Date(calendarItem.date).toDateString())
         });
         if (dateLoad.length > 0) {
           // ищем позиции которые начинаются а этом интервале
-          const operBlocks = dateLoad.filter(operation => {
-            return intervTime <= operation.timeStart && operation.timeStart < (intervTime + 5);
+          const operBlocks = dateLoad.filter(load => {
+            return intervTime <= load.timeStart && load.timeStart < (intervTime + 5);
           });
 
           // Расставляем блоки интервалов на шкале
-          const operBlocksReactNodes = operBlocks.map(operation => {
+          const operBlocksReactNodes = operBlocks.map((load,index) => {
             let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
-            let shift = operation.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
+            let shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
             let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
-            let width = (operation.timeFinish - operation.timeStart) * blockwidth / 5; // длительность операции в пикселях           
+            let width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
             let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
 
-            switch (operation.status) {
-              case StatusEnum.Dr:
+            switch (load.status) {
+              case StatusEnum.draft:
                 intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
                 break;
-              case StatusEnum.Pl:
+              case StatusEnum.planed:
                 intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
                 break;
-              case StatusEnum.Pr:
+              case StatusEnum.prepared:
                 intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
                 break;
-              case StatusEnum.Fl:
+              case StatusEnum.defective:
                 intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
                 break;
               default:
                 intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
                 break;
             }
+            intervalClass = load.isRetool?`${intervalClass} ${styles.retool}`:intervalClass; 
+
             // Выделяем операции текущей карты
-            if (tCardPlaned.id === operation.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
+            if (tCardLighted.id === load.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
+
+            let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
+            if (!tCard) tCard = {} as TCardItem;
 
             return (
               <>
                 <div className={intervalClass}
-                  id={String(operation.id)}
+                  id={String(load.idc+"_"+index)}
                   style={{ width: `${width}px`, left: `${left}px` }}
-                  onContextMenu={(event) => handleRightClickMenu(event, operation.id)}>{`C${operation.idc_oper}`}
+                  onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`C${load.idc_oper}`}
                 </div>
 
-                {contectMenuShow === operation.id && <div className={styles.contextMenu}
-                  style={{ width: `${30}px`, left: `${left + width - 15}px` }} >
-                </div>}
-
+                {contectMenuShow === load.idc &&
+                  <ContexMenu
+                    tCard={tCard}
+                    load={load}
+                    left={left}
+                    width={width}
+                    erazLoadHandler={erazLoadHandler}          
+                    retool={unitView.retool}
+                  />}
               </>
             )
           })
@@ -576,16 +594,16 @@ export default function PlanScaleContainer({
             let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
 
             switch (operation.status) {
-              case StatusEnum.Dr:
+              case StatusEnum.draft:
                 intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
                 break;
-              case StatusEnum.Pl:
+              case StatusEnum.planed:
                 intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
                 break;
-              case StatusEnum.Pr:
+              case StatusEnum.prepared:
                 intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
                 break;
-              case StatusEnum.Fl:
+              case StatusEnum.defective:
                 intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
                 break;
               default:
@@ -593,14 +611,14 @@ export default function PlanScaleContainer({
                 break;
             }
             // Выделяем операции текущей карты
-            if (tCardPlaned.id === operation.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
+            if (tCardLighted.id === operation.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
 
             return (
               <>
                 <div className={intervalClass}
                   id={String(operation.id)}
                   style={{ width: `${width}px`, left: `${left}px` }}
-                  onContextMenu={(event) => handleRightClickMenu(event, operation.id)}>{`C${operation.idc_oper}`}
+                  onContextMenu={(event) => handleRightClickMenu(event, operation.idc)}>{`C${operation.idc_oper}`}
                 </div>
 
                 {contectMenuShow === operation.id && <div className={styles.contextMenu}
@@ -645,11 +663,22 @@ export default function PlanScaleContainer({
 
   };
   // контекстное меню
-  const handleRightClickMenu = (event: React.MouseEvent, id: number | undefined) => {
+  const handleRightClickMenu = (event: React.MouseEvent, idc: number | undefined) => {
     event.preventDefault();
     event.stopPropagation();
-    if (id) setContectMenuShow(id);
+    if (idc) setContectMenuShow(idc);
   };
+
+  // удаление лоада из контекстного меню
+  const erazLoadHandler = (idc: number) => {
+
+  }
+
+  // Изменение длительности лоада для сторонних юнитов Контекстное меню
+  const changeDurationLoadHandler = (idc: number) => {
+
+  }
+
 
   let timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
 

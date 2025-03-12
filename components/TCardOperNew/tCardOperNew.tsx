@@ -4,6 +4,8 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import styles from "./tCardOperNew.module.scss";
 import { TCardOperationItem, TCardProductItem, ActionItem, UOMItem } from '@/types'
 
+import { convertMillisecondsToTime,convertTimeToMilliseconds } from '@/utils'
+
 import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM'; // Путь к вашему компоненту
 import DropdownSelectOper from '@/components/DropdownSelectOper/dropdownSelectOper'; // Путь к вашему компоненту
 import { } from '@/store/slices';
@@ -67,7 +69,11 @@ export default function TCardOperNew({
     const [innValue, setInnValue] = useState([] as TCardProductItem[]);
     const [outValue, setOutValue] = useState([] as TCardProductItem[]);
     const [actionValue, setActionValue] = useState<ActionItem | null>(null);
-    const [durationValue, setDurationValue] = useState(0);
+    // const [durationValue, setDurationValue] = useState(0);
+    const [hourValue, setHourValue] = useState(0);
+    const [minutValue, setMinutValue] = useState(0);
+    const [secundValue, setSecundValue] = useState(0);
+    const [msValue, setMSValue] = useState(0);
 
 
     //  проверим есть ли что в сессионном храилище
@@ -83,14 +89,29 @@ export default function TCardOperNew({
         setInnValue(inn);
         setOutValue(out);
         setActionValue(action);
-        setDurationValue(duration)
+        const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(duration);
+
+        // setDurationValue(duration)
+
+        setHourValue(hours)
+        setMinutValue(minutes)
+        setSecundValue(seconds)
+        setMSValue(milliseconds)
+
     }, []);
 
     const cancelHandler = () => {
+        const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(duration);
+
         setInnValue(inn);
         setOutValue(out);
         setActionValue(action);
-        setDurationValue(duration)
+        // setDurationValue(duration)
+        setHourValue(hours)
+        setMinutValue(minutes)
+        setSecundValue(seconds)
+        setMSValue(milliseconds)
+
         cancelOperHandler(idc);
     };
 
@@ -190,10 +211,10 @@ export default function TCardOperNew({
     };
     const handleSelectOper = (oper: { id: number, title: string } | null) => {
 
-        let foundOper = actions.find(elem=>{return elem.id === oper?.id } )
+        let foundOper = actions.find(elem => { return elem.id === oper?.id })
         setEdited(true);
         setCartEdited();
-        setActionValue((!foundOper)?null:foundOper);
+        setActionValue((!foundOper) ? null : foundOper);
     };
 
     let resultReactNodes = outValue.map((elem2, index) => {
@@ -300,17 +321,64 @@ export default function TCardOperNew({
                     />
                     <input className={styles.in_out_item_qtu}
                         id={"duration"} autoComplete="off"
-                        value={durationValue} type="number"
+                        value={hourValue} type="number"
                         max={2147483647}
                         maxLength={6}
                         min={0}
                         onChange={e => {
                             const value = e.target.value;
                             if (/^\d*$/.test(value)) {
-                                setDurationValue(Number(e.target.value))
+                                setEdited(true);
+                                setHourValue(Number(e.target.value))
                             }
                         }}
                     />
+                    h
+                    <input className={styles.in_out_item_qtu}
+                        id={"duration"} autoComplete="off"
+                        value={minutValue} type="number"
+                        max={2147483647}
+                        maxLength={6}
+                        min={0}
+                        onChange={e => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                                setEdited(true);                                
+                                setMinutValue(Number(e.target.value))
+                            }
+                        }}
+                    />
+                    m
+                    <input className={styles.in_out_item_qtu}
+                        id={"duration"} autoComplete="off"
+                        value={secundValue} type="number"
+                        max={2147483647}
+                        maxLength={6}
+                        min={0}
+                        onChange={e => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                                setEdited(true);
+                                setSecundValue(Number(e.target.value))
+                            }
+                        }}
+                    />
+                    s
+                    <input className={styles.in_out_item_qtu}
+                        id={"duration"} autoComplete="off"
+                        value={msValue} type="number"
+                        max={2147483647}
+                        maxLength={6}
+                        min={0}
+                        onChange={e => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                                setEdited(true);
+                                setMSValue(Number(e.target.value))
+                            }
+                        }}
+                    />
+
                     <div className={styles.tCardOper_oper_qtu}> ms</div>
                 </div>
             </div>
@@ -338,7 +406,7 @@ export default function TCardOperNew({
                                     innValue,
                                     outValue,
                                     actionValue,
-                                    durationValue,)
+                                    convertTimeToMilliseconds(hourValue,minutValue,secundValue,msValue),)
                             } else setMessage("Заполните единицу измерения!")
                         }}
                     />

@@ -2,7 +2,8 @@ import { PropsWithChildren, useState, useEffect, useRef } from "react";
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import styles from "./tCardOper.module.scss";
-import { TCardOperationItem } from '@/types'
+import { TCardOperationItem, StatusEnum } from '@/types'
+import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/utils'
 import {
 
 } from '@/store/slices';
@@ -35,6 +36,7 @@ export interface TCardOperProps {
     // index: number
     deleteOperHandler: (id: number) => void,
     editOperHandler: (id: number) => void
+    setOperStatus: (id: number, status: StatusEnum) => void
 }
 
 export default function TCardOper({
@@ -51,7 +53,8 @@ export default function TCardOper({
     handleDrop,
     // index,
     deleteOperHandler,
-    editOperHandler
+    editOperHandler,
+    setOperStatus
 }: TCardOperProps) {
     const dispatch = useAppDispatch();
 
@@ -64,7 +67,7 @@ export default function TCardOper({
                     onDrop={(e) => dropHandler(e)}
                     draggable={true}
                     onMouseDown={(e) => {
-                        setCurrentDraggingElement("C"+tCardOperation.idc+"O"+index1);                        
+                        setCurrentDraggingElement("C" + tCardOperation.idc + "O" + index1);
                         handleMouseDown(e)
                     }}
                     onMouseLeave={handleMouseUp}
@@ -91,7 +94,7 @@ export default function TCardOper({
                     onDrop={(e) => dropHandler(e)}
                     draggable={true}
                     onMouseDown={(e) => {
-                        setCurrentDraggingElement("C"+tCardOperation.idc+"I"+index2);                        
+                        setCurrentDraggingElement("C" + tCardOperation.idc + "I" + index2);
                         handleMouseDown(e)
                     }}
                     onMouseLeave={handleMouseUp}
@@ -112,6 +115,7 @@ export default function TCardOper({
         })
     }
 
+    const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(tCardOperation.duration);
     return (
         <div className={styles.container_tCardOper}>
             <div className={styles.tCardOper_id}> C{tCardOperation.idc}</div>
@@ -138,7 +142,8 @@ export default function TCardOper({
                     <div className={styles.tCardOper_action}>
 
                         <div className={styles.tCardOper_oper_title}>{tCardOperation.action.title}</div>
-                        <div className={styles.tCardOper_oper_qtu}>{tCardOperation.duration} ms</div>
+                        {/* <div className={styles.tCardOper_oper_qtu}>{tCardOperation.duration} ms</div> */}
+                        <div className={styles.tCardOper_oper_qtu}>{`${hours}h ${minutes}m ${seconds}s ${milliseconds}ms`}</div>
                     </div>
                 </div>
                 <div className={styles.container_tCardOper_in}>
@@ -152,19 +157,26 @@ export default function TCardOper({
                 </div>
             </div>
             <div className={styles.container_buttons_row}>
-            <div>{String(tCardOperation.status)}</div>
+                <div>status: {String(tCardOperation.status)}</div>
+
                 <div className={styles.container_icon_edit_save}>
+
+                    {(tCardOperation.status === StatusEnum.draft)
+                        && <button className={styles.button_status}
+                            onClick={() => setOperStatus(tCardOperation.idc, StatusEnum.prepared)}>
+                            готов к планированию
+                        </button>}
                     <Image className={styles.icon_edit_save}
                         src={edit}
                         alt="arrow" width={20} height={20}
                         onClick={() => { editOperHandler(tCardOperation.idc) }}
                     />
-
+                    <Image className={styles.icon_del}
+                        src={del} alt="del" width={20} height={20}
+                        onClick={() => deleteOperHandler(tCardOperation.idc)}
+                    />
                 </div>
-                <Image className={styles.icon_del}
-                    src={del} alt="del" width={20} height={20}
-                    onClick={() => deleteOperHandler(tCardOperation.idc)}
-                />
+
             </div>
 
         </div>

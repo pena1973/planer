@@ -33,7 +33,7 @@ export type AuthState = {
     locale:string
 }
 export type PlanState = {
-    tCardPlaned: TCardItem,
+    tCardLighted: TCardItem,
     tCardPrepared: TCardItem,
     unitLoads: UnitLoadItem[],
     unitExceptions:UnitExceptionItem[]
@@ -68,7 +68,7 @@ const authIntialState: AuthState = {
     locale:"ru"
 }
 const planIntialState: PlanState = {
-    tCardPlaned:{} as TCardItem,
+    tCardLighted:{} as TCardItem,
     tCardPrepared:{} as TCardItem,    
     unitLoads: [] as UnitLoadItem[],    
     unitExceptions:[] as UnitExceptionItem[],
@@ -169,8 +169,8 @@ const planSlice = createSlice({
     name: 'plan',
     initialState: planIntialState,
     reducers: {     
-        setTCardPlaned : (state, action) => {
-            state.tCardPlaned = action.payload;
+        setTCardLighted : (state, action) => {
+            state.tCardLighted = action.payload;
         }, 
         setTCardPrepared : (state, action) => {
             state.tCardPrepared = action.payload;
@@ -192,7 +192,7 @@ export const { setActions, setUOMs,setUnits,setSettings,setSchedule } = catalogS
 export const {setTCards,setTCardCurrent,setTCardCurrentStages,setTCardCurrentMaterials,setTCardCurrentOperations,setTCardCurrentProducts,settCardCurrentWastes,setTCardCurrentMaxIdc} = dataSlice.actions;
 export const {setToken,setLogin,setUserId,setRole,setNickname,setAgreeCookie,setAgreement, setLocale} = authSlice.actions;
 
-export const {setTCardPlaned,setTCardPrepared, setUnitLoads,setUnitExceptions} = planSlice.actions;
+export const {setTCardLighted,setTCardPrepared, setUnitLoads,setUnitExceptions} = planSlice.actions;
 
 export { authSlice, catalogSlice, dataSlice,planSlice};
 

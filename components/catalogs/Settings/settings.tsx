@@ -83,7 +83,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                 // setMessage(t('service.serverUnavailable') + res.status);
             } else {
                 const receivedData = await res.json();
-                console.log("receivedData", receivedData)
+                // console.log("receivedData", receivedData)
 
                 if (receivedData.success) {
                     //   Обновим текущую карту

@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
 import { planTCard } from './handlers-plan';  // планирование карты
-import { getTCard, getTCardMatOper,getCompanyShedule } from './handlers-get';  // 
+import { getTCard, getTCardMatOper, getCompanyShedule, getExceptions } from './handlers-get';  // 
 
 
 import { Repository, In } from 'typeorm';
@@ -34,104 +34,114 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await connectDb();
-  // Убедимся, что подключение установлено    
-  const dbConnection = await connectDb();  // Получаем подключение
+  try {
+    // Убедимся, что подключение установлено    
+    const dbConnection = await connectDb();  // Получаем подключение
 
-  const unitRepository = dbConnection.getRepository(UnitTable);
-  const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
-  const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-  const tCardRepository = dbConnection.getRepository(TCardTable);
-  const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-  const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-  const companyScheduleRepository = dbConnection.getRepository(CompanyScheduleTable);
+    const unitRepository = dbConnection.getRepository(UnitTable);
+    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
+    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
+    const tCardRepository = dbConnection.getRepository(TCardTable);
+    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
+    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
+    const companyScheduleRepository = dbConnection.getRepository(CompanyScheduleTable);
+    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
-  //  const unitCalendarRepository = dbConnection.getRepository(UnitCalendarTable);
 
-  // userId, companyId в любом случае
-  const { userId, companyId, tcardId,today } = req.query;
+    // userId, companyId в любом случае
+    const { userId, companyId, tcardId, today } = req.query;
 
-  switch (req.method) {
-    // ПРЕДВАРИТЕЛЬНОЕ ПЛАНИРОВАНИЕ
-    case 'GET':
-      // получаем карту из базы  по id  со всеми параметрами    
-      // let tCard1 = {} as TCardItem;
+    switch (req.method) {
+      // ПРЕДВАРИТЕЛЬНОЕ ПЛАНИРОВАНИЕ
+      case 'GET':
+        // получаем карту из базы  по id  со всеми параметрами    
+        // let tCard1 = {} as TCardItem;
 
-      let tCard_ = await getTCard(Number(tcardId), tCardRepository)
-      if (!tCard_) {
-        res.status(200).json({ success: false, error: "Карта с таким номером не найдена" });
-        return
-      }
+        let tCard_ = await getTCard(Number(tcardId), tCardRepository)
+        if (!tCard_) {
+          res.status(200).json({ success: false, error: "Карта с таким номером не найдена" });
+          return
+        }
 
-      let { tCardMaterials, tCardOperations } = await getTCardMatOper(
-        Number(tcardId), tCardOperationsRepository, tCardProductRepository)
-      
-      tCard_.tCardMaterials = [...tCardMaterials] as TCardProductItem[];
-      tCard_.tCardOperations = [...tCardOperations] as TCardOperationItem[]
+        let { tCardMaterials, tCardOperations } = await getTCardMatOper(
+          Number(tcardId), tCardOperationsRepository, tCardProductRepository)
 
-      // запросим юниты
-      const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
+        tCard_.tCardMaterials = [...tCardMaterials] as TCardProductItem[];
+        tCard_.tCardOperations = [...tCardOperations] as TCardOperationItem[]
 
-      // запросим расписание компании
-      const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
+        // запросим юниты
+        const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
 
-      //  получим загрузку юнитов  до планирования новой карты         
-      const unitLoadItems = await getUnitLoads(units_, unitLoadRepository)
+        // запросим расписание компании
+        const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
 
-      // Планируем карту
-      let unitLoads_ = planTCard(tCard_, units_, shedule_,unitLoadItems, String(today))
-      //  Если не удалось запланировать
-      if (!unitLoads_) {
+        //  получим загрузку юнитов  до планирования новой карты         
+        const unitLoadItems = await getUnitLoads(units_, unitLoadRepository)
+
+        //  получим исключения рабочего времени юнитов         
+        const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
+
+
+        // Планируем карту
+        let resultPlaning = planTCard(tCard_, units_, shedule_, unitLoadItems, exceptionItems, today as string)
+        //  Если не удалось запланировать
+        if (!resultPlaning.success) {
+          res.status(200).json({
+            success: false,
+            unitsLoads: unitLoadItems,
+            message: resultPlaning.message,
+          });
+          break;
+        }
+
+
+        // Отправляем ответ с данными  в базе их нет это только драфт
         res.status(200).json({
-          success: false,
-          unitsLoads: undefined,
+          success: true,
+          unitsLoads: resultPlaning.loads,
+          messsage: resultPlaning.message,
         });
         break;
-      }
+
+      // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
+      case 'POST':
+        const { unitLoads, tCard } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+
+        // СПИСОК Загрузок 
+        const resLoads = await updateLoads(
+          unitLoadRepository,
+          unitLoads,
+          Number(companyId)
+        )
+        if (!resLoads.success) {
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resLoads.message });
+          return;
+        }
+        const savedUnitLoads = resLoads.savedUnitLoads as UnitLoadItem[];
 
 
-      // Отправляем ответ с данными  в базе их нет это только драфт
-      res.status(200).json({
-        success: true,
-        unitsLoads: unitLoads_,
-      });
-      break;
+        // Статус Карты 
 
-    // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
-    case 'POST':
-      const { unitLoads, tCard } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const resCard = await updateStatusCard(tCardRepository, tCard, StatusEnum.planed)
+        if (!resCard.success) {
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
+          return;
+        }
 
-      // СПИСОК Загрузок 
-      const resLoads = await updateLoads(
-        unitLoadRepository,
-        unitLoads,
-        Number(companyId)
-      )
-      if (!resLoads.success) {
-        res.status(500).json({ error: 'Не удалось обработать запрос. ' + resLoads.message });
-        return;
-      }
-      const savedUnitLoads = resLoads.savedUnitLoads as UnitLoadItem[];
+        // отправляем ответ
+        res.status(200).json({
+          success: true,
+          savedUnitLoads: savedUnitLoads,
+        });
+        break;
 
 
-      // Статус Карты 
-
-      const resCard = await updateStatusCard(tCardRepository, tCard, StatusEnum.Pl)
-      if (!resCard.success) {
-        res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
-        return;
-      }
-
-      // отправляем ответ
-      res.status(200).json({
-        success: true,
-        savedUnitLoads: savedUnitLoads,
-      });
-      break;
-
-
-    default:
-      res.status(405).end(); // Метод не поддерживается
+      default:
+        res.status(405).end(); // Метод не поддерживается
+    }
+  } catch (error) {
+    console.error('Ошибка подключения или выполнения запроса ((preplan-api)):', error);
+    res.status(500).json({ error: 'Не удалось обработать запрос' + error });
   }
 }
 // ЗАГРУЗКИ ЮНИТОВ ПО КАРТЕ
@@ -183,7 +193,7 @@ async function updateLoads(
 
     if (existingLoad) {
       // Обновляем нужные поля
-      const [year, month, day] = load.date.split('-').map(Number);      
+      const [year, month, day] = load.date.split('-').map(Number);
       existingLoad.date = new Date(year, month - 1, day);
       existingLoad.timeFinish = load.timeFinish;
       existingLoad.timeStart = load.timeStart;
@@ -243,7 +253,7 @@ async function updateLoads(
       id_tCard: load.id_tCard,
       timeStart: load.timeStart,
       timeFinish: load.timeFinish,
-      status: StatusEnum.Pl
+      status: StatusEnum.planed
     } as UnitLoadItem
   })
   return { success: true, savedUnitLoads: savedUnitLoads, message: "" }

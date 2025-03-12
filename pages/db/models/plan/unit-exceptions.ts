@@ -19,7 +19,7 @@ export class UnitExceptionTable {
   date!: Date; // 
 
   @Column('enum', { enum: TimeTypeEnum })
-  type!: TimeTypeEnum; // Тип отклонения (work / not work)
+  type!: TimeTypeEnum; // Тип времени
 
   @Column('int')
   timeStart!: number; // Время начала отклонения в минутах с начала дня

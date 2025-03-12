@@ -16,12 +16,13 @@ export interface TCardOperationItem {
     status:StatusEnum
 }
 export enum StatusEnum {
-    Dr = 'draft',
-    Pr = 'prepared',
-    Pl = 'planed',
-    Cm = 'completed',
-    Cn = 'cancelled',
-    Fl = 'faulty', // бракован
+    draft     = 'draft', // черновик
+    prepared  = 'prepared', // готов к началу планирования
+    planed    = 'planed', // запланирован
+    performed = 'performed',// выполнен юнитом
+    ready     = 'ready', // готов (проверен на брак)
+    defective = 'defective', // бракован
+    cancelled = 'cancelled', // отменен   
 }
 export interface TCardProductItem {
     id?: number,  // id BD
@@ -90,7 +91,8 @@ export interface UserItem {
 export enum UserRoleEnum {
     OPERATOR = "оператор",
     PLANNER = "планер",
-    UNIT = "юнит"
+    UNIT = "юнит",
+    CONTROL = "контролер",
 }
 
 // хранить обрабатывать
@@ -148,44 +150,37 @@ export interface CalendarItem {
     breaks:{timeStart:number,timeFinish:number}[] // минут с начала дня 
 }
 
-// // загрузка юнита  с массивом дат загрузки
-// export interface UnitLoadItem {
-//     unit: UnitItem,
-//     unitDates: UnitDateItem[]
-// }
-
 // Описание операции (отрезка времени) на временной шкале юнита
 export interface UnitLoadItem {
     id?:number,
-    unit:UnitItem,  //  добавить и убрать лишние сущтности
+    idc: number, //  id на клиенте
+    unit:UnitItem,  
     date:string, //  дата в строковом формате // формат: YYYY-MM-DD
-    idc_oper: number,    
+    idc_oper: number,// Для визуализации на шкале
+    id_oper: number, // для связи
     id_tCard: number,
     timeStart: number, // здесь в минутах
     timeFinish: number,
-    status:StatusEnum
+    status:StatusEnum    
+    isActive:boolean,
+    isRetool:boolean, 
+    loadInfo?:{title:string,duration:number,interruptible:boolean,koef:number}
 }
 // 
 // описание дня работы юнита
 export enum TimeTypeEnum {
-    W = 'work',
-    N = 'not work',
-    B = 'breack',
+    work = 'work',
+    notWork = 'not work',
+    breack = 'breack',
+    busy = 'busy', // загружен операцией
+    retool = 'retool',
 }
-
-// // загрузка и отклонения в расписании
-// export interface UnitDateItem {
-//     date: Date,    
-//     loads: LoadItem[],
-//     calendarExceptions?: {type: TimeTypeEnum, timeStart:number,timeFinish:number}[] // минут с начала дня     
-//     // не обязательный параметр   показывает отклонения юнита от общего расписания работы
-// }
 
 //  отклонения юнита от расписания
 export interface UnitExceptionItem {
     id:number,
     unitId:number, 
-    date:Date,
+    date:string,
     type: TimeTypeEnum, 
     timeStart:number,
     timeFinish:number

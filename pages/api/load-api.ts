@@ -29,7 +29,8 @@ import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await connectDb();
+  try{
+  
   // Убедимся, что подключение установлено    
   const dbConnection = await connectDb();  // Получаем подключение
 
@@ -73,5 +74,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     default:
       res.status(405).end(); // Метод не поддерживается
   }
+} catch (error) {
+  console.error('Ошибка подключения или выполнения запроса (unit-api):', error);
+  res.status(500).json({ error: 'Не удалось обработать запрос' + error });
+}
 }
 

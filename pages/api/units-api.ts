@@ -5,16 +5,8 @@ import { getUnits } from './handlers-get';  // расчеты
 import { Repository, In } from 'typeorm';
 
 import { UnitTable } from '@/pages/db/models/catalogs/units'
-
 import { CompanyTable } from '@/pages/db/models/catalogs/companies'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-
-
-import { UnitItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum } from '@/types';
-
-interface RequestBody {
-  unit: UnitItem;
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -54,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса:', error);
+    console.error('Ошибка подключения или выполнения запроса (units-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }

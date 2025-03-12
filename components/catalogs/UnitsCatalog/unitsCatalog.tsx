@@ -225,7 +225,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                 // setMessage(t('service.serverUnavailable') + res.status);
             } else {
                 const receivedData = await res.json();
-                console.log("receivedData", receivedData)
+                // console.log("receivedData", receivedData)
                 // setMessage(receivedData.error);
                 if (receivedData.success) {
                     //   Обновим текущую карту
@@ -338,7 +338,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     };
 
     // для отклонений расписания юнита
-    const changeExceptionHandler = (idToChange: number, value: string | number | null | Date | TimeTypeEnum, field: string) => {
+    const changeExceptionHandler = (idToChange: number, value: string | number | null |  TimeTypeEnum, field: string) => {
 
         // укажу что юнит модифицирован
         let unit = unitsValue[focusIndexUnit]
@@ -357,7 +357,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
         switch (field) {
             case "date":
-                exception = { ...exception, date: value as Date }
+                exception = { ...exception, date: value as string }
                 break
             case "timeType":
                 exception = { ...exception, type: value as TimeTypeEnum }
@@ -379,7 +379,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         const id = generateUniqueId();
 
         let unit = unitsValue[focusIndexUnit];
-        let exceptionsValueUpdated = [...exceptionsValue, { id: id, unitId: unit.id, date: new Date() } as UnitExceptionItem]
+        let exceptionsValueUpdated = [...exceptionsValue, { id: id, unitId: unit.id, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
         setExceptionsValue(exceptionsValueUpdated);
     };
     const deleteExceptionHandler = (idToRemove: number) => {
@@ -510,7 +510,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                         onChange={e => {
                             const date = new Date(e.target.value);
                             date.setHours(0, 0, 0, 0);
-                            changeExceptionHandler(elem.id, date, "date");
+                            changeExceptionHandler(elem.id, date.toLocaleDateString("en-CA"), "date");
                         }}
                     />
                 </td>

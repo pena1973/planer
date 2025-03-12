@@ -32,7 +32,8 @@ const config: ConnectionOptions = {
   password: password, // замените на ваш пароль
   database: database, // замените на имя вашей базы данных
   synchronize: true, // Включить синхронизацию схемы (не рекомендуется для продакшн-среды)
-  logging: true, // Включите логирование SQL-запросов (можно отключить в продакшн-среде)
+  // logging: true, // Включите логирование SQL-запросов (можно отключить в продакшн-среде)
+  logging: ["error", "warn"],
   entities: [TCardTable, TCardOperationTable,TCardProductTable,TCardStageTable,
     UOMsTable,ActionTable,UnitTable,UserTable,CompanyTable,UnitActionTable,
     CompanyScheduleTable,UnitExceptionTable,UnitLoadTable,SettingsTable

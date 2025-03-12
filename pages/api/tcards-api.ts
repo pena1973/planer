@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается
     }
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса:', error);
+    console.error('Ошибка подключения или выполнения запроса (tcards-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
   
