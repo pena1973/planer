@@ -132,7 +132,10 @@ export interface PlanScaleContainerProps {
   schedule: ScheduleItem,
   tCardPrepared: TCardItem,
   tCardLighted: TCardItem,
-  unitExceptions: UnitExceptionItem[]
+  unitExceptions: UnitExceptionItem[],
+  erazLoadHandler: (idc: number) => void,
+  changeDurationLoadHandler: (idc: number) => void,
+  pinLoadHandler: (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number) => void,
 }
 
 export default function PlanScaleContainer({
@@ -144,6 +147,10 @@ export default function PlanScaleContainer({
   tCardPrepared,
   tCardLighted,
   unitExceptions,
+  erazLoadHandler,
+  changeDurationLoadHandler,
+  pinLoadHandler,
+
 }: PlanScaleContainerProps) {
 
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
@@ -156,11 +163,12 @@ export default function PlanScaleContainer({
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
   const [scale, setScale] = useState(50); // содержит Масштаб (10% - 500%)  
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
+  const [draggbleElemId, setDraggbleElemId] = useState(""); // id перетаскиваемого элемента чтобы отслеживать состояние курсора
+  const [draggingLoad, setDraggingLoad] = useState(undefined as UnitLoadItem|undefined); // id перетаскиваемого элемента чтобы отслеживать состояние курсора
   let scaleRestart = useRef(false as boolean); // запускает useEffect прорисовки
 
   const [contectMenuShow, setContectMenuShow] = useState(0); // содержит operation.id и показывает контекстное меню 
 
-  // let unitsLoad = useRef(unitLoads as UnitLoadItem[]); // массив юнитов  
   let unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   let unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
 
@@ -393,17 +401,67 @@ export default function PlanScaleContainer({
     calendarMinus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
   };
 
-  // Для перетаскивания
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Нажата правая кнопка мыши 2 - тащим шкалу
-    // Нажата правая кнопка мыши 1 - тащим операцию на шкале
-    if (e.button === 0) {
-      return;
-    }
+  // ПЕРЕТАСКИВАНИЕ ЛОАДА
+  // Для изменения курсора
+  const handleMouseDownOper = (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => {
+    setIsDragging(true); // Включаем перетаскивание
+    // Получаем id элемента, к которому привязан обработчик:
+    const targetId = (e.currentTarget as HTMLElement).id;
+    setDraggbleElemId(targetId);
+    setDraggingLoad(load);
+  };
 
+  const handleMouseUpOper = () => {
+    // Завершаем перетаскивание при отпускании мыши внутри контейнера
+    setIsDragging(false);
+    setDraggbleElemId("");
+    // setDraggingLoad({} as UnitLoadItem);
+    // onDragEnd();
+  };
+
+  const handleMouseLeaveOper = () => {
+    // Если курсор покинул контейнер, тоже завершаем перетаскивание
+    setIsDragging(false);
+    setDraggbleElemId("");
+    setDraggingLoad(undefined);
+    // onDragEnd();
+  };
+
+
+  // Хендлер для отпускания карты на шкалу и предварительное  планирование
+  const handleDropOper = async (
+    event: React.DragEvent,
+    unitView: UnitItem,
+    i: number,
+    calendarItem: CalendarItem,
+    isWorkTime: boolean,
+    isBreakTime: boolean) => {
+    event.preventDefault();
+    setIsDragging(false); // Завершаем перетаскивание
+    
+    // load: UnitLoadItem,date:string,timeStart:number
+    if (draggingLoad) {
+      // обработка перетаскивания
+      // отправляю лоад, и куда переместить -> юнит, день и время старта
+      pinLoadHandler(draggingLoad,unitView,calendarItem.date.toLocaleDateString("en-CA"),(i*5))
+      console.log(draggingLoad);
+    }
+    setDraggbleElemId("");
+    setDraggingLoad(undefined);
+
+  };
+
+
+
+
+  // Для перетаскивания  шкалы 
+  const handleMouseDownScale = (e: React.MouseEvent) => {
+    // Нажата правая кнопка мыши 2 - тащим шкалу
+    // Нажата правая кнопка мыши 0 - тащим операцию на шкале
+    if (e.button !== 2) return
     setIsDragging(true); // Включаем перетаскивание
     let isDragging_ = true; // Включаем перетаскивание
-    const startX = e.clientX; // Сохраняем начальную позицию мыши
+    const startX = e.clientX; // Сохраняем начальную позицию мыши X
     const startShift = shift; // Сохраняем начальный сдвиг 
 
     const onMouseMove = (moveEvent: MouseEvent) => {
@@ -423,6 +481,7 @@ export default function PlanScaleContainer({
 
     window.addEventListener('mousemove', onMouseMove); // Обработчик перемещения мыши
     window.addEventListener('mouseup', onMouseUp); // Обработчик отпускания кнопки мыши
+
   };
 
   // Функция для генерации шкалы времени  и загруза юнитов для одного дня
@@ -521,12 +580,12 @@ export default function PlanScaleContainer({
           );
           unit_unloadEx = isBreakTimeEx ? styles.breakTime : unit_unloadEx
 
-          console.log("unit_unloadEx", unit_unloadEx);
+          // console.log("unit_unloadEx", unit_unloadEx);
 
         }
         let dateLoad = unitLoads.filter(elem => {
           return (elem.unit.id === unitView.id &&
-            new Date(elem.date).toDateString() === new Date(calendarItem.date).toDateString())
+            elem.date === new Date(calendarItem.date).toLocaleDateString("en-CA"))
         });
         if (dateLoad.length > 0) {
           // ищем позиции которые начинаются а этом интервале
@@ -568,12 +627,17 @@ export default function PlanScaleContainer({
 
             let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
             if (!tCard) tCard = {} as TCardItem;
-
+            // let elemDrag = Number(""+load.id_tCard+load.id_oper+load.idc);
+            let elemDragId = String(load.idc + "_" + index);
             return (
               <>
                 <div className={intervalClass}
+                  onMouseDown={e => handleMouseDownOper(e, load)} // Добавляем обработчик нажатия мыши                        
+                  onMouseUp={handleMouseUpOper}
+                  onMouseLeave={handleMouseLeaveOper}
+                  draggable={true}
                   id={String(load.idc + "_" + index)}
-                  style={{ width: `${width}px`, left: `${left}px` }}
+                  style={{ width: `${width}px`, left: `${left}px`, cursor: (draggbleElemId === elemDragId) ? "grabbing" : "grab" }}
                   onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`C${load.idc_oper}`}
                 </div>
 
@@ -589,9 +653,15 @@ export default function PlanScaleContainer({
               </>
             )
           })
-          return (<div className={`${styles.unit_unload} ${unit_unloadEx}`}>{operBlocksReactNodes}</div>)
+          // Это прорисовка загрузок сюда уже не кидаем
+          return (<div           
+            className={`${styles.unit_unload} ${unit_unloadEx}`}>{operBlocksReactNodes}</div>)
         }
-        return (<div className={`${styles.unit_unload} ${unit_unloadEx}`}></div>); // Если нет совпадений
+        // Это пустые сюда кидаем
+        return (<div
+          onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
+          onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+          className={`${styles.unit_unload} ${unit_unloadEx}`}></div>); // Если нет совпадений
       });
 
       //  внешние
@@ -692,16 +762,6 @@ export default function PlanScaleContainer({
     if (idc) setContectMenuShow(idc);
   };
 
-  // удаление лоада из контекстного меню
-  const erazLoadHandler = (idc: number) => {
-
-  }
-
-  // Изменение длительности лоада для сторонних юнитов Контекстное меню
-  const changeDurationLoadHandler = (idc: number) => {
-
-  }
-
 
   let timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
 
@@ -788,7 +848,7 @@ export default function PlanScaleContainer({
               transform: `translateX(${shift}px)`, // Сдвиг шкалы по оси X  
               cursor: isDragging ? 'grabbing' : 'grab', // Меняем курсор в зависимости от состояния
             }}
-            onMouseDown={handleMouseDown} // Добавляем обработчик нажатия мыши
+            onMouseDown={handleMouseDownScale} // Добавляем обработчик нажатия мыши
           >
 
             {/* Сдвигаем элементы timeScaleReactNodesMinus на тот же сдвиг */}

@@ -135,7 +135,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     // }
     useEffect(() => {
         setExceptionsValue(unitExceptions)
-        setUnitsValue(units)       
+        setUnitsValue(units)
     }, []);
 
     // Таблица Юнитов   
@@ -190,10 +190,10 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
             setMessage("Заполните название действия строка ${index+1}!!");
             return;
         }
-        if (!unit.retool) {
-            setMessage("Заполните время на переналадку между операциями строка ${index+1}!!");
-            return;
-        }
+        // if (!unit.retool) {
+        //     setMessage("Заполните время на переналадку между операциями строка ${index+1}!!");
+        //     return;
+        // }
         if (!unit.belong) {
             setMessage("Заполните признак свой или сторонний юнит строка ${index+1}!!");
             return;
@@ -341,7 +341,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     };
 
     // для отклонений расписания юнита
-    const changeExceptionHandler = (idToChange: number, value: string | number | null |  TimeTypeEnum, field: string) => {
+    const changeExceptionHandler = (idToChange: number, value: string | number | null | TimeTypeEnum, field: string) => {
 
         // укажу что юнит модифицирован
         let unit = unitsValue[focusIndexUnit]
@@ -585,14 +585,15 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                     <input
                         className={styles.unit_koef}
                         id={`koef-${index}`}
-                        autoComplete="off"
+                        // autoComplete="off"
                         value={elem.koef}
                         type="number"
+                        step="0.01"
                         max={2147483647}
                         min={0}
                         onChange={e => {
                             const value = e.target.value;
-                            if (/^\d*$/.test(value)) {
+                            if (/^\d*(,|\.)?\d{0,2}?$/.test(value)) {
                                 changeUnitActionHandler(index, Number(e.target.value), "koef");
                             }
                         }}

@@ -173,6 +173,7 @@ export async function getUnitLoads(
       version:unitLoad.version,
       isActive:unitLoad.isActive,
       isRetool:unitLoad.isRetool,
+      isPinned:unitLoad.isPinned,
     };    
   });
 

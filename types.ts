@@ -164,7 +164,8 @@ export interface UnitLoadItem {
     status:StatusEnum    
     isActive:boolean,
     isRetool:boolean, 
-    loadInfo?:{title:string,duration:number,interruptible:boolean,koef:number}
+    loadInfo?:{title:string,duration:number,interruptible:boolean,koef:number},
+    isPinned:boolean,
 }
 // 
 // описание дня работы юнита

@@ -222,7 +222,8 @@ function findAvailableTimeForOperation(
         idc: Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`),
         isActive: true,
         isRetool: seg.isRetool,
-        loadInfo: { title: operation.action.title, duration: operation.duration / 60000, interruptible: operation.action.interruptible, koef: koef }
+        loadInfo: { title: operation.action.title, duration: operation.duration / 60000, interruptible: operation.action.interruptible, koef: koef },
+        isPinned:false
       });
     });
     const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
@@ -299,11 +300,38 @@ function findAvailableSegmentsDay(
       }
     });
   }
+
+
+  let onPlaned = onPlaned_; // сколько минут операции запланировано c ретулом
+
+  // в этом  массиве что на вход уже запланирована часть операции
+  let opSegments: { date: string, start: number; finish: number, isRetool: boolean }[] = [...opSegments_];
+
+  let isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул определен в интервал
+
+
   // Если рабочее время отсутствует – пропускаем день
-  if (workEnd === workStart) return {
-    success: false,
-    opSegments: [] as { date: string, start: number, finish: number, isRetool: boolean }[],
-    message: `отсутствует рабочее время на дату ${targetDate}`
+  // перепрыгиваем на следующий день
+  if (workEnd === workStart) {
+    let nextDate = new Date(targetDate)
+    nextDate.setDate(nextDate.getDate() + 1);
+    return findAvailableSegmentsDay(
+      nextDate,
+      0,
+      stopDate,
+      opSegments,
+      unit,
+      retoolTime,
+      opRequired,
+      onPlaned,
+      unitLoadItems,
+      schedule,
+      exceptionItems,
+      interruptible,
+      totalRequired,
+      isRetoolSegmentDefined
+    )
+
   };;
 
   // Получаем уже запланированные операции для данного юнита на targetDate
@@ -321,26 +349,21 @@ function findAvailableSegmentsDay(
 
   busyPeriods.sort((a, b) => a.start - b.start);
 
-  // Прерываемая операция: можем разбить выполнение на несколько сегментов.
+
   let availableStart = Math.max(workStart, moment);
 
   // если начало выпадает на занятый интервал  сдвигаем начало на окончание занятого интервала
   let currentbusyPeriod = busyPeriods.find(p => p.start <= availableStart && p.end > availableStart)
   if (currentbusyPeriod)
-     availableStart = Math.max(availableStart, currentbusyPeriod.end);
+    availableStart = Math.max(availableStart, currentbusyPeriod.end);
 
-  let onPlaned = onPlaned_; // сколько минут операции запланировано c ретулом
-
-  // в этом  массиве что на вход уже запланирована часть операции
-  let opSegments: { date: string, start: number; finish: number, isRetool: boolean }[] = [...opSegments_];
-
-  let isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул определен в интервал
   // Итерируем по свободным интервалам, учитывая busyPeriods, чтобы накопить totalRequired минут.
 
   if (!interruptible) {
 
-    let found = false; // запланировалось// Непрерываемая операция: нужно найти один непрерывный свободный интервал для всей операции но можно отделить ретул перерывом
-    // let availableStart = workStart;
+    let found = false; // запланировалось
+    // Непрерываемая операция: нужно найти один непрерывный свободный интервал для всей операции но можно отделить ретул перерывом
+
     while (availableStart < workEnd && !found) {
       const nextPeriod = busyPeriods.find(p => p.start >= availableStart);
       const freeEnd = nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd;
@@ -376,17 +399,18 @@ function findAvailableSegmentsDay(
       }
     }
 
+
+    // проверим еще интервал от возможного старта до конца рабочего дня    
+    let freeInterval = workEnd - availableStart;
+    //1. убедимся что в найденный интервал влазит ретул  и он не
+    // если есть и влазит - планируем
+    if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
+      opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+      availableStart = availableStart + retoolTime;
+      freeInterval = freeInterval - retoolTime
+      isRetoolSegmentDefined = true;
+    }
     if (!found) {
-      // проверим еще интервал от возможного старта до конца рабочего дня    
-      let freeInterval = workEnd - availableStart;
-      //1. убедимся что в найденный интервал влазит ретул
-      // если есть и влазит - планируем
-      if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
-        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
-        availableStart = availableStart + retoolTime;
-        freeInterval = freeInterval - retoolTime
-        isRetoolSegmentDefined = true;
-      }
       //1. убедимся что в оставшийся интервал влазит операция
       // если есть и влазит - планируем
       if (freeInterval >= opRequired && isRetoolSegmentDefined) {
@@ -419,15 +443,13 @@ function findAvailableSegmentsDay(
       )
     }
 
-    // если все удачно запланировалось смотирим можем ли мы  уменьшить интервал между retool и самой операцией не залазя на перерывы breack
-    // чатик допиши здесь код сдвига retool ближе к началу операции на времеенной шкале (не пересекаясь с перерывами)
 
     if (opSegments.length >= 2) {
       const retoolSeg = opSegments[0];
       const opSeg = opSegments[1];
       const opStart = opSeg.start; // начало выполнения операции
-
-      // Ищем, есть ли период breack между ретул-сегментом и началом операции.
+    
+      // Ищем период breack между началом ретула и началом операции.
       let breackStartCandidate: number | undefined = undefined;
       busyPeriods.forEach(period => {
         if (period.type === TimeTypeEnum.breack && period.start >= retoolSeg.start && period.start < opStart) {
@@ -436,17 +458,67 @@ function findAvailableSegmentsDay(
           }
         }
       });
-
-      // Если найден период breack, завершаем ретул в его начале, иначе – в начале операции.
+    
+      // Если найден breack – ретул заканчивается в его начале, иначе – в начале операции.
       const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
-      // Вычисляем новое начало ретула так, чтобы его длина была равна retoolTime.
-      // При этом не допускаем, чтобы начало ретула было раньше рабочего времени.
-      const newRetoolStart = Math.max(workStart, desiredRetoolFinish - retoolTime);
-
-      // Обновляем ретул-сегмент
-      retoolSeg.start = newRetoolStart;
-      retoolSeg.finish = desiredRetoolFinish;
+    
+      // Определяем, к какому дню относится ретул-сегмент.
+      const currentDay = targetDate.toLocaleDateString("en-CA");
+      if (retoolSeg.date === currentDay) {
+        // Если ретул в текущем дне – сдвигаем так, чтобы длина ретула была равна retoolTime,
+        // но не раньше рабочего времени.
+        const newRetoolStart = Math.max(workStart, desiredRetoolFinish - retoolTime);
+        retoolSeg.start = newRetoolStart;
+        retoolSeg.finish = desiredRetoolFinish;
+      } else {
+        // Если ретул запланирован не на текущий день (например, в конце дня, а операция – на следующий),
+        // сдвигаем ретул так, чтобы он заканчивался ровно в конце рабочего дня для того дня,
+        // к которому он относится.
+        const retoolDate = new Date(retoolSeg.date);
+        const workDayRetool = generateCalendarItemOnServer(retoolDate, schedule);
+        const workEndRetool = workDayRetool.timeFinishWork;
+        const newRetoolStart = workEndRetool - retoolTime;
+        retoolSeg.start = newRetoolStart;
+        retoolSeg.finish = workEndRetool;
+      }
     }
+    
+
+
+
+
+    // // если все удачно запланировалось смотирим 
+    // // можем ли мы  уменьшить интервал между retool 
+    // // и самой операцией не залазя на перерывы breack   
+
+    // if (opSegments.length >= 2) {
+    //   const retoolSeg = opSegments[0];
+    //   const opSeg = opSegments[1];
+    //   const opStart = opSeg.start; // начало выполнения операции
+
+    //   // Ищем, есть ли период breack между ретул-сегментом и началом операции.
+    //   let breackStartCandidate: number | undefined = undefined;
+    //   busyPeriods.forEach(period => {
+    //     if (period.type === TimeTypeEnum.breack && period.start >= retoolSeg.start && period.start < opStart) {
+    //       if (breackStartCandidate === undefined || period.start < breackStartCandidate) {
+    //         breackStartCandidate = period.start;
+    //       }
+    //     }
+    //   });
+
+      
+    //   // Если найден период breack, завершаем ретул в его начале, иначе – в начале операции.
+    //   const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
+    //   // Вычисляем новое начало ретула так, чтобы его длина была равна retoolTime.
+    //   // При этом не допускаем, чтобы начало ретула было раньше рабочего времени.
+    //   // за исключением если он сделан предыдущим днем
+    //   if (targetDate.toLocaleDateString("en-CA") === retoolSeg.date) {
+    //     const newRetoolStart = Math.max(workStart, desiredRetoolFinish - retoolTime);
+    //     // Обновляем ретул-сегмент
+    //     retoolSeg.start = newRetoolStart;
+    //     retoolSeg.finish = desiredRetoolFinish;
+    //   }
+    // }
 
     return {
       success: true,
@@ -493,6 +565,32 @@ function findAvailableSegmentsDay(
       } else {
         break;
       }
+    }
+
+    // Здесь проверка оставшегося времени до конца рабочего дня
+    if (onPlaned < opRequired) {
+      // проверим еще интервал от возможного старта до конца рабочего дня    
+      let freeInterval = workEnd - availableStart;
+      //1. убедимся что в найденный интервал влазит ретул
+      // если есть и влазит - планируем
+      if (freeInterval > 0 && !isRetoolSegmentDefined) {
+        const timeToUse = Math.min(freeInterval, retoolTime);
+        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+        availableStart = availableStart + timeToUse;
+        freeInterval = freeInterval - timeToUse
+        isRetoolSegmentDefined = (timeToUse === retoolTime);
+      }
+
+
+      if (freeInterval > 0 && isRetoolSegmentDefined) {
+        const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
+        if (timeToUse > 0) {
+          opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+          onPlaned += timeToUse;
+          availableStart += timeToUse;
+        }
+      }
+
     }
 
     if (onPlaned < opRequired) {
@@ -957,46 +1055,7 @@ function dateResultLoad(
   };
 }
 
-// function getMaxDate(
-//   sourcesProducts: {
-//     id?: number;
-//     idc: number;
-//     codeS: string;
-//     title: string;
-//     qtu: number;
-//     uom: UOMItem;
-//     date: string;
-//     time: number;
-//     reserved: number;
-//     reservedTo: number;
-//   }[],inn:TCardProductItem[]
-// ): { maxDateSource: string; maxTimeSource: number } {
 
-//   const formatDate = (date: Date): string => {
-//     const yr = date.getFullYear();
-//     const mon = String(date.getMonth() + 1).padStart(2, "0");
-//     const day = String(date.getDate()).padStart(2, "0");
-//     return `${yr}-${mon}-${day}`;
-//   };
-
-//   if (sourcesProducts.length > 0) {
-//     // Вычисляем "момент" каждого продукта как timestamp,
-//     // прибавляя к дате (начало дня) количество миллисекунд, соответствующее time (в минутах).
-//     const maxProduct = sourcesProducts.reduce((max, item) => {
-//       const itemTimestamp =
-//         new Date(item.date).getTime() + item.time * 60000;
-//       const maxTimestamp =
-//         new Date(max.date).getTime() + max.time * 60000;
-//       return itemTimestamp > maxTimestamp ? item : max;
-//     });
-
-//     const maxDateString = formatDate(new Date(maxProduct.date));
-//     const maxTime = maxProduct.time;
-//     return { maxDateSource: maxDateString, maxTimeSource: maxTime };
-//   } else {
-//     return { maxDateSource: "", maxTimeSource: 0 };
-//   }
-// }
 function getMaxDate(
   sourcesProducts: {
     id?: number;
@@ -1043,3 +1102,131 @@ function getMaxDate(
   }
 }
 
+export const delNextloads = (delOper: TCardOperationItem, tCard: TCardItem, loads: UnitLoadItem[]): UnitLoadItem[] => {
+
+  let today = new Date();
+  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  let delOperIds = [] as number[];
+
+  const filterLoads = (delOperIds: number[], loads: UnitLoadItem[]): UnitLoadItem[] => {
+    return loads.filter(load => delOperIds.includes(load.idc_oper))
+  }
+
+  // массив готовых продуктов и дата время готовности каждого продукта
+  // стартуем с продуктов которые  берутся со склада  
+  let readyProducts: {
+    id?: number,
+    idc: number,
+    codeS: string,
+    title: string,
+    qtu: number,
+    uom: UOMItem,
+    reserved: number,
+    reservedTo: number
+  }[] = [];
+
+  if (tCard.tCardMaterials)
+    readyProducts = tCard.tCardMaterials.map(material => {
+      return {
+        id: material.id,
+        idc: material.idc,
+        codeS: material.codeS,
+        title: material.title,
+        qtu: material.qtu,
+        uom: material.uom,
+
+        reserved: 0,
+        reservedTo: NaN
+      }
+    });
+
+  // Массив всех операций, которые должны быть просчитаны (все кроме драфт и отменен)
+  let tCardOperations: TCardOperationItem[] = [];
+  if (tCard.tCardOperations)
+    tCardOperations = tCard.tCardOperations.filter(elem => (elem.status !== StatusEnum.draft && elem.status !== StatusEnum.cancelled))
+
+  // Массив отобранных операций  
+  // (они готовы для планирования или уже запланированы или выполнены с учетом последовательности))
+  let selectedOperations: TCardOperationItem[] = [];
+
+  // здесь стартуем цикл планирования с сегодняшней даты пока операций для планирования в tCardOperations не останется
+  let stoploop = false;
+
+  while (tCardOperations.length > 0 && !stoploop) {
+    //  ищем операции исходники для которых готовы на данной итерации
+    // и убираем эти исходники из списка как израсходованные (резервируем на операцию)
+    // и получаем список операций ко торые можно делать
+    tCardOperations.forEach((operation) => {
+      let hasAllMatchingProducts = operation.inn.every(innProduct => {
+        // Ищем продукт в tCardReady с таким же codeS и uom
+        const matchingReadyProduct = readyProducts.find(elem =>
+          elem.codeS === innProduct.codeS && elem.uom.id === innProduct.uom.id
+        );
+        // Если соответствующий продукт найден, проверяем количество
+        if (matchingReadyProduct) {
+          // Если количество в tCardReady недостаточно для операции, пропускаем операцию
+          if (matchingReadyProduct.qtu < innProduct.qtu) {
+            return false;
+          }
+          // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
+          matchingReadyProduct.qtu -= innProduct.qtu;
+          // И заводим строку резервирования материала под операцию
+          readyProducts.push(
+            {
+              id: innProduct.id,
+              idc: innProduct.idc,
+              codeS: innProduct.codeS,
+              title: innProduct.title,
+              qtu: 0,
+              uom: innProduct.uom,
+
+              reserved: innProduct.qtu,
+              reservedTo: operation.idc
+            })
+          return true;
+        }
+        return false; // Если продукта нет или не совпадает по uom
+      });
+
+      // Если все продукты прошли проверку, добавляем операцию в selectedOperations
+      if (hasAllMatchingProducts) {
+        selectedOperations.push(operation);
+      }
+    });
+
+    if (selectedOperations.length === 0) return filterLoads(delOperIds, loads);
+
+    // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
+    //  и операции с пустыми резервами
+    readyProducts = readyProducts.filter(elem => elem.qtu > 0 || elem.reserved > 0);
+
+    // Перебираем все операции которые уже готовы к выполнению по наличию исходников для них 
+    // натыкаемся на свою операцию и не выполняем ее - тоесть не появился результат операции и все последующие тоже не выполнятся потому ято нет исходников
+    for (let operation of selectedOperations) {
+      // массив idc операций которые остались     
+      // добавляем результат операции и убираем резерв         
+      if (operation.idc !== delOper.idc) {
+        delOperIds.push(operation.idc as number)
+        let readyProductsOut = operation.out.map(elem => {
+          return {
+            id: elem.id,
+            idc: elem.idc,
+            codeS: elem.codeS,
+            title: elem.title,
+            qtu: elem.qtu,
+            uom: elem.uom,
+            reserved: 0,
+            reservedTo: NaN
+          }
+        });
+        readyProducts = [...readyProducts, ...readyProductsOut]
+        //  удаляем исходники которые были под операцию зарезервированы          
+        readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
+      }
+      tCardOperations = tCardOperations.filter(oper => oper.id !== operation.id)
+    }
+
+    selectedOperations = [] as TCardOperationItem[];
+  }
+  return filterLoads(delOperIds, loads);
+}

@@ -29,9 +29,11 @@ import {
 } from "@/types";
 
 interface RequestBody {
-  unitLoads: UnitLoadItem[];  // переобозвать и сделать плоскую таблицу
-  tCard_id: number,
-  today: string,
+  pinnedLoad:UnitLoadItem, 
+  loads:UnitLoadItem[], // лоады по карте
+  unit:UnitItem,  // Юнит куда перемещаем
+  date:string,    // Дата куда перемещаем
+  timeStart:number //  время куда перемещаем  
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -46,43 +48,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const companyScheduleRepository = dbConnection.getRepository(CompanyScheduleTable);
-
-    //  const unitCalendarRepository = dbConnection.getRepository(UnitCalendarTable);
-
+    
     // userId, companyId в любом случае
 
     const { userId, companyId } = req.query;
-
-    const deletedLoad = req.query.deletedLoad as unknown as UnitLoadItem;
-    const loads = req.query.loads as unknown as UnitLoadItem[];
-
+    
     switch (req.method) {
 
       // ЗАПИСЬ  запланированной КАРТЫ в которой стираем планирование
       case 'POST':
-        const { unitLoads, tCard_id, today } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const { pinnedLoad, loads, unit,date,timeStart } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
 
-        // if (unitLoads.length === 0) {
-        //   // Если нет загрузок, можно вернуть пустой результат или обработать ошибку
-        //   return [];
+         if (loads.length === 0) {
+           // Если нет загрузок, можно вернуть пустой результат или обработать ошибку
+           return [];
+         }
+
+        // // // СПИСОК Загрузок 
+        // const resLoads = await deleteLoads(
+        //   unitLoadRepository,
+        //   unitLoads,
+        // )
+        // if (!resLoads.success) {
+        //   res.status(500).json({ error: 'Не удалось обработать запрос. ' + resLoads.message });
+        //   return;
         // }
 
-        // // СПИСОК Загрузок 
-        const resLoads = await deleteLoads(
-          unitLoadRepository,
-          unitLoads,
-        )
-        if (!resLoads.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resLoads.message });
-          return;
-        }
-
-        // Статус Карты  меняем на prepared
-        const resCard = await updateStatusCard(tCardRepository, tCard_id, StatusEnum.prepared)
-        if (!resCard.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
-          return;
-        }
+        // // Статус Карты  меняем на prepared
+        // const resCard = await updateStatusCard(tCardRepository, tCard_id, StatusEnum.prepared)
+        // if (!resCard.success) {
+        //   res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
+        //   return;
+        // }
 
         // отправляем ответ
         res.status(200).json({

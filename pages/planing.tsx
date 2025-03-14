@@ -13,7 +13,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
-import { StatusEnum, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, UnitItem, UnitLoadItem, CalendarItem, UnitExceptionItem, TimeTypeEnum, SettingsItem, ScheduleItem } from "@/types";
+import { UOMItem, StatusEnum, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, UnitItem, UnitLoadItem, CalendarItem, UnitExceptionItem, TimeTypeEnum, SettingsItem, ScheduleItem } from "@/types";
 import { setUnitLoads, setUnitExceptions, setUnits, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
 import { } from '@/store/slices';
 
@@ -31,6 +31,7 @@ import eraz from "@/public/erazer1-rem.png";
 import light from "@/public/light-rem.png";
 import lighton from "@/public/light-on-rem.png";
 import add from "@/public/add-rem.png";
+import TCardProduct from "@/components/TCardProduct/tCardProduct";
 
 
 export default function Planing({ }: IndexProps) {
@@ -203,6 +204,112 @@ export default function Planing({ }: IndexProps) {
     }
 
   };
+
+  // удаление лоада из контекстного меню для сторонних юнитов
+  const erazLoadHandler = async (idc: number) => {
+    let erazload = unitLoads.find(load => load.idc === idc)
+    let tCardLoads = unitLoads.filter(load => load.id_tCard === erazload?.id_tCard)
+    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== erazload?.id_tCard)
+    if (erazload) {
+      if (erazload.status === StatusEnum.prepared) {
+        // ЗАПРОС НА СЕРВЕР ОБРАБОТКА ЛОАДОВ - УДАЛЕНИЕ ПОСЛЕДУЮЩИХ
+        try {
+          const res = await fetch(`/api/erazeload-api?userId=${1}&companyId=${1}`,
+            {
+              method: 'post',
+              headers: new Headers({
+                // 'Authorization': 'Basic ' + token,
+                'Content-Type': 'application/json'
+              }),
+              body: JSON.stringify({
+                deletedLoad: erazload,
+                loads: tCardLoads,
+              }),
+            }
+          );
+
+          if (res.status !== 200) {
+            const receivedData = await res.json();
+            let error = receivedData.error;
+            setMessage(error);
+            // setMessage(t('service.serverUnavailable') + res.status);
+          } else {
+            const receivedData = await res.json();
+            let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
+            let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+            dispatch(setUnitLoads(updatedLoads));
+            if (receivedData.success) {
+              setMessage(" Успешно удалено планирование операции и все последующие зависимые планирования");
+            } else {
+              setMessage(receivedData.message);
+            }
+          }
+        } catch (e: any) {
+          // setMessage(t('service.noConnection') + e.message)            
+        }
+
+      } else if (erazload.status === StatusEnum.planed) {
+        // удалить на сервере поскольку planed  -  уже записан
+      }
+    }
+
+  }
+
+  // Прикрепление лоада на шкале   возвращает измененное планирование карты
+  const pinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number) => {
+
+    let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
+    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
+    //  переnаскивать лоады можем только на этапе prepared
+    if (load) {
+      if (load.status === StatusEnum.prepared) {
+        // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
+        // проверяем согласованность предыдущих и перепланируем последующие
+        try {
+          const res = await fetch(`/api/pinload-api?userId=${1}&companyId=${1}`,
+            {
+              method: 'post',
+              headers: new Headers({
+                // 'Authorization': 'Basic ' + token,
+                'Content-Type': 'application/json'
+              }),
+              body: JSON.stringify({
+                pinnedLoad: load,
+                loads: tCardLoads,
+                unit:unit,
+                date: date,
+                timeStart: timeStart
+              }),
+            }
+          );
+
+          if (res.status !== 200) {
+            const receivedData = await res.json();
+            let error = receivedData.error;
+            setMessage(error);
+            // setMessage(t('service.serverUnavailable') + res.status);
+          } else {
+            const receivedData = await res.json();
+            let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
+            let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+            dispatch(setUnitLoads(updatedLoads));
+            if (receivedData.success) {
+              setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
+            } else {
+              setMessage(receivedData.message);
+            }
+          }
+        } catch (e: any) {
+          // setMessage(t('service.noConnection') + e.message)            
+        }
+      }
+    }
+  }
+
+  // Изменение длительности лоада для сторонних юнитов Контекстное меню
+  const changeDurationLoadHandler = async (idc: number) => {
+
+  }
 
   // запрос Юниты
 
@@ -503,6 +610,9 @@ export default function Planing({ }: IndexProps) {
             tCardPrepared={tCardPrepared}
             tCardLighted={tCardLighted}
             unitExceptions={unitExceptions}
+            erazLoadHandler={erazLoadHandler}
+            changeDurationLoadHandler={changeDurationLoadHandler}
+            pinLoadHandler={pinLoadHandler}
           />
         </div>
 

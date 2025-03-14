@@ -10,10 +10,15 @@ export class UnitActionTable {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
- 
-  @Column({default:1})
+   
+  @Column({
+    type: 'decimal',
+    precision: 10, // общее количество цифр
+    scale: 2,      // количество цифр после запятой
+    default: 1
+  })
   koef!: number;
-  
+
   @Column({default:""})
   coment!: string;
     
