@@ -97,13 +97,13 @@ export enum UserRoleEnum {
 
 // хранить обрабатывать
 export enum UnitTypeEnum {
-    K = 'Keep',
-    P = 'Process',
+    keep = 'keep',
+    process = 'process',
 }
 // свой чужой
 export enum UnitBelongEnum {
-    I = 'inner',
-    O = 'outer',
+    inner = 'inner',
+    outer = 'outer',
 }
 
 // компания
@@ -165,7 +165,10 @@ export interface UnitLoadItem {
     isActive:boolean,
     isRetool:boolean, 
     loadInfo?:{title:string,duration:number,interruptible:boolean,koef:number},
-    isPinned:boolean,
+    isPinned:boolean,//  перенесен вручшую на шкале
+    isOuterStart:boolean,//  это старт оутсортера
+    isOuterFinish:boolean,//  это финиш оутсортера
+    
 }
 // 
 // описание дня работы юнита

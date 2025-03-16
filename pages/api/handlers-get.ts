@@ -23,8 +23,11 @@ export async function getUOMs(
   companyId: number,
   uomsRepository: Repository<UOMsTable>
 ): Promise<UOMItem[]> {
+  
   // Строим фильтр для поиска
-  const filter: any = {};
+  
+  const filter: {company_id?: number;} = {};
+
   if (companyId) {
     filter.company_id = companyId;
   }
@@ -109,7 +112,7 @@ export async function getUnits(
   const units = receivedUnits
     .map(unit => {
 
-      let actions: UnitActionItem[] = receivedActionsUnit
+      const actions: UnitActionItem[] = receivedActionsUnit
         .filter(unitAction => unitAction.unit_id === unit.id)
         .map(unitAction => {
           return ({

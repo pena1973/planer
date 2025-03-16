@@ -63,5 +63,12 @@ export class UnitLoadTable {
       isRetool!: boolean; // Это ретул
       
       @Column('boolean', {default:false} )
-      isPinned!: boolean; // Это признак того что установлен вручную (пришпилен)   
+      isPinned!: boolean; // Это признак того что установлен вручную (пришпилен)  
+      
+      // для оутсорса
+      @Column('boolean', {default:false} )
+      isOuterStart!: boolean; // Это признак того что установлен вручную (пришпилен)  
+      
+      @Column('boolean', {default:false} )
+      isOuterFinish!: boolean; // Это признак того что установлен вручную (пришпилен)  
 }

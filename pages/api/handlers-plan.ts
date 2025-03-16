@@ -128,6 +128,7 @@ function findAvailableTimeForOperation(
 ): { success: boolean, planedUnitLoads: UnitLoadItem[], dateReady: string, timeReady: number, message: string } {
 
   const targetDate = new Date(startDate);
+  targetDate.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
   if (targetDate.getTime() > new Date(stopDate).getTime()) {
     return {
       success: false,
@@ -223,7 +224,9 @@ function findAvailableTimeForOperation(
         isActive: true,
         isRetool: seg.isRetool,
         loadInfo: { title: operation.action.title, duration: operation.duration / 60000, interruptible: operation.action.interruptible, koef: koef },
-        isPinned:false
+        isPinned: false,
+        isOuterStart:false,//  это старт оутсортера, здесь не применяется
+        isOuterFinish:false,//  это финиш оутсортера        
       });
     });
     const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
@@ -388,6 +391,7 @@ function findAvailableSegmentsDay(
         // если не влазит проверяем следующий интервал
         // если  ретул разрывается с самой операцией другой операцией  -  стираем и начинаем заново
         if (nextPeriod?.type === TimeTypeEnum.busy) {
+          isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул возвращаем
           opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
         };
       }
@@ -448,7 +452,7 @@ function findAvailableSegmentsDay(
       const retoolSeg = opSegments[0];
       const opSeg = opSegments[1];
       const opStart = opSeg.start; // начало выполнения операции
-    
+
       // Ищем период breack между началом ретула и началом операции.
       let breackStartCandidate: number | undefined = undefined;
       busyPeriods.forEach(period => {
@@ -458,10 +462,10 @@ function findAvailableSegmentsDay(
           }
         }
       });
-    
+
       // Если найден breack – ретул заканчивается в его начале, иначе – в начале операции.
       const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
-    
+
       // Определяем, к какому дню относится ретул-сегмент.
       const currentDay = targetDate.toLocaleDateString("en-CA");
       if (retoolSeg.date === currentDay) {
@@ -482,7 +486,7 @@ function findAvailableSegmentsDay(
         retoolSeg.finish = workEndRetool;
       }
     }
-    
+
 
 
 
@@ -506,7 +510,7 @@ function findAvailableSegmentsDay(
     //     }
     //   });
 
-      
+
     //   // Если найден период breack, завершаем ретул в его начале, иначе – в начале операции.
     //   const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
     //   // Вычисляем новое начало ретула так, чтобы его длина была равна retoolTime.
@@ -756,7 +760,7 @@ export const planTCard = (
 
       // Находим все юниты, которые могут выполнить это действие 
       const compatibleuUnits = units.filter(unit => {
-        if (unit.belong !== UnitBelongEnum.I) return false
+        if (unit.belong !== UnitBelongEnum.inner) return false
         return unit.actions.some(unitAction => unitAction.action.id === action.id);
       });
 

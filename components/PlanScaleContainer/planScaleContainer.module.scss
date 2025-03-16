@@ -368,65 +368,56 @@
 }
 
 
-.interval {
-  font-size: 12px;
-  position: absolute;
-  height: 20px;
-  margin: 20px 0;
-  z-index: 1;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  /* Центрируем текст вертикально и горизонтально */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+// .interval {
+//   font-size: 12px;
+//   position: absolute;
+//   height: 20px;
+//   margin: 20px 0;
+//   z-index: 1;
+//   border: 1px solid #ccc;
+//   border-radius: 10px;
+//   /* Центрируем текст вертикально и горизонтально */
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+// }
 
-.contextMenu {
-  font-size: 12px;
-  position: absolute;
-  height: 60px;
-  z-index: 10;
-  background-color: #ec0505;
-  top: 20px;
-  border-radius: 10px;
-}
 
-.planed {
-  background-color: rgb(172, 169, 132);
-  /* Добавляем выпуклый эффект */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 
-}
+// .planed {
+//   background-color: rgb(172, 169, 132);
+//   /* Добавляем выпуклый эффект */
+//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 
-.draft {
-  background-color: rgb(219, 218, 204);
-  /* Добавляем выпуклый эффект */
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
-}
+// }
 
-.prepared {
-  background-color: rgba(107, 170, 7, 0.753);
-  /* Добавляем выпуклый эффект */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-}
+// .draft {
+//   background-color: rgb(219, 218, 204);
+//   /* Добавляем выпуклый эффект */
+//   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
+// }
 
-.faulty {
-  background-color: rgb(255, 143, 79);
-  /* Добавляем выпуклый эффект */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-}
+// .prepared {
+//   background-color: rgba(107, 170, 7, 0.753);
+//   /* Добавляем выпуклый эффект */
+//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+// }
 
-.retool {
-  background-color: rgb(241, 241, 241);
-  height: 14px;
-  margin: 23px 0;
-}
+// .faulty {
+//   background-color: rgb(255, 143, 79);
+//   /* Добавляем выпуклый эффект */
+//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+// }
 
-.lighted {  
-  box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
+// .retool {
+//   background-color: rgb(241, 241, 241);
+//   height: 14px;
+//   margin: 23px 0;
+// }
 
-}
+// .lighted {  
+//   box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
+// }
 
 .unit_load {
   // margin-top: 20px;

@@ -1,6 +1,7 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
 import {CompanyTable} from './companies'
+import { UnitTypeEnum, UnitBelongEnum } from '@/types';
 
 @Entity("units")
 export class UnitTable {
@@ -23,10 +24,10 @@ export class UnitTable {
   @Column({nullable:true,default:""})
   coment!: string;
  
-  @Column()
+  @Column({default:UnitBelongEnum.inner})
   belong!: string;
 
-  @Column()
+  @Column({default:UnitTypeEnum.process})
   type!: string;
   
   @ManyToOne(() => CompanyTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { RootState, 
+    // useAppDispatch 
+} from "@/pages/_app";
 import styles from "./tCardProductNew.module.scss";
 import { UOMItem } from '@/types'
 import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM';
@@ -8,11 +10,11 @@ import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM'
 import Image from 'next/image';
 
 import del from "@/public/del2.png";
-import save from "@/public/save-rem.png";
+// import save from "@/public/save-rem.png";
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+// const URL = process.env.NEXT_PUBLIC_URL;
+// let _url = String(URL);
+// _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 export interface TCardProductNewProps {
     idc: number,   
@@ -39,7 +41,7 @@ export default function TCardProductNew({
 }: TCardProductNewProps) {
 
     // const [editMode, setEditMode] = useState(false);
-    const [edited, setEdited] = useState(false);
+    // const [edited, setEdited] = useState(false);
 
     const [titleValue, setTitleValue] = useState("");
     const [qtuValue, setQtuValue] = useState(0);
@@ -60,7 +62,7 @@ export default function TCardProductNew({
     const handleSelectUOM = (uom: UOMItem | null) => {
         if (uom) {
             setUomValue(uom);
-            setEdited(true);
+            // setEdited(true);
             changeProductHandler(index,idc, titleValue, qtuValue, uom)
         }
     };
@@ -78,7 +80,7 @@ export default function TCardProductNew({
                 value={titleValue} type="text"
                 onChange={e => {
                     setTitleValue(e.target.value);
-                    setEdited(true);
+                    // setEdited(true);
                     changeProductHandler(index,idc, e.target.value, qtuValue, uomValue)
                 }} />
 
@@ -87,7 +89,7 @@ export default function TCardProductNew({
                 value={qtuValue} type="number"
                 onChange={e => {
                     setQtuValue(Number(e.target.value));
-                    setEdited(true);
+                    // setEdited(true);
                     changeProductHandler(index,idc, titleValue, Number(e.target.value), uomValue)
                 }}
             />

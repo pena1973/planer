@@ -34,8 +34,11 @@ const config: ConnectionOptions = {
   synchronize: true, // Включить синхронизацию схемы (не рекомендуется для продакшн-среды)
   // logging: true, // Включите логирование SQL-запросов (можно отключить в продакшн-среде)
   logging: ["error", "warn"],
-  entities: [TCardTable, TCardOperationTable,TCardProductTable,TCardStageTable,
-    UOMsTable,ActionTable,UnitTable,UserTable,CompanyTable,UnitActionTable,
+  entities: [TCardTable, 
+    TCardOperationTable,
+    TCardProductTable,
+    TCardStageTable,
+    UOMsTable,ActionTable,CompanyTable,UnitTable,UserTable,UnitActionTable,
     CompanyScheduleTable,UnitExceptionTable,UnitLoadTable,SettingsTable
   ],
   migrations: ["/pages/db/migrations/**/*.ts"],  // Путь к миграциям

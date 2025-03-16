@@ -21,20 +21,18 @@ const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
-interface IndexProps {
 
-}
 
-import del from "@/public/del2.png";
+// import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import eraz from "@/public/erazer1-rem.png";
 import light from "@/public/light-rem.png";
 import lighton from "@/public/light-on-rem.png";
-import add from "@/public/add-rem.png";
-import TCardProduct from "@/components/TCardProduct/tCardProduct";
+// import add from "@/public/add-rem.png";
+// import TCardProduct from "@/components/TCardProduct/tCardProduct";
 
 
-export default function Planing({ }: IndexProps) {
+export default function Planing() {
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();
@@ -260,9 +258,11 @@ export default function Planing({ }: IndexProps) {
 
     let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
     let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
-    //  переnаскивать лоады можем только на этапе prepared
+    //  перетаскивать лоады можем только на этапе prepared
     if (load) {
       if (load.status === StatusEnum.prepared) {
+        //  проверяем если внешний - другая обработка - два лоада один точка старта, второй точка готовности
+        //  два состояния  -  запланирован и готов с датами - устанавливается вручную
         // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
         // проверяем согласованность предыдущих и перепланируем последующие
         try {
@@ -422,9 +422,9 @@ export default function Planing({ }: IndexProps) {
 
   // Начальный загруз
   useEffect(() => {
-    getUnits();
-    getUnutsLoads();
-    getUnutsExceptions();
+    // getUnits();
+    // getUnutsLoads();
+    // getUnutsExceptions();
   }, []);
 
   /// ПЕРЕТАСКИВАНИЕ КАРТЫ НА ПОЛЕ ПЛАНИРОВАНИЯ

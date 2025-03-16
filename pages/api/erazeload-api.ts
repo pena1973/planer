@@ -32,21 +32,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // если статус planed  смотрим на дату - больше сегодня - стираем историю отменяем
         const loads = req.body.loads as UnitLoadItem[]; 
 
-        let tCard_ = await getTCard(Number(deletedLoad.id_tCard), tCardRepository)
+        const tCard_ = await getTCard(Number(deletedLoad.id_tCard), tCardRepository)
         if (!tCard_) {
           res.status(200).json({ success: false, error: "Карта с таким номером не найдена" });
           return
         }
 
-        let { tCardMaterials, tCardOperations } = await getTCardMatOper(
+        const { tCardMaterials, tCardOperations } = await getTCardMatOper(
           Number(deletedLoad.id_tCard), tCardOperationsRepository, tCardProductRepository)
         tCard_.tCardMaterials = [...tCardMaterials] as TCardProductItem[];
         tCard_.tCardOperations = [...tCardOperations] as TCardOperationItem[]
 
-        let oper = tCard_.tCardOperations.find(oper => oper.id === deletedLoad?.id_oper);
+        const oper = tCard_.tCardOperations.find(oper => oper.id === deletedLoad?.id_oper);
         if (oper) {
           // Стираю все зависимые лоады      
-          let unitLoads_ = delNextloads(oper, tCard_, loads);
+          const unitLoads_ = delNextloads(oper, tCard_, loads);
 
           //  Если не удалось стереть
           if (!unitLoads_) {

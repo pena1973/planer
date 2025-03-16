@@ -13,7 +13,7 @@ let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 import edit from "@/public/edit-rem.png";
-import del from "@/public/del2.png";
+// import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
@@ -56,7 +56,7 @@ export default function TCardProducts({
 }: TCardProductProps) {
 
     const [edited, setEdited] = useState(false);
-    const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
+    // const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [tProductsValue, setTProductsValue] = useState([] as TCardProductItem[]);
     const [message, setMessage] = useState("");
 
@@ -202,7 +202,7 @@ export default function TCardProducts({
                             alt="arrow" width={20} height={20}
                             onClick={() => { saveProductsHandler() }}
                         />
-                        {modified && <div>*</div>}
+                        {/* {modified && <div>*</div>} */}
                     </div>
                 </div>}
             </>}

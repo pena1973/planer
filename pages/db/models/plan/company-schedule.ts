@@ -1,8 +1,8 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { CompanyTable } from '../catalogs/companies'; // Подключаем сущность для связи
-import { DaysOfWeek } from '../enums'; // Подключаем сущность для связи
-import { TimeZoneEnum } from '../enums'; // Подключаем сущность для связи
+import { DaysOfWeek,TimeZoneEnum } from "@/types"; // Подключаем сущность для связи
+
 
 @Entity("company_schedule")
 export class CompanyScheduleTable {

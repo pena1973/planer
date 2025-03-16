@@ -1,10 +1,13 @@
 
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useRef } from 'react';
+
 import styles from "./planScaleContainer.module.scss";
 import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, StatusEnum, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
 import { setUnits } from '@/store/slices';
 
-import ContexMenu from "./ContextMenu/contextMenu";
+import ContexMenu from "./LoadInner/ContextMenu/contextMenu";
+import LoadInner from "./LoadInner/loadInner";
+import LoadOuter from "./LoadOuter/loadOuter";
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
@@ -135,7 +138,7 @@ export interface PlanScaleContainerProps {
   unitExceptions: UnitExceptionItem[],
   erazLoadHandler: (idc: number) => void,
   changeDurationLoadHandler: (idc: number) => void,
-  pinLoadHandler: (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number) => void,
+  pinLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number) => void,
 }
 
 export default function PlanScaleContainer({
@@ -162,9 +165,8 @@ export default function PlanScaleContainer({
   const [calendarViewMinus, setCalendarViewMinus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени история при изменении]
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
   const [scale, setScale] = useState(50); // содержит Масштаб (10% - 500%)  
-  const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
-  const [draggbleElemId, setDraggbleElemId] = useState(""); // id перетаскиваемого элемента чтобы отслеживать состояние курсора
-  const [draggingLoad, setDraggingLoad] = useState(undefined as UnitLoadItem|undefined); // id перетаскиваемого элемента чтобы отслеживать состояние курсора
+  const [isDraggingScale, setIsDraggingScale] = useState(false); // Состояние для отслеживания перетаскивания
+  const [draggingLoad, setDraggingLoad] = useState(undefined as UnitLoadItem | undefined); // перетаскиваемый лоад
   let scaleRestart = useRef(false as boolean); // запускает useEffect прорисовки
 
   const [contectMenuShow, setContectMenuShow] = useState(0); // содержит operation.id и показывает контекстное меню 
@@ -198,8 +200,8 @@ export default function PlanScaleContainer({
     //  получаем  планировку юнитов
     // Из загрузки вытаскиваем список юнитов и делим его на свой чужой;
     // let unitsView = unitLoads.map(elem => { return elem.unit })
-    unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.I);
-    unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.O);
+    unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.inner);
+    unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.outer);
     // Стартовый масштаб всегда 100% и в нем помещается один день  
     // реализуем ленивую загрузку   
     // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно    
@@ -402,31 +404,25 @@ export default function PlanScaleContainer({
   };
 
   // ПЕРЕТАСКИВАНИЕ ЛОАДА
+
   // Для изменения курсора
   const handleMouseDownOper = (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => {
-    setIsDragging(true); // Включаем перетаскивание
-    // Получаем id элемента, к которому привязан обработчик:
-    const targetId = (e.currentTarget as HTMLElement).id;
-    setDraggbleElemId(targetId);
     setDraggingLoad(load);
   };
 
   const handleMouseUpOper = () => {
-    // Завершаем перетаскивание при отпускании мыши внутри контейнера
-    setIsDragging(false);
-    setDraggbleElemId("");
-    // setDraggingLoad({} as UnitLoadItem);
-    // onDragEnd();
+    setDraggingLoad(undefined);
+  };
+  const handleMouseMoveOper = (e: React.MouseEvent<HTMLDivElement>) => {
+    // НЕ ПОЛУЧИЛОСЬ цепляем все сегменты операции и сдвигаем синхронно
+    if (draggingLoad) {
+    }
   };
 
   const handleMouseLeaveOper = () => {
-    // Если курсор покинул контейнер, тоже завершаем перетаскивание
-    setIsDragging(false);
-    setDraggbleElemId("");
+    // Если курсор покинул шкалу, завершаем перетаскивание
     setDraggingLoad(undefined);
-    // onDragEnd();
   };
-
 
   // Хендлер для отпускания карты на шкалу и предварительное  планирование
   const handleDropOper = async (
@@ -437,29 +433,27 @@ export default function PlanScaleContainer({
     isWorkTime: boolean,
     isBreakTime: boolean) => {
     event.preventDefault();
-    setIsDragging(false); // Завершаем перетаскивание
-    
+    // setIsDragging(false); // Завершаем перетаскивание
+
     // load: UnitLoadItem,date:string,timeStart:number
     if (draggingLoad) {
       // обработка перетаскивания
       // отправляю лоад, и куда переместить -> юнит, день и время старта
-      pinLoadHandler(draggingLoad,unitView,calendarItem.date.toLocaleDateString("en-CA"),(i*5))
+      pinLoadHandler(draggingLoad, unitView, calendarItem.date.toLocaleDateString("en-CA"), (i * 5))
       console.log(draggingLoad);
     }
-    setDraggbleElemId("");
+    // setDraggbleElemId("");
     setDraggingLoad(undefined);
 
   };
-
-
-
 
   // Для перетаскивания  шкалы 
   const handleMouseDownScale = (e: React.MouseEvent) => {
     // Нажата правая кнопка мыши 2 - тащим шкалу
     // Нажата правая кнопка мыши 0 - тащим операцию на шкале
     if (e.button !== 2) return
-    setIsDragging(true); // Включаем перетаскивание
+
+    setIsDraggingScale(true); // Включаем перетаскивание
     let isDragging_ = true; // Включаем перетаскивание
     const startX = e.clientX; // Сохраняем начальную позицию мыши X
     const startShift = shift; // Сохраняем начальный сдвиг 
@@ -474,7 +468,7 @@ export default function PlanScaleContainer({
 
     const onMouseUp = () => {
       isDragging_ = false; // Завершаем перетаскивание
-      setIsDragging(false); // Завершаем перетаскивание
+      setIsDraggingScale(false); // Завершаем перетаскивание
       window.removeEventListener('mousemove', onMouseMove); // Убираем обработчики
       window.removeEventListener('mouseup', onMouseUp);
     };
@@ -595,66 +589,87 @@ export default function PlanScaleContainer({
 
           // Расставляем блоки интервалов на шкале
           const operBlocksReactNodes = operBlocks.map((load, index) => {
-            let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
-            let shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
+            return <LoadInner
+              dayWidth={dayWidth}
+              quants={quants}
+              intervTime={intervTime}
+              load={load}
+              tCardLighted={tCardLighted}
+              tCards={tCards}
+              draggingLoad={draggingLoad}
+              contectMenuShow={contectMenuShow}
+              unitView={unitView}
+              erazLoadHandler={erazLoadHandler}
+              handleMouseDownOper={handleMouseDownOper}
+              handleMouseUpOper={handleMouseUpOper}
+              handleRightClickMenu={handleRightClickMenu}
+              index={index}
 
-            let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
-            let width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
+            />
+            // let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
+            // let shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
-            let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
+            // let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
+            // let width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
-            switch (load.status) {
-              case StatusEnum.draft:
-                intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
-                break;
-              case StatusEnum.planed:
-                intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
-                break;
-              case StatusEnum.prepared:
-                intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
-                break;
-              case StatusEnum.defective:
-                intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
-                break;
-              default:
-                intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
-                break;
-            }
-            intervalClass = load.isRetool ? `${intervalClass} ${styles.retool}` : intervalClass;
+            // let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
 
-            // Выделяем операции текущей карты
-            if (tCardLighted.id === load.id_tCard) intervalClass = `${intervalClass} ${styles.lighted}`
+            // switch (load.status) {
+            //   case StatusEnum.draft:
+            //     intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
+            //     break;
+            //   case StatusEnum.planed:
+            //     intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
+            //     break;
+            //   case StatusEnum.prepared:
+            //     intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
+            //     break;
+            //   case StatusEnum.defective:
+            //     intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
+            //     break;
+            //   default:
+            //     intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
+            //     break;
+            // }
+            // intervalClass = load.isRetool ? `${intervalClass} ${styles.retool}` : intervalClass;
 
-            let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
-            if (!tCard) tCard = {} as TCardItem;
-            // let elemDrag = Number(""+load.id_tCard+load.id_oper+load.idc);
-            let elemDragId = String(load.idc + "_" + index);
-            return (
-              <>
-                <div className={intervalClass}
-                  onMouseDown={e => handleMouseDownOper(e, load)} // Добавляем обработчик нажатия мыши                        
-                  onMouseUp={handleMouseUpOper}
-                  onMouseLeave={handleMouseLeaveOper}
-                  draggable={true}
-                  id={String(load.idc + "_" + index)}
-                  style={{ width: `${width}px`, left: `${left}px`, cursor: (draggbleElemId === elemDragId) ? "grabbing" : "grab" }}
-                  onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`C${load.idc_oper}`}
-                </div>
+            // // Выделяем операции текущей карты
+            // if (tCardLighted.id === load.id_tCard) intervalClass = `${intervalClass} ${styles.lighted}`
+            // let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
+            // if (!tCard) tCard = {} as TCardItem;
+            // return (
+            //   <>
+            //     <div className={intervalClass}
+            //       onMouseDown={e => handleMouseDownOper(e, load)}
+            //       onMouseUp={e => handleMouseUpOper()}
+            //       draggable={true}
+            //       id={String(load.idc + "_" + index)}
+            //       style={{
+            //         width: `${width}px`, left: `${left}px`,
+            //         cursor: (draggingLoad === load) ? "grabbing" : "grab"
+            //       }
+            //       }
+            //       onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`C${load.idc_oper}`}
+            //     </div>
 
-                {contectMenuShow === load.idc &&
-                  <ContexMenu
-                    tCard={tCard}
-                    load={load}
-                    left={left}
-                    width={width}
-                    erazLoadHandler={erazLoadHandler}
-                    retool={unitView.retool}
-                  />}
-              </>
-            )
-          })
-          // Это прорисовка загрузок сюда уже не кидаем
-          return (<div           
+            //     {contectMenuShow === load.idc &&
+            //       <ContexMenu
+            //         tCard={tCard}
+            //         load={load}
+            //         left={left}
+            //         width={width}
+            //         erazLoadHandler={erazLoadHandler}
+            //         retool={unitView.retool}
+            //       />}
+            //   </>
+            // )
+          }
+
+
+          )
+
+          // Это прорисовка загрузок сюда уже не кидаем занято
+          return (<div
             className={`${styles.unit_unload} ${unit_unloadEx}`}>{operBlocksReactNodes}</div>)
         }
         // Это пустые сюда кидаем
@@ -667,7 +682,9 @@ export default function PlanScaleContainer({
       //  внешние
       let unitLoadBlockseReactNodesOuter = unitsViewOuter.current.map(unitView => {
         let dateLoad = unitLoads.filter(elem => {
-          return (elem.unit.id === unitView.id &&
+          return (
+            // ВРЕМЕННО для настройки внешнего лоада
+             elem.unit.id === unitView.id &&
             new Date(elem.date).toDateString() === new Date(calendarItem.date).toDateString())
         });
         if (dateLoad.length > 0) {
@@ -677,53 +694,76 @@ export default function PlanScaleContainer({
           });
 
           // Расставляем блоки интервалов на шкале
-          const operBlocksReactNodes = operBlocks.map(operation => {
-            let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
-            let shift = operation.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
+          const operBlocksReactNodes = operBlocks.map((load, index) => {
+            return <LoadOuter
+            dayWidth={dayWidth}
+            quants={quants}
+            intervTime={intervTime}
+            load={load}
+            tCardLighted={tCardLighted}
+            tCards={tCards}
+            draggingLoad={draggingLoad}
+            contectMenuShow={contectMenuShow}
+            unitView={unitView}
+            erazLoadHandler={erazLoadHandler}
+            handleMouseDownOper={handleMouseDownOper}
+            handleMouseUpOper={handleMouseUpOper}
+            handleRightClickMenu={handleRightClickMenu}
+            index={index}
+            isOuterStart={true}
+            isOuterFinish={false}
 
-            let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
-            let width = (operation.timeFinish - operation.timeStart) * blockwidth / 5; // длительность операции в пикселях           
+          />
 
-            let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
+            // let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
+            // let shift = operation.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
-            switch (operation.status) {
-              case StatusEnum.draft:
-                intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
-                break;
-              case StatusEnum.planed:
-                intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
-                break;
-              case StatusEnum.prepared:
-                intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
-                break;
-              case StatusEnum.defective:
-                intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
-                break;
-              default:
-                intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
-                break;
-            }
-            // Выделяем операции текущей карты
-            if (tCardLighted.id === operation.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
+            // let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
+            // let width = (operation.timeFinish - operation.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
-            return (
-              <>
-                <div className={intervalClass}
-                  id={String(operation.id)}
-                  style={{ width: `${width}px`, left: `${left}px` }}
-                  onContextMenu={(event) => handleRightClickMenu(event, operation.idc)}>{`C${operation.idc_oper}`}
-                </div>
+            // let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
 
-                {contectMenuShow === operation.id && <div className={styles.contextMenu}
-                  style={{ width: `${30}px`, left: `${left + width - 15}px` }} >
-                </div>}
+            // switch (operation.status) {
+            //   case StatusEnum.draft:
+            //     intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
+            //     break;
+            //   case StatusEnum.planed:
+            //     intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
+            //     break;
+            //   case StatusEnum.prepared:
+            //     intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
+            //     break;
+            //   case StatusEnum.defective:
+            //     intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
+            //     break;
+            //   default:
+            //     intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
+            //     break;
+            // }
+            // // Выделяем операции текущей карты
+            // if (tCardLighted.id === operation.id_tCard) intervalClass = `${intervalClass} ${styles.current}`
 
-              </>
-            )
+            // return (
+            //   <>
+            //     <div className={intervalClass}
+            //       id={String(operation.id)}
+            //       style={{ width: `${width}px`, left: `${left}px` }}
+            //       onContextMenu={(event) => handleRightClickMenu(event, operation.idc)}>{`C${operation.idc_oper}`}
+            //     </div>
+
+            //     {contectMenuShow === operation.id && <div className={styles.contextMenu}
+            //       style={{ width: `${30}px`, left: `${left + width - 15}px` }} >
+            //     </div>}
+
+            //   </>
+            // )
           })
           return (<div className={styles.unit_unload}>{operBlocksReactNodes}</div>)
         }
-        return (<div className={styles.unit_unload}></div>); // Если нет совпадений
+        return (<div
+          onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
+          onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+          className={styles.unit_unload}></div>); // Если нет совпадений
       });
 
       dayScale.push(
@@ -753,7 +793,6 @@ export default function PlanScaleContainer({
   const handleRightClick = (event: React.MouseEvent) => {
     event.preventDefault(); // Отключаем стандартное контекстное меню
     setContectMenuShow(0);
-
   };
   // контекстное меню
   const handleRightClickMenu = (event: React.MouseEvent, idc: number | undefined) => {
@@ -846,7 +885,7 @@ export default function PlanScaleContainer({
             style={{
               width: `${timelineWidth}px`,
               transform: `translateX(${shift}px)`, // Сдвиг шкалы по оси X  
-              cursor: isDragging ? 'grabbing' : 'grab', // Меняем курсор в зависимости от состояния
+              cursor: isDraggingScale ? 'grabbing' : 'grab', // Меняем курсор в зависимости от состояния
             }}
             onMouseDown={handleMouseDownScale} // Добавляем обработчик нажатия мыши
           >
@@ -865,15 +904,18 @@ export default function PlanScaleContainer({
             </div>
 
             {/* Основные элементы шкалы */}
-            <div style={{
-              // backgroundColor: 'yellow',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'row',
-              position: 'absolute',
-              left: '0',
-              width: 'fit-content'
-            }}>
+
+            <div
+              onMouseLeave={handleMouseLeaveOper}
+              style={{
+                // backgroundColor: 'yellow',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'row',
+                position: 'absolute',
+                left: '0',
+                width: 'fit-content'
+              }}>
               {timeScaleReactNodesPlus}
             </div>
 

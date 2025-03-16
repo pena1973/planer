@@ -1,10 +1,10 @@
 
 import styles from "./tCardProduct.module.scss";
 import { UOMItem } from '@/types'
-import Image from 'next/image';
+// import Image from 'next/image';
 
-import del from "@/public/del2.png";
-import edit from "@/public/edit-rem.png";
+// import del from "@/public/del2.png";
+// import edit from "@/public/edit-rem.png";
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
@@ -49,9 +49,9 @@ export default function TCardProduct({
     index
     
 }: TCardProductProps) {
- let code = (prefix==="M")?codeS:`${prefix+idc} | ${codeS}`
- let codeWidth = (prefix==="M")?50:100
- let titleWidth = (prefix==="M")?140:80
+ const code = (prefix==="M")?codeS:`${prefix+idc} | ${codeS}`
+ const codeWidth = (prefix==="M")?50:100
+ const titleWidth = (prefix==="M")?140:80
     return (
         <div className={styles.container_row}
             onDragOver={(e) => dragOverHandler(e)}
