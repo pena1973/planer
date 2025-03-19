@@ -34,8 +34,9 @@
     display: flex;
     flex-direction: row;
     // align-items: flex-end;
-    justify-content: flex-end;
+    justify-content: space-between;
     border-top: 1px solid #ccc;
+    padding: 0 3px;
 }
 
 .coment {
@@ -61,4 +62,46 @@
     border-left: 7.5px solid transparent;    
     border-right: 7.5px solid transparent;
     border-bottom: 7.5px solid rgb(240, 240, 240); /* цвет должен совпадать с фоном меню */
+  }
+  .work_date {
+    width: 80px;
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 4px;
+}
+
+.work_time {
+    width: 45px;
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    
+}
+
+.work_date[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+  }
+.work_date[type="date"] {
+    -moz-appearance: textfield;
+    appearance: none;
+  }
+    
+  .work_time[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+  }
+  
+  .work_time[type="time"] {
+    -moz-appearance: textfield;
+    appearance: none;
+  }
+  .save_container_icon{
+    display: flex;
+    flex-direction: row;
   }

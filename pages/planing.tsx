@@ -254,7 +254,7 @@ export default function Planing() {
   }
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
-  const pinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number) => {
+  const pinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number) => {
 
     let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
     let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
@@ -278,7 +278,8 @@ export default function Planing() {
                 loads: tCardLoads,
                 unit:unit,
                 date: date,
-                timeStart: timeStart
+                timeStart: timeStart,
+                timeFinish: timeFinish                                
               }),
             }
           );

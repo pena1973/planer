@@ -1,6 +1,6 @@
 
 import styles from "./loadOuter.module.scss";
-import ContexMenu from "./ContextMenu/contextMenu";
+import ContexMenu from "./ContextMenuOuter/contextMenuOuter";
 
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
 export interface LoadProps {
@@ -17,12 +17,15 @@ export interface LoadProps {
     handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,
     handleMouseUpOper: () => void,
     handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
-    index: number,
-    isOuterStart: boolean,//  это старт оутсортера
-    isOuterFinish: boolean,//  это финиш оутсортера
+    // index: number,
+    // isOuterStart: boolean,//  это старт оутсортера
+    // isOuterFinish: boolean,//  это финиш оутсортера
+    stopCloseMenu: (idc: number) => void,
+    pinLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
+
 }
 
-export default function LoadInner({
+export default function LoadOuter({
     dayWidth,
     quants,
     intervTime,
@@ -36,10 +39,15 @@ export default function LoadInner({
     handleMouseDownOper,
     handleMouseUpOper,
     handleRightClickMenu,
-    index,
-    isOuterStart,
-    isOuterFinish,
+    // index,
+    // isOuterStart,
+    // isOuterFinish,
+    stopCloseMenu,
+    pinLoadHandler,
+
 }: LoadProps) {
+
+    // let index = (isOuterStart) ? 1 : 2; // это либо конец либо начало
 
     // старт и финиш -маленькимй треугольничек сверху ли снизу и другое контекстноке меню
     //  ширина лоада 5 минут  -  стандартная для сьтарта и ждля финиша
@@ -75,15 +83,26 @@ export default function LoadInner({
     let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
     if (!tCard) tCard = {} as TCardItem;
 
+    const saveLoadHandler = (
+        load: UnitLoadItem,
+        dateValue: string,
+        timeStartValue: number,        
+        timeFinisValue: number) => {
+        if (load.isOuterFinish) 
+            pinLoadHandler(load, unitView, dateValue, timeFinisValue-5, timeFinisValue);
+        if (load.isOuterStart) pinLoadHandler(load, unitView, dateValue, timeStartValue,timeStartValue+5);
+    }
+
+
     return (
         <>
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}
                 onMouseUp={e => handleMouseUpOper()}
                 draggable={true}
-                id={String(load.idc + "_" + index)}
+                id={String(load.idc)}
                 style={{
-                    width: `${width}px`, left: `${left}px`,
+                    minWidth: '20px', maxWidth: '25px', width: `${width}px`, left: `${left}px`,
                     cursor: (draggingLoad === load) ? "grabbing" : "grab"
                 }
                 }
@@ -95,9 +114,11 @@ export default function LoadInner({
                     tCard={tCard}
                     load={load}
                     left={left}
-                    width={width}
+                    // width={width}
                     erazLoadHandler={erazLoadHandler}
                     retool={unitView.retool}
+                    stopCloseMenu={stopCloseMenu}
+                    saveLoadHandler={saveLoadHandler}
                 />}
         </>
     )

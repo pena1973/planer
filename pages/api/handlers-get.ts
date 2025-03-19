@@ -23,10 +23,10 @@ export async function getUOMs(
   companyId: number,
   uomsRepository: Repository<UOMsTable>
 ): Promise<UOMItem[]> {
-  
+
   // Строим фильтр для поиска
-  
-  const filter: {company_id?: number;} = {};
+
+  const filter: { company_id?: number; } = {};
 
   if (companyId) {
     filter.company_id = companyId;
@@ -155,7 +155,7 @@ export async function getUnitLoads(
     return [];
   }
 
-  const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')   
+  const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
     .andWhere('unitLoad.unit_id IN (:...unitIds)', { unitIds }) // Фильтруем по unitIds
     .getMany();
 
@@ -173,17 +173,20 @@ export async function getUnitLoads(
       timeStart: unitLoad.timeStart,
       timeFinish: unitLoad.timeFinish,
       status: unitLoad.status,
-      version:unitLoad.version,
-      isActive:unitLoad.isActive,
-      isRetool:unitLoad.isRetool,
-      isPinned:unitLoad.isPinned,
-    };    
+      version: unitLoad.version,
+      isActive: unitLoad.isActive,
+      isRetool: unitLoad.isRetool,
+      isPinned: unitLoad.isPinned,
+      isOuterFinish: unitLoad.isOuterFinish,
+      isOuterStart: unitLoad.isOuterStart,
+    };
   });
 
-  
+
   return unitLoadItems;
 }
 
+// только шапка
 export async function getTCard(
   tcardId: number,
   tCardRepository: Repository<TCardTable>
@@ -216,6 +219,151 @@ export async function getTCard(
   };
 
 }
+// ДОПИСАТЬ!!Вместе с составными частями карты
+export async function getTCardFull(
+  tcardId: number,
+  tCardRepository: Repository<TCardTable>,
+  tCardOperationRepository: Repository<TCardOperationTable>,
+  tCardProductRepository: Repository<TCardProductTable>
+): Promise<TCardItem | undefined> {
+
+  // Строим фильтр для поиска по id карты
+  const filter: { id?: number; } = {};
+  if (tcardId) {
+    filter.id = tcardId;
+  }
+
+  // Получаем карту по id
+  const tCardtab = await tCardRepository.findOne({
+    where: filter,  // Применяем фильтр к запросу
+    relations: ['company', 'user'],  // Указываем связанные таблицы
+  });
+
+  // Проверяем, что карта существует
+  if (!tCardtab) return undefined;
+
+  // ПРОДУКТЫ, МАТЕРИАЛЫ, ОТХОДЫ
+  const tCardProductstab = await tCardProductRepository.find({ where: { tcard_id: tcardId } });
+
+  // Преобразуем материалы
+  const tCardMaterials_ = tCardProductstab
+    .filter(product => product.type === TypeEnum.M)
+    .map(product => {
+      return {
+        id: product.id,
+        idc: product.idc,
+        codeS: product.code_s,  // Используем code_s вместо codeS
+        title: product.title,
+        qtu: product.qtu,
+        uom: {
+          id: product.uom.id,
+          title: product.uom.title,
+          code: product.uom.code,
+        } as UOMItem
+      } as TCardProductItem;
+    });
+  // Преобразуем продукты
+  const tCardProducts_ = tCardProductstab
+    .filter(product => product.type === TypeEnum.P)
+    .map(product => {
+      return {
+        id: product.id,
+        idc: product.idc,
+        codeS: product.code_s,  // Используем code_s вместо codeS
+        title: product.title,
+        qtu: product.qtu,
+        uom: {
+          id: product.uom.id,
+          title: product.uom.title,
+          code: product.uom.code,
+        } as UOMItem
+      } as TCardProductItem;
+    });
+  // Преобразуем отходы
+  const tCardWastes_ = tCardProductstab
+    .filter(product => product.type === TypeEnum.W)
+    .map(product => {
+      return {
+        id: product.id,
+        idc: product.idc,
+        codeS: product.code_s,  // Используем code_s вместо codeS
+        title: product.title,
+        qtu: product.qtu,
+        uom: {
+          id: product.uom.id,
+          title: product.uom.title,
+          code: product.uom.code,
+        } as UOMItem
+      } as TCardProductItem;
+    });
+
+  // ОПЕРАЦИИ
+  const tCardOperationstab = await tCardOperationRepository.find({ where: { tcard_id: tcardId } });
+  // Преобразуем операции
+  const tCardOperations_ = tCardOperationstab
+    .map(oper => {
+      const inn = tCardProductstab
+        .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
+        .map(product => {
+          return {
+            id: product.id,
+            idc: product.idc,
+            codeS: product.code_s,
+            title: product.title,
+            qtu: product.qtu,
+            uom: {
+              id: product.uom.id,
+              title: product.uom.title,
+              code: product.uom.code,
+            } as UOMItem
+          } as TCardProductItem;
+        });
+
+      const out = tCardProductstab
+        .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
+        .map(product => {
+          return {
+            id: product.id,
+            idc: product.idc,
+            codeS: product.code_s,
+            title: product.title,
+            qtu: product.qtu,
+            uom: {
+              id: product.uom.id,
+              title: product.uom.title,
+              code: product.uom.code,
+            } as UOMItem
+          } as TCardProductItem;
+        });
+
+      return {
+        id: oper.id,
+        idc: oper.idc,
+        stage: {} as TCardStageItem, //  Это чисто для визуала и для расчетов не нужно
+        out: out,
+        inn: inn,
+        action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible } as ActionItem,
+        duration: oper.duration, // в милисекундах   
+        status: oper.status,
+      };
+    });
+
+   const tCard = {
+      id: tCardtab.id,
+      date: tCardtab.date, //  дата       
+      number: tCardtab.number,       
+      tCardProducts: tCardProducts_,
+      tCardWastes: tCardWastes_,
+      tCardOperations: tCardOperations_,
+      tCardMaterials: tCardMaterials_,
+      maxId: tCardtab.max_idc,
+      coment: tCardtab.coment,
+      status:tCardtab.status,
+    } as TCardItem
+  
+  return tCard
+}
+
 
 export async function getTCardMatOper(
   tcardId: number,
@@ -353,7 +501,8 @@ export async function getCompanyShedule(
         date: new Date(workday.date).toLocaleDateString('en-CA'),
         timeStart: workday.timeStart,
         timeFinish: workday.timeFinish
-      }}),
+      }
+    }),
     timeZone: scheduleTable.timeZone as TimeZoneEnum,
   } as ScheduleItem;
 
