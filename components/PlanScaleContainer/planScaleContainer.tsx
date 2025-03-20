@@ -477,20 +477,20 @@ export default function PlanScaleContainer({
   // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
   const handleDropOper = async (
     event: React.DragEvent,
-    unitView: UnitItem,
+    toUnitView: UnitItem,
     i: number,
     calendarItem: CalendarItem,
     isWorkTime: boolean,
     isBreakTime: boolean) => {
     event.preventDefault();
     // setIsDragging(false); // Завершаем перетаскивание
-
+   
     // load: UnitLoadItem,date:string,timeStart:number
     if (draggingLoad) {
-      // обработка перетаскивания      
+        
       // отправляю лоад, и куда переместить -> юнит, день и время старта
-      pinLoadHandler(draggingLoad, unitView, calendarItem.date.toLocaleDateString("en-CA"), (i * 5), (i * 5) + 5)
-      console.log(draggingLoad);
+      pinLoadHandler(draggingLoad, toUnitView, calendarItem.date.toLocaleDateString("en-CA"), (i * 5), (i * 5) + 5)
+      // console.log(draggingLoad);
     }
     // setDraggbleElemId("");
     setDraggingLoad(undefined);

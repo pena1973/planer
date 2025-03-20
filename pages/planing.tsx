@@ -279,7 +279,8 @@ export default function Planing() {
                 unit:unit,
                 date: date,
                 timeStart: timeStart,
-                timeFinish: timeFinish                                
+                timeFinish: timeFinish,
+                today: today.toLocaleDateString("en-CA")                               
               }),
             }
           );

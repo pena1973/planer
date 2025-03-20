@@ -117,7 +117,7 @@ export default function ContexMenu({
             {load.isOuterStart &&
                 <div className={styles.coment}
                     onClick={e => stopCloseMenu(load.idc)}>
-                    <span className={styles.title}>time finish </span>
+                    <span className={styles.title}>time start </span>
                     <input
                         className={styles.work_time}
                         id={`isOuterTimeStart`}

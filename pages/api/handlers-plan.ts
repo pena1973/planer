@@ -1021,9 +1021,36 @@ export const planTCardFromOper = (
   stopDate_.setDate(stopDate_.getDate() + 90);
   let stopDate = stopDate_.toLocaleDateString("en-CA");
 
-  // массив готовых продуктов и дата время готовности каждого продукта
-  // стартуем с продуктов которые  берутся со склада  
-  let readyProducts: {
+  const doLoopProductsOper = (
+    readyProducts: readyProduct[],
+    operation: TCardOperationItem,
+    dateFinish: string,
+    timeFinish: number
+  ): readyProduct[] => {
+    if (dateFinish !== "") {
+      let readyProductsOut = operation.out.map(elem => {
+        return {
+          id: elem.id,
+          idc: elem.idc,
+          codeS: elem.codeS,
+          title: elem.title,
+          qtu: elem.qtu,
+          uom: elem.uom,
+          date: dateFinish,
+          time: timeFinish,
+          reserved: 0,
+          reservedTo: NaN
+        }
+      });
+      readyProducts = [...readyProducts, ...readyProductsOut]
+      //  удаляем исходники которые были под операцию зарезервированы          
+      readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
+    }
+
+    return readyProducts;
+  }
+
+  interface readyProduct {
     id?: number,
     idc: number,
     codeS: string,
@@ -1034,7 +1061,10 @@ export const planTCardFromOper = (
     time: number,
     reserved: number,
     reservedTo: number
-  }[] = [];
+  }
+  // массив готовых продуктов и дата время готовности каждого продукта
+  // стартуем с продуктов которые  берутся со склада  
+  let readyProducts: readyProduct[] = [];
 
   if (tCard.tCardMaterials)
     readyProducts = tCard.tCardMaterials.map(material => {
@@ -1052,6 +1082,7 @@ export const planTCardFromOper = (
       }
       // return { product: material, date: '2000-01-01', time: 0};
     });
+
 
   // Массив всех операций, которые должны быть просчитаны (все кроме драфт и отменен)
   let tCardOperations: TCardOperationItem[] = [];
@@ -1141,31 +1172,14 @@ export const planTCardFromOper = (
 
         // вытаскиваем последний лоад операции соответствующий статусу самой операции (для позиционирования во времени)
         let { dateFinish, timeFinish, loadId } = dateResultLoad(operLoads, operation.status);
-
+        //////////////////////////////////////////////////
         //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности 
-        if (dateFinish !== "") {
-          let readyProductsOut = operation.out.map(elem => {
-            return {
-              id: elem.id,
-              idc: elem.idc,
-              codeS: elem.codeS,
-              title: elem.title,
-              qtu: elem.qtu,
-              uom: elem.uom,
-              date: dateFinish,
-              time: timeFinish,
-              reserved: 0,
-              reservedTo: NaN
-            }
-          });
-          readyProducts = [...readyProducts, ...readyProductsOut]
-          //  удаляем исходники которые были под операцию зарезервированы          
-          readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
-        }
-       //  Удаляем операцию из общего массива - обработали
-       const index = tCardOperations.findIndex(oper => oper.id === operation.id);
-       tCardOperations.splice(index, 1);
-        
+        readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
+
+        //  Удаляем операцию из общего массива - обработали
+        const index = tCardOperations.findIndex(oper => oper.id === operation.id);
+        tCardOperations.splice(index, 1);
+        /////////////////////////////////////////////////
       })
 
     } else
@@ -1188,34 +1202,25 @@ export const planTCardFromOper = (
 
         // вытаскиваем последний лоад операции соответствующий статусу самой операции (для позиционирования во времени)
         let { dateStart, timeStart, dateFinish, timeFinish, loadId } = dateResultLoad(operLoads, operation.status);
+        
+        let isPinned = false;
 
+        //  0- если операция пришпилена (лоады isPinned) - оставляем лоады как есть
+        if (operLoads.length > 0 && operLoads[0]?.isPinned) {
+          readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
+          //  Удаляем операцию из общего массива - обработали
+          const index = tCardOperations.findIndex(oper => oper.id === operation.id);
+          tCardOperations.splice(index, 1);
+          isPinned = true;
+        }
 
         // 1. выбранная ОПЕРАЦИЯ – уже Выполнен  или  Готов->        
         // и добавляем резульат(с датой готовности) 
         // и убираем резерв 
         if (operation.status === StatusEnum.performed || operation.status === StatusEnum.ready) {
-
-          if (dateFinish !== "") {
-            //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
-            let readyProductsOut = operation.out.map(elem => {
-              return {
-                id: elem.id,
-                idc: elem.idc,
-                codeS: elem.codeS,
-                title: elem.title,
-                qtu: elem.qtu,
-                uom: elem.uom,
-                date: dateFinish,
-                time: timeFinish,
-                reserved: 0,
-                reservedTo: NaN
-              }
-              // return { ...elem, date: dateFinish, time: timeFinish };
-            });
-            readyProducts = [...readyProducts, ...readyProductsOut]
-            //  удаляем исходники которые были под операцию зарезервированы          
-            readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
-          }
+          /////////////////////////////////////////////
+          readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);          
+          ////////////////////////////////         
           //!!!! а еслли нет лоада хотя он готов ? - это ошибка? -  поставим дату готовности как у материала!
         }
 
@@ -1265,24 +1270,8 @@ export const planTCardFromOper = (
           if (operation.inn && operation.inn.length > 0) {
             // если исхлодники есть - проверяем момент доступности          
             if (dateStart !== "" && new Date(dateStart) >= new Date(maxDateSource) && timeStart >= maxTimeSource) {
-              //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
-              let readyProductsOut = operation.out.map(elem => {
-                return {
-                  id: elem.id,
-                  idc: elem.idc,
-                  codeS: elem.codeS,
-                  title: elem.title,
-                  qtu: elem.qtu,
-                  uom: elem.uom,
-                  date: dateFinish,
-                  time: timeFinish,
-                  reserved: 0,
-                  reservedTo: NaN
-                }
-              });
-              readyProducts = [...readyProducts, ...readyProductsOut]
-              //  удаляем исходники которые были под операцию зарезервированы          
-              readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
+              //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности  
+              readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);              
 
             } else {
               // если исхлодников нет перепланируем лоад 
@@ -1351,19 +1340,23 @@ export const planTCardFromOper = (
           }
         }
 
-        // 4. ОПЕРАЦИЯ ДЛЯ ВЫПОЛНЕНИЯ  prepared-  нет лоада  - планируем или перепланируем
+        // 4. ОПЕРАЦИЯ ДЛЯ ВЫПОЛНЕНИЯ  prepared-  нет лоада  и не прибита- планируем или перепланируем
 
-        if (operation.status === StatusEnum.prepared) {
+        if (operation.status === StatusEnum.prepared && !isPinned) {
+
           // очищаю старые лоады по этой операции
-          updatedUnitLoads = updatedUnitLoads.filter(lo=>lo.id_oper!=(operation.id))
+          updatedUnitLoads = updatedUnitLoads.filter(lo => lo.id_oper != (operation.id))
 
           // Ищем подходящий интервал в соответствие с расписанием юнита, 
           // на этот момент также дожны быть готовы исходные продукты и с этого момента операция может стартовать
 
           // проверяем наличие  исходников операции на плановую дату на дату 
           let sourcesProducts = readyProducts.filter(elem => elem.reservedTo === operation.idc);
-          let { maxDateSource, maxTimeSource } = getMaxDate(sourcesProducts, operation.inn);
-
+          
+          let { maxDateSource, maxTimeSource } = (sourcesProducts.length>0)
+          ? getMaxDate(sourcesProducts, operation.inn):{maxDateSource:today_, maxTimeSource:0};
+          
+           
           if (new Date(maxDateSource).getTime() < today.getTime() || operation.inn.length === 0) {
             maxDateSource = today_;
             maxTimeSource = 0
@@ -1384,24 +1377,8 @@ export const planTCardFromOper = (
             //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                    
             if (operation.out) {
 
-              //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
-              let readyProductsOut = operation.out.map(elem => {
-                return {
-                  id: elem.id,
-                  idc: elem.idc,
-                  codeS: elem.codeS,
-                  title: elem.title,
-                  qtu: elem.qtu,
-                  uom: elem.uom,
-                  date: dateReady,
-                  time: timeReady,
-                  reserved: 0,
-                  reservedTo: NaN,
-                }
-              });
-              readyProducts = [...readyProducts, ...readyProductsOut]
-              //  удаляем исходники которые были под операцию зарезервированы          
-              readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
+              //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности    
+              readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);              
             }
           }
         }
@@ -1487,7 +1464,7 @@ function dateResultLoad(
   };
 }
 
-
+// получает дату когда изготовлены  все продукты из списка
 function getMaxDate(
   sourcesProducts: {
     id?: number;
@@ -1532,6 +1509,7 @@ function getMaxDate(
   } else {
     return { maxDateSource: "", maxTimeSource: 0 };
   }
+  
 }
 
 // удаляет операцию (лоады операции) и все последующие зависимые операции (лоады операций)
@@ -1770,7 +1748,7 @@ export const getFinishOperations = (
   if (opers.length === 0) return { date: today, time: 0 };
 
   // Допустимые статусы
-  const validStatuses = [StatusEnum.ready, StatusEnum.performed, StatusEnum.planed];
+  const validStatuses = [StatusEnum.ready, StatusEnum.performed, StatusEnum.planed, StatusEnum.prepared];
 
   // Проверяем, что для каждого идентификатора операции в opers есть хотя бы один load с нужным статусом
   for (const opId of opers) {
@@ -1787,26 +1765,24 @@ export const getFinishOperations = (
     load => opers.includes(load.idc_oper) && validStatuses.includes(load.status)
   );
 
-  // Находим максимальный момент завершения (timestamp)
+  // Находим максимальный момент завершения
   // Предполагаем, что load.date имеет формат "YYYY-MM-DD" и load.timeFinish – минуты от начала дня
-  const maxTimestamp = filteredLoads.reduce((max, load) => {
-    const loadTimestamp = new Date(load.date).getTime() + load.timeFinish * 60000;
-    return loadTimestamp > max ? loadTimestamp : max;
-  }, 0);
 
-  // Начало сегодняшнего дня
-  const todayTimestamp = new Date(today).getTime();
+  let finishLoad = filteredLoads.reduce((latest, load) => {
+    if (load.date > latest.date) {
+      return load;
+    } else if (load.date === latest.date && load.timeFinish > latest.timeFinish) {
+      return load;
+    } else {
+      return latest;
+    }
+  });
+  if (finishLoad.date > today || finishLoad.date === today && finishLoad.timeFinish > 0)
+    return { date: finishLoad.date, time: finishLoad.timeFinish };
+  else return { date: today, time: 0 };
 
-  if (maxTimestamp < todayTimestamp) {
-    // Если максимальный момент завершения в прошлом, возвращаем сегодняшнюю дату с временем 0
-    return { date: today, time: 0 };
-  } else {
-    const finishDate = new Date(maxTimestamp);
-    const dateStr = finishDate.toISOString().split("T")[0];
-    const time = finishDate.getHours() * 60 + finishDate.getMinutes();
-    return { date: dateStr, time };
-  }
 };
+
 // Выбирает наиболее позднюю из двух дат формата 
 // { date: "yyyy-mm-dd"; time: количество минут от начала дня }
 export function getLaterDateTime(

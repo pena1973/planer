@@ -96,6 +96,8 @@ export default function LoadOuter({
 
     return (
         <>
+          {/* Треугольник (стрелка) */}
+          {/* <div className={styles.triangleTop} /> */}
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}
                 onMouseUp={e => handleMouseUpOper()}
