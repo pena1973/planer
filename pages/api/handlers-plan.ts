@@ -125,6 +125,7 @@ function findAvailableTimeForOperation(
   stopDate: string,             // дата, после которой планирование не ведётся (90 дней вперед)
   schedule: ScheduleItem,
   exceptionItems: UnitExceptionItem[],
+  isPinned: boolean, //  признак того что при планировании надо установить как пришпилен
 ): { success: boolean, planedUnitLoads: UnitLoadItem[], dateReady: string, timeReady: number, message: string } {
 
   const targetDate = new Date(startDate);
@@ -224,7 +225,7 @@ function findAvailableTimeForOperation(
         isActive: true,
         isRetool: seg.isRetool,
         loadInfo: { title: operation.action.title, duration: operation.duration / 60000, interruptible: operation.action.interruptible, koef: koef },
-        isPinned: false,
+        isPinned: isPinned,
         isOuterStart: false,//  это старт оутсортера, здесь не применяется
         isOuterFinish: false,//  это финиш оутсортера        
       });
@@ -688,9 +689,6 @@ export const planTCard = (
   // (они готовы для планирования или уже запланированы или выполнены с учетом последовательности))
   let selectedOperations: TCardOperationItem[] = [];
 
-  if (replanAlways) {
-    // стираем все плановые лоады
-  }
 
   // здесь стартуем цикл планирования с сегодняшней даты пока операций для планирования в tCardOperations не останется
   let stoploop = false;
@@ -775,28 +773,28 @@ export const planTCard = (
       // и добавляем резульат(с датой готовности) 
       // и убираем резерв 
       if (operation.status === StatusEnum.performed || operation.status === StatusEnum.ready) {
-
-        if (dateFinish !== "") {
-          //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
-          let readyProductsOut = operation.out.map(elem => {
-            return {
-              id: elem.id,
-              idc: elem.idc,
-              codeS: elem.codeS,
-              title: elem.title,
-              qtu: elem.qtu,
-              uom: elem.uom,
-              date: dateFinish,
-              time: timeFinish,
-              reserved: 0,
-              reservedTo: NaN
-            }
-            // return { ...elem, date: dateFinish, time: timeFinish };
-          });
-          readyProducts = [...readyProducts, ...readyProductsOut]
-          //  удаляем исходники которые были под операцию зарезервированы          
-          readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
-        }
+        readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
+        // if (dateFinish !== "") {
+        //   //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
+        //   let readyProductsOut = operation.out.map(elem => {
+        //     return {
+        //       id: elem.id,
+        //       idc: elem.idc,
+        //       codeS: elem.codeS,
+        //       title: elem.title,
+        //       qtu: elem.qtu,
+        //       uom: elem.uom,
+        //       date: dateFinish,
+        //       time: timeFinish,
+        //       reserved: 0,
+        //       reservedTo: NaN
+        //     }
+        //     // return { ...elem, date: dateFinish, time: timeFinish };
+        //   });
+        //   readyProducts = [...readyProducts, ...readyProductsOut]
+        //   //  удаляем исходники которые были под операцию зарезервированы          
+        //   readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
+        // }
         //!!!! а еслли нет лоада хотя он готов ? - это ошибка? -  поставим дату готовности как у материала!
       }
 
@@ -847,6 +845,7 @@ export const planTCard = (
           // если исхлодники есть - проверяем момент доступности          
           if (dateStart !== "" && new Date(dateStart) >= new Date(maxDateSource) && timeStart >= maxTimeSource) {
             //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
+          
             let readyProductsOut = operation.out.map(elem => {
               return {
                 id: elem.id,
@@ -871,9 +870,8 @@ export const planTCard = (
             updatedUnitLoads = updatedUnitLoads.filter(load => load.id !== loadId);
 
 
-
             // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-            let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems);
+            let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, false);
 
             // если не удалось запланировать то прерываем расчет
             if (!resultPlaning.success) {
@@ -885,8 +883,8 @@ export const planTCard = (
 
               //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                    
               if (operation.out) {
-
-                //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
+              
+                 //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
                 let readyProductsOut = operation.out.map(elem => {
                   return {
                     id: elem.id,
@@ -904,13 +902,14 @@ export const planTCard = (
                 readyProducts = [...readyProducts, ...readyProductsOut]
                 //  удаляем исходники которые были под операцию зарезервированы          
                 readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
-              }
+               }
             }
           }
 
 
         } else {
           // если исхлодники не требуются
+         
           if (dateStart !== "") {
             //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
             let readyProductsOut = operation.out.map(elem => {
@@ -949,7 +948,7 @@ export const planTCard = (
         }
 
         // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-        let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems);
+        let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, false);
 
         // если не удалось запланировать то прерываем расчет
         if (!resultPlaning.success) {
@@ -963,7 +962,7 @@ export const planTCard = (
           //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                    
           if (operation.out) {
 
-            //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
+            //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности             
             let readyProductsOut = operation.out.map(elem => {
               return {
                 id: elem.id,
@@ -1001,25 +1000,6 @@ export const planTCard = (
   return { success: true, loads: updatedUnitLoads, message: "" };
 }
 
-// ДОПИСАТЬ старт с операции
-// В этом модуле делаем РАСЧЕТ ПЛАНИРОВАНИЯ, начиная с  определенной операции возврашаем готовую загрузку
-export const planTCardFromOper = (
-  oper: TCardOperationItem,
-  tCard: TCardItem,
-  units: UnitItem[],
-  shedule_: ScheduleItem,
-  unitLoads: UnitLoadItem[],
-  exceptionItems: UnitExceptionItem[],
-  today_: string,
-  replanAlways = false): { success: boolean, loads: UnitLoadItem[], message: string } => {
-
-  let updatedUnitLoads = [...unitLoads];
-  let today = new Date(today_);
-  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  let stopDate_ = new Date();
-  stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  stopDate_.setDate(stopDate_.getDate() + 90);
-  let stopDate = stopDate_.toLocaleDateString("en-CA");
 
   const doLoopProductsOper = (
     readyProducts: readyProduct[],
@@ -1062,6 +1042,26 @@ export const planTCardFromOper = (
     reserved: number,
     reservedTo: number
   }
+
+// В этом модуле делаем РАСЧЕТ ПЛАНИРОВАНИЯ, начиная с  определенной операции возврашаем готовую загрузку
+export const planTCardFromOper = (
+  oper: TCardOperationItem,
+  tCard: TCardItem,
+  units: UnitItem[],
+  shedule_: ScheduleItem,
+  unitLoads: UnitLoadItem[],
+  exceptionItems: UnitExceptionItem[],
+  today_: string,
+  ): { success: boolean, loads: UnitLoadItem[], message: string } => {
+
+  let updatedUnitLoads = [...unitLoads];
+  let today = new Date(today_);
+  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  let stopDate_ = new Date();
+  stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  stopDate_.setDate(stopDate_.getDate() + 90);
+  let stopDate = stopDate_.toLocaleDateString("en-CA");
+
   // массив готовых продуктов и дата время готовности каждого продукта
   // стартуем с продуктов которые  берутся со склада  
   let readyProducts: readyProduct[] = [];
@@ -1149,7 +1149,7 @@ export const planTCardFromOper = (
       }
     });
 
-    if (selectedOperations.length === 0) return { success: false, loads: [] as UnitLoadItem[], message: "Нет операций готовых к выполнению" };
+    if (selectedOperations.length === 0) return { success: false, loads: [] as UnitLoadItem[], message: "Не все операции готовы к выполнению" };
 
     // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
     //  и операции с пустыми резервами
@@ -1202,7 +1202,7 @@ export const planTCardFromOper = (
 
         // вытаскиваем последний лоад операции соответствующий статусу самой операции (для позиционирования во времени)
         let { dateStart, timeStart, dateFinish, timeFinish, loadId } = dateResultLoad(operLoads, operation.status);
-        
+
         let isPinned = false;
 
         //  0- если операция пришпилена (лоады isPinned) - оставляем лоады как есть
@@ -1219,7 +1219,7 @@ export const planTCardFromOper = (
         // и убираем резерв 
         if (operation.status === StatusEnum.performed || operation.status === StatusEnum.ready) {
           /////////////////////////////////////////////
-          readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);          
+          readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
           ////////////////////////////////         
           //!!!! а еслли нет лоада хотя он готов ? - это ошибка? -  поставим дату готовности как у материала!
         }
@@ -1271,7 +1271,7 @@ export const planTCardFromOper = (
             // если исхлодники есть - проверяем момент доступности          
             if (dateStart !== "" && new Date(dateStart) >= new Date(maxDateSource) && timeStart >= maxTimeSource) {
               //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности  
-              readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);              
+              readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
 
             } else {
               // если исхлодников нет перепланируем лоад 
@@ -1279,7 +1279,7 @@ export const planTCardFromOper = (
               updatedUnitLoads = updatedUnitLoads.filter(load => load.id !== loadId);
 
               // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-              let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems);
+              let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, isPinned);
 
               // если не удалось запланировать то прерываем расчет
               if (!resultPlaning.success) {
@@ -1291,7 +1291,6 @@ export const planTCardFromOper = (
 
                 //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                    
                 if (operation.out) {
-
                   //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
                   let readyProductsOut = operation.out.map(elem => {
                     return {
@@ -1310,13 +1309,14 @@ export const planTCardFromOper = (
                   readyProducts = [...readyProducts, ...readyProductsOut]
                   //  удаляем исходники которые были под операцию зарезервированы          
                   readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
-                }
+                 }
               }
             }
 
 
           } else {
             // если исхлодники не требуются
+            
             if (dateStart !== "") {
               //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности                         
               let readyProductsOut = operation.out.map(elem => {
@@ -1352,18 +1352,18 @@ export const planTCardFromOper = (
 
           // проверяем наличие  исходников операции на плановую дату на дату 
           let sourcesProducts = readyProducts.filter(elem => elem.reservedTo === operation.idc);
-          
-          let { maxDateSource, maxTimeSource } = (sourcesProducts.length>0)
-          ? getMaxDate(sourcesProducts, operation.inn):{maxDateSource:today_, maxTimeSource:0};
-          
-           
+
+          let { maxDateSource, maxTimeSource } = (sourcesProducts.length > 0)
+            ? getMaxDate(sourcesProducts, operation.inn) : { maxDateSource: today_, maxTimeSource: 0 };
+
+
           if (new Date(maxDateSource).getTime() < today.getTime() || operation.inn.length === 0) {
             maxDateSource = today_;
             maxTimeSource = 0
           }
 
           // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-          let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems);
+          let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, isPinned);
 
           // если не удалось запланировать то прерываем расчет
           if (!resultPlaning.success) {
@@ -1378,7 +1378,7 @@ export const planTCardFromOper = (
             if (operation.out) {
 
               //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности    
-              readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);              
+              readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
             }
           }
         }
@@ -1403,7 +1403,54 @@ export const planTCardFromOper = (
   };
   return { success: true, loads: updatedUnitLoads, message: "" };
 }
+// В этом модуле делаем РАСЧЕТ ПЛАНИРОВАНИЯ, одной операции на определенном юните
+export const planOperOnUnit = (
+  operation: TCardOperationItem,
+  tCard: TCardItem,
+  unit: UnitItem,
+  shedule_: ScheduleItem,
+  unitLoads: UnitLoadItem[],
+  exceptionItems: UnitExceptionItem[],
+  today_: string,
+  maxDateSource: string,
+  maxTimeSource: number
+): { success: boolean, loads: UnitLoadItem[], message: string } => {
 
+  let updatedUnitLoads = [...unitLoads];
+  let today = new Date(today_);
+  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  let stopDate_ = new Date();
+  stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  stopDate_.setDate(stopDate_.getDate() + 90);
+  let stopDate = stopDate_.toLocaleDateString("en-CA");
+
+  if (operation.status === StatusEnum.prepared) {
+
+    // очищаю старые лоады по этой операции
+    updatedUnitLoads = updatedUnitLoads.filter(lo => lo.id_oper != (operation.id))
+
+    let message = "";
+
+    if (new Date(maxDateSource).getTime() < today.getTime() || operation.inn.length === 0) {
+      maxDateSource = today_;
+      maxTimeSource = 0
+    }
+
+    // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
+    let resultPlaning = findAvailableTimeForOperation(tCard, [unit], updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, true);
+
+    // если не удалось запланировать то прерываем расчет
+    if (!resultPlaning.success) {
+      message = `Операция - C${operation.idc}: ${resultPlaning.message}`;
+    } else {
+
+      let { success, planedUnitLoads } = resultPlaning;
+      if (success) updatedUnitLoads = [...updatedUnitLoads, ...planedUnitLoads];
+    }
+  }
+
+  return { success: true, loads: updatedUnitLoads, message: "" };
+}
 
 // вытаскиваем последний лоад операции соответствующий статусу самой операции (для позиционирования операции во времени)
 function dateResultLoad(
@@ -1509,7 +1556,7 @@ function getMaxDate(
   } else {
     return { maxDateSource: "", maxTimeSource: 0 };
   }
-  
+
 }
 
 // удаляет операцию (лоады операции) и все последующие зависимые операции (лоады операций)
@@ -1621,6 +1668,7 @@ export const delNextloads = (delOper: TCardOperationItem, tCard: TCardItem, load
       // добавляем результат операции и убираем резерв         
       if (operation.idc !== delOper.idc) {
         delOperIds.push(operation.idc as number)
+        
         let readyProductsOut = operation.out.map(elem => {
           return {
             id: elem.id,

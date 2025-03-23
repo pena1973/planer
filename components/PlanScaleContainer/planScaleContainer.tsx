@@ -182,6 +182,7 @@ export interface PlanScaleContainerProps {
   erazLoadHandler: (idc: number) => void,
   changeDurationLoadHandler: (idc: number) => void,
   pinLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
+  unPinLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
 }
 
 export default function PlanScaleContainer({
@@ -196,6 +197,7 @@ export default function PlanScaleContainer({
   erazLoadHandler,
   changeDurationLoadHandler,
   pinLoadHandler,
+  unPinLoadHandler
 
 }: PlanScaleContainerProps) {
 
@@ -654,7 +656,8 @@ export default function PlanScaleContainer({
               handleMouseUpOper={handleMouseUpOper}
               handleRightClickMenu={handleRightClickMenu}
               index={index}
-
+              pinLoadHandler ={pinLoadHandler}
+              unPinLoadHandler ={unPinLoadHandler}
             />
           })
 

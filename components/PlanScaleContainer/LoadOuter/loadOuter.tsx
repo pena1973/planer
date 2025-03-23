@@ -86,25 +86,28 @@ export default function LoadOuter({
     const saveLoadHandler = (
         load: UnitLoadItem,
         dateValue: string,
-        timeStartValue: number,        
+        timeStartValue: number,
         timeFinisValue: number) => {
-        if (load.isOuterFinish) 
-            pinLoadHandler(load, unitView, dateValue, timeFinisValue-5, timeFinisValue);
-        if (load.isOuterStart) pinLoadHandler(load, unitView, dateValue, timeStartValue,timeStartValue+5);
+        if (load.isOuterFinish)
+            pinLoadHandler(load, unitView, dateValue, timeFinisValue - 5, timeFinisValue);
+        if (load.isOuterStart) pinLoadHandler(load, unitView, dateValue, timeStartValue, timeStartValue + 5);
     }
 
 
     return (
         <>
-          {/* Треугольник (стрелка) */}
-          {/* <div className={styles.triangleTop} /> */}
+            {/* Треугольник (стрелка) */}
+
+            {/* <div className={styles.triangleTop} /> */}
+            {load.isOuterFinish && <div className={styles.triangleLeft} />}
+            {load.isOuterStart && <div className={styles.triangleRight} />}
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}
                 onMouseUp={e => handleMouseUpOper()}
                 draggable={true}
                 id={String(load.idc)}
                 style={{
-                    minWidth: '20px', maxWidth: '25px', width: `${width}px`, left: `${left}px`,
+                    minWidth: '20px', maxWidth: '20px', width: `${width}px`, left: `${left}px`,
                     cursor: (draggingLoad === load) ? "grabbing" : "grab"
                 }
                 }

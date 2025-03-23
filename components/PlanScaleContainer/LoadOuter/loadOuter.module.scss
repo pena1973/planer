@@ -66,3 +66,31 @@
   /* цвет должен совпадать с фоном меню */
   z-index: 2;
 }
+
+/* Треугольник слева (указывает влево) */
+.triangleLeft {
+  position: absolute;
+  top: 62%; /* можно скорректировать для вертикального центрирования */
+  left: -3px;  /* отступ слева */
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 7.5px solid transparent;
+  border-bottom: 7.5px solid transparent;
+  border-right: 7.5px solid rgba(107, 170, 7, 0.753);
+  z-index: 2;
+}
+
+/* Треугольник справа (указывает вправо) */
+.triangleRight {
+  position: absolute;
+  top: 62%; /* можно скорректировать для вертикального центрирования */
+  right: -17px;  /* отступ справа */
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 7.5px solid transparent;
+  border-bottom: 7.5px solid transparent;
+  border-left: 7.5px solid rgba(107, 170, 7, 0.753);
+  z-index: 2;
+}

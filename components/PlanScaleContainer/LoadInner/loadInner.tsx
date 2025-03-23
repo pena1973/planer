@@ -1,8 +1,12 @@
 
 import styles from "./loadInner.module.scss";
 import ContexMenu from "./ContextMenu/contextMenu";
-
+import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
+
+import pinon from "@/public/pin_on2-rem.png";
+import pinof from "@/public/pin_off2-rem.png";
+
 export interface LoadProps {
     dayWidth: number,
     quants: number,
@@ -17,7 +21,10 @@ export interface LoadProps {
     handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,
     handleMouseUpOper: () => void,
     handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
-    index: number,
+    index: number,    
+    pinLoadHandler: (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number)=>void
+    unPinLoadHandler: (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number)=>void
+    
 }
 
 export default function LoadInner({
@@ -34,7 +41,8 @@ export default function LoadInner({
     handleMouseDownOper,
     handleMouseUpOper,
     handleRightClickMenu,
-    index
+    index,
+    pinLoadHandler,
 }: LoadProps) {
 
     let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
@@ -93,6 +101,13 @@ export default function LoadInner({
                     erazLoadHandler={erazLoadHandler}
                     retool={unitView.retool}
                 />}
+                
+               { load.isPinned?
+
+              <Image className={styles.icon_pin} src={pinon} alt="pinon"
+                width={15} height={15} onClick={() => pinLoadHandler(load,unitView,load.date,load.timeStart,load.timeFinish)} />
+              : <Image className={styles.icon_unpin} src={pinof} alt="pinof"
+                width={15} height={15} onClick={() => pinLoadHandler(load,unitView,load.date,load.timeStart,load.timeFinish)} />}
         </>
     )
 }
