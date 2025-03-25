@@ -21,7 +21,7 @@ export interface LoadProps {
     // isOuterStart: boolean,//  это старт оутсортера
     // isOuterFinish: boolean,//  это финиш оутсортера
     stopCloseMenu: (idc: number) => void,
-    pinLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
+    moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
 
 }
 
@@ -43,7 +43,7 @@ export default function LoadOuter({
     // isOuterStart,
     // isOuterFinish,
     stopCloseMenu,
-    pinLoadHandler,
+    moveLoadHandler,
 
 }: LoadProps) {
 
@@ -89,8 +89,8 @@ export default function LoadOuter({
         timeStartValue: number,
         timeFinisValue: number) => {
         if (load.isOuterFinish)
-            pinLoadHandler(load, unitView, dateValue, timeFinisValue - 5, timeFinisValue);
-        if (load.isOuterStart) pinLoadHandler(load, unitView, dateValue, timeStartValue, timeStartValue + 5);
+            moveLoadHandler(load, unitView, dateValue, timeFinisValue - 5, timeFinisValue);
+        if (load.isOuterStart) moveLoadHandler(load, unitView, dateValue, timeStartValue, timeStartValue + 5);
     }
 
 

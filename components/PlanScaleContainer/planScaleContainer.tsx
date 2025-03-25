@@ -181,8 +181,9 @@ export interface PlanScaleContainerProps {
   unitExceptions: UnitExceptionItem[],
   erazLoadHandler: (idc: number) => void,
   changeDurationLoadHandler: (idc: number) => void,
-  pinLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
-  unPinLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
+  moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
+  pinLoadHandler: (oper_id: number) => void,
+  unPinLoadHandler: (oper_id: number, tCardId: number) => void
 }
 
 export default function PlanScaleContainer({
@@ -196,6 +197,7 @@ export default function PlanScaleContainer({
   unitExceptions,
   erazLoadHandler,
   changeDurationLoadHandler,
+  moveLoadHandler,
   pinLoadHandler,
   unPinLoadHandler
 
@@ -218,7 +220,7 @@ export default function PlanScaleContainer({
   const [isDraggingScale, setIsDraggingScale] = useState(false); // Состояние для отслеживания перетаскивания
   const [draggingLoad, setDraggingLoad] = useState(undefined as UnitLoadItem | undefined); // перетаскиваемый лоад
   let scaleRestart = useRef(false as boolean); // запускает useEffect прорисовки
- 
+
   const [contectMenuShow, setContectMenuShow] = useState(0); // содержит operation.id и показывает контекстное меню 
   // const [stopCloseMenu, setStopCloseMenu] = useState(0); // содержит operation.id и показывает контекстное меню 
 
@@ -276,7 +278,7 @@ export default function PlanScaleContainer({
 
     // Обновляем размеры при изменении размера окна
     window.addEventListener('resize', updateSize);
-   
+
     // Убираем обработчик при размонтировании компонента
     return () => {
       window.removeEventListener('resize', updateSize);
@@ -486,12 +488,12 @@ export default function PlanScaleContainer({
     isBreakTime: boolean) => {
     event.preventDefault();
     // setIsDragging(false); // Завершаем перетаскивание
-   
+
     // load: UnitLoadItem,date:string,timeStart:number
     if (draggingLoad) {
-        
+
       // отправляю лоад, и куда переместить -> юнит, день и время старта
-      pinLoadHandler(draggingLoad, toUnitView, calendarItem.date.toLocaleDateString("en-CA"), (i * 5), (i * 5) + 5)
+      moveLoadHandler(draggingLoad, toUnitView, calendarItem.date.toLocaleDateString("en-CA"), (i * 5), (i * 5) + 5)
       // console.log(draggingLoad);
     }
     // setDraggbleElemId("");
@@ -499,6 +501,8 @@ export default function PlanScaleContainer({
 
   };
 
+
+  //// ШКАЛА
   // Для перетаскивания  шкалы 
   const handleMouseDownScale = (e: React.MouseEvent) => {
     // Нажата правая кнопка мыши 2 - тащим шкалу
@@ -656,8 +660,9 @@ export default function PlanScaleContainer({
               handleMouseUpOper={handleMouseUpOper}
               handleRightClickMenu={handleRightClickMenu}
               index={index}
-              pinLoadHandler ={pinLoadHandler}
-              unPinLoadHandler ={unPinLoadHandler}
+              moveLoadHandler={moveLoadHandler}
+              pinLoadHandler={pinLoadHandler}
+              unPinLoadHandler={unPinLoadHandler}
             />
           })
 
@@ -708,7 +713,7 @@ export default function PlanScaleContainer({
               // isOuterStart={true}
               // isOuterFinish={false}
               stopCloseMenu={(idc) => { stopCloseMenu = idc }}
-              pinLoadHandler={pinLoadHandler}
+              moveLoadHandler={moveLoadHandler}
             />
 
 
@@ -801,11 +806,11 @@ export default function PlanScaleContainer({
       </div>
     )
   });
-   const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
+  const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
   let linesPlusReactNodes = linesPlus.map((elem) => {
     return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefPlus.current} />
   })
-   const linesMinus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
+  const linesMinus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
   let linesMinusReactNodes = linesMinus.map((elem) => {
     return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefMinus.current} />
   })

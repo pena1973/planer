@@ -2,8 +2,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
-import { planTCard } from './handlers-plan';  // планирование карты
-import { getTCard, getTCardMatOper, getCompanyShedule, getExceptions } from './handlers-get';  // 
+import {  } from './handlers-plan';  // планирование карты
+import { getTCard,  getCompanyShedule, getExceptions } from './handlers-get';  // 
 
 
 import { Repository, In } from 'typeorm';
@@ -52,58 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { userId, companyId, tcardId, today } = req.query;
 
     switch (req.method) {
-      // ПРЕДВАРИТЕЛЬНОЕ ПЛАНИРОВАНИЕ
-      case 'GET':
-        // получаем карту из базы  по id  со всеми параметрами    
-        // let tCard1 = {} as TCardItem;
-
-        let tCard_ = await getTCard(Number(tcardId), tCardRepository)
-        if (!tCard_) {
-          res.status(200).json({ success: false, error: "Карта с таким номером не найдена" });
-          return
-        }
-
-        let { tCardMaterials, tCardOperations } = await getTCardMatOper(
-          Number(tcardId), tCardOperationsRepository, tCardProductRepository)
-
-        tCard_.tCardMaterials = [...tCardMaterials] as TCardProductItem[];
-        tCard_.tCardOperations = [...tCardOperations] as TCardOperationItem[]
-
-        // запросим юниты
-        const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
-
-        // запросим расписание компании
-        const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
-
-        //  получим загрузку юнитов  до планирования новой карты         
-        const unitLoadItems = await getUnitLoads(units_, unitLoadRepository)
-
-        //  получим исключения рабочего времени юнитов         
-        const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
-
-
-        // Планируем карту
-        let resultPlaning = planTCard(tCard_, units_, shedule_, unitLoadItems, exceptionItems, today as string)
-        //  Если не удалось запланировать
-        if (!resultPlaning.success) {
-          res.status(200).json({
-            success: false,
-            unitsLoads: unitLoadItems,
-            message: resultPlaning.message,
-          });
-          break;
-        }
-
-
-        // Отправляем ответ с данными  в базе их нет это только драфт
-        res.status(200).json({
-          success: true,
-          unitsLoads: resultPlaning.loads,
-          messsage: resultPlaning.message,
-        });
-        break;
-
-      // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
+       // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
       case 'POST':
         const { unitLoads, tCard } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
 

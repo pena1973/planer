@@ -186,6 +186,7 @@ export async function getUnitLoads(
   return unitLoadItems;
 }
 
+
 // только шапка
 export async function getTCard(
   tcardId: number,
@@ -365,75 +366,75 @@ export async function getTCardFull(
 }
 
 
-export async function getTCardMatOper(
-  tcardId: number,
-  tCardOperationsRepository: Repository<TCardOperationTable>,
-  tCardProductRepository: Repository<TCardProductTable>,
-): Promise<{ tCardMaterials: TCardProductItem[], tCardOperations: TCardOperationItem[] }> {
+// export async function getTCardMatOper(
+//   tcardId: number,
+//   tCardOperationsRepository: Repository<TCardOperationTable>,
+//   tCardProductRepository: Repository<TCardProductTable>,
+// ): Promise<{ tCardMaterials: TCardProductItem[], tCardOperations: TCardOperationItem[] }> {
 
-  // Получаем связанные данные: стадию, операции, продукты, отходы и материалы
-  const tCardOperationstab = await tCardOperationsRepository.find({ where: { tcard_id: tcardId } });
-  const tCardProductstab = await tCardProductRepository.find({ where: { tcard_id: tcardId } });
+//   // Получаем связанные данные: стадию, операции, продукты, отходы и материалы
+//   const tCardOperationstab = await tCardOperationsRepository.find({ where: { tcard_id: tcardId } });
+//   const tCardProductstab = await tCardProductRepository.find({ where: { tcard_id: tcardId } });
 
-  // Преобразуем материалы
-  const tCardMaterialsg_ = tCardProductstab
-    .filter(product => product.type === TypeEnum.M)
-    .map(product => {
-      return {
-        id: product.id,
-        idc: product.idc,
-        codeS: product.code_s,  // Используем code_s вместо codeS
-        title: product.title,
-        qtu: product.qtu,
-        uom: product.uom,  // Преобразуем UOMsTable в UOMItem
-      };
-    });
-
-
-  // Преобразуем операции
-  const tCardOperationsg_ = tCardOperationstab
-    .map(oper => {
-      const inn = tCardProductstab
-        .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
-        .map(product => {
-          return {
-            id: product.id,
-            idc: product.idc,
-            codeS: product.code_s,
-            title: product.title,
-            qtu: product.qtu,
-            uom: product.uom,
-          };
-        });
-
-      const out = tCardProductstab
-        .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
-        .map(product => {
-          return {
-            id: product.id,
-            idc: product.idc,
-            codeS: product.code_s,
-            title: product.title,
-            qtu: product.qtu,
-            uom: product.uom,  // Преобразуем UOMsTable в UOMItem
-          };
-        });
-
-      return {
-        id: oper.id,
-        idc: oper.idc,
-        stage: {} as TCardStageItem, //  Это чисто для визуала и для расчетов не нужно
-        out: out,
-        inn: inn,
-        action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible },
-        duration: oper.duration, // в милисекундах   
-        status: oper.status,
-      };
-    });
+//   // Преобразуем материалы
+//   const tCardMaterialsg_ = tCardProductstab
+//     .filter(product => product.type === TypeEnum.M)
+//     .map(product => {
+//       return {
+//         id: product.id,
+//         idc: product.idc,
+//         codeS: product.code_s,  // Используем code_s вместо codeS
+//         title: product.title,
+//         qtu: product.qtu,
+//         uom: product.uom,  // Преобразуем UOMsTable в UOMItem
+//       };
+//     });
 
 
-  return { tCardMaterials: tCardMaterialsg_, tCardOperations: tCardOperationsg_ }
-}
+//   // Преобразуем операции
+//   const tCardOperationsg_ = tCardOperationstab
+//     .map(oper => {
+//       const inn = tCardProductstab
+//         .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
+//         .map(product => {
+//           return {
+//             id: product.id,
+//             idc: product.idc,
+//             codeS: product.code_s,
+//             title: product.title,
+//             qtu: product.qtu,
+//             uom: product.uom,
+//           };
+//         });
+
+//       const out = tCardProductstab
+//         .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
+//         .map(product => {
+//           return {
+//             id: product.id,
+//             idc: product.idc,
+//             codeS: product.code_s,
+//             title: product.title,
+//             qtu: product.qtu,
+//             uom: product.uom,  // Преобразуем UOMsTable в UOMItem
+//           };
+//         });
+
+//       return {
+//         id: oper.id,
+//         idc: oper.idc,
+//         stage: {} as TCardStageItem, //  Это чисто для визуала и для расчетов не нужно
+//         out: out,
+//         inn: inn,
+//         action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible },
+//         duration: oper.duration, // в милисекундах   
+//         status: oper.status,
+//       };
+//     });
+
+
+//   return { tCardMaterials: tCardMaterialsg_, tCardOperations: tCardOperationsg_ }
+// }
 
 export async function getExceptions(
   companyId: number,
@@ -540,4 +541,40 @@ export async function getSettings(
 
 
   return settings;
+}
+// только шапка
+export async function getTCardOperation(
+  operId: number,
+  tCardOperationsRepository: Repository<TCardOperationTable>
+): Promise<TCardOperationItem | undefined> {
+  // Строим фильтр для поиска по id карты
+  const filter: any = {};
+
+  if (operId) {
+    filter.id = operId;
+  }
+
+  // Получаем карту по id
+  const tCardOpertab = await tCardOperationsRepository.findOne({
+    where: filter,  // Применяем фильтр к запросу
+    relations: ['stage','action'],  // Указываем связанные таблицы (если необходимо)
+  });
+
+  // Проверяем, что карта существует
+  if (!tCardOpertab) return undefined;
+
+  // Преобразуем операцию карты    
+  return {
+
+    id: tCardOpertab.id,
+    idc: tCardOpertab.idc, 
+    stage: tCardOpertab.stage,
+    out: [],
+    inn: [],
+    action: tCardOpertab.action,
+    duration: tCardOpertab.duration,
+    
+    status:tCardOpertab.status,
+  };
+
 }

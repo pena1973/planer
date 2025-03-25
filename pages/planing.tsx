@@ -83,7 +83,7 @@ export default function Planing() {
     // Фильтруем загрузку по карте  и все что драфт и сохраняем  
     let tCardLoads = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === 'draft') })
     try {
-      const res = await fetch(`/api/preplan-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`/api/save-cardloads-api?userId=${1}&companyId=${1}`,
         {
           method: 'post',
           headers: new Headers({
@@ -253,20 +253,18 @@ export default function Planing() {
 
   }
 
-  // Прикрепление лоада на шкале   возвращает измененное планирование карты
-  const pinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number) => {
+  // перетаскивание лоада на шкале  возвращает измененное планирование карты
+  const moveLoadHandler = async (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => {
 
     let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
     let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
     //  перетаскивать лоады можем только на этапе prepared
     if (load) {
-      if (load.status === StatusEnum.prepared) {
-        //  проверяем если внешний - другая обработка - два лоада один точка старта, второй точка готовности
-        //  два состояния  -  запланирован и готов с датами - устанавливается вручную
+      if (load.status === StatusEnum.prepared) {      
         // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
         // проверяем согласованность предыдущих и перепланируем последующие
         try {
-          const res = await fetch(`/api/pinload-api?userId=${1}&companyId=${1}`,
+          const res = await fetch(`/api/pre-moveload-api?userId=${1}&companyId=${1}`,
             {
               method: 'post',
               headers: new Headers({
@@ -275,12 +273,12 @@ export default function Planing() {
               }),
               body: JSON.stringify({
                 pinnedLoad: load,
-                loads: tCardLoads,
-                unit:unit,
+                tCardLoads: tCardLoads,
+                unit: unit,
                 date: date,
                 timeStart: timeStart,
                 timeFinish: timeFinish,
-                today: today.toLocaleDateString("en-CA")                               
+                today: today.toLocaleDateString("en-CA")
               }),
             }
           );
@@ -292,10 +290,10 @@ export default function Planing() {
             // setMessage(t('service.serverUnavailable') + res.status);
           } else {
             const receivedData = await res.json();
-            let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
-            let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
-            dispatch(setUnitLoads(updatedLoads));
             if (receivedData.success) {
+              let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+              let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+              dispatch(setUnitLoads(updatedLoads));
               setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
             } else {
               setMessage(receivedData.message);
@@ -308,60 +306,66 @@ export default function Planing() {
     }
   }
 
-// Прикрепление лоада на шкале   возвращает измененное планирование карты
-const unPinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number) => {
+  // Прикрепление лоада на шкале   возвращает измененное планирование карты
+  const pinLoadHandler = async (oper_id: number) => {
 
-  let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
-  let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
-  //  перетаскивать лоады можем только на этапе prepared
-  if (load) {
-    if (load.status === StatusEnum.prepared) {
-      //  проверяем если внешний - другая обработка - два лоада один точка старта, второй точка готовности
-      //  два состояния  -  запланирован и готов с датами - устанавливается вручную
-      // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
-      // проверяем согласованность предыдущих и перепланируем последующие
-      try {
-        const res = await fetch(`/api/unpinload-api?userId=${1}&companyId=${1}`,
-          {
-            method: 'post',
-            headers: new Headers({
-              // 'Authorization': 'Basic ' + token,
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify({
-              pinnedLoad: load,
-              loads: tCardLoads,
-              unit:unit,
-              date: date,
-              timeStart: timeStart,
-              timeFinish: timeFinish,
-              today: today.toLocaleDateString("en-CA")                               
-            }),
-          }
-        );
-
-        if (res.status !== 200) {
-          const receivedData = await res.json();
-          let error = receivedData.error;
-          setMessage(error);
-          // setMessage(t('service.serverUnavailable') + res.status);
-        } else {
-          const receivedData = await res.json();
-          let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
-          let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
-          dispatch(setUnitLoads(updatedLoads));
-          if (receivedData.success) {
-            setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
-          } else {
-            setMessage(receivedData.message);
-          }
-        }
-      } catch (e: any) {
-        // setMessage(t('service.noConnection') + e.message)            
-      }
-    }
+    let tCardLoads_ = unitLoads.map(load => {
+      return(load.id_oper === oper_id)?{...load,isPinned:true}:load})    
+    dispatch(setUnitLoads(tCardLoads_))
   }
-}
+
+  // Прикрепление лоада на шкале   возвращает измененное планирование карты
+  const unPinLoadHandler = async (operId: number,tCardId:number) => {
+    
+    // let tCardLoads_ = unitLoads.map(load => {
+    //   return(load.id_oper === oper_id)?{...load,isPinned:false}:load})    
+    // dispatch(setUnitLoads(tCardLoads_))
+    
+    //  последующее перепланирование
+    let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
+    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
+    //  перетаскивать лоады можем только на этапе prepared
+    
+      
+        // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
+        // проверяем согласованность предыдущих и перепланируем последующие
+        try {
+          const res = await fetch(`/api/pre-unpinload-api?userId=${1}&companyId=${1}`,
+            {
+              method: 'post',
+              headers: new Headers({
+                // 'Authorization': 'Basic ' + token,
+                'Content-Type': 'application/json'
+              }),
+              body: JSON.stringify({
+                tCardId: tCardId,
+                operId: operId,
+                tCardLoads: tCardLoads,               
+                today: today.toLocaleDateString("en-CA")
+              }),
+            }
+          );
+
+          if (res.status !== 200) {
+            const receivedData = await res.json();
+            let error = receivedData.error;
+            setMessage(error);
+            // setMessage(t('service.serverUnavailable') + res.status);
+          } else {
+            const receivedData = await res.json();
+            if (receivedData.success) {
+              let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+              let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+              dispatch(setUnitLoads(updatedLoads));
+              setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
+            } else {
+              setMessage(receivedData.message);
+            }
+          }
+        } catch (e: any) {
+          // setMessage(t('service.noConnection') + e.message)            
+        }       
+  }
 
 
   // Изменение длительности лоада для сторонних юнитов Контекстное меню
@@ -369,114 +373,114 @@ const unPinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,tim
 
   }
 
-  // запрос Юниты
+  // // запрос Юниты
 
-  const getUnits = async () => {
-    // Загружаем классификатор действий
-    try {
-      const res = await fetch(`api/units-api?userId=${1}&companyId=${1}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        let error = receivedData.error;
-        setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+  // const getUnits = async () => {
+  //   // Загружаем классификатор действий
+  //   try {
+  //     const res = await fetch(`api/units-api?userId=${1}&companyId=${1}`,
+  //       {
+  //         method: 'get',
+  //         headers: new Headers({
+  //           // 'Authorization': 'Basic ' + token,
+  //           'Content-Type': 'application/json'
+  //         }),
+  //       }
+  //     );
+  //     if (res.status !== 200) {
+  //       const receivedData = await res.json();
+  //       let error = receivedData.error;
+  //       setMessage(error);
+  //       //  console.log(t('service.serverUnavailable') + res.status);
+  //       // setMessage(t('service.serverUnavailable') + res.status);
 
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          let units_ = receivedData.units as UnitItem[]
-          dispatch(setUnits(units_)); // Это ме надо?
+  //     } else {
+  //       const receivedData = await res.json();
+  //       if (receivedData.success) {
+  //         let units_ = receivedData.units as UnitItem[]
+  //         dispatch(setUnits(units_)); // Это ме надо?
 
-        }
-        else setMessage(receivedData.error);
-      }
-    } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
-    }
+  //       }
+  //       else setMessage(receivedData.error);
+  //     }
+  //   } catch (e: any) {
+  //     // setMessage(t('service.noConnection') + e.message)            
+  //   }
 
-  }
-  const getUnutsExceptions = async () => {
-    // Загружаем классификатор действий
-    try {
-      const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        let error = receivedData.error;
-        setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+  // }
+  // const getUnutsExceptions = async () => {
+  //   // Загружаем классификатор действий
+  //   try {
+  //     const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
+  //       {
+  //         method: 'get',
+  //         headers: new Headers({
+  //           // 'Authorization': 'Basic ' + token,
+  //           'Content-Type': 'application/json'
+  //         }),
+  //       }
+  //     );
+  //     if (res.status !== 200) {
+  //       const receivedData = await res.json();
+  //       let error = receivedData.error;
+  //       setMessage(error);
+  //       //  console.log(t('service.serverUnavailable') + res.status);
+  //       // setMessage(t('service.serverUnavailable') + res.status);
 
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          let exceptions = receivedData.exceptions as UnitExceptionItem[]
-          dispatch(setUnitExceptions(exceptions));
-        }
-        else setMessage(receivedData.error);
-      }
-    } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
-    }
+  //     } else {
+  //       const receivedData = await res.json();
+  //       if (receivedData.success) {
+  //         let exceptions = receivedData.exceptions as UnitExceptionItem[]
+  //         dispatch(setUnitExceptions(exceptions));
+  //       }
+  //       else setMessage(receivedData.error);
+  //     }
+  //   } catch (e: any) {
+  //     // setMessage(t('service.noConnection') + e.message)            
+  //   }
 
-  }
-  // запрос Загрузки
-  const getUnutsLoads = async () => {
+  // }
+  // // запрос Загрузки
+  // const getUnutsLoads = async () => {
 
-    try {
-      const res = await fetch(`/api/load-api?userId=${1}&companyId=${1}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        let error = receivedData.error;
-        setMessage(error);
-        // setMessage(t('service.serverUnavailable') + res.status);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)        
-        if (receivedData.success) {
-          //  массив юнитов с загрузками
+  //   try {
+  //     const res = await fetch(`/api/load-api?userId=${1}&companyId=${1}`,
+  //       {
+  //         method: 'get',
+  //         headers: new Headers({
+  //           // 'Authorization': 'Basic ' + token,
+  //           'Content-Type': 'application/json'
+  //         }),
+  //       }
+  //     );
+  //     if (res.status !== 200) {
+  //       const receivedData = await res.json();
+  //       let error = receivedData.error;
+  //       setMessage(error);
+  //       // setMessage(t('service.serverUnavailable') + res.status);
+  //     } else {
+  //       const receivedData = await res.json();
+  //       // console.log("receivedData", receivedData)        
+  //       if (receivedData.success) {
+  //         //  массив юнитов с загрузками
 
-          let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
-
-
-          dispatch(setUnitLoads(unitsLoads));
-          // setMessage("Карты успешно получены");
-        }
-      }
-    } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
-    }
+  //         let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
 
 
-    // }
+  //         dispatch(setUnitLoads(unitsLoads));
+  //         // setMessage("Карты успешно получены");
+  //       }
+  //     }
+  //   } catch (e: any) {
+  //     // setMessage(t('service.noConnection') + e.message)            
+  //   }
 
-    // // Обновим сообщение для пользователя
-    // setMessage(`Элемент с id: ${itemId} был перемещен`);
-  };
+
+  //   // }
+
+  //   // // Обновим сообщение для пользователя
+  //   // setMessage(`Элемент с id: ${itemId} был перемещен`);
+  // };
 
   // Начальный загруз
   useEffect(() => {
@@ -524,8 +528,11 @@ const unPinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,tim
     setIsDragging(false); // Завершаем перетаскивание     
     //!!!!!!!!!! отправляем на сервер  карту  и там планируем
     //  в базу пока не пишем это предварительный расчет
+    // let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
+    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
+
     try {
-      const res = await fetch(`/api/preplan-api?userId=${1}&companyId=${1}&tcardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
+      const res = await fetch(`/api/pre-fullcardplan-api?userId=${1}&companyId=${1}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
         {
           method: 'get',
           headers: new Headers({
@@ -541,8 +548,10 @@ const unPinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,tim
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
-        let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
-        dispatch(setUnitLoads(unitsLoads));
+        
+        let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+        let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+        dispatch(setUnitLoads(updatedLoads));       
         if (receivedData.success) {
           setMessage("Карта успешно предварительно запланирована НО НЕЗАПИСАНА! Если все в порядке ЗАПИШИ!");
         } else {
@@ -670,6 +679,7 @@ const unPinLoadHandler = async (load: UnitLoadItem,unit:UnitItem,date:string,tim
             unitExceptions={unitExceptions}
             erazLoadHandler={erazLoadHandler}
             changeDurationLoadHandler={changeDurationLoadHandler}
+            moveLoadHandler={moveLoadHandler}
             pinLoadHandler={pinLoadHandler}
             unPinLoadHandler={unPinLoadHandler}
 

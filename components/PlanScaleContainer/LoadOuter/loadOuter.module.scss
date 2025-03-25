@@ -85,7 +85,7 @@
 .triangleRight {
   position: absolute;
   top: 62%; /* можно скорректировать для вертикального центрирования */
-  right: -17px;  /* отступ справа */
+  left: 16px;  /* отступ справа */
   transform: translateY(-50%);
   width: 0;
   height: 0;

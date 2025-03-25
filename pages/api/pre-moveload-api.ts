@@ -1,11 +1,10 @@
-
+// Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getTCardFull, getUnits, getCompanyShedule, getUnitLoads, getExceptions } from './handlers-get';  // 
-import { getPreviousOpers, getFinishOperations, getLaterDateTime, planTCardFromOper, planOperOnUnit } from './handlers-plan';  // 
-
-
-import { Repository, In } from 'typeorm';
+import {planTCardFromOperINC, planOperOnUnit,
+  getDependentOperationsIds, getOperationReadyMoment
+} from './handlers-plan';  // 
 
 import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions';
@@ -20,16 +19,12 @@ import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 
 
 import {
-  UnitItem,
-  UnitActionItem, TCardProductItem, TCardOperationItem,
-  TCardItem, UnitLoadItem,
-  UnitBelongEnum, UnitTypeEnum,
-  CalendarItem, TimeTypeEnum, StatusEnum
-} from "@/types";
+  UnitItem,UnitLoadItem,
+  UnitBelongEnum,} from "@/types";
 
 interface RequestBody {
   pinnedLoad: UnitLoadItem,
-  loads: UnitLoadItem[], // лоады по карте
+  tCardLoads: UnitLoadItem[], // лоады по карте
   unit: UnitItem,  // Юнит куда перемещаем
   date: string,    // Дата куда перемещаем
   timeStart: number //  время куда перемещаем  
@@ -56,38 +51,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     switch (req.method) {
 
-      // ПЕРЕПЛАНИРОВАНИЕ
+      // ПЕРЕПЛАНИРОВАНИЕ по перемещению лоада
       case 'POST':
-        const { pinnedLoad, loads, unit, date, timeStart, timeFinish, today } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const { pinnedLoad, tCardLoads, unit, date, timeStart, timeFinish, today } = req.body as RequestBody;
         // loads-Это все загрузки по карте которую перепланируем
-        if (loads.length === 0) {
+        if (tCardLoads.length === 0) {
           // должно быть хотябы один лоад при перемешении
           // Если нет загрузок, можно вернуть пустой результат или обработать ошибку
           res.status(200).json({
             success: false,
-            cardLoads: loads,
+            cardLoads: tCardLoads,
             message: "Ошибка, не передано загрузок по карте",
           });
           return;
         }
-        // Формируем массив по карте без лоадов этой операции
-        let cardLoads = loads.filter(load => load.id_oper !== pinnedLoad.id_oper);
-        // выбираем все лоады по этой операции
-        let operloads = loads.filter(load => load.id_oper === pinnedLoad.id_oper);
-        // сортируем по возрастанию
-        operloads.sort((a, b) =>
-          a.date.localeCompare(b.date) || a.timeStart - b.timeStart
-        );
-
-        let loadStart = operloads[0];
-        let loadFinish = operloads[operloads.length - 1];
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard = await getTCardFull(pinnedLoad.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository)
         if (!tCard) {
           res.status(200).json({
             success: false,
-            unitsLoads: loads,
+            tCardLoads: tCardLoads,
             message: "Карта не найдена",
           });
           return
@@ -98,121 +82,127 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!oper) {
           res.status(200).json({
             success: false,
-            unitsLoads: loads,
+            tCardLoads: tCardLoads,
             message: `Операция ${pinnedLoad.idc_oper} по карте С-${tCard.number} не найдена `,
           });
           return
 
         }
+
+        //  получаем список операций которые зависимы от нашей  -  их будем перепланировать
+        let dependentOperationsIds = getDependentOperationsIds(tCard, oper);
+        // Формируем массив по карте без лоадов этой операции и зависимых от нее
+        let cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
+          !(load.id_oper === oper.id || dependentOperationsIds.includes(load.id_oper as number))
+        );
+
+        // сортируем по возрастанию
+        cardLoadsWithoutOperEndDep.sort((a, b) =>
+          a.date.localeCompare(b.date) || a.timeStart - b.timeStart
+        );
+
+        let planedCardLoads = [...cardLoadsWithoutOperEndDep];
+
+        // получаем момент готовности входящих запчастей и не раньше сегодня  и не раньше входящего старта
+        let readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperEndDep, date, timeStart, today)
+
+        if (!readySourceMoment) {
+          res.status(200).json({
+            success: false,
+            tCardLoads: tCardLoads,
+            message: " На момент выполнения операции не готовы входящие источники С-" + tCard.number,
+          });
+          return
+        }
+
         // если цель перетаскивания это внешний юнит смотрим начальный или конечный лоад операции
+        // операция на внешнем юните имеет только два лоада стартовый и финишный и не имеет ретула
+        // продолжительность не зависит от duration а это чисто договоренность с исполнителем
         if (unit.belong === UnitBelongEnum.outer) {
 
-          // 1. если перетаскиваем с внутреннего на внешний
+          // 1. если перетаскиваем на внешний
+          //   то старт и финиш операции не меняем  и считываем как был из старых лоадов
+          let operloads = tCardLoads.filter(load => load.id_oper === pinnedLoad.id_oper);
+          // сортируем по возрастанию
+          operloads.sort((a, b) =>
+            a.date.localeCompare(b.date) || a.timeStart - b.timeStart
+          );
+          let loadStart = operloads[0];
+          let loadFinish = operloads[operloads.length - 1];
+
+          //  с внутреннего
           if (pinnedLoad.unit.belong === UnitBelongEnum.inner) {
-            let previousOpersIdcs = getPreviousOpers(oper, tCard);
-            if (!previousOpersIdcs) {
-              res.status(200).json({
-                success: false,
-                unitsLoads: loads,
-                message: "Источник и результат карты не согласован С-" + tCard.number,
-              });
-              return
-            }
-            const timeStartRes = getFinishOperations(previousOpersIdcs, loads, date);
-            if (!timeStartRes) {
-              res.status(200).json({
-                success: false,
-                unitsLoads: loads,
-                message: "Источник и результат карты не согласован С-" + tCard.number,
-              });
-              return
-            }
-            //  момент возможного выполнения операции (закончены все предыдущие)         
-            const correctRes = getLaterDateTime(timeStartRes, { date: date, time: timeStart });
 
             // Формируем стартовый лоад и добавляем в лоады карты
-            cardLoads.push(
+            planedCardLoads.push(
               {
                 ...loadStart,
                 unit: unit,
                 isRetool: false,
-                date: correctRes.date,
-                timeStart: correctRes.time,
-                timeFinish: correctRes.time + 5,
+                date: readySourceMoment.date,
+                timeStart: readySourceMoment.time,
+                timeFinish: readySourceMoment.time + 5,
                 isPinned: true,
                 isOuterStart: true,
                 loadInfo: (loadStart.loadInfo) ? { ...loadStart.loadInfo, koef: 1 } : undefined
               })
 
-            //  момент завершения операции оставляем тот же            
-            const timeFihishRes = getLastLoadFinish(operloads)
-            if (!timeFihishRes) {
-              res.status(200).json({
-                success: false,
-                unitsLoads: loads,
-                message: "Источник и результат карты не согласован С-" + tCard.number,
-              });
-              return
-            }
-
             // Формируем финишный лоад 
-            cardLoads.push(
+            planedCardLoads.push(
               {
                 ...loadFinish,
                 unit: unit,
                 isRetool: false,
-                date: timeFihishRes.date,
-                timeStart: timeFihishRes.time - 5,
-                timeFinish: timeFihishRes.time,
+                date: loadFinish.date,
+                timeStart: loadFinish.timeFinish - 5,
+                timeFinish: loadFinish.timeFinish,
                 isPinned: true,
                 isOuterFinish: true,
                 loadInfo: (loadFinish.loadInfo) ? { ...loadFinish.loadInfo, koef: 1 } : undefined
               })
             //
-            // перепланируем зависимые
-            // Далее перепланируем начиная с последующих операций
-
+            // перепланируем зависимые лоады
             // запросим юниты
             const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
 
             // запросим расписание компании
             const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
 
+            //  получим исключения рабочего времени юнитов         
+            const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
+
             //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
             const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
             //  уберем из нее лоады нашей карты
             let unitLoadItemsFull = unitLoadItemsBD.filter(lo => pinnedLoad.id_tCard !== lo.id)
-            //  и добавим скорректированную
-            unitLoadItemsFull = [...unitLoadItemsFull, ...cardLoads];
-
-            //  получим исключения рабочего времени юнитов         
-            const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
+            //  и добавим часть лоадов ко торые не меняются + наш перетащенный
+            unitLoadItemsFull = [...unitLoadItemsFull, ...planedCardLoads];
 
 
-            // Планируем карту начиная с нашей операции 
-            let resultPlaning = planTCardFromOper(oper, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
+            // Планируем зависимые операции
+            let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
             //  Если не удалось запланировать
-            if (!resultPlaning.success) {
+            if (!resultPlaningNextOper.success) {
               res.status(200).json({
                 success: false,
-                unitsLoads: cardLoads,
-                message: resultPlaning.message,
+                tCardLoads: tCardLoads,
+                message: resultPlaningNextOper.message,
               });
               break;
             }
-            cardLoads = resultPlaning.loads.filter(lo => lo.id_tCard === tCard.id)
-
+            planedCardLoads = [...planedCardLoads, ...resultPlaningNextOper.planedCardLoads]
+            
           }
 
           // 2. перетаскиваем с внешнего на внешний и если корректируемый лоад уже стартовый 
           if ((pinnedLoad.isOuterStart && pinnedLoad.unit.belong === UnitBelongEnum.outer)) {
 
             // проверяем чтобы начало не было позже хваста операции
-            let finishLoad = loads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterFinish);
+            let finishLoad = tCardLoads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterFinish);
             if (!finishLoad) {
               res.status(200).json({
                 success: false,
-                unitsLoads: loads,
+                tCardLoads: tCardLoads,
                 message: "Не найден лоад окончания операции С-" + tCard.number,
               });
               return
@@ -221,60 +211,61 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (finishLoad.date < date || finishLoad.date === date && finishLoad.timeFinish < timeStart) {
               res.status(200).json({
                 success: false,
-                unitsLoads: loads,
+                tCardLoads: tCardLoads,
                 message: "Нельзя начало операции сделать позже окончания операции С-" + tCard.number,
               });
               return
             }
 
-            // ищем дату время с которой операция может стартовать операция исходя из готовности запчастей  
-            let previousOpersIdcs = getPreviousOpers(oper, tCard);
-            if (!previousOpersIdcs) {
-              res.status(200).json({
-                success: false,
-                unitsLoads: loads,
-                message: "Источник и результат карты не согласован С-" + tCard.number,
-              });
-              return
-            }
-            const timeRes = getFinishOperations(previousOpersIdcs, loads, date);
-            if (!timeRes) {
-              res.status(200).json({
-                success: false,
-                unitsLoads: loads,
-                message: "Источник и результат карты не согласован С-" + tCard.number,
-              });
-              return
-            }
-            //  момент возможного выполнения операции (закончены все предыдущие)         
-            const correctRes = getLaterDateTime(timeRes, { date: date, time: timeStart });
+            // // ищем дату время с которой операция может стартовать операция исходя из готовности запчастей  
+            // let previousOpersIdcs = getPreviousOpers(oper, tCard);
+            // if (!previousOpersIdcs) {
+            //   res.status(200).json({
+            //     success: false,
+            //     unitsLoads: loads,
+            //     message: "Источник и результат карты не согласован С-" + tCard.number,
+            //   });
+            //   return
+            // }
+            // const timeRes = getFinishOperations(previousOpersIdcs, loads, date);
+            // if (!timeRes) {
+            //   res.status(200).json({
+            //     success: false,
+            //     unitsLoads: loads,
+            //     message: "Источник и результат карты не согласован С-" + tCard.number,
+            //   });
+            //   return
+            // }
+            // //  момент возможного выполнения операции (закончены все предыдущие)         
+            // const correctRes = getLaterDateTime(timeRes, { date: date, time: timeStart });
 
             // Формируем стартовый лоад 
-            cardLoads.push(
+            planedCardLoads.push(
               {
                 ...loadStart,
                 unit: unit,
                 isRetool: false,
-                date: correctRes.date,
-                timeStart: correctRes.time,
-                timeFinish: correctRes.time + 5,
+                date: readySourceMoment.date,
+                timeStart: readySourceMoment.time,
+                timeFinish: readySourceMoment.time + 5,
                 isPinned: true,
                 isOuterStart: true,
                 loadInfo: (loadStart.loadInfo) ? { ...loadStart.loadInfo, koef: 1 } : undefined
               })
             //  финишный оставляю как есть            
-            cardLoads.push(loadFinish);
+            planedCardLoads.push(loadFinish);
           }
+
 
           // 3. перетаскиваем с внешнего на внешний и если корректируемый лоад уже финишный
           if ((pinnedLoad.isOuterFinish && pinnedLoad.unit.belong === UnitBelongEnum.outer)) {
 
             // проверяем чтобы начало не было позже хваста операции
-            let startLoad = loads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterStart);
+            let startLoad = tCardLoads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterStart);
             if (!startLoad) {
               res.status(200).json({
                 success: false,
-                unitsLoads: loads,
+                tCardLoads: tCardLoads,
                 message: "Не найден лоад начала операции С-" + tCard.number,
               });
               return
@@ -283,16 +274,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (startLoad.date > date || startLoad.date === date && startLoad.timeStart > timeStart) {
               res.status(200).json({
                 success: false,
-                unitsLoads: loads,
+                tCardLoads: tCardLoads,
                 message: "Нельзя начало операции сделать позже окончания операции С-" + tCard.number,
               });
               return
             }
 
             //  стартовый оставляю как есть            
-            cardLoads.push(loadStart);
+            planedCardLoads.push(loadStart);
             //  финишный меняю дату время 
-            cardLoads.push(
+            planedCardLoads.push(
               {
                 ...loadFinish,
                 date: date,
@@ -312,29 +303,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // запросим расписание компании
             const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
-
+            //  получим исключения рабочего времени юнитов         
+            const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
             //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
             const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
             //  уберем из нее лоады нашей карты
             let unitLoadItemsFull = unitLoadItemsBD.filter(lo => pinnedLoad.id_tCard !== lo.id)
-            //  и добавим скорректированные лоады карты
-            unitLoadItemsFull = [...unitLoadItemsFull, ...cardLoads];
+            //  и добавим часть лоадов ко торые не меняются + наш перетащенный
+            unitLoadItemsFull = [...unitLoadItemsFull, ...planedCardLoads];
 
-            //  получим исключения рабочего времени юнитов         
-            const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
 
-            // Планируем карту начиная с нашей операции (сама операция при этом еще пропускается)
-            let resultPlaning = planTCardFromOper(oper, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
+            // Планируем карту начиная с нашей операции исключая ее саму
+            let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
             //  Если не удалось запланировать
-            if (!resultPlaning.success) {
+            if (!resultPlaningNextOper.success) {
               res.status(200).json({
                 success: false,
-                unitsLoads: cardLoads,
-                message: resultPlaning.message,
+                tCardLoads: tCardLoads,
+                message: resultPlaningNextOper.message,
               });
               break;
             }
-            cardLoads = resultPlaning.loads.filter(lo => lo.id_tCard === tCard.id)
+            planedCardLoads = [...planedCardLoads,...resultPlaningNextOper.planedCardLoads]          
           }
         }
         // внутренний
@@ -344,35 +334,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!foundAction) {
             res.status(200).json({
               success: false,
-              unitsLoads: loads,
+              tCardLoads: tCardLoads,
               message: `Выбранный юнит ${unit.title} не сможет выполнить эту операцию ${oper.action.title}`,
             });
             return
           }
-
-          // определяем дату начиная с которой буждут готовы входящие запчасти операции
-          let previousOpersIdcs = getPreviousOpers(oper, tCard);
-          if (!previousOpersIdcs) {
-            res.status(200).json({
-              success: false,
-              unitsLoads: loads,
-              message: "Источник и результат карты не согласован С-" + tCard.number,
-            });
-            return
-          }
-          const timeStartRes = getFinishOperations(previousOpersIdcs, loads, date);
-          if (!timeStartRes) {
-            res.status(200).json({
-              success: false,
-              unitsLoads: loads,
-              message: "Источник и результат карты не согласован С-" + tCard.number,
-            });
-            return
-          }
-          //  момент возможного выполнения нашей перетаскиваемой операции (закончены все предыдущие)
-          //  и время на которое пользователем установлено выполнение  -  самое позднее         
-          const correctRes = getLaterDateTime(timeStartRes, { date: date, time: timeStart });
-
+        
           // запросим юниты
           const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
 
@@ -381,49 +348,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           //  получим исключения рабочего времени юнитов         
           const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
-
-          //  получим загрузку нашего юнита уже записанную в базе (планирован выполнен готов  и проч)
-          const unitLoadItemsBD = await getUnitLoads([unit], unitLoadRepository)
+          //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
+          const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
           //  уберем из нее лоады нашей карты
-          let unitLoadItemsFull = unitLoadItemsBD.filter(lo => pinnedLoad.id_tCard !== lo.id)
-          //  и добавим скорректированную
-          unitLoadItemsFull = [...unitLoadItemsFull, ...cardLoads];
+          let unitLoadItemsFull = unitLoadItemsBD.filter(lo => tCard.id !== lo.id)
+          //  и добавим  лоады без операций которые надо перепланировать
+          unitLoadItemsFull = [...unitLoadItemsFull, ...planedCardLoads];
 
-          // Планируем операцию на юните
-
-          let resultPlaningOper = planOperOnUnit(oper, tCard, unit, shedule_, unitLoadItemsFull, exceptionItems, today, correctRes.date, correctRes.time)
+          // Планируем нашу операцию на юните
+          let resultPlaningOper = planOperOnUnit(oper, tCard, unit, shedule_, unitLoadItemsFull, exceptionItems, today, readySourceMoment.date, readySourceMoment.time)
           //  Если не удалось запланировать
           if (!resultPlaningOper.success) {
             res.status(200).json({
               success: false,
-              unitsLoads: cardLoads,
+              tCardLoads: tCardLoads,
               message: resultPlaningOper.message,
             });
             break;
           }
-          // cardLoads = resultPlaningOper.loads.filter(lo => lo.id_tCard === tCard.id)
-          let operLoads = resultPlaningOper.loads.filter(lo => lo.id_tCard === tCard.id && lo.id_oper === oper.id)
-          unitLoadItemsFull = [...unitLoadItemsFull, ...operLoads];
+
+          // если операция спланировалась добавим ее лоады и  планируем все последующие операции
+          unitLoadItemsFull = [...unitLoadItemsFull, ... resultPlaningOper.operLoads];
+          planedCardLoads = [...planedCardLoads, ... resultPlaningOper.operLoads];
           // планируем все последующие операции  исключая пришпиленные
+        
           // Планируем карту начиная с нашей операции (есключая ее саму)
-          let resultPlaningNextOper = planTCardFromOper(oper, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
-           //  Если не удалось запланировать
-           if (!resultPlaningNextOper.success) {
-             res.status(200).json({
-               success: false,
-               unitsLoads: cardLoads,
-               message: resultPlaningNextOper.message,
-             });
-             break;
-           }
-            cardLoads = resultPlaningNextOper.loads.filter(lo => lo.id_tCard === tCard.id)
+          let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
+          //  Если не удалось запланировать
+          if (!resultPlaningNextOper.success) {
+            res.status(200).json({
+              success: false,
+              tCardLoads: tCardLoads,
+              message: resultPlaningNextOper.message,
+            });
+            break;
+          }
+          planedCardLoads = [...planedCardLoads,...resultPlaningNextOper.planedCardLoads]   
 
         }
 
         // отправляем ответ
         res.status(200).json({
           success: true,
-          unitsLoads: cardLoads,
+          tCardLoads: planedCardLoads,
           message: ""
         });
         break;
@@ -437,46 +404,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'Не удалось обработать запрос' + error });
   }
 }
-// ЗАГРУЗКИ ЮНИТОВ ПО КАРТЕ
-async function deleteLoads(
-  unitLoadRepository: Repository<UnitLoadTable>,
-  unitLoads: UnitLoadItem[],
-): Promise<{ success: boolean, message?: string }> {
 
-  const loadIds = unitLoads.map(load => load.id); // Получаем массив идентификаторов
 
-  if (loadIds.length === 0) return { success: true, message: "" }
-
-  const unitLoads_ = await unitLoadRepository.createQueryBuilder('unitLoad')
-    .andWhere('unitLoad.id IN (:...loadIds)', { loadIds }) // Фильтруем по unitIds
-    .getMany();
-
-  if (unitLoads_.length > 0) {
-    await unitLoadRepository.remove(unitLoads_);
-    console.log(`Удалено ${unitLoads_.length} операций`);
-  }
-
-  return { success: true, message: "" }
-}
-// ТКАРТА ОБНОВЛЯЮ СТАТУС
-// 
-async function updateStatusCard(
-  tCardRepository: Repository<TCardTable>,
-  tCard_id: number,
-  status: StatusEnum
-): Promise<{ success: boolean, message?: string }> {
-  const updateResult = await tCardRepository.update(tCard_id, { status });
-
-  // Проверяем, что обновление затронуло хотя бы одну запись
-  if (updateResult.affected && updateResult.affected > 0) {
-    console.log('Карта успешно обновлена с id:', tCard_id);
-    return { success: true };
-  } else {
-    const error = `Ошибка при обновлении карты (id) ${tCard_id}`;
-    console.error(error);
-    return { success: false, message: error };
-  }
-}
 
 function getLastLoadFinish(operloads: UnitLoadItem[]): { date: string; time: number } | undefined {
   if (operloads.length === 0) return undefined;

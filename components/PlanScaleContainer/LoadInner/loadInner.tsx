@@ -4,8 +4,9 @@ import ContexMenu from "./ContextMenu/contextMenu";
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
 
-import pinon from "@/public/pin_on2-rem.png";
-import pinof from "@/public/pin_off2-rem.png";
+import pinon from "@/public/pin_on-rem.png";
+import pinof from "@/public/pin_of-rem.png";
+
 
 export interface LoadProps {
     dayWidth: number,
@@ -22,8 +23,9 @@ export interface LoadProps {
     handleMouseUpOper: () => void,
     handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
     index: number,    
-    pinLoadHandler: (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number)=>void
-    unPinLoadHandler: (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number)=>void
+    moveLoadHandler: (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number)=>void,
+    pinLoadHandler: (oper_id: number)=>void,
+    unPinLoadHandler: (oper_id: number,tCardId:number)=>void,
     
 }
 
@@ -42,7 +44,9 @@ export default function LoadInner({
     handleMouseUpOper,
     handleRightClickMenu,
     index,
+    moveLoadHandler,
     pinLoadHandler,
+    unPinLoadHandler
 }: LoadProps) {
 
     let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
@@ -104,10 +108,10 @@ export default function LoadInner({
                 
                { load.isPinned?
 
-              <Image className={styles.icon_pin} src={pinon} alt="pinon"
-                width={15} height={15} onClick={() => pinLoadHandler(load,unitView,load.date,load.timeStart,load.timeFinish)} />
-              : <Image className={styles.icon_unpin} src={pinof} alt="pinof"
-                width={15} height={15} onClick={() => pinLoadHandler(load,unitView,load.date,load.timeStart,load.timeFinish)} />}
+              <Image className={styles.icon_pinon} src={pinon} alt="pinon"
+                width={15} height={15} onClick={() => {if (load.status===StatusEnum.prepared) unPinLoadHandler(load.id_oper,load.id_tCard)}} />
+              : <Image className={styles.icon_pinof} src={pinof} alt="pinof"
+                width={15} height={15} onClick={() => {if (load.status===StatusEnum.prepared) pinLoadHandler(load.id_oper)}} />}
         </>
     )
 }
