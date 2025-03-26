@@ -352,7 +352,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
           //  уберем из нее лоады нашей карты
           let unitLoadItemsFull = unitLoadItemsBD.filter(lo => tCard.id !== lo.id)
-          //  и добавим  лоады без операций которые надо перепланировать
+          //  и добавим  лоады которые не надо перепланировать из этой карты
           unitLoadItemsFull = [...unitLoadItemsFull, ...planedCardLoads];
 
           // Планируем нашу операцию на юните

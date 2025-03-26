@@ -1,0 +1,80 @@
+
+import { NextApiRequest, NextApiResponse } from 'next';
+import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
+import { getUnits, getUnitLoads, getTCardOperations } from './handlers-get';  // расчеты
+
+import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
+
+import { UnitTable } from '@/pages/db/models/catalogs/units'
+
+import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
+import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
+
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+
+    // Убедимся, что подключение установлено    
+    const dbConnection = await connectDb();  // Получаем подключение
+
+    const unitRepository = dbConnection.getRepository(UnitTable);
+    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
+    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
+    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
+
+
+    // const unitCalendarRepository = dbConnection.getRepository(UnitCalendarTable);
+
+    // userId, companyId в любом случае
+    const { userId, companyId, tcardId } = req.query;
+
+    switch (req.method) {
+      case 'GET':
+        // запросим юниты
+        const units = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
+
+        //  получим юниты с загрузкой  до планирования новой карты         
+        const unitsLoads = await getUnitLoads(units, unitLoadRepository)
+        // запросим операции  чтобы дополнить информацию по лоадам
+        let operIds = Array.from(new Set(unitsLoads.map(load => load.id_oper)));
+
+        const opers = await getTCardOperations(operIds, tCardOperationsRepository)
+
+        const unitsLoads_ = unitsLoads.map(lo => {
+          const oper = opers.find(op => op.id === lo.id_oper);
+          const unitAction = lo.unit.actions.find(ac => ac.id === oper?.action.id);
+
+          if (!oper) return { ...lo }
+
+          {
+            return {
+              ...lo,
+              loadInfo: {
+                title: oper.action.title,
+                duration: oper.duration/60000, // инфо показываем в минутах
+                interruptible: oper.action.interruptible,
+                koef: (unitAction) ? unitAction.koef : 1
+              },
+            }
+          }
+        })
+        // Отправляем ответ с данными  в базе их нет это только драфт
+        res.status(200).json({
+          success: true,
+          units: units,
+          unitsLoads: unitsLoads_,
+        });
+        break;
+
+      case 'POST':
+        
+        break;
+      default:
+        res.status(405).end(); // Метод не поддерживается
+    }
+  } catch (error) {
+    console.error('Ошибка подключения или выполнения запроса (load-api):', error);
+    res.status(500).json({ error: 'Не удалось обработать запрос' + error });
+  }
+}
+

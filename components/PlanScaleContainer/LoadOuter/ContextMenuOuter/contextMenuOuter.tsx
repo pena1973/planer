@@ -21,11 +21,11 @@ import save from "@/public/save-rem.png";
 
 import { TCardItem, UnitLoadItem, TCardOperationItem } from "@/types";
 
-export interface ContexMenuProps {
+export interface ContexMenuOuterProps {
     tCard: TCardItem,
     load: UnitLoadItem,
     left: number,
-    erazLoadHandler: (idc: number) => void,
+    erazLoadHandler: (load_idc: number) => void,
     saveLoadHandler: (
         load: UnitLoadItem,
         dateValue: string,
@@ -35,7 +35,7 @@ export interface ContexMenuProps {
     retool: number,
 }
 
-export default function ContexMenu({
+export default function ContexMenuOuter({
     tCard,
     load,
     left,
@@ -44,7 +44,7 @@ export default function ContexMenu({
     stopCloseMenu,
     retool,
 
-}: ContexMenuProps) {
+}: ContexMenuOuterProps) {
 
     const [timeStartValue, setTimeStartValue] = useState(0);
     const [timeFinisValue, setTimeFinishValue] = useState(0);
@@ -63,8 +63,10 @@ export default function ContexMenu({
         const minutes = totalMinutes % 60;
         return { hours, minutes };
     }
-    let dur = load.isRetool ? retool : load.loadInfo?.duration;
-    const time = convertMinutes(Number(dur));
+
+    let dur = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration));
+
+    const time = convertMinutes(dur);
 
 
     return (
@@ -83,7 +85,7 @@ export default function ContexMenu({
                 <span className={styles.title}>operation</span> {`: C${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
             </div>
             <div className={styles.coment}>
-                <span className={styles.title}>duration</span> {`: ${load.isRetool ? retool : load.loadInfo?.duration} min (${time.hours} h, ${time.minutes} m)`}
+                <span className={styles.title}>duration</span> {`: ${dur} min (${time.hours} h, ${time.minutes} m)`}
             </div>
 
             {/* // тут инпут и замеnки */}

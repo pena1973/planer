@@ -2,8 +2,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
-import {  } from './handlers-plan';  // планирование карты
-import { getTCard,  getCompanyShedule, getExceptions } from './handlers-get';  // 
+import { } from './handlers-plan';  // планирование карты
+import { getTCard, getCompanyShedule, getExceptions } from './handlers-get';  // 
 
 
 import { Repository, In } from 'typeorm';
@@ -29,7 +29,7 @@ import {
 } from "@/types";
 
 interface RequestBody {
-  unitLoads: UnitLoadItem[];  // переобозвать и сделать плоскую таблицу
+  tCardLoads: UnitLoadItem[];  // запланированные лоады в статусе prepared  по данной карте
   tCard: TCardItem & { status: StatusEnum }
 }
 
@@ -52,14 +52,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { userId, companyId, tcardId, today } = req.query;
 
     switch (req.method) {
-       // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
+      // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
       case 'POST':
-        const { unitLoads, tCard } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const { tCardLoads, tCard } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
 
         // СПИСОК Загрузок 
-        const resLoads = await updateLoads(
+        // просто сохраняем в базу потому что это всегда новые подготовленные
+        const resLoads = await saveLoads(
           unitLoadRepository,
-          unitLoads,
+          tCardLoads,
           Number(companyId)
         )
         if (!resLoads.success) {
@@ -68,8 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         const savedUnitLoads = resLoads.savedUnitLoads as UnitLoadItem[];
 
-
-        // Статус Карты 
+        // Статус Карты  меняем на planed
 
         const resCard = await updateStatusCard(tCardRepository, tCard, StatusEnum.planed)
         if (!resCard.success) {
@@ -89,10 +89,99 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(405).end(); // Метод не поддерживается
     }
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса ((preplan-api)):', error);
+    console.error('Ошибка подключения или выполнения запроса ((save-card-loads-api)):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' + error });
   }
 }
+
+// Запись новых лоадов
+async function saveLoads(
+  unitLoadRepository: Repository<UnitLoadTable>,
+  loadsToAdd: UnitLoadItem[],
+  company_id: number
+): Promise<{ success: boolean, savedUnitLoads: UnitLoadItem[], message?: string }> {
+
+  // Добавляем новые Загрузки и меняем статус
+  const newLoads = loadsToAdd.map(load => {
+    return unitLoadRepository.create({
+      date: load.date, 
+      idc: load.idc, 
+      id_oper: load.id_oper,
+      idc_oper: load.idc_oper, // Идентификатор операции  
+      id_tCard: load.id_tCard, // Идентификатор тех карты
+      timeStart: load.timeStart, // Время начала в минутах
+      timeFinish: load.timeFinish, // Время окончания в минутах
+      company_id: company_id,
+      unit_id: load.unit.id,
+      status: StatusEnum.planed,
+      isActive: load.isActive,
+      isRetool: load.isRetool,
+      isPinned: load.isPinned,
+      isOuterStart: load.isOuterStart,
+      isOuterFinish: load.isOuterFinish,
+    });
+  });
+  let savedNewLoads = [] as UnitLoadTable[]
+  if (newLoads.length > 0) savedNewLoads = await unitLoadRepository.save(newLoads);
+  if (!savedNewLoads) return { success: false, savedUnitLoads: [] as UnitLoadItem[], message: "Не удалось сохранить действие" }
+
+
+  // // Все действия сохранены, проверка
+  let error = ""
+  // const savedLoads = [...savedNewLoads, ...savedUpdatedLoads] as UnitLoadTable[]
+
+  // вход и выход массив операций не совпадает количество записей - чтото не сохранилось
+  if (savedNewLoads.length > 0 && loadsToAdd.length !== savedNewLoads.length) {
+    error = `Не удалось сохранить все загрузки`;
+    return { success: false, savedUnitLoads: [] as UnitLoadItem[], message: error }
+  }
+
+  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
+  if (savedNewLoads.length > 0) {
+    savedNewLoads.forEach((load, index) => {
+      if (load.id) {
+        console.log(`Загрузка успешно сохранена с id: ${load.id}`);
+      } else {
+        error = `Ошибка при сохранении Загрузки ${index + 1}`;
+        console.log(error);
+        return { success: false, message: error }
+      }
+    });
+  } else {
+    error = `Не удалось сохранить загрузки`;
+    console.log(error);
+    return { success: false, savedUnitLoads: [] as UnitLoadItem[], message: error }
+  }
+
+  let savedUnitLoads = savedNewLoads.map(loadT => {
+    let load = loadsToAdd.find(lo => lo.id_oper === loadT.id_oper && lo.idc === loadT.idc)
+    return {
+      id: loadT.id,
+      idc: loadT.idc,
+      unit: (load) ? load.unit as UnitItem : {} as UnitItem,
+      date: String(loadT.date), //   перевели в строковый формат
+      idc_oper: loadT.idc_oper,
+      id_oper: loadT.id_oper,
+      id_tCard: loadT.id_tCard,
+      timeStart: loadT.timeStart,
+      timeFinish: loadT.timeFinish,
+      status: loadT.status,
+      isActive: loadT.isActive,
+      isRetool: loadT.isRetool,
+      loadInfo: (load) ? load.loadInfo : undefined,
+      isPinned: loadT.isPinned,//  перенесен вручшую на шкале
+      isOuterStart: loadT.isOuterStart,//  это старт оутсортера
+      isOuterFinish: loadT.isOuterFinish,
+    } as UnitLoadItem
+  })
+  return { success: true, savedUnitLoads: savedUnitLoads, message: "" }
+}
+
+
+
+
+
+
 // ЗАГРУЗКИ ЮНИТОВ ПО КАРТЕ
 async function updateLoads(
   unitLoadRepository: Repository<UnitLoadTable>,
@@ -207,6 +296,7 @@ async function updateLoads(
   })
   return { success: true, savedUnitLoads: savedUnitLoads, message: "" }
 }
+
 // ТКАРТА ОБНОВЛЯЮ СТАТУС
 // 
 async function updateStatusCard(

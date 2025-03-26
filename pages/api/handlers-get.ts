@@ -138,15 +138,12 @@ export async function getUnits(
   return units;
 }
 
+// необходимо потом получить операции покартам и дополнить даннве info
 export async function getUnitLoads(
   units: UnitItem[],
   unitLoadRepository: Repository<UnitLoadTable>,
-  // today_:string,
-): Promise<UnitLoadItem[]> {
 
-  // Получаем все агрузки юнитов начиная с начала сегодняшнего дня 
-  // const today = new Date(today_);
-  // today.setHours(0, 0, 0, 0); // Убираем время, чтобы сравнивать только дату
+): Promise<UnitLoadItem[]> {
 
   const unitIds = units.map(unit => unit.id); // Получаем массив идентификаторов
 
@@ -181,8 +178,6 @@ export async function getUnitLoads(
       isOuterStart: unitLoad.isOuterStart,
     };
   });
-
-
   return unitLoadItems;
 }
 
@@ -349,19 +344,19 @@ export async function getTCardFull(
       };
     });
 
-   const tCard = {
-      id: tCardtab.id,
-      date: tCardtab.date, //  дата       
-      number: tCardtab.number,       
-      tCardProducts: tCardProducts_,
-      tCardWastes: tCardWastes_,
-      tCardOperations: tCardOperations_,
-      tCardMaterials: tCardMaterials_,
-      maxId: tCardtab.max_idc,
-      coment: tCardtab.coment,
-      status:tCardtab.status,
-    } as TCardItem
-  
+  const tCard = {
+    id: tCardtab.id,
+    date: tCardtab.date, //  дата       
+    number: tCardtab.number,
+    tCardProducts: tCardProducts_,
+    tCardWastes: tCardWastes_,
+    tCardOperations: tCardOperations_,
+    tCardMaterials: tCardMaterials_,
+    maxId: tCardtab.max_idc,
+    coment: tCardtab.coment,
+    status: tCardtab.status,
+  } as TCardItem
+
   return tCard
 }
 
@@ -469,9 +464,6 @@ export async function getExceptions(
   return excertions;
 }
 
-
-
-
 export async function getCompanyShedule(
   companyId: number,
   companyScheduleRepository: Repository<CompanyScheduleTable>
@@ -557,7 +549,7 @@ export async function getTCardOperation(
   // Получаем карту по id
   const tCardOpertab = await tCardOperationsRepository.findOne({
     where: filter,  // Применяем фильтр к запросу
-    relations: ['stage','action'],  // Указываем связанные таблицы (если необходимо)
+    relations: ['stage', 'action'],  // Указываем связанные таблицы (если необходимо)
   });
 
   // Проверяем, что карта существует
@@ -567,14 +559,53 @@ export async function getTCardOperation(
   return {
 
     id: tCardOpertab.id,
-    idc: tCardOpertab.idc, 
+    idc: tCardOpertab.idc,
     stage: tCardOpertab.stage,
     out: [],
     inn: [],
     action: tCardOpertab.action,
     duration: tCardOpertab.duration,
-    
-    status:tCardOpertab.status,
+
+    status: tCardOpertab.status,
   };
 
+}
+
+export async function getTCardOperations(
+
+  operIds: number[],
+  tCardOperationsRepository: Repository<TCardOperationTable>
+): Promise<TCardOperationItem[]> {
+
+
+  if (operIds.length === 0) {
+    // Если нет  карт то нет и операций по ним
+    return [] as TCardOperationItem[];
+  }
+
+  const tCardOperstab = await tCardOperationsRepository.find({
+    where: { id: In(operIds) }, // Фильтруем по полю unit_id для всех заданных юнитов
+    relations: ['stage', 'action', 'tcard'],
+  });
+
+  const tCardOpers = tCardOperstab.map(tCardOpertab => {
+    
+    return {
+      id: tCardOpertab.id,
+      idc: tCardOpertab.idc,
+      stage: tCardOpertab.stage,
+      out: [],
+      inn: [],
+      action:{
+        id: tCardOpertab.action.id,
+        title: tCardOpertab.action.title,
+        code: tCardOpertab.action.code, 
+        interruptible:tCardOpertab.action.interruptible,    
+      } as ActionItem,
+      duration: tCardOpertab.duration,
+      status: tCardOpertab.status,
+    }
+  });
+
+  return tCardOpers;
 }

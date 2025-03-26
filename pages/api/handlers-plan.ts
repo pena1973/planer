@@ -1315,7 +1315,7 @@ export const planOperOnUnit = (
 
 
 
-  if (new Date(maxDateSource).getTime() < today.getTime() || operation.inn.length === 0) {
+  if (maxDateSource < today_ ) {
     maxDateSource = today_;
     maxTimeSource = 0
   }
@@ -1440,139 +1440,279 @@ function getMaxDate(
 
 }
 
+// // удаляет операцию (лоады операции) и все последующие зависимые операции (лоады операций)
+// // delOper - удаляемая операция, 
+// // tCard - карта операции, 
+// // loads - лоады карты
+// export const delNextloads = (delOper: TCardOperationItem, tCard: TCardItem, loads: UnitLoadItem[]): UnitLoadItem[] => {
+
+//   let today = new Date();
+//   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+//   let delOperIds = [] as number[];
+
+//   const filterLoads = (delOperIds: number[], loads: UnitLoadItem[]): UnitLoadItem[] => {
+//     return loads.filter(load => delOperIds.includes(load.idc_oper))
+//   }
+
+//   // массив готовых продуктов и дата время готовности каждого продукта
+//   // стартуем с продуктов которые  берутся со склада  
+//   let readyProducts: {
+//     id?: number,
+//     idc: number,
+//     codeS: string,
+//     title: string,
+//     qtu: number,
+//     uom: UOMItem,
+//     reserved: number,
+//     reservedTo: number
+//   }[] = [];
+
+//   if (tCard.tCardMaterials)
+//     readyProducts = tCard.tCardMaterials.map(material => {
+//       return {
+//         id: material.id,
+//         idc: material.idc,
+//         codeS: material.codeS,
+//         title: material.title,
+//         qtu: material.qtu,
+//         uom: material.uom,
+
+//         reserved: 0,
+//         reservedTo: NaN
+//       }
+//     });
+
+//   // Массив всех операций, которые должны быть просчитаны (все кроме драфт и отменен)
+//   let tCardOperations: TCardOperationItem[] = [];
+//   if (tCard.tCardOperations)
+//     tCardOperations = tCard.tCardOperations.filter(elem => (elem.status !== StatusEnum.draft && elem.status !== StatusEnum.cancelled))
+
+//   // Массив отобранных операций  
+//   // (они готовы для планирования или уже запланированы или выполнены с учетом последовательности))
+//   let selectedOperations: TCardOperationItem[] = [];
+
+//   // здесь стартуем цикл планирования с сегодняшней даты пока операций для планирования в tCardOperations не останется
+//   let stoploop = false;
+
+//   while (tCardOperations.length > 0 && !stoploop) {
+//     //  ищем операции исходники для которых готовы на данной итерации
+//     // и убираем эти исходники из списка как израсходованные (резервируем на операцию)
+//     // и получаем список операций ко торые можно делать
+//     tCardOperations.forEach((operation) => {
+//       let hasAllMatchingProducts = operation.inn.every(innProduct => {
+//         // Ищем продукт в tCardReady с таким же codeS и uom
+//         const matchingReadyProduct = readyProducts.find(elem =>
+//           elem.codeS === innProduct.codeS && elem.uom.id === innProduct.uom.id
+//         );
+//         // Если соответствующий продукт найден, проверяем количество
+//         if (matchingReadyProduct) {
+//           // Если количество в tCardReady недостаточно для операции, пропускаем операцию
+//           if (matchingReadyProduct.qtu < innProduct.qtu) {
+//             return false;
+//           }
+//           // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
+//           matchingReadyProduct.qtu -= innProduct.qtu;
+//           // И заводим строку резервирования материала под операцию
+//           readyProducts.push(
+//             {
+//               id: innProduct.id,
+//               idc: innProduct.idc,
+//               codeS: innProduct.codeS,
+//               title: innProduct.title,
+//               qtu: 0,
+//               uom: innProduct.uom,
+
+//               reserved: innProduct.qtu,
+//               reservedTo: operation.idc
+//             })
+//           return true;
+//         }
+//         return false; // Если продукта нет или не совпадает по uom
+//       });
+
+//       // Если все продукты прошли проверку, добавляем операцию в selectedOperations
+//       if (hasAllMatchingProducts) {
+//         selectedOperations.push(operation);
+//       }
+//     });
+
+//     if (selectedOperations.length === 0) return filterLoads(delOperIds, loads);
+
+//     // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
+//     //  и операции с пустыми резервами
+//     readyProducts = readyProducts.filter(elem => elem.qtu > 0 || elem.reserved > 0);
+
+//     // Перебираем все операции которые уже готовы к выполнению по наличию исходников для них 
+//     // натыкаемся на свою операцию и не выполняем ее - тоесть не появился результат операции и все последующие тоже не выполнятся потому ято нет исходников
+//     for (let operation of selectedOperations) {
+//       // массив idc операций которые остались     
+//       // добавляем результат операции и убираем резерв         
+//       if (operation.idc !== delOper.idc) {
+//         delOperIds.push(operation.idc as number)
+
+//         let readyProductsOut = operation.out.map(elem => {
+//           return {
+//             id: elem.id,
+//             idc: elem.idc,
+//             codeS: elem.codeS,
+//             title: elem.title,
+//             qtu: elem.qtu,
+//             uom: elem.uom,
+//             reserved: 0,
+//             reservedTo: NaN
+//           }
+//         });
+//         readyProducts = [...readyProducts, ...readyProductsOut]
+//         //  удаляем исходники которые были под операцию зарезервированы          
+//         readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
+//       }
+//       tCardOperations = tCardOperations.filter(oper => oper.id !== operation.id)
+//     }
+
+//     selectedOperations = [] as TCardOperationItem[];
+//   }
+//   return filterLoads(delOperIds, loads);
+// }
+
+export const cancelLoads = async (delOperIds:number[] ):Promise< {success:true, message:""}> => {
+  return {success:true, message:""}
+}
+
 // удаляет операцию (лоады операции) и все последующие зависимые операции (лоады операций)
 // delOper - удаляемая операция, 
 // tCard - карта операции, 
 // loads - лоады карты
-export const delNextloads = (delOper: TCardOperationItem, tCard: TCardItem, loads: UnitLoadItem[]): UnitLoadItem[] => {
+export const deleteLoads = async (delOperIds:number[] ):Promise< {success:true, message:""}> => {
 
-  let today = new Date();
-  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  let delOperIds = [] as number[];
+  // let today = new Date();
+  // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  // let delOperIds = [] as number[];
 
-  const filterLoads = (delOperIds: number[], loads: UnitLoadItem[]): UnitLoadItem[] => {
-    return loads.filter(load => delOperIds.includes(load.idc_oper))
-  }
+  // const filterLoads = (delOperIds: number[], loads: UnitLoadItem[]): UnitLoadItem[] => {
+  //   return loads.filter(load => delOperIds.includes(load.idc_oper))
+  // }
 
-  // массив готовых продуктов и дата время готовности каждого продукта
-  // стартуем с продуктов которые  берутся со склада  
-  let readyProducts: {
-    id?: number,
-    idc: number,
-    codeS: string,
-    title: string,
-    qtu: number,
-    uom: UOMItem,
-    reserved: number,
-    reservedTo: number
-  }[] = [];
+  // // массив готовых продуктов и дата время готовности каждого продукта
+  // // стартуем с продуктов которые  берутся со склада  
+  // let readyProducts: {
+  //   id?: number,
+  //   idc: number,
+  //   codeS: string,
+  //   title: string,
+  //   qtu: number,
+  //   uom: UOMItem,
+  //   reserved: number,
+  //   reservedTo: number
+  // }[] = [];
 
-  if (tCard.tCardMaterials)
-    readyProducts = tCard.tCardMaterials.map(material => {
-      return {
-        id: material.id,
-        idc: material.idc,
-        codeS: material.codeS,
-        title: material.title,
-        qtu: material.qtu,
-        uom: material.uom,
+  // if (tCard.tCardMaterials)
+  //   readyProducts = tCard.tCardMaterials.map(material => {
+  //     return {
+  //       id: material.id,
+  //       idc: material.idc,
+  //       codeS: material.codeS,
+  //       title: material.title,
+  //       qtu: material.qtu,
+  //       uom: material.uom,
 
-        reserved: 0,
-        reservedTo: NaN
-      }
-    });
+  //       reserved: 0,
+  //       reservedTo: NaN
+  //     }
+  //   });
 
-  // Массив всех операций, которые должны быть просчитаны (все кроме драфт и отменен)
-  let tCardOperations: TCardOperationItem[] = [];
-  if (tCard.tCardOperations)
-    tCardOperations = tCard.tCardOperations.filter(elem => (elem.status !== StatusEnum.draft && elem.status !== StatusEnum.cancelled))
+  // // Массив всех операций, которые должны быть просчитаны (все кроме драфт и отменен)
+  // let tCardOperations: TCardOperationItem[] = [];
+  // if (tCard.tCardOperations)
+  //   tCardOperations = tCard.tCardOperations.filter(elem => (elem.status !== StatusEnum.draft && elem.status !== StatusEnum.cancelled))
 
-  // Массив отобранных операций  
-  // (они готовы для планирования или уже запланированы или выполнены с учетом последовательности))
-  let selectedOperations: TCardOperationItem[] = [];
+  // // Массив отобранных операций  
+  // // (они готовы для планирования или уже запланированы или выполнены с учетом последовательности))
+  // let selectedOperations: TCardOperationItem[] = [];
 
-  // здесь стартуем цикл планирования с сегодняшней даты пока операций для планирования в tCardOperations не останется
-  let stoploop = false;
+  // // здесь стартуем цикл планирования с сегодняшней даты пока операций для планирования в tCardOperations не останется
+  // let stoploop = false;
 
-  while (tCardOperations.length > 0 && !stoploop) {
-    //  ищем операции исходники для которых готовы на данной итерации
-    // и убираем эти исходники из списка как израсходованные (резервируем на операцию)
-    // и получаем список операций ко торые можно делать
-    tCardOperations.forEach((operation) => {
-      let hasAllMatchingProducts = operation.inn.every(innProduct => {
-        // Ищем продукт в tCardReady с таким же codeS и uom
-        const matchingReadyProduct = readyProducts.find(elem =>
-          elem.codeS === innProduct.codeS && elem.uom.id === innProduct.uom.id
-        );
-        // Если соответствующий продукт найден, проверяем количество
-        if (matchingReadyProduct) {
-          // Если количество в tCardReady недостаточно для операции, пропускаем операцию
-          if (matchingReadyProduct.qtu < innProduct.qtu) {
-            return false;
-          }
-          // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
-          matchingReadyProduct.qtu -= innProduct.qtu;
-          // И заводим строку резервирования материала под операцию
-          readyProducts.push(
-            {
-              id: innProduct.id,
-              idc: innProduct.idc,
-              codeS: innProduct.codeS,
-              title: innProduct.title,
-              qtu: 0,
-              uom: innProduct.uom,
+  // while (tCardOperations.length > 0 && !stoploop) {
+  //   //  ищем операции исходники для которых готовы на данной итерации
+  //   // и убираем эти исходники из списка как израсходованные (резервируем на операцию)
+  //   // и получаем список операций ко торые можно делать
+  //   tCardOperations.forEach((operation) => {
+  //     let hasAllMatchingProducts = operation.inn.every(innProduct => {
+  //       // Ищем продукт в tCardReady с таким же codeS и uom
+  //       const matchingReadyProduct = readyProducts.find(elem =>
+  //         elem.codeS === innProduct.codeS && elem.uom.id === innProduct.uom.id
+  //       );
+  //       // Если соответствующий продукт найден, проверяем количество
+  //       if (matchingReadyProduct) {
+  //         // Если количество в tCardReady недостаточно для операции, пропускаем операцию
+  //         if (matchingReadyProduct.qtu < innProduct.qtu) {
+  //           return false;
+  //         }
+  //         // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
+  //         matchingReadyProduct.qtu -= innProduct.qtu;
+  //         // И заводим строку резервирования материала под операцию
+  //         readyProducts.push(
+  //           {
+  //             id: innProduct.id,
+  //             idc: innProduct.idc,
+  //             codeS: innProduct.codeS,
+  //             title: innProduct.title,
+  //             qtu: 0,
+  //             uom: innProduct.uom,
 
-              reserved: innProduct.qtu,
-              reservedTo: operation.idc
-            })
-          return true;
-        }
-        return false; // Если продукта нет или не совпадает по uom
-      });
+  //             reserved: innProduct.qtu,
+  //             reservedTo: operation.idc
+  //           })
+  //         return true;
+  //       }
+  //       return false; // Если продукта нет или не совпадает по uom
+  //     });
 
-      // Если все продукты прошли проверку, добавляем операцию в selectedOperations
-      if (hasAllMatchingProducts) {
-        selectedOperations.push(operation);
-      }
-    });
+  //     // Если все продукты прошли проверку, добавляем операцию в selectedOperations
+  //     if (hasAllMatchingProducts) {
+  //       selectedOperations.push(operation);
+  //     }
+  //   });
 
-    if (selectedOperations.length === 0) return filterLoads(delOperIds, loads);
+  //   if (selectedOperations.length === 0) return filterLoads(delOperIds, loads);
 
-    // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
-    //  и операции с пустыми резервами
-    readyProducts = readyProducts.filter(elem => elem.qtu > 0 || elem.reserved > 0);
+  //   // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
+  //   //  и операции с пустыми резервами
+  //   readyProducts = readyProducts.filter(elem => elem.qtu > 0 || elem.reserved > 0);
 
-    // Перебираем все операции которые уже готовы к выполнению по наличию исходников для них 
-    // натыкаемся на свою операцию и не выполняем ее - тоесть не появился результат операции и все последующие тоже не выполнятся потому ято нет исходников
-    for (let operation of selectedOperations) {
-      // массив idc операций которые остались     
-      // добавляем результат операции и убираем резерв         
-      if (operation.idc !== delOper.idc) {
-        delOperIds.push(operation.idc as number)
+  //   // Перебираем все операции которые уже готовы к выполнению по наличию исходников для них 
+  //   // натыкаемся на свою операцию и не выполняем ее - тоесть не появился результат операции и все последующие тоже не выполнятся потому ято нет исходников
+  //   for (let operation of selectedOperations) {
+  //     // массив idc операций которые остались     
+  //     // добавляем результат операции и убираем резерв         
+  //     if (operation.idc !== delOper.idc) {
+  //       delOperIds.push(operation.idc as number)
 
-        let readyProductsOut = operation.out.map(elem => {
-          return {
-            id: elem.id,
-            idc: elem.idc,
-            codeS: elem.codeS,
-            title: elem.title,
-            qtu: elem.qtu,
-            uom: elem.uom,
-            reserved: 0,
-            reservedTo: NaN
-          }
-        });
-        readyProducts = [...readyProducts, ...readyProductsOut]
-        //  удаляем исходники которые были под операцию зарезервированы          
-        readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
-      }
-      tCardOperations = tCardOperations.filter(oper => oper.id !== operation.id)
-    }
+  //       let readyProductsOut = operation.out.map(elem => {
+  //         return {
+  //           id: elem.id,
+  //           idc: elem.idc,
+  //           codeS: elem.codeS,
+  //           title: elem.title,
+  //           qtu: elem.qtu,
+  //           uom: elem.uom,
+  //           reserved: 0,
+  //           reservedTo: NaN
+  //         }
+  //       });
+  //       readyProducts = [...readyProducts, ...readyProductsOut]
+  //       //  удаляем исходники которые были под операцию зарезервированы          
+  //       readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
+  //     }
+  //     tCardOperations = tCardOperations.filter(oper => oper.id !== operation.id)
+  //   }
 
-    selectedOperations = [] as TCardOperationItem[];
-  }
-  return filterLoads(delOperIds, loads);
+  //   selectedOperations = [] as TCardOperationItem[];
+  // }
+  // return filterLoads(delOperIds, loads);
+  return {success:true, message:""}
 }
+
 
 // Функция получает на выходе массив idc предыдущих операций по карте (определяет по входящим источникам)
 // oper - текущая операция, получаем орерации результаты которых на входе этой 
@@ -1754,4 +1894,21 @@ export function getOperationReadyMoment(
   // 3. Выбираем наиболее поздний момент между рассчитанным моментом и плановой датой/временем текущей операции
   const readyMoment = getLaterDateTime(timeStartRes, { date: planDate, time: planTime });
   return readyMoment;
+}
+
+// из массива лоадов на вход выдает наиболее ранюю дату
+export function getEarliestStart(loads: UnitLoadItem[]): { date: string; timeStart: number } | undefined {
+  if (loads.length === 0) return undefined;
+  const earliest = loads.reduce((min, load) => {
+    // Сначала сравниваем даты, поскольку формат "YYYY-MM-DD" корректно сравнивается лексикографически
+    if (load.date < min.date) {
+      return load;
+    } else if (load.date === min.date && load.timeStart < min.timeStart) {
+      return load;
+    } else {
+      return min;
+    }
+  }, loads[0]);
+  
+  return { date: earliest.date, timeStart: earliest.timeStart };
 }

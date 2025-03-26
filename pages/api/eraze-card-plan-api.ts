@@ -2,8 +2,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
-import { delNextloads } from './handlers-plan';  // планирование карты
-import { getTCard, getTCardMatOper, getCompanyShedule } from './handlers-get';  // 
+// import { delNextloads } from './handlers-plan';  // планирование карты
+// import { getTCard, getTCardMatOper, getCompanyShedule } from './handlers-get';  // 
 
 
 import { Repository, In } from 'typeorm';
@@ -29,8 +29,8 @@ import {
 } from "@/types";
 
 interface RequestBody {
-  unitLoads: UnitLoadItem[];  // переобозвать и сделать плоскую таблицу
-  tCard_id: number,
+  tCardLoads: UnitLoadItem[],
+  tCardId: number,  
   today: string,
 }
 
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // ЗАПИСЬ  запланированной КАРТЫ в которой стираем планирование
       case 'POST':
-        const { unitLoads, tCard_id, today } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const { tCardLoads, tCardId, today } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
 
         // if (unitLoads.length === 0) {
         //   // Если нет загрузок, можно вернуть пустой результат или обработать ошибку
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // // СПИСОК Загрузок 
         const resLoads = await deleteLoads(
           unitLoadRepository,
-          unitLoads,
+          tCardLoads,
         )
         if (!resLoads.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resLoads.message });
@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Статус Карты  меняем на prepared
-        const resCard = await updateStatusCard(tCardRepository, tCard_id, StatusEnum.prepared)
+        const resCard = await updateStatusCard(tCardRepository, tCardId, StatusEnum.prepared)
         if (!resCard.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
           return;

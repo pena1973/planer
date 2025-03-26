@@ -1,11 +1,12 @@
 
 import styles from "./loadInner.module.scss";
-import ContexMenu from "./ContextMenu/contextMenu";
+import ContextMenuInner from "./ContextMenuInner/contextMenuInner";
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
 
 import pinon from "@/public/pin_on-rem.png";
 import pinof from "@/public/pin_of-rem.png";
+import ContexMenuInner from "./ContextMenuInner/contextMenuInner";
 
 
 export interface LoadProps {
@@ -18,15 +19,15 @@ export interface LoadProps {
     draggingLoad: UnitLoadItem | undefined,
     contectMenuShow: number,
     unitView: UnitItem,
-    erazLoadHandler: (idc: number) => void,
+    erazLoadHandler: (load_idc: number) => void,
     handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,
     handleMouseUpOper: () => void,
     handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
-    index: number,    
-    moveLoadHandler: (load: UnitLoadItem,unit:UnitItem,date:string,timeStart:number,timeFinish:number)=>void,
-    pinLoadHandler: (oper_id: number)=>void,
-    unPinLoadHandler: (oper_id: number,tCardId:number)=>void,
-    
+    index: number,
+    moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
+    pinLoadHandler: (oper_id: number) => void,
+    unPinLoadHandler: (oper_id: number, tCardId: number) => void,
+
 }
 
 export default function LoadInner({
@@ -97,7 +98,7 @@ export default function LoadInner({
             </div>
 
             {contectMenuShow === load.idc &&
-                <ContexMenu
+                <ContexMenuInner
                     tCard={tCard}
                     load={load}
                     left={left}
@@ -105,13 +106,15 @@ export default function LoadInner({
                     erazLoadHandler={erazLoadHandler}
                     retool={unitView.retool}
                 />}
-                
-               { load.isPinned?
 
-              <Image className={styles.icon_pinon} src={pinon} alt="pinon"
-                width={15} height={15} onClick={() => {if (load.status===StatusEnum.prepared) unPinLoadHandler(load.id_oper,load.id_tCard)}} />
-              : <Image className={styles.icon_pinof} src={pinof} alt="pinof"
-                width={15} height={15} onClick={() => {if (load.status===StatusEnum.prepared) pinLoadHandler(load.id_oper)}} />}
+            {load.status === StatusEnum.prepared && (load.isPinned ?
+
+                <Image className={styles.icon_pinon} src={pinon} alt="pinon"
+                    width={15} height={15} onClick={() => { if (load.status === StatusEnum.prepared) unPinLoadHandler(load.id_oper, load.id_tCard) }} />
+                : <Image className={styles.icon_pinof} src={pinof} alt="pinof"
+                    width={15} height={15} onClick={() => { if (load.status === StatusEnum.prepared) pinLoadHandler(load.id_oper) }}
+                />
+            )}
         </>
     )
 }

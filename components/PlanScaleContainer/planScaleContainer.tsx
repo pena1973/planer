@@ -1,18 +1,14 @@
 
-import React, { createContext, useContext, useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import styles from "./planScaleContainer.module.scss";
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, StatusEnum, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
-import { setUnits } from '@/store/slices';
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
 
-import ContexMenu from "./LoadInner/ContextMenu/contextMenu";
 import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
 import DottedLine from "./DottedLine/dottedLine";
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
-import { TypeEnum } from '@/pages/db/models/enums';
+
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
   // Если scale 100%, widthDay = totalWidth
@@ -179,7 +175,7 @@ export interface PlanScaleContainerProps {
   tCardPrepared: TCardItem,
   tCardLighted: TCardItem,
   unitExceptions: UnitExceptionItem[],
-  erazLoadHandler: (idc: number) => void,
+  erazLoadHandler: (load_idc: number) => void,
   changeDurationLoadHandler: (idc: number) => void,
   moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
   pinLoadHandler: (oper_id: number) => void,
@@ -708,10 +704,7 @@ export default function PlanScaleContainer({
               erazLoadHandler={erazLoadHandler}
               handleMouseDownOper={handleMouseDownOper}
               handleMouseUpOper={handleMouseUpOper}
-              handleRightClickMenu={handleRightClickMenu}
-              // index={index}
-              // isOuterStart={true}
-              // isOuterFinish={false}
+              handleRightClickMenu={handleRightClickMenu}            
               stopCloseMenu={(idc) => { stopCloseMenu = idc }}
               moveLoadHandler={moveLoadHandler}
             />

@@ -76,9 +76,32 @@
   width: 0;
   height: 0;
   border-top: 7.5px solid transparent;
-  border-bottom: 7.5px solid transparent;
-  border-right: 7.5px solid rgba(107, 170, 7, 0.753);
+  border-bottom: 7.5px solid transparent;  
   z-index: 2;
+}
+.triangleLeftDraft{
+  border-right: 7.5px solid rgba(219, 218, 204);
+}
+.triangleLeftPlaned{
+  border-right: 7.5px solid rgba(172, 169, 132);
+}
+.triangleLeftPrepared{
+  border-right: 7.5px solid rgba(107, 170, 7, 0.753);
+}
+.triangleLeftDefected{
+  border-right: 7.5px solid rgba(255, 143, 79);
+}
+.triangleRightDraft{
+  border-left: 7.5px solid rgba(219, 218, 204);
+}
+.triangleRightPlaned{
+  border-left: 7.5px solid rgba(172, 169, 132);
+}
+.triangleRightPrepared{
+  border-left: 7.5px solid rgba(107, 170, 7, 0.753);
+}
+.triangleRightDefected{
+  border-left: 7.5px solid rgba(255, 143, 79);
 }
 
 /* Треугольник справа (указывает вправо) */
@@ -91,6 +114,5 @@
   height: 0;
   border-top: 7.5px solid transparent;
   border-bottom: 7.5px solid transparent;
-  border-left: 7.5px solid rgba(107, 170, 7, 0.753);
   z-index: 2;
 }

@@ -36,7 +36,7 @@
     // background-color: aliceblue;
 }
 
-.container_plan {
+.container_plan_card_prepared {
     display: flex;
     flex-direction: row;
     padding: 10px 5px 10px 10px;
@@ -45,7 +45,15 @@
     justify-content: space-between;
     font-size: 14px;
 }
-
+.container_plan_card_planed {
+    display: flex;
+    flex-direction: row;
+    padding: 10px 5px 10px 10px;
+    // cursor: grab;
+    width: 100%;
+    justify-content: space-between;
+    font-size: 14px;
+}
 .container_plan_edit {
     display: flex;
     font-size: 14px;    
@@ -194,3 +202,21 @@
     background-color: rgb(184, 201, 216);
 }
 
+
+.container_plan_card_prepared_title {    
+    font-size: 12px;
+    border-radius: 5px;
+    // background-color: aqua;
+    margin-left: 5px;
+}
+.container_plan_card_planed_title {    
+    font-size: 12px;
+    border-radius: 5px;
+    // background-color: aqua;
+    margin-left: 5px;
+}
+.container_plan_card_icon_light {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}

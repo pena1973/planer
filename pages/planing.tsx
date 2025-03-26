@@ -81,9 +81,9 @@ export default function Planing() {
   const saveCardHandler = async () => {
     setLoaderCard(tCardPrepared.id);
     // Фильтруем загрузку по карте  и все что драфт и сохраняем  
-    let tCardLoads = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === 'draft') })
+    let tCardLoads = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === StatusEnum.prepared )})
     try {
-      const res = await fetch(`/api/save-cardloads-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`/api/save-card-loads-api?userId=${1}&companyId=${1}`,
         {
           method: 'post',
           headers: new Headers({
@@ -92,7 +92,7 @@ export default function Planing() {
           }),
           body: JSON.stringify({
             tCard: tCardPrepared,
-            unitLoads: tCardLoads
+            tCardLoads: tCardLoads
           }),
         }
       );
@@ -149,7 +149,7 @@ export default function Planing() {
         return (load.id_tCard === id && load.status === StatusEnum.planed && load.date >= today.toLocaleDateString("en-CA"))
       })
       try {
-        const res = await fetch(`/api/erazeplan-api?userId=${1}&companyId=${1}`,
+        const res = await fetch(`/api/eraze-card-plan-api?userId=${1}&companyId=${1}`,
           {
             method: 'post',
             headers: new Headers({
@@ -157,9 +157,9 @@ export default function Planing() {
               'Content-Type': 'application/json'
             }),
             body: JSON.stringify({
-              unitLoads: tCardLoads,
-              tCard_id: id,
-              today: new Date().toLocaleDateString("en-CA"),
+              tCardLoads: tCardLoads,
+              tCardId: id,
+              today: today.toLocaleDateString("en-CA"),
             }),
           }
         );
@@ -204,15 +204,16 @@ export default function Planing() {
   };
 
   // удаление лоада из контекстного меню для сторонних юнитов
-  const erazLoadHandler = async (idc: number) => {
-    let erazload = unitLoads.find(load => load.idc === idc)
+  const erazLoadHandler = async (load_idc: number) => {
+    let erazload = unitLoads.find(load => load.idc === load_idc)
     let tCardLoads = unitLoads.filter(load => load.id_tCard === erazload?.id_tCard)
     let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== erazload?.id_tCard)
+    
     if (erazload) {
       if (erazload.status === StatusEnum.prepared) {
         // ЗАПРОС НА СЕРВЕР ОБРАБОТКА ЛОАДОВ - УДАЛЕНИЕ ПОСЛЕДУЮЩИХ
         try {
-          const res = await fetch(`/api/erazeload-api?userId=${1}&companyId=${1}`,
+          const res = await fetch(`/api/eraze-load-plan-api?userId=${1}&companyId=${1}`,
             {
               method: 'post',
               headers: new Headers({
@@ -221,7 +222,8 @@ export default function Planing() {
               }),
               body: JSON.stringify({
                 deletedLoad: erazload,
-                loads: tCardLoads,
+                tCardLoads: tCardLoads,
+                today: new Date().toLocaleDateString("en-CA"),
               }),
             }
           );
@@ -256,11 +258,11 @@ export default function Planing() {
   // перетаскивание лоада на шкале  возвращает измененное планирование карты
   const moveLoadHandler = async (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => {
 
-    let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
-    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
+    let tCardLoads = unitLoads.filter(load => load.id_tCard === tCardPrepared.id)
+    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== tCardPrepared.id)
     //  перетаскивать лоады можем только на этапе prepared
     if (load) {
-      if (load.status === StatusEnum.prepared) {      
+      if (load.status === StatusEnum.prepared) {
         // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
         // проверяем согласованность предыдущих и перепланируем последующие
         try {
@@ -310,61 +312,59 @@ export default function Planing() {
   const pinLoadHandler = async (oper_id: number) => {
 
     let tCardLoads_ = unitLoads.map(load => {
-      return(load.id_oper === oper_id)?{...load,isPinned:true}:load})    
+      return (load.id_oper === oper_id) ? { ...load, isPinned: true } : load
+    })
     dispatch(setUnitLoads(tCardLoads_))
   }
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
-  const unPinLoadHandler = async (operId: number,tCardId:number) => {
-    
-    // let tCardLoads_ = unitLoads.map(load => {
-    //   return(load.id_oper === oper_id)?{...load,isPinned:false}:load})    
-    // dispatch(setUnitLoads(tCardLoads_))
-    
+  const unPinLoadHandler = async (operId: number, tCardId: number) => {
+ 
+
     //  последующее перепланирование
     let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
     let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
     //  перетаскивать лоады можем только на этапе prepared
-    
-      
-        // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
-        // проверяем согласованность предыдущих и перепланируем последующие
-        try {
-          const res = await fetch(`/api/pre-unpinload-api?userId=${1}&companyId=${1}`,
-            {
-              method: 'post',
-              headers: new Headers({
-                // 'Authorization': 'Basic ' + token,
-                'Content-Type': 'application/json'
-              }),
-              body: JSON.stringify({
-                tCardId: tCardId,
-                operId: operId,
-                tCardLoads: tCardLoads,               
-                today: today.toLocaleDateString("en-CA")
-              }),
-            }
-          );
 
-          if (res.status !== 200) {
-            const receivedData = await res.json();
-            let error = receivedData.error;
-            setMessage(error);
-            // setMessage(t('service.serverUnavailable') + res.status);
-          } else {
-            const receivedData = await res.json();
-            if (receivedData.success) {
-              let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
-              let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
-              dispatch(setUnitLoads(updatedLoads));
-              setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
-            } else {
-              setMessage(receivedData.message);
-            }
-          }
-        } catch (e: any) {
-          // setMessage(t('service.noConnection') + e.message)            
-        }       
+
+    // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
+    // проверяем согласованность предыдущих и перепланируем последующие
+    try {
+      const res = await fetch(`/api/pre-unpinload-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'post',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({
+            tCardId: tCardId,
+            operId: operId,
+            tCardLoads: tCardLoads,
+            today: today.toLocaleDateString("en-CA")
+          }),
+        }
+      );
+
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        if (receivedData.success) {
+          let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+          let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+          dispatch(setUnitLoads(updatedLoads));
+          setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
+        } else {
+          setMessage(receivedData.message);
+        }
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
   }
 
 
@@ -372,122 +372,7 @@ export default function Planing() {
   const changeDurationLoadHandler = async (idc: number) => {
 
   }
-
-  // // запрос Юниты
-
-  // const getUnits = async () => {
-  //   // Загружаем классификатор действий
-  //   try {
-  //     const res = await fetch(`api/units-api?userId=${1}&companyId=${1}`,
-  //       {
-  //         method: 'get',
-  //         headers: new Headers({
-  //           // 'Authorization': 'Basic ' + token,
-  //           'Content-Type': 'application/json'
-  //         }),
-  //       }
-  //     );
-  //     if (res.status !== 200) {
-  //       const receivedData = await res.json();
-  //       let error = receivedData.error;
-  //       setMessage(error);
-  //       //  console.log(t('service.serverUnavailable') + res.status);
-  //       // setMessage(t('service.serverUnavailable') + res.status);
-
-  //     } else {
-  //       const receivedData = await res.json();
-  //       if (receivedData.success) {
-  //         let units_ = receivedData.units as UnitItem[]
-  //         dispatch(setUnits(units_)); // Это ме надо?
-
-  //       }
-  //       else setMessage(receivedData.error);
-  //     }
-  //   } catch (e: any) {
-  //     // setMessage(t('service.noConnection') + e.message)            
-  //   }
-
-  // }
-  // const getUnutsExceptions = async () => {
-  //   // Загружаем классификатор действий
-  //   try {
-  //     const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
-  //       {
-  //         method: 'get',
-  //         headers: new Headers({
-  //           // 'Authorization': 'Basic ' + token,
-  //           'Content-Type': 'application/json'
-  //         }),
-  //       }
-  //     );
-  //     if (res.status !== 200) {
-  //       const receivedData = await res.json();
-  //       let error = receivedData.error;
-  //       setMessage(error);
-  //       //  console.log(t('service.serverUnavailable') + res.status);
-  //       // setMessage(t('service.serverUnavailable') + res.status);
-
-  //     } else {
-  //       const receivedData = await res.json();
-  //       if (receivedData.success) {
-  //         let exceptions = receivedData.exceptions as UnitExceptionItem[]
-  //         dispatch(setUnitExceptions(exceptions));
-  //       }
-  //       else setMessage(receivedData.error);
-  //     }
-  //   } catch (e: any) {
-  //     // setMessage(t('service.noConnection') + e.message)            
-  //   }
-
-  // }
-  // // запрос Загрузки
-  // const getUnutsLoads = async () => {
-
-  //   try {
-  //     const res = await fetch(`/api/load-api?userId=${1}&companyId=${1}`,
-  //       {
-  //         method: 'get',
-  //         headers: new Headers({
-  //           // 'Authorization': 'Basic ' + token,
-  //           'Content-Type': 'application/json'
-  //         }),
-  //       }
-  //     );
-  //     if (res.status !== 200) {
-  //       const receivedData = await res.json();
-  //       let error = receivedData.error;
-  //       setMessage(error);
-  //       // setMessage(t('service.serverUnavailable') + res.status);
-  //     } else {
-  //       const receivedData = await res.json();
-  //       // console.log("receivedData", receivedData)        
-  //       if (receivedData.success) {
-  //         //  массив юнитов с загрузками
-
-  //         let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
-
-
-  //         dispatch(setUnitLoads(unitsLoads));
-  //         // setMessage("Карты успешно получены");
-  //       }
-  //     }
-  //   } catch (e: any) {
-  //     // setMessage(t('service.noConnection') + e.message)            
-  //   }
-
-
-  //   // }
-
-  //   // // Обновим сообщение для пользователя
-  //   // setMessage(`Элемент с id: ${itemId} был перемещен`);
-  // };
-
-  // Начальный загруз
-  useEffect(() => {
-    // getUnits();
-    // getUnutsLoads();
-    // getUnutsExceptions();
-  }, []);
+ 
 
   /// ПЕРЕТАСКИВАНИЕ КАРТЫ НА ПОЛЕ ПЛАНИРОВАНИЯ
   // Для изменения курсора
@@ -519,8 +404,8 @@ export default function Planing() {
   const handleDropTCard = async (event: React.DragEvent) => {
 
     event.preventDefault();
-
-    const itemId = event.dataTransfer.getData("itemId"); // Получаем id перетаскиваемого элемента в строковом виде
+    // Получаем id перетаскиваемого элемента в строковом виде и это будет id карты
+    const itemId = event.dataTransfer.getData("itemId"); 
     let tCard_ = tCards.find(tCard => tCard.id === Number(itemId))
     if (!tCard_) return
     dispatch(setTCardPrepared(tCard_));
@@ -528,8 +413,8 @@ export default function Planing() {
     setIsDragging(false); // Завершаем перетаскивание     
     //!!!!!!!!!! отправляем на сервер  карту  и там планируем
     //  в базу пока не пишем это предварительный расчет
-    // let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
-    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
+    // let tCardLoads = unitLoads.filter(load => load.id_tCard ===  tCard_.id)
+    let tCardLoadsWithout = unitLoads.filter(lo => lo.id_tCard !== tCard_.id)
 
     try {
       const res = await fetch(`/api/pre-fullcardplan-api?userId=${1}&companyId=${1}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
@@ -548,10 +433,10 @@ export default function Planing() {
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
-        
+
         let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
         let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
-        dispatch(setUnitLoads(updatedLoads));       
+        dispatch(setUnitLoads(updatedLoads));
         if (receivedData.success) {
           setMessage("Карта успешно предварительно запланирована НО НЕЗАПИСАНА! Если все в порядке ЗАПИШИ!");
         } else {
@@ -579,8 +464,8 @@ export default function Planing() {
       date = formatDate(new Date(elem.date));
 
     return (
-      <div key={index4} className="container_card">
-        <div className="container_card1">
+      <div key={index4} className="container_plan_card_planed">
+        <div className="container_plan_card_icon_light">
           {loaderCard === elem.id && <ButtonLoader />}
           {loaderCard !== elem.id &&
             (elem.id === tCardLighted.id ?
@@ -589,7 +474,7 @@ export default function Planing() {
               : <Image className="icon_edit_save" src={light} alt="light"
                 width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
           }
-          <div className="container_card_text">&nbsp; {padNumberToFourDigits(elem.number)} -  {date}</div>
+          <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.number)} -  {date}</div>
         </div>
 
         <div className="container_icon_edit_save">
@@ -610,14 +495,9 @@ export default function Planing() {
 
     return (
       <div key={index}
-        className="container_plan draggable-item"
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        onMouseDown={handleMouseDownTCard} // Добавляем обработчик нажатия мыши при перетаскивании        
-        draggable
-        onDragStart={(e) => handleDragStartTCard(e, elem.id)}
-      >
+        className="container_plan_card_prepared">
 
-        <div className={`container_card1 ${elem.id === tCardPrepared?.id ? "container_plan_edit" : ""}`}>
+        <div className={`container_plan_card_icon_light ${elem.id === tCardPrepared?.id ? "container_plan_edit" : ""}`}>
           {loaderCard === elem.id && <ButtonLoader />}
           {loaderCard !== elem.id &&
             (elem.id === tCardLighted.id ?
@@ -626,7 +506,12 @@ export default function Planing() {
               : <Image className="icon_edit_save" src={light} alt="light"
                 width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
           }
-          <div className="container_card_text1">&nbsp; {padNumberToFourDigits(elem.number)} -  {date}</div>
+          <div className="container_plan_card_prepared_title draggable-item"
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            onMouseDown={handleMouseDownTCard} // Добавляем обработчик нажатия мыши при перетаскивании        
+            draggable
+            onDragStart={(e) => handleDragStartTCard(e, elem.id)}
+          >{padNumberToFourDigits(elem.number)} -  {date}</div>
         </div>
 
         <div className="container_icon_edit_save">

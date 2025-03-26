@@ -10,7 +10,8 @@ import {
   UserRoleEnum,
   SettingsItem,
   ScheduleItem,
-  UnitExceptionItem
+  UnitExceptionItem,
+  UnitLoadItem
 
 } from "@/types";
 
@@ -24,7 +25,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setUnitExceptions, setActions, setUOMs, setUnits, setTCards, setSettings, setSchedule } from '@/store/slices'
+import { setUnitExceptions, setActions, setUOMs, setUnits, setTCards, setSettings, setSchedule,setUnitLoads } from '@/store/slices'
 
 import words from "@/public/add.jpg";
 import net from "@/public/add.jpg";
@@ -539,6 +540,46 @@ export default function Index({ }: IndexProps) {
       // setMessage(t('service.noConnection') + e.message)            
     }
   }
+// запрос Загрузки
+  const downloadLoads = async () => {
+
+    try {
+      const res = await fetch(`/api/loads-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)        
+        if (receivedData.success) {
+          //  массив юнитов с загрузками
+
+          let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
+      
+          dispatch(setUnitLoads(unitsLoads));
+          setMessage("Загружены планы и история ")          
+        }
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+
+
+    // }
+
+    // // Обновим сообщение для пользователя
+    // setMessage(`Элемент с id: ${itemId} был перемещен`);
+  };
 
   const downloadAll = async () => {
     await downloadUoms();
@@ -548,6 +589,7 @@ export default function Index({ }: IndexProps) {
     await downloadSettings();
     await downloadSchedule();
     await downloadTCards();
+    await downloadLoads();
     setMessage("Загружено все")
   }
 

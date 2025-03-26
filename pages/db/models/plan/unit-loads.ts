@@ -11,7 +11,7 @@ export class UnitLoadTable {
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
     
-    @Column()
+    @Column('bigint')
     idc!: number;
 
     @Column('date')

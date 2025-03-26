@@ -13,7 +13,7 @@ export interface LoadProps {
     draggingLoad: UnitLoadItem | undefined,
     contectMenuShow: number,
     unitView: UnitItem,
-    erazLoadHandler: (idc: number) => void,
+    erazLoadHandler: (load_idc: number) => void,
     handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,
     handleMouseUpOper: () => void,
     handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
@@ -58,22 +58,27 @@ export default function LoadOuter({
     let width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
+    let triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
+    let triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
 
     switch (load.status) {
-        case StatusEnum.draft:
-            intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
-            break;
         case StatusEnum.planed:
             intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
+            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPlaned}`; // Класс по умолчанию
+            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPlaned}`; // Класс по умолчанию                
             break;
         case StatusEnum.prepared:
             intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
+            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPrepared}`; // Класс по умолчанию
+            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPrepared}`; // Класс по умолчанию                
             break;
         case StatusEnum.defective:
             intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
+            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDefected}`; // Класс по умолчанию
+            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDefected}`; // Класс по умолчанию                
+
             break;
         default:
-            intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
             break;
     }
     intervalClass = load.isRetool ? `${intervalClass} ${styles.retool}` : intervalClass;
@@ -99,8 +104,8 @@ export default function LoadOuter({
             {/* Треугольник (стрелка) */}
 
             {/* <div className={styles.triangleTop} /> */}
-            {load.isOuterFinish && <div className={styles.triangleLeft} />}
-            {load.isOuterStart && <div className={styles.triangleRight} />}
+            {load.isOuterFinish && <div className={triangleLeftClass} />}
+            {load.isOuterStart && <div className={triangleRightClass} />}
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}
                 onMouseUp={e => handleMouseUpOper()}
