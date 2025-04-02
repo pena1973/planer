@@ -803,7 +803,7 @@ export default function PlanScaleContainer({
   let linesPlusReactNodes = linesPlus.map((elem) => {
     return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefPlus.current} />
   })
-  const linesMinus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
+  const linesMinus = createLines("Minus", today.toLocaleDateString("en-CA"), unitLoads)
   let linesMinusReactNodes = linesMinus.map((elem) => {
     return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefMinus.current} />
   })

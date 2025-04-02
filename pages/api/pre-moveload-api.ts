@@ -16,7 +16,7 @@ import { CompanyTable } from '@/pages/db/models/catalogs/companies'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-
+import {StatusEnum} from '@/types'
 
 import {
   UnitItem,UnitLoadItem,
@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // ПЕРЕПЛАНИРОВАНИЕ по перемещению лоада
       case 'POST':
         const { pinnedLoad, tCardLoads, unit, date, timeStart, timeFinish, today } = req.body as RequestBody;
-        // loads-Это все загрузки по карте которую перепланируем
+        // tCardLoads-Это все загрузки по карте которую тащим 
         if (tCardLoads.length === 0) {
           // должно быть хотябы один лоад при перемешении
           // Если нет загрузок, можно вернуть пустой результат или обработать ошибку
@@ -92,8 +92,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //  получаем список операций которые зависимы от нашей  -  их будем перепланировать
         let dependentOperationsIds = getDependentOperationsIds(tCard, oper);
         // Формируем массив по карте без лоадов этой операции и зависимых от нее
-        let cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
+        let cardLoadsWithoutOperEndDep = tCardLoads.filter(load => 
           !(load.id_oper === oper.id || dependentOperationsIds.includes(load.id_oper as number))
+        );
+        
+        // также для сохранения истории мы по этой операции и зависимым операциям должны оставить все отмененные бракованные и готовые
+        let cardLoadsOperEndDepHistory = tCardLoads.filter(load => 
+          !(load.status===StatusEnum.prepared || load.status===StatusEnum.planed) 
+          && (load.id_oper === oper.id || dependentOperationsIds.includes(load.id_oper as number))
         );
 
         // сортируем по возрастанию
@@ -101,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           a.date.localeCompare(b.date) || a.timeStart - b.timeStart
         );
 
-        let planedCardLoads = [...cardLoadsWithoutOperEndDep];
+        let planedCardLoads = [...cardLoadsWithoutOperEndDep,...cardLoadsOperEndDepHistory];
 
         // получаем момент готовности входящих запчастей и не раньше сегодня  и не раньше входящего старта
         let readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperEndDep, date, timeStart, today)

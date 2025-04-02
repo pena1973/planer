@@ -2,7 +2,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
-import {  getAllOperationsIds, planTCardFromOperINC } from './handlers-plan';  // планирование карты
+import {  getAllPreparedOperationsIds, planTCardFromOperINC } from './handlers-plan';  // планирование карты
 import { getTCard,  getCompanyShedule, getExceptions, getTCardFull } from './handlers-get';  // 
 
 import { Repository, In } from 'typeorm';
@@ -19,7 +19,7 @@ import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 
 
-import {UnitLoadItem} from "@/types";
+import {UnitLoadItem,StatusEnum} from "@/types";
 
 // interface RequestBody {
 //   unitLoads: UnitLoadItem[];  // переобозвать и сделать плоскую таблицу
@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { userId, companyId, tCardId, today } = req.query;
 
     switch (req.method) {
-      // ПРЕДВАРИТЕЛЬНОЕ ПЛАНИРОВАНИЕ полной карты
+      // ПРЕДВАРИТЕЛЬНОЕ ПЛАНИРОВАНИЕ/допланирование недостающих операций карты
       case 'GET':
         
       let tCardLoads=[] as UnitLoadItem[];
@@ -60,15 +60,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
           return
         }
-
+   
+        let allPreparedOperationsIds = getAllPreparedOperationsIds(tCard);
+               
         // запросим юниты
         const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
 
         // запросим расписание компании
         const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
-
-        // //  получим загрузку юнитов  до планирования новой карты         
-        // const unitLoadItems = await getUnitLoads(units_, unitLoadRepository)
 
         //  получим исключения рабочего времени юнитов         
         const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
@@ -77,11 +76,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //  уберем из нее лоады нашей карты
         let unitLoadItemsFull = unitLoadItemsBD.filter(lo => tCardId !== lo.id)
         // в этих лоадах нет операций в статусе prepared
-        
-        let allOperationsIds = getAllOperationsIds(tCard);
+     
 
         // Планируем карту все операции статуса prepared
-        let resultPlaningNextOper = planTCardFromOperINC(allOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, String(today))
+        let resultPlaningNextOper = planTCardFromOperINC(allPreparedOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, String(today))
         //  Если не удалось запланировать
         if (!resultPlaningNextOper.success) {
           res.status(200).json({

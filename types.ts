@@ -15,6 +15,7 @@ export interface TCardOperationItem {
     mode?: boolean // для целей редактирования на форме
     status:StatusEnum
 }
+
 export enum StatusEnum {
     draft     = 'draft', // черновик
     prepared  = 'prepared', // готов к началу планирования

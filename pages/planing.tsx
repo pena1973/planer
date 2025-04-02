@@ -81,7 +81,9 @@ export default function Planing() {
   const saveCardHandler = async () => {
     setLoaderCard(tCardPrepared.id);
     // Фильтруем загрузку по карте  и все что драфт и сохраняем  
-    let tCardLoads = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === StatusEnum.prepared )})
+    let tCardLoadsPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === StatusEnum.prepared) })
+    let tCardLoadsWithoutPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status !== StatusEnum.prepared) })
+    let unitLoadsWithoutCard = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id) })
     try {
       const res = await fetch(`/api/save-card-loads-api?userId=${1}&companyId=${1}`,
         {
@@ -92,7 +94,7 @@ export default function Planing() {
           }),
           body: JSON.stringify({
             tCard: tCardPrepared,
-            tCardLoads: tCardLoads
+            tCardLoads: tCardLoadsPrepared
           }),
         }
       );
@@ -106,11 +108,11 @@ export default function Planing() {
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
           // удалим массив загрузок предварительный и добавим массив загрузок запланированный
-          let _loads = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id && load.status !== 'draft') })
+          // let _loads = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id && load.status !== 'draft') })
           let savedUnitLoads = receivedData.savedUnitLoads as UnitLoadItem[];
-          let updatedLoads = [..._loads, ...savedUnitLoads]
+          let updatedLoads = [...unitLoadsWithoutCard, ...tCardLoadsWithoutPrepared, ...savedUnitLoads]
           dispatch(setUnitLoads(updatedLoads))
-          //   уберем звезду модифицированности
+
 
           //  поменяем статус карты  и после этого она перерисуется в запланированные
           let index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
@@ -120,7 +122,6 @@ export default function Planing() {
           dispatch(setTCardLighted(updatedTCard))
           dispatch(setTCardPrepared({} as TCardItem));
           dispatch(setTCards(_tCards));
-
           setMessage("Планировка карты успешно записана");
         }
       }
@@ -131,73 +132,52 @@ export default function Planing() {
   };
 
   // Затираем планирование карты только шкалу вперед  - все что прошло уже необратимо
-  const erazCardHandler = async (id: number) => {
-    // это предварительное планирование  -  просто стираем
-    // if (id === tCardPrepared.id) {
-    let updatedUnitLoads = unitLoads.filter(load => {
-      return (load.id_tCard !== id || load.date < (new Date().toLocaleDateString("en-CA")))
-    })
-    dispatch(setUnitLoads(updatedUnitLoads));
-    // }
-
-    // эта карта запланирована  затираем planed на prepared) на сервере начиная с текущей даты  -  историю не трогаем
-    if (tCardsPlaned.some(tcard => tcard.id === id)) {
-
-      // setLoaderCard(tCardPrepared.id);
-      // 
-      let tCardLoads = unitLoads.filter(load => {
-        return (load.id_tCard === id && load.status === StatusEnum.planed && load.date >= today.toLocaleDateString("en-CA"))
-      })
-      try {
-        const res = await fetch(`/api/eraze-card-plan-api?userId=${1}&companyId=${1}`,
-          {
-            method: 'post',
-            headers: new Headers({
-              // 'Authorization': 'Basic ' + token,
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify({
-              tCardLoads: tCardLoads,
-              tCardId: id,
-              today: today.toLocaleDateString("en-CA"),
-            }),
-          }
-        );
-        if (res.status !== 200) {
-          const receivedData = await res.json();
-          let error = receivedData.error;
-          setMessage(error);
-          // setMessage(t('service.serverUnavailable') + res.status);
-        } else {
-          const receivedData = await res.json();
-          // console.log("receivedData", receivedData)        
-          if (receivedData.success) {
-            // Если успешно меняем статусы карты и операций
-
-            if (tCardLoads.length > 0) {
-              const updatedLoads = unitLoads.filter(load => !tCardLoads.some(l => l.id === load.id));
-              dispatch(setUnitLoads(updatedLoads));
-            }
-
-            //   уберем звезду модифицированности
-
-            //  поменяем статус карты  и после этого она перерисуется в запланированные
-            let index = tCards.findIndex(tCard => tCard.id === tCardLighted.id);
-            let updatedTCard = { ...tCards[index], status: StatusEnum.prepared }
-            let _tCards = [...tCards]
-            _tCards.splice(index, 1, updatedTCard);
-            dispatch(setTCardPrepared(updatedTCard))
-            dispatch(setTCardLighted({} as TCardItem));
-            dispatch(setTCards(_tCards));
-
-            //        setMessage("Планировка карты успешно записана");
-          }
+  const erazCardHandler = async (tCardId: number) => {
+    let tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
+    let unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
+    try {
+      const res = await fetch(`/api/eraze-card-plan-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'post',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({
+            tCardLoads: tCardLoads,
+            tCardId: tCardId,
+            today: today.toLocaleDateString("en-CA"),
+          }),
         }
-      } catch (e: any) {
-        // setMessage(t('service.noConnection') + e.message)            
-      }
-      // setLoaderCard(NaN);
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)        
+        if (receivedData.success) {
+          // Если успешно меняем статусы карты и операций
+          const updatedLoads = [...unitLoadsWithoutCard, ...receivedData.tCardLoads]        
+          dispatch(setUnitLoads(updatedLoads));
+ 
+          //  поменяем статус карты  и после этого она перерисуется в запланированные
+          let index = tCards.findIndex(tCard => tCard.id === tCardLighted.id);
+          let updatedTCard = { ...tCards[index], status: StatusEnum.prepared }
+          let _tCards = [...tCards]
+          _tCards.splice(index, 1, updatedTCard);
+          dispatch(setTCardPrepared(updatedTCard))
+          dispatch(setTCardLighted({} as TCardItem));
+          dispatch(setTCards(_tCards));
 
+          //        setMessage("Планировка карты успешно записана");
+        }
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+      // }
 
     }
 
@@ -208,49 +188,50 @@ export default function Planing() {
     let erazload = unitLoads.find(load => load.idc === load_idc)
     let tCardLoads = unitLoads.filter(load => load.id_tCard === erazload?.id_tCard)
     let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== erazload?.id_tCard)
-    
+
     if (erazload) {
-      if (erazload.status === StatusEnum.prepared) {
-        // ЗАПРОС НА СЕРВЕР ОБРАБОТКА ЛОАДОВ - УДАЛЕНИЕ ПОСЛЕДУЮЩИХ
-        try {
-          const res = await fetch(`/api/eraze-load-plan-api?userId=${1}&companyId=${1}`,
-            {
-              method: 'post',
-              headers: new Headers({
-                // 'Authorization': 'Basic ' + token,
-                'Content-Type': 'application/json'
-              }),
-              body: JSON.stringify({
-                deletedLoad: erazload,
-                tCardLoads: tCardLoads,
-                today: new Date().toLocaleDateString("en-CA"),
-              }),
-            }
-          );
 
-          if (res.status !== 200) {
-            const receivedData = await res.json();
-            let error = receivedData.error;
-            setMessage(error);
-            // setMessage(t('service.serverUnavailable') + res.status);
-          } else {
-            const receivedData = await res.json();
-            let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
-            let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
-            dispatch(setUnitLoads(updatedLoads));
-            if (receivedData.success) {
-              setMessage(" Успешно удалено планирование операции и все последующие зависимые планирования");
-            } else {
-              setMessage(receivedData.message);
-            }
+      try {
+        const res = await fetch(`/api/eraze-load-plan-api?userId=${1}&companyId=${1}`,
+          {
+            method: 'post',
+            headers: new Headers({
+              // 'Authorization': 'Basic ' + token,
+              'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify({
+              erazload: erazload,
+              tCardLoads: tCardLoads,
+              today: new Date().toLocaleDateString("en-CA"),
+            }),
           }
-        } catch (e: any) {
-          // setMessage(t('service.noConnection') + e.message)            
-        }
+        );
 
-      } else if (erazload.status === StatusEnum.planed) {
-        // удалить на сервере поскольку planed  -  уже записан
+        if (res.status !== 200) {
+          const receivedData = await res.json();
+          let error = receivedData.error;
+          setMessage(error);
+          // setMessage(t('service.serverUnavailable') + res.status);
+        } else {
+          const receivedData = await res.json();
+          let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
+          let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+          dispatch(setUnitLoads(updatedLoads));
+          
+          // меняем статус карты
+          const tCards_ =  tCards.map(card=>(card.id===erazload.id_tCard)? {...card,status:StatusEnum.prepared}:card)
+          dispatch(setTCards(tCards_));
+
+          if (receivedData.success) {
+            setMessage(" Успешно удалено планирование операции и все последующие зависимые планирования");
+          } else {
+            setMessage(receivedData.message);
+          }
+        }
+      } catch (e: any) {
+        // setMessage(t('service.noConnection') + e.message)            
       }
+
     }
 
   }
@@ -319,7 +300,7 @@ export default function Planing() {
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
   const unPinLoadHandler = async (operId: number, tCardId: number) => {
- 
+
 
     //  последующее перепланирование
     let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
@@ -372,7 +353,7 @@ export default function Planing() {
   const changeDurationLoadHandler = async (idc: number) => {
 
   }
- 
+
 
   /// ПЕРЕТАСКИВАНИЕ КАРТЫ НА ПОЛЕ ПЛАНИРОВАНИЯ
   // Для изменения курсора
@@ -405,7 +386,7 @@ export default function Planing() {
 
     event.preventDefault();
     // Получаем id перетаскиваемого элемента в строковом виде и это будет id карты
-    const itemId = event.dataTransfer.getData("itemId"); 
+    const itemId = event.dataTransfer.getData("itemId");
     let tCard_ = tCards.find(tCard => tCard.id === Number(itemId))
     if (!tCard_) return
     dispatch(setTCardPrepared(tCard_));
@@ -413,8 +394,11 @@ export default function Planing() {
     setIsDragging(false); // Завершаем перетаскивание     
     //!!!!!!!!!! отправляем на сервер  карту  и там планируем
     //  в базу пока не пишем это предварительный расчет
-    // let tCardLoads = unitLoads.filter(load => load.id_tCard ===  tCard_.id)
-    let tCardLoadsWithout = unitLoads.filter(lo => lo.id_tCard !== tCard_.id)
+    // чистим все лоады в статусе prepared (предыдущее несохраненное планирование)
+    let unitLoads_ = unitLoads.filter(lo => lo.status !== StatusEnum.prepared)
+
+    let tCardLoadsPlaned = unitLoads_.filter(load => load.id_tCard === tCard_.id && load.status !== StatusEnum.prepared)
+    let tCardLoadsWithout = unitLoads_.filter(lo => lo.id_tCard !== tCard_.id)
 
     try {
       const res = await fetch(`/api/pre-fullcardplan-api?userId=${1}&companyId=${1}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
@@ -435,7 +419,7 @@ export default function Planing() {
         const receivedData = await res.json();
 
         let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
-        let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+        let updatedLoads = [...tCardLoadsWithout, ...tCardLoadsPlaned, ...tCardLoads_]
         dispatch(setUnitLoads(updatedLoads));
         if (receivedData.success) {
           setMessage("Карта успешно предварительно запланирована НО НЕЗАПИСАНА! Если все в порядке ЗАПИШИ!");
