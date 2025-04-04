@@ -4,6 +4,9 @@ import '@/styles/index.scss';
 import '@/styles/cards.scss';
 import '@/styles/planing.scss';
 import '@/styles/resources.scss';
+import '@/styles/monitor.scss';
+import '@/styles/support.scss';
+
 
 import "reflect-metadata"
 

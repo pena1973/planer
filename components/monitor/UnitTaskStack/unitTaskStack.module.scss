@@ -1,0 +1,103 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+// .container{
+//     position: absolute;
+//     // top: `${top}px`,
+//     // height: `${height}px`,
+//     left: 0;
+//     right: 0;
+//     background-color: rgba(0, 150, 255, 0.3);
+//     border: 1px solid #0096ff;
+//     box-sizing: border-box;
+//     padding: 2px;
+//     overflow: hidden
+//   }
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  height: auto;
+  margin: 5px;
+  border-radius: 10px;
+  /* Скругленные углы */
+  background-color: #f0f0f0;
+  /* Светло-серый фон */
+  border: 1px solid #ccc;
+  /* Равномерная серая граница */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* Легкая тень для глубины */
+  transition: box-shadow 0.3s ease;
+  /* Плавный переход для эффекта при наведении */
+  // position: relative;
+  background-color: beige;
+  overflow: hidden
+}
+
+.unit_load {
+  position: relative;
+  // margin-top: 20px;
+  width: 100%;
+  background-color: rgb(119, 116, 69);
+  // min-height: 50px;
+  padding: 10px 0;
+  // font-weight: bold;    
+}
+
+.unit_unload {
+  position: relative;
+  // margin-top: 20px;  
+  width: 100%;
+  // background-color: rgb(255, 251, 199);
+  // min-height: 50px;
+  // font-weight: bold;    
+
+  // border-bottom: 1px dashed #ccc;
+}
+
+.workTime {
+  // background-color: rgb(208, 226, 208);
+  background-color: rgb(216, 226, 216);
+  /* Задайте цвет для рабочего времени */
+}
+
+.breakTime {
+  background-color: rgb(235, 224, 205);
+
+  /* Цвет для перерывов */
+  // background-color: rgb(61, 10, 30)
+}
+
+.nonWorkTime {
+  background-color: rgb(255, 255, 255);
+  /* Цвет для выходного времени */
+}
+
+.title_container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.title {
+  margin: 10px;
+  min-height: 30px;
+  font-weight: lighter;
+  padding: 5px;
+  font-size: 14px;
+  font-weight: bold;
+
+}
+
+.timeLabel {
+  position: absolute;
+  // margin: 10px;
+  // min-height: 30px;
+  // font-weight: lighter;
+  padding: 5px;
+  font-size: 12px;
+  // font-weight: bold;
+  z-index: 2;
+}

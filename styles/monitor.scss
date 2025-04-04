@@ -1,0 +1,79 @@
+@import '@/styles/colors.scss';
+
+
+.container_catalogs {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100% - 134px);
+    overflow: auto;
+    //  background-color: aliceblue;
+    padding: 20px 10px;
+}
+
+.resources_container_catalog {
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.monitor_container_navigation {
+    display: flex;
+    width: 100%;
+    justify-content: space-evenly;
+    margin: 10px;
+}
+
+/* //////////////////// */
+// .resources_container {
+//     display: flex;
+//     flex-direction: row;
+//     height: 100%;
+//     width: 100%;
+//     // overflow: auto;
+//     /* Добавьте прокрутку только если необходимо */
+// }
+
+// /* //////////////////// */
+// .resources_container_left {
+//     display: flex;
+//     flex-direction: column;
+//     justify-content: space-between;
+//     min-width: 200px;
+//     border-right: 2px solid rgb(0, 0, 0);
+//     height: 100%;
+//     // background: antiquewhite;
+//     position: sticky;
+//     top: 0;
+//     /* Устанавливаем, чтобы оставался вверху окна при прокрутке */
+//     left: 0;
+//     /* Устанавливаем прилипание к левому краю */
+//     z-index: 10;
+//     overflow: auto;
+// }
+
+// /* //////////////////// */
+// .resources_container_right {
+//     display: flex;
+//     height: 100%;
+//     overflow: auto;
+//     width: 100%;
+// }
+
+
+
+// .contaitainer_catalog {
+//     // background-color: azure;
+//     margin: 10px;
+//     width: 100%;
+// }
+
+// .catalog_title {
+//     font-size: 16px;
+//     padding: 5px;
+//     font-weight: bold;
+
+// }
+
+.monitor_container {
+    display: inline-flex;
+}

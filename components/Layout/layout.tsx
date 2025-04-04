@@ -62,7 +62,8 @@ export default function Layout({ children }: PropsWithChildren) {
                         <Link className={styles.header_menu_item} href="/cards">Cards</Link>
                         <Link className={styles.header_menu_item} href="/planing">Planing</Link>
                         <Link className={styles.header_menu_item} href="/resources">Resources</Link>
-                        <Link className={styles.header_menu_item} href="/resources">Сapacity</Link>
+                        <Link className={styles.header_menu_item} href="/monitor">Monitor</Link>
+                        <Link className={styles.header_menu_item} href="/support">Support</Link>
                         
 
                     </ul>

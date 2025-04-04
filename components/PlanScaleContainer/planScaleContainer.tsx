@@ -397,9 +397,9 @@ export default function PlanScaleContainer({
       if (!calendarPlus.current.find(elem => elem.idDay === id_day)) {
         calendarPlus.current = [...calendarPlus.current, generateCalendarItem(_day, schedule)];
       }
-      if (!_visibleItems.find(elem => elem === id_day)) {
-        _visibleItems.push(id_day)
-      }
+      // if (!_visibleItems.find(elem => elem === id_day)) {
+      //   _visibleItems.push(id_day)
+      // }
       // Добавляем один день
       _day.setDate(_day.getDate() + 1);
 
@@ -411,7 +411,7 @@ export default function PlanScaleContainer({
     // если shift>0 тоэто сдвиг вперед
     // если shift<0 тоэто сдвиг назад
 
-    let _visibleItems = [] as string[] // ID дней которые видны
+    // let _visibleItems = [] as string[] // ID дней которые видны
 
     // если сдвиг положительный то нужно отстроить дни в прошлое
     //  буду сдвиг отсчитывать от сегодня
@@ -438,10 +438,10 @@ export default function PlanScaleContainer({
           //  если его нет добавили в массив
           calendarMinus.current = [...calendarMinus.current, generateCalendarItem(_dayPast, schedule)];
         }
-        // определили его видимость
-        if (Math.abs(_shift) <= timelineWidth && !_visibleItems.find(elem => elem === id_day)) {
-          _visibleItems.push(id_day)
-        }
+        // // определили его видимость
+        // if (Math.abs(_shift) <= timelineWidth && !_visibleItems.find(elem => elem === id_day)) {
+        //   _visibleItems.push(id_day)
+        // }
         _shift = _shift - dayWidth; // инкрементировали сдвиг
 
         _dayPast.setDate(_dayPast.getDate() - 1) // от сегодня сдвинули в прошлое день

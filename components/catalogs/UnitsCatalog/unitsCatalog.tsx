@@ -67,72 +67,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
         return newCode;
     }
-    // const getUnits = async () => {
-    //     // Загружаем классификатор действий
-    //     try {
-    //         const res = await fetch(`api/units-api?userId=${1}&companyId=${1}`,
-    //             {
-    //                 method: 'get',
-    //                 headers: new Headers({
-    //                     // 'Authorization': 'Basic ' + token,
-    //                     'Content-Type': 'application/json'
-    //                 }),
-    //             }
-    //         );
-    //         if (res.status !== 200) {
-    //             const receivedData = await res.json();
-    //             let error = receivedData.error;
-    //             setMessage(error);
-    //             //  console.log(t('service.serverUnavailable') + res.status);
-    //             // setMessage(t('service.serverUnavailable') + res.status);
-
-    //         } else {
-    //             const receivedData = await res.json();
-    //             if (receivedData.success) {
-    //                 let units_ = receivedData.units as UnitItem[]
-    //                 dispatch(setUnits(units_)); // Это ме надо?
-    //                 setUnitsValue(units_);
-    //             }
-    //             else setMessage(receivedData.error);
-    //         }
-    //     } catch (e: any) {
-    //         // setMessage(t('service.noConnection') + e.message)            
-    //     }
-
-    // }
-    // const getUnutsExceptions = async () => {
-    //     // Загружаем классификатор действий
-    //     try {
-    //         const res = await fetch(`api/exceptions-api?userId=${1}&companyId=${1}`,
-    //             {
-    //                 method: 'get',
-    //                 headers: new Headers({
-    //                     // 'Authorization': 'Basic ' + token,
-    //                     'Content-Type': 'application/json'
-    //                 }),
-    //             }
-    //         );
-    //         if (res.status !== 200) {
-    //             const receivedData = await res.json();
-    //             let error = receivedData.error;
-    //             setMessage(error);
-    //             //  console.log(t('service.serverUnavailable') + res.status);
-    //             // setMessage(t('service.serverUnavailable') + res.status);
-
-    //         } else {
-    //             const receivedData = await res.json();
-    //             if (receivedData.success) {
-    //                 let exceptions = receivedData.exceptions as UnitExceptionItem[]
-    //                 dispatch(setUnitExceptions(exceptions)); // Это ме надо?
-    //                 setExceptionsValue(exceptions);
-    //             }
-    //             else setMessage(receivedData.error);
-    //         }
-    //     } catch (e: any) {
-    //         // setMessage(t('service.noConnection') + e.message)            
-    //     }
-
-    // }
+   
     useEffect(() => {
         setExceptionsValue(unitExceptions)
         setUnitsValue(units)
