@@ -261,7 +261,7 @@ function findAvailableTimeForOperation(
         idc: Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`),
         isActive: true,
         isRetool: seg.isRetool,
-        loadInfo: { title: operation.action.title, duration: operation.duration / 60000, interruptible: operation.action.interruptible, koef: koef },
+        loadInfo: { title: operation.action.title, duration: Math.round(operation.duration / 60000), interruptible: operation.action.interruptible, koef: koef },
         isPinned: isPinned,
         isOuterStart: false,//  это старт оутсортера, здесь не применяется
         isOuterFinish: false,//  это финиш оутсортера        

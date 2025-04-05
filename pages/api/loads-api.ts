@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               ...lo,
               loadInfo: {
                 title: oper.action.title,
-                duration: oper.duration/60000, // инфо показываем в минутах
+                duration: Math.round(oper.duration/60000), // инфо показываем в минутах
                 interruptible: oper.action.interruptible,
                 koef: (unitAction) ? unitAction.koef : 1
               },

@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./unitTaskStack.module.scss";
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
 import LoadMonitor from "./LoadMonitor/loadMonitor";
+import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
 const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
@@ -97,7 +98,6 @@ const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem
     }
   }
 
-
   // Создаем объект CalendarItem
   const calendarItem: CalendarItem = {
     idDay: idDay(currentDate),
@@ -110,37 +110,45 @@ const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem
   };
   return calendarItem;  // Возвращаем один элемент календаря
 };
-
+// Функция определяет что интервал в 5 минут является началом часа
 function isStartOfHour(intervTime: number): boolean {
   return intervTime % 60 === 0;
 }
-
+// Функция для визуализации времени для юзера
 function formatIntervTime(intervTime: number): string {
   const hours = Math.floor(intervTime / 60);
   const minutes = intervTime % 60;
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
+
 interface UnitTaskStackProps {
   unit: UnitItem,
+  tCards: TCardItem[],
   day: string; // "YYYY-MM-DD", например, текущая дата
   unitLoads: UnitLoadItem[]; // для именно этого юнита и этой даты
   settings: SettingsItem,
   schedule: ScheduleItem,
   unitExceptions: UnitExceptionItem[],
   containerHeight?: number; // высота контейнера в пикселях, например, 600
+  otk?: boolean // существует отдельно контроль качества 
 }
 
 const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
   unit,
+  tCards,
   day,
   unitLoads,
   settings,
   schedule,
   unitExceptions,
-  containerHeight = 600
+  containerHeight = 600,
+  otk = false,
 }) => {
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
   const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
+  const [operView, setOperView] = useState(false);
+  const [currentOper, setCurrentOper] = useState({} as TCardOperationItem);
+  const [currentTCard, setCurrentTCard] = useState({} as TCardItem);
 
   let hoursScaleReactNodes = [] as JSX.Element[];
 
@@ -157,13 +165,36 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
     setCalendarView(calendarView_);
 
   }, [day, schedule])
+  // действия пользователя 
+  const openOperHandler = (id_oper: number, id_tCard: number): void => {
+    setOperView(true);
 
+    // получаем полную операцию и разворачиваем
+    // Запрос на сервер
+
+  }
 
   // Функция для генерации шкалы времени  и загруза юнитов для одного дня
   const generateTimeScale = (calendarItem: CalendarItem): JSX.Element[] => {
     let intervalsReactNodes = [] as JSX.Element[];
-    let dayScale = [] as JSX.Element[];
 
+
+    const isFirstLoadForOperation = (load: UnitLoadItem, loads: UnitLoadItem[]): boolean => {
+      // Если текущий load - ретул, то не считаем его
+      if (load.isRetool) return false;
+
+      // Отбираем все загрузки для той же операции, не являющиеся ретулом
+      const relevantLoads = loads.filter(l => l.id_oper === load.id_oper && !l.isRetool);
+
+      // Если их нет или это единственная, то текущий load - первый
+      if (relevantLoads.length === 0) return false;
+
+      // Находим загрузку с минимальным timeStart
+      const firstLoad = relevantLoads.reduce((min, curr) => curr.timeStart < min.timeStart ? curr : min);
+
+      // Сравниваем идентификаторы (или другие уникальные поля)
+      return firstLoad.id === load.id;
+    }
     let quants = 288;  // 288 5 минуток в дне (24 часа * 60/5 минут)  если показывать полные сутки
     let startQuant = 0;
     let finishQuant = 288;
@@ -174,10 +205,6 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
       quants = settings.timeFinishWork / 5 - startQuant;
       finishQuant = settings.timeFinishWork / 5;
     }
-    
-    // let dateLoad = unitLoads.filter(elem => {
-    //   return (elem.date === day)
-    // });
 
     for (let i = startQuant; i < finishQuant; i++) {
       const intervTime = i * 5;
@@ -193,7 +220,7 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
           ? styles.workTime  // Если это рабочее время, применяем стиль для рабочего времени
           : styles.nonWorkTime;  // Если не рабочее и не перерыв, применяем стиль для не рабочего времени
 
-      //  вычисление визуализации загруза юнита    
+      //  вычисление визуализации загруза юнита  с учетом исключений   
       let unit_unloadEx = "";
       let exs = unitExceptions.filter(ex => ex.unitId === unit.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
 
@@ -217,46 +244,36 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
         unit_unloadEx = isBreakTimeEx ? styles.breakTime : unit_unloadEx
 
       }
+
       let operBlocksReactNodes = [] as JSX.Element[];
       if (unitLoads.length > 0) {
-        // ищем позиции которые начинаются а этом интервале
+        // ищем лоады которые начинаются а этом интервале
         const operBlocks = unitLoads.filter(load => {
           return intervTime <= load.timeStart && load.timeStart < (intervTime + 5);
         });
 
         // Расставляем блоки интервалов на шкале
-         operBlocksReactNodes = operBlocks.map((load, index) => {
+        operBlocksReactNodes = operBlocks.map((load, index) => {
+          const loadHeight = (load.timeFinish - load.timeStart) / 5 * intervalHeight
+          let titleCard = "";
+          const tCard = tCards.find(tCard => tCard.id === load.id_tCard); // ищем карточку          
+          if (tCard)
+            titleCard = `${padNumberToFourDigits(tCard.number)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+
           return <LoadMonitor
-            // dayWidth={dayWidth}
-            // quants={quants}
-            // intervTime={intervTime}
+            loadHeight={loadHeight}
+            showTitle={isFirstLoadForOperation(load, unitLoads)}
             load={load}
-            // tCardLighted={tCardLighted}
-            // tCards={tCards}
-            // draggingLoad={draggingLoad}
-            // contectMenuShow={contectMenuShow}
-            // unitView={unitView}
-            // erazLoadHandler={erazLoadHandler}
-            // handleMouseDownOper={handleMouseDownOper}
-            // handleMouseUpOper={handleMouseUpOper}
-            // handleRightClickMenu={handleRightClickMenu}
+            titleCard={titleCard}
+            // durationOper=(), // в минутах
+            //  performLoadHandler={performLoadHandler}
+            //  readyLoadHandler={readyLoadHandler}
+            //  defectLoadHandler={defectLoadHandler}
+            openOperHandler={openOperHandler}
             index={index}
-            // moveLoadHandler={moveLoadHandler}
-            // pinLoadHandler={pinLoadHandler}
-            // unPinLoadHandler={unPinLoadHandler}
+
           />
         })
-
-        // // Это прорисовка загрузок 
-        // intervalsReactNodes.push(
-        //   <div
-        //     className={`${styles.unit_unload} ${unit_unloadEx} ${timeStyle} `}
-        //     style={{ height: intervalHeight }}>
-        //     {isStartOfHour(intervTime) && <div className={styles.timeLabel}>
-        //       {formatIntervTime(intervTime)}
-        //     </div>}
-        //      {operBlocksReactNodes}
-        //   </div> as JSX.Element)
       }
 
       //  
@@ -271,35 +288,20 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
           {operBlocksReactNodes}
         </div> as JSX.Element)
     }
-    //  );
 
 
-    //   dayScale.push(
-    //     <div
-    //       key={`${calendarItem.day}+${i}}`}
-    //       className={`${styles.timeBlock} ${timeStyle} ${hourStyle}`}
-    //     // style={{ width: `${dayWidth / quants}px` }} // Делаем каждый блок 1/288 ширины
-    //     >
 
-    //       <div className={styles.timeLabel}>
-    //         {hoursValue}
-    //         {minutesValue}
-    //       </div>
-    //       {/* загрузка своих Юнитов */}
-    //       <div className={styles.unit_gap} ></div>
-    //       {/* {unitLoadBlockseReactNodesInner} */}
-    //       {/* загрузка сторонних юнитов */}
-    //       <div className={styles.unit_gap} ></div>
-
-    //     </div>
-    //   );
-    //}
-    //  return dayScale;
     return intervalsReactNodes as JSX.Element[];
   };
 
   hoursScaleReactNodes = generateTimeScale(calendarView);
 
+  
+  
+  
+  const  titleCard = `${padNumberToFourDigits(currentTCard.number)} - ${new Date(currentTCard.date).toLocaleDateString("en-CA")};`
+const  titleOper = `${padNumberToFourDigits(currentTCard.number)} - ${new Date(currentTCard.date).toLocaleDateString("en-CA")};`
+ 
   return (
     <div className={styles.container}
       style={{ minHeight: `${containerHeight}px` }} >
@@ -308,43 +310,36 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
         <div className={styles.title}>{day}</div>
       </div>
 
-      <div className={styles.time_container}>
+      {!operView && <div style={{ height: containerHeight }}>
         {hoursScaleReactNodes}
-      </div>
+      </div>}
+      {operView && <div style={{ height: containerHeight }}
+        className={styles.oper_container}>
 
+        {/* Здесь будет отображаться информация о загруженной операции */}
+        <div className={styles.oper_title}>
+          <div className={styles.oper_title}>{titleCard}</div>
+          <div className={styles.oper_title}>операция...</div>
+          <div className={styles.oper_title}>Старт: 2025-03-12: 12-30</div>
+          <div className={styles.oper_title}>Финишт: 2025-03-13: 16-30</div>
+        </div>
 
-      {/* {unitLoads.map((load, index) => {
-        const { effectiveStart, effectiveFinish } = getEffectiveTimes(load);
-        // Вычисляем позицию относительно высоты контейнера
-        const top = (effectiveStart / dayEnd) * containerHeight;
-        const height = ((effectiveFinish - effectiveStart) / dayEnd) * containerHeight;
+        <div className={styles.oper_content}>
+          <p>Входящие</p>
 
-        return (
-          <div className={styles.container}
-            key={index}
-            style={{
-            //   position: 'absolute',
-              top: `${top}px`,
-              height: `${height}px`,
-            //   left: '0',
-            //   right: '0',
-            //   backgroundColor: 'rgba(0, 150, 255, 0.3)',
-            //   border: '1px solid #0096ff',
-            //   boxSizing: 'border-box',
-            //   padding: '2px',
-            //   overflow: 'hidden',
-            //   width:'200 px'
-            }}
-          >
-            <div><strong>Операция:</strong> {load.id_oper}</div>
-            <div>
-              <small>
-                {load.date} {load.timeStart} - {load.timeFinish}
-              </small>
-            </div>
-          </div>
-        );
-      })} */}
+          <p>Содержание задания</p>
+          <p>Исходящие</p>
+
+        </div>
+
+        <div className={styles.button_container}>
+          {otk && currentOper.status===StatusEnum.planed && <button onClick={() => setOperView(false)}>Выполнен</button>}
+          {!otk && currentOper.status===StatusEnum.planed && <button onClick={() => setOperView(false)}>Готов</button>}
+          {!otk && currentOper.status===StatusEnum.planed && <button onClick={() => setOperView(false)}>Брак</button>}
+          {currentOper.status!==StatusEnum.planed 
+          && <button onClick={() => setOperView(false)}>Закрыть</button>}
+        </div>
+      </div>}
       <div className={styles.title_container}>
         <div className={styles.title}>Выполнено</div>
         <div className={styles.title}>10%</div>

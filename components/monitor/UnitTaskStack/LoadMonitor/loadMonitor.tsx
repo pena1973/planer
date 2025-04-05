@@ -1,60 +1,33 @@
 
 import styles from "./loadMonitor.module.scss";
-import ContextMenuInner from "./ContextMenuInner/contextMenuInner";
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
 
-import pinon from "@/public/pin_on-rem.png";
-import pinof from "@/public/pin_of-rem.png";
-import ContexMenuInner from "./ContextMenuInner/contextMenuInner";
-
-
 export interface LoadMonitorProps {
-    // dayWidth: number,
-    // quants: number,
-    // intervTime: number,
+    loadHeight: number,
+    showTitle: boolean,
     load: UnitLoadItem,
-    // tCardLighted: TCardItem,
-    // tCards: TCardItem[],
-    // draggingLoad: UnitLoadItem | undefined,
-    // contectMenuShow: number,
-    // unitView: UnitItem,
-    // erazLoadHandler: (load_idc: number) => void,
-    // handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,
-    // handleMouseUpOper: () => void,
-    // handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
+    titleCard: string,
+    // durationOper: number, // в минутах
+    // performLoadHandler: (load_idc: number) => void,
+    // readyLoadHandler: (load_idc: number) => void,
+    // defectLoadHandler: (load_idc: number) => void,
+    openOperHandler: (id_oper: number,id_tCard: number) => void,
     index: number,
-    // moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
-    // pinLoadHandler: (oper_id: number) => void,
-    // unPinLoadHandler: (oper_id: number, tCardId: number) => void,
-
 }
 
 export default function LoadMonitor({
-    // dayWidth,
-    // quants,
-    // intervTime,
+    loadHeight,
+    showTitle,
     load,
-    // tCardLighted,
-    // tCards,
-    // draggingLoad,
-    // contectMenuShow,
-    // unitView,
-    // erazLoadHandler,
-    // handleMouseDownOper,
-    // handleMouseUpOper,
-    // handleRightClickMenu,
-    index,
-    // moveLoadHandler,
-    // pinLoadHandler,
-    // unPinLoadHandler
+    titleCard,
+    // durationOper,
+    // performLoadHandler,
+    // readyLoadHandler,
+    // defectLoadHandler,
+    openOperHandler,
+    index: number,
 }: LoadMonitorProps) {
-
-    // let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
-    //  let shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
-
-    // let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
-    // let width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
 
@@ -76,28 +49,24 @@ export default function LoadMonitor({
             break;
     }
     intervalClass = load.isRetool ? `${intervalClass} ${styles.retool}` : intervalClass;
-
-    // // Выделяем операции текущей карты
-    // if (tCardLighted.id === load.id_tCard) intervalClass = `${intervalClass} ${styles.lighted}`
-    // let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
-    // if (!tCard) tCard = {} as TCardItem;
-
+    // loadInfo?:{title:string,duration:number,interruptible:boolean,koef:number},
     return (
-        <>
-            <div className={intervalClass}
-                id={String(load.idc + "_" + index)}
-                // style={{
-                //     width: `${width}px`, left: `${left}px`,
-                //     cursor: (draggingLoad === load) ? "grabbing" : "grab"
-                // }
-                // }
-                // onContextMenu={(event) => handleRightClickMenu(event, load.idc)}
-                >{`C${load.idc_oper}`}
-            </div>
 
-           
+        <div className={intervalClass}
+            id={String(load.idc)}
+            style={{ height: `${loadHeight}px` }}
+            onClick={(event) => {
+                openOperHandler(load.id_oper,load.id_tCard); // обработчик клика по операции
+            }}
+            onContextMenu={(event) => {
+                event.preventDefault(); // предотвращаем стандартное контекстное меню                    
+            }}
+        >
+            {showTitle && <div>Card: {titleCard} </div>}
+            {showTitle && <div> Oper: C{load.idc_oper},{load.loadInfo?.title},
+           {load.status},{load.loadInfo?.duration} мин</div>}
 
-           
-        </>
+        </div>
+
     )
 }
