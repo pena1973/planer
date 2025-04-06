@@ -36,6 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // userId, companyId в любом случае
     const { userId, companyId, tcardId } = req.query;
 
+    //  можно заменить на getTCardFull
+
     switch (req.method) {
       case 'GET':
 

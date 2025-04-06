@@ -44,6 +44,10 @@ export class TCardOperationTable {
   })
   status!: StatusEnum;
 
+  
+  @Column({ type: 'text', default: "" })
+  coment!: string;
+
   // @OneToMany(() => TCardProductTable, (product) => product.operation, { cascade: true })
   // products!: TCardProductTable[];
 }

@@ -3,6 +3,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import styles from "./unitTaskStack.module.scss";
 import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
 import LoadMonitor from "./LoadMonitor/loadMonitor";
+import LoadOper from "./LoadOper/loadOper";
+import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
+
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
@@ -130,7 +133,12 @@ interface UnitTaskStackProps {
   schedule: ScheduleItem,
   unitExceptions: UnitExceptionItem[],
   containerHeight?: number; // высота контейнера в пикселях, например, 600
-  otk?: boolean // существует отдельно контроль качества 
+  otk?: boolean // существует отдельно контроль качества
+  setMessage: (message: string) => void,
+  getStartFinishOper: (load: UnitLoadItem) => {
+    start: { date: string, time: number },
+    finish: { date: string, time: number }
+  }
 }
 
 const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
@@ -143,12 +151,15 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
   unitExceptions,
   containerHeight = 600,
   otk = false,
+  setMessage,
+  getStartFinishOper,
 }) => {
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
   const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
   const [operView, setOperView] = useState(false);
   const [currentOper, setCurrentOper] = useState({} as TCardOperationItem);
   const [currentTCard, setCurrentTCard] = useState({} as TCardItem);
+  const [currentLoad, setCurrentLoad] = useState({} as UnitLoadItem);
 
   let hoursScaleReactNodes = [] as JSX.Element[];
 
@@ -163,15 +174,126 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
   useEffect(() => {
     const calendarView_ = generateCalendarItem(day, schedule);
     setCalendarView(calendarView_);
-
+    setOperView(false);
+    setCurrentOper({} as TCardOperationItem);
+    setCurrentTCard({} as TCardItem);
+    setCurrentLoad({} as UnitLoadItem);
   }, [day, schedule])
+
   // действия пользователя 
-  const openOperHandler = (id_oper: number, id_tCard: number): void => {
+  const openOperHandler = async (load: UnitLoadItem, id_oper: number, id_tCard: number) => {
     setOperView(true);
 
     // получаем полную операцию и разворачиваем
     // Запрос на сервер
 
+    try {
+      const res = await fetch(`api/tcard-api1?userId=${1}&companyId=${1}&tCardId=${id_tCard}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        setMessage(receivedData.message);
+
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)
+        setMessage(receivedData.message);
+        if (receivedData.success) {
+          //   Обновим текущую карту
+          let tCard = receivedData.tCard as TCardItem
+          setCurrentTCard(tCard);
+          const oper = tCard.tCardOperations?.find((oper) => oper.id === id_oper);
+          if (!oper) return
+          setCurrentOper(oper as TCardOperationItem);
+          setCurrentLoad(load as UnitLoadItem);
+          setMessage(receivedData.message);
+        }
+      }
+
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+  }
+  // действия пользователя 
+  const closeOperHandler = (id_oper: number): void => {
+    setOperView(false);
+    setCurrentOper({} as TCardOperationItem);
+    setCurrentTCard({} as TCardItem);
+    setCurrentLoad({} as UnitLoadItem);
+
+  }
+  // действия пользователя 
+  const performedOperHandler = async (id_oper: number) => {
+    setOperView(true);
+
+    // try {
+    //   const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
+    //     {
+    //       method: 'post',
+    //       headers: new Headers({
+    //         // 'Authorization': 'Basic ' + token,
+    //         'Content-Type': 'application/json'
+    //       }),
+    //     }
+    //   );
+    //   if (res.status !== 200) {
+    //     const receivedData = await res.json();
+    //     setMessage(receivedData.message);
+
+    //     //  console.log(t('service.serverUnavailable') + res.status);
+    //     // setMessage(t('service.serverUnavailable') + res.status);
+    //   } else {
+    //     const receivedData = await res.json();
+    //     // console.log("receivedData", receivedData)
+    //     setMessage(receivedData.message);
+    //     if (receivedData.success) {
+    //       //   Обновим текущую карту
+    //       let tCard = receivedData.tCard as TCardItem
+    //       setCurrentTCard(tCard);
+    //       const oper = tCard.tCardOperations?.find((oper) => oper.id === id_oper);
+    //       if (!oper) return
+    //       setCurrentOper(oper as TCardOperationItem);
+    //       setCurrentLoad(load as UnitLoadItem);
+    //       setMessage(receivedData.message);
+    //     }
+    //   }
+
+    // } catch (e: any) {
+    //   // setMessage(t('service.noConnection') + e.message)            
+    // }
+
+    setCurrentOper({} as TCardOperationItem);
+    setCurrentTCard({} as TCardItem);
+    setCurrentLoad({} as UnitLoadItem);
+  }
+  // действия пользователя 
+  const readyOperHandler = (id_oper: number): void => {
+    setOperView(true);
+
+    // получаем полную операцию и разворачиваем
+    // Запрос на сервер
+    setCurrentOper({} as TCardOperationItem);
+    setCurrentTCard({} as TCardItem);
+    setCurrentLoad({} as UnitLoadItem);
+  }
+  // действия пользователя 
+  const defectOperHandler = (id_oper: number): void => {
+    setOperView(true);
+
+    // получаем полную операцию и разворачиваем
+    // Запрос на сервер
+    setCurrentOper({} as TCardOperationItem);
+    setCurrentTCard({} as TCardItem);
+    setCurrentLoad({} as UnitLoadItem);
   }
 
   // Функция для генерации шкалы времени  и загруза юнитов для одного дня
@@ -249,11 +371,12 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
       if (unitLoads.length > 0) {
         // ищем лоады которые начинаются а этом интервале
         const operBlocks = unitLoads.filter(load => {
-          return intervTime <= load.timeStart && load.timeStart < (intervTime + 5);
+          return intervTime <= load.timeStart && load.timeStart < (intervTime + 5) && !load.isRetool;
         });
 
         // Расставляем блоки интервалов на шкале
         operBlocksReactNodes = operBlocks.map((load, index) => {
+
           const loadHeight = (load.timeFinish - load.timeStart) / 5 * intervalHeight
           let titleCard = "";
           const tCard = tCards.find(tCard => tCard.id === load.id_tCard); // ищем карточку          
@@ -265,10 +388,6 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
             showTitle={isFirstLoadForOperation(load, unitLoads)}
             load={load}
             titleCard={titleCard}
-            // durationOper=(), // в минутах
-            //  performLoadHandler={performLoadHandler}
-            //  readyLoadHandler={readyLoadHandler}
-            //  defectLoadHandler={defectLoadHandler}
             openOperHandler={openOperHandler}
             index={index}
 
@@ -289,19 +408,13 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
         </div> as JSX.Element)
     }
 
-
-
     return intervalsReactNodes as JSX.Element[];
   };
 
   hoursScaleReactNodes = generateTimeScale(calendarView);
 
-  
-  
-  
-  const  titleCard = `${padNumberToFourDigits(currentTCard.number)} - ${new Date(currentTCard.date).toLocaleDateString("en-CA")};`
-const  titleOper = `${padNumberToFourDigits(currentTCard.number)} - ${new Date(currentTCard.date).toLocaleDateString("en-CA")};`
- 
+  const terms = getStartFinishOper(currentLoad);
+
   return (
     <div className={styles.container}
       style={{ minHeight: `${containerHeight}px` }} >
@@ -313,33 +426,34 @@ const  titleOper = `${padNumberToFourDigits(currentTCard.number)} - ${new Date(c
       {!operView && <div style={{ height: containerHeight }}>
         {hoursScaleReactNodes}
       </div>}
-      {operView && <div style={{ height: containerHeight }}
-        className={styles.oper_container}>
 
-        {/* Здесь будет отображаться информация о загруженной операции */}
-        <div className={styles.oper_title}>
-          <div className={styles.oper_title}>{titleCard}</div>
-          <div className={styles.oper_title}>операция...</div>
-          <div className={styles.oper_title}>Старт: 2025-03-12: 12-30</div>
-          <div className={styles.oper_title}>Финишт: 2025-03-13: 16-30</div>
+      {operView && (currentOper.id) &&
+        <LoadOper
+          containerHeight={containerHeight}
+          oper={currentOper}
+          isOTK={otk}
+          tCard={currentTCard}
+          operInfo={{
+            title: currentLoad.loadInfo?.title || "",
+            duration: currentLoad.loadInfo?.duration || 0,
+            interruptible: currentLoad.loadInfo?.interruptible ?? false,
+            koef: currentLoad.loadInfo?.koef || 1,
+            start: terms.start,
+            finish: terms.finish
+          }}
+          performedOperHandler={performedOperHandler}
+          readyOperHandler={readyOperHandler}
+          defectOperHandler={defectOperHandler}
+          closeOperHandler={closeOperHandler}
+        />}
+      {/* Загрузчик пока карта не загрузилась */}
+      {operView && (!currentOper.id) &&
+        <div className={styles.loader_container}>
+          <div className={styles.title}>Загрузка карты</div>
+          <ButtonLoader width={100} height={100} />
         </div>
+      }
 
-        <div className={styles.oper_content}>
-          <p>Входящие</p>
-
-          <p>Содержание задания</p>
-          <p>Исходящие</p>
-
-        </div>
-
-        <div className={styles.button_container}>
-          {otk && currentOper.status===StatusEnum.planed && <button onClick={() => setOperView(false)}>Выполнен</button>}
-          {!otk && currentOper.status===StatusEnum.planed && <button onClick={() => setOperView(false)}>Готов</button>}
-          {!otk && currentOper.status===StatusEnum.planed && <button onClick={() => setOperView(false)}>Брак</button>}
-          {currentOper.status!==StatusEnum.planed 
-          && <button onClick={() => setOperView(false)}>Закрыть</button>}
-        </div>
-      </div>}
       <div className={styles.title_container}>
         <div className={styles.title}>Выполнено</div>
         <div className={styles.title}>10%</div>

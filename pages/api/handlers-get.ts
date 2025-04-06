@@ -182,7 +182,7 @@ export async function getUnitLoads(
 }
 
 
-// только шапка
+// КАРТА! только шапка
 export async function getTCard(
   tcardId: number,
   tCardRepository: Repository<TCardTable>
@@ -215,7 +215,7 @@ export async function getTCard(
   };
 
 }
-// ДОПИСАТЬ!!Вместе с составными частями карты
+// КАРТА! Вместе с составными частями карты
 export async function getTCardFull(
   tcardId: number,
   tCardRepository: Repository<TCardTable>,
@@ -340,7 +340,8 @@ export async function getTCardFull(
         inn: inn,
         action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible } as ActionItem,
         duration: oper.duration, // в милисекундах   
-        status: oper.status,
+        status: oper.status,  
+        coment: oper.coment 
       };
     });
 

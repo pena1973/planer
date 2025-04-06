@@ -13,7 +13,8 @@ export interface TCardOperationItem {
     action: ActionItem,
     duration: number, // в милисекундах   
     mode?: boolean // для целей редактирования на форме
-    status:StatusEnum
+    status:StatusEnum,
+    coment?: string,
 }
 
 export enum StatusEnum {
@@ -169,7 +170,7 @@ export interface UnitLoadItem {
     isPinned:boolean,//  перенесен вручшую на шкале
     isOuterStart:boolean,//  это старт оутсортера
     isOuterFinish:boolean,//  это финиш оутсортера
-    
+    version:number // версия планирования для связи цепочки лоадов
 }
 // 
 // описание дня работы юнита

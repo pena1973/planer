@@ -6,7 +6,7 @@ import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
-import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek } from '@/types'
+import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum } from '@/types'
 
 import Image from 'next/image';
 
@@ -122,11 +122,45 @@ export default function Monitor({ }: MonitorProps) {
     // продолжаем увеличивать дату.
     let day_ = new Date(day);
     while ((isWeekend(day_, schedule) || isHoliday(day_, schedule)) && !isAdditionalTime(day_, schedule)) {
-      
+
       day_.setDate(day_.getDate() + 1);
     }
     setDay(day_)
   }, []);
+
+  //  временные границы операции по лоаду
+  const getStartFinishOper = (load: UnitLoadItem)
+    : { start: { date: string, time: number }, finish: { date: string, time: number } } => {
+
+    if (!load.id) return { start: { date: "", time: 0 }, finish: { date: "", time: 0 } };
+
+    const loads = unitLoads.filter((elem) =>
+      elem.id_oper === load.id_oper
+      && elem.status === load.status //  потом можно будет убрать  связь будет по version
+      && !elem.isRetool
+      && elem.version === load.version
+    ) // все лоады операции
+
+      
+    let earliestLoad = loads[0];
+    let latestLoad = loads[0];
+
+    for (const load of loads) {
+      // Для earliest: если дата меньше или, при равных датах, время старта меньше
+      if (load.date < earliestLoad.date || (load.date === earliestLoad.date && load.timeStart < earliestLoad.timeStart)) {
+        earliestLoad = load;
+      }
+      // Для latest: если дата больше или, при равных датах, время завершения больше
+      if (load.date > latestLoad.date || (load.date === latestLoad.date && load.timeFinish > latestLoad.timeFinish)) {
+        latestLoad = load;
+      }
+    }
+    return {
+      start: { date: earliestLoad.date, time: earliestLoad.timeStart },
+      finish: { date: latestLoad.date, time: latestLoad.timeFinish }
+    };
+  }
+
 
   let unitsValueReactNodes = units
     .filter((elem) => elem.belong === UnitBelongEnum.inner)
@@ -148,6 +182,8 @@ export default function Monitor({ }: MonitorProps) {
         settings={settings}
         schedule={schedule}
         unitExceptions={unitExceptions_}
+        setMessage={setMessage}
+        getStartFinishOper={getStartFinishOper}
       />
     }
     )
