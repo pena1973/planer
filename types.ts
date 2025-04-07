@@ -101,6 +101,7 @@ export enum UserRoleEnum {
 export enum UnitTypeEnum {
     keep = 'keep',
     process = 'process',
+    control = 'control',
 }
 // свой чужой
 export enum UnitBelongEnum {
@@ -192,7 +193,7 @@ export interface UnitExceptionItem {
     timeFinish:number
     
 }
-//  отклонения юнита от расписания
+//  настройки показа календаря
 export interface SettingsItem {
     timeStartWork:number,
     timeFinishWork:number, 
@@ -200,6 +201,12 @@ export interface SettingsItem {
     showHoliday: boolean, 
     
 }
+// настройки системы
+export interface SystemSettingsItem {
+    isOTK:boolean,// применяется ли контроль качества
+    
+}
+
 
 export enum TimeZoneEnum {
     // UTC 0

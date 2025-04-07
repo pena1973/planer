@@ -10,11 +10,13 @@ import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
 import { TypeEnum } from '@/pages/db/models/enums';
 import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, UnitLoadItem, StatusEnum } from '@/types';
 
-interface RequestBody { 
-  tCardOperation: TCardOperationItem,
-  tCardOperloads: UnitLoadItem[],
+interface RequestBody {
+ 
+  operId: number,
+  loadsIds: number[],
   status: StatusEnum,
 }
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
@@ -23,37 +25,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Используем репозиторий для работы с сущностью TCardTable
     const companiesRepository = dbConnection.getRepository(CompanyTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
     // userId, companyId в любом случае
     const { userId, companyId, tcardId } = req.query;
 
-    //  можно заменить на getTCardFull
-
     switch (req.method) {
-
-
       case 'POST':
 
         // Извлекаем данные из тела запроса
-        const {         
-          tCardOperation,
-          tCardOperloads, // лоады (в статусе planed) которые надо обновить
-          status,
-        } = req.body as RequestBody;
+        const { operId, loadsIds, status } = req.body as RequestBody;
 
         //Обновляем СТАТУС ОПЕРАЦИИ
 
-        const resOperations = await updateStatusOperation(tCardOperationsRepository,  tCardOperation,status)
+        const resOperations = await updateStatusOperation(tCardOperationsRepository, operId, status)
         if (!resOperations.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOperations.message });
           return;
         }
-      
+
         //Обновляем СТАТУС ЛОАДОВ этой версии планировангия
 
-        const resLoads = await updateStatusOperationLoads(unitLoadRepository, tCardOperloads,status)
-        if (!resOperations.success) {
+        const resLoads = await updateStatusOperationLoads(unitLoadRepository, loadsIds, status)
+        if (!resLoads.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOperations.message });
           return;
         }
@@ -64,8 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           message: 'Карта успешно обновлена',
         });
         break;
-
-
 
       default:
         res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается
@@ -79,15 +70,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
 export async function updateStatusOperation(
-  tCardOperationsRepository: Repository<TCardOperationTable>,  
-  tCardOperation: TCardOperationItem,
-  status: StatusEnum  
+  tCardOperationsRepository: Repository<TCardOperationTable>,
+  tCardId: number,
+  status: StatusEnum
 ): Promise<{ success: boolean, message: string }> {
-  try {
-    if (!tCardOperation.id) {
-      return { success: false, message: "Идентификатор операции отсутствует" };
-    }
-    const result = await tCardOperationsRepository.update(tCardOperation.id, { status });
+  try {    
+    const result = await tCardOperationsRepository.update(tCardId, { status });
     if (result.affected && result.affected > 0) {
       return { success: true, message: "Операция успешно обновлена" };
     } else {
@@ -101,27 +89,25 @@ export async function updateStatusOperation(
 
 // Функция для обновления статусов загрузок
 export async function updateStatusOperationLoads(
-  unitLoadRepository: Repository<UnitLoadTable>,  
-  tCardOperloads: UnitLoadItem[],
-  status: StatusEnum  
+  unitLoadRepository: Repository<UnitLoadTable>,
+  loadsIds: number[],
+  status: StatusEnum
 ): Promise<{ success: boolean, message: string }> {
   try {
-    // Извлекаем идентификаторы загрузок, исключая undefined
-    const loadIds = tCardOperloads
-      .map(load => load.id)
-      .filter((id): id is number => id !== undefined);
-    
-    if (loadIds.length === 0) {
+   
+    if (loadsIds.length === 0) {
       return { success: false, message: "Нет загрузок для обновления" };
     }
-    
-    const result = await unitLoadRepository
+
+      const result = await unitLoadRepository
       .createQueryBuilder()
       .update(UnitLoadTable)
       .set({ status })
-      .where("id IN (:...loadIds)", { loadIds })
+      .where("id IN (:...loadsIds)", { loadsIds })
       .execute();
-    
+
+
+
     if (result.affected && result.affected > 0) {
       return { success: true, message: `Обновлено ${result.affected} загрузок` };
     } else {

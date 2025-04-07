@@ -15,32 +15,41 @@
     justify-content: center;
     align-items: center;
   }
-
-  .planed {
-    background-color: rgb(172, 169, 132);
-    /* Добавляем выпуклый эффект */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
   
+  .cancelled {
+    background-color: $load_cancelled;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
   }
   
-  .draft {
-    background-color: rgb(219, 218, 204);
-    /* Добавляем выпуклый эффект */
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
+  .performed {
+    background-color: $load_performed;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  .ready {
+    background-color:$load_ready;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  
+  .planed {
+    background-color: $load_planed; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
   }
   
   .prepared {
-    background-color: rgba(107, 170, 7, 0.753);
-    /* Добавляем выпуклый эффект */
+    background-color: $load_prepared;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
   }
   
-  .faulty {
-    background-color: rgb(255, 143, 79);
-    /* Добавляем выпуклый эффект */
+  .defected {
+    background-color:  $load_defected;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
   }
   
+  .draft {
+    background-color: $load_draft;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+    
   .retool {
     background-color: rgb(241, 241, 241);
     height: 14px;
@@ -80,28 +89,51 @@
   z-index: 2;
 }
 .triangleLeftDraft{
-  border-right: 7.5px solid rgba(219, 218, 204);
+  border-right: 7.5px solid $load_draft;
 }
 .triangleLeftPlaned{
-  border-right: 7.5px solid rgba(172, 169, 132);
+  border-right: 7.5px solid $load_planed;
 }
 .triangleLeftPrepared{
-  border-right: 7.5px solid rgba(107, 170, 7, 0.753);
+  border-right: 7.5px solid $load_prepared;
 }
 .triangleLeftDefected{
-  border-right: 7.5px solid rgba(255, 143, 79);
+  border-right: 7.5px solid $load_defected;
 }
+.triangleLeftCancelled{
+  border-right: 7.5px solid $load_cancelled;
+}
+.triangleLeftPerformed{
+  border-right: 7.5px solid $load_performed;
+}
+.triangleLeftReady{
+  border-right: 7.5px solid $load_ready;
+}
+
+
 .triangleRightDraft{
-  border-left: 7.5px solid rgba(219, 218, 204);
+  border-left: 7.5px solid $load_draft;
 }
 .triangleRightPlaned{
-  border-left: 7.5px solid rgba(172, 169, 132);
+  border-left: 7.5px solid $load_planed;
 }
 .triangleRightPrepared{
-  border-left: 7.5px solid rgba(107, 170, 7, 0.753);
+  border-left: 7.5px solid $load_prepared;
 }
 .triangleRightDefected{
-  border-left: 7.5px solid rgba(255, 143, 79);
+  border-left: 7.5px solid $load_defected;
+}
+
+.triangleRightCancelled{
+  border-left: 7.5px solid $load_cancelled;
+}
+
+.triangleRightPerformed{
+  border-left: 7.5px solid $load_performed;
+}
+
+.triangleRightReady{
+  border-left: 7.5px solid $load_ready;
 }
 
 /* Треугольник справа (указывает вправо) */

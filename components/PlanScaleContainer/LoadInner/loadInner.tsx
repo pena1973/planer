@@ -66,10 +66,19 @@ export default function LoadInner({
             intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
             break;
         case StatusEnum.prepared:
-            intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
+            intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "prepared"
+            break;
+        case StatusEnum.cancelled:
+            intervalClass = `${styles.interval} ${styles.cancelled}`; // Если статус "cancelled"
+            break;
+        case StatusEnum.performed:
+            intervalClass = `${styles.interval} ${styles.performed}`; // Если статус "performed"
+            break;
+        case StatusEnum.ready:
+            intervalClass = `${styles.interval} ${styles.ready}`; // Если статус "ready"
             break;
         case StatusEnum.defective:
-            intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
+            intervalClass = `${styles.interval} ${styles.defected}`; // Бракованный
             break;
         default:
             intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов

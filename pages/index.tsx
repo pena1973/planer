@@ -25,7 +25,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setUnitExceptions, setActions, setUOMs, setUnits, setTCards, setSettings, setSchedule,setUnitLoads } from '@/store/slices'
+import { setUnitExceptions, setActions, setUOMs, setUnits, setTCards, setSettings, setSystemSettings, setSchedule,setUnitLoads } from '@/store/slices'
 
 import words from "@/public/add.jpg";
 import net from "@/public/add.jpg";
@@ -506,6 +506,43 @@ export default function Index({ }: IndexProps) {
       // setMessage(t('service.noConnection') + e.message)            
     }
   }
+  // загружает настройки отображения календаря
+  const downloadSystemSettings = async () => {
+    // Заглушка
+    dispatch(setSystemSettings({isOTK:false}));
+    // try {
+    //   const res = await fetch(`api/settings-api?userId=${1}&companyId=${1}`,
+    //     {
+    //       method: 'get',
+    //       headers: new Headers({
+    //         // 'Authorization': 'Basic ' + token,
+    //         'Content-Type': 'application/json'
+    //       }),
+    //     }
+    //   );
+    //   if (res.status !== 200) {
+    //     const receivedData = await res.json();
+    //     let error = receivedData.error;
+    //     setMessage(error);
+    //     //  console.log(t('service.serverUnavailable') + res.status);
+    //     // setMessage(t('service.serverUnavailable') + res.status);
+
+    //   } else {
+    //     const receivedData = await res.json();
+    //     if (receivedData.success) {
+    //       let settings = receivedData.schedule as SettingsItem
+    //       dispatch(setSettings(settings));
+    //       setMessage("Загружены настройки календаря");
+    //       // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
+    //       //   setdownloadedAllValue(downloadedAllValue+1);
+    //     }
+    //     else
+    //       setMessage(receivedData.error);
+    //   }
+    // } catch (e: any) {
+    //   // setMessage(t('service.noConnection') + e.message)            
+    // }
+  }
   // загружает  расписание работы компании
   const downloadSchedule = async () => {
     try {
@@ -587,6 +624,7 @@ export default function Index({ }: IndexProps) {
     await downloadUnits();
     await downloadUnutsExceptions();
     await downloadSettings();
+    await downloadSystemSettings();
     await downloadSchedule();
     await downloadTCards();
     await downloadLoads();

@@ -24,21 +24,29 @@ export default function LoadMonitor({
     let intervalClass = `${styles.interval}`; // Класс по умолчанию
     let titleClass = `${styles.title_load}`; // Класс по умолчанию
     switch (load.status) {
-        case StatusEnum.draft:
-            intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
-            titleClass = `${styles.title_load} ${styles.draft}`;
+        case StatusEnum.cancelled:
+            intervalClass = `${styles.interval} ${styles.cancelled}`; // Если статус "draft"
+            titleClass = `${styles.title_load} ${styles.cancelled}`;
+            break;        
+        case StatusEnum.performed:
+            intervalClass = `${styles.interval} ${styles.performed}`; // Если статус "draft"
+            titleClass = `${styles.title_load} ${styles.performed}`;
+            break;
+        case StatusEnum.ready:
+            intervalClass = `${styles.interval} ${styles.ready}`; // Если статус "draft"
+            titleClass = `${styles.title_load} ${styles.ready}`;
             break;
         case StatusEnum.planed:
             intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
             titleClass = `${styles.title_load} ${styles.planed}`;
             break;
         case StatusEnum.prepared:
-            intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
+            intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "prepared"
             titleClass = `${styles.title_load} ${styles.prepared}`;
             break;
         case StatusEnum.defective:
-            intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
-            titleClass = `${styles.title_load} ${styles.faulty}`;
+            intervalClass = `${styles.interval} ${styles.defective}`; // Бракованный
+            titleClass = `${styles.title_load} ${styles.defective}`;
             break;
         default:
             intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов

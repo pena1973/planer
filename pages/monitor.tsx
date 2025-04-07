@@ -6,7 +6,7 @@ import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
-import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum } from '@/types'
+import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum, TCardOperationItem } from '@/types'
 
 import Image from 'next/image';
 
@@ -15,9 +15,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 
-import {
-
-} from '@/store/slices';
+import { setUnitLoads } from '@/store/slices';
 import { Index } from "typeorm";
 import { get } from "http";
 
@@ -128,6 +126,13 @@ export default function Monitor({ }: MonitorProps) {
     setDay(day_)
   }, []);
 
+  //  меняем статус операции и лоадов
+  const setStatusLoadsHandler = async (status: StatusEnum, operloadsIds: number[]) => {
+    const unitLoads_ = unitLoads.map(lo => operloadsIds.includes(lo.id as number) ? { ...lo, status: status } : lo);
+    dispatch(setUnitLoads(unitLoads_));
+  }
+
+
   //  временные границы операции по лоаду
   const getStartFinishOper = (load: UnitLoadItem)
     : { start: { date: string, time: number }, finish: { date: string, time: number } } => {
@@ -140,8 +145,9 @@ export default function Monitor({ }: MonitorProps) {
       && !elem.isRetool
       && elem.version === load.version
     ) // все лоады операции
+    
+    if (loads.length === 0) return { start: { date: "", time: 0 }, finish: { date: "", time: 0 } };
 
-      
     let earliestLoad = loads[0];
     let latestLoad = loads[0];
 
@@ -184,6 +190,7 @@ export default function Monitor({ }: MonitorProps) {
         unitExceptions={unitExceptions_}
         setMessage={setMessage}
         getStartFinishOper={getStartFinishOper}
+        setStatusLoadsHandler={setStatusLoadsHandler}
       />
     }
     )

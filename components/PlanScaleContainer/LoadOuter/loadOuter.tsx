@@ -77,6 +77,21 @@ export default function LoadOuter({
             triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDefected}`; // Класс по умолчанию
             triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDefected}`; // Класс по умолчанию                
 
+        case StatusEnum.ready:
+            intervalClass = `${styles.interval} ${styles.ready}`; // готовый
+            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightReady}`; // Класс по умолчанию
+            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftReady}`; // Класс по умолчанию                
+        
+        case StatusEnum.performed:
+            intervalClass = `${styles.interval} ${styles.performed}`; // получен от поставщика но не проверен
+            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPerformed}`; // Класс по умолчанию
+            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPerformed}`; // Класс по умолчанию                
+
+            case StatusEnum.cancelled:
+                intervalClass = `${styles.interval} ${styles.cancelled}`; // отменен
+                triangleRightClass = `${styles.triangleRight} ${styles.triangleRightСancelled}`; // Класс по умолчанию
+                triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftСancelled}`; // Класс по умолчанию                
+    
             break;
         default:
             break;

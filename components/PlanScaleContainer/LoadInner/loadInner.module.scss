@@ -16,30 +16,77 @@
     align-items: center;
   }
 
-  .planed {
-    background-color: rgb(172, 169, 132);
-    /* Добавляем выпуклый эффект */
+  .cancelled {
+    background-color: $load_cancelled;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-  
   }
   
-  .draft {
-    background-color: rgb(219, 218, 204);
-    /* Добавляем выпуклый эффект */
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
+  .performed {
+    background-color: $load_performed;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  .ready {
+    background-color:$load_ready;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  
+  .planed {
+    background-color: $load_planed; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
   }
   
   .prepared {
-    background-color: rgba(107, 170, 7, 0.753);
-    /* Добавляем выпуклый эффект */
+    background-color: $load_prepared;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
   }
   
-  .faulty {
-    background-color: rgb(255, 143, 79);
-    /* Добавляем выпуклый эффект */
+  .defected {
+    background-color:  $load_defected;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
   }
+  
+  .draft {
+    background-color: $load_draft;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  
+
+  // .planed {
+  //   background-color: rgb(167, 160, 87);
+  //   /* Добавляем выпуклый эффект */
+  //   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  
+  // }
+  
+  // .draft {
+  //   background-color: rgb(219, 218, 204);
+  //   /* Добавляем выпуклый эффект */
+  //   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
+  // }
+  
+  // .prepared {
+  //   background-color: rgba(172, 169, 132, 0.74);
+  //   background-color: rgba(108, 170, 7, 0.541);
+  //   /* Добавляем выпуклый эффект */
+  //   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  // }
+  
+  // .defective {
+  //   background-color: rgb(255, 143, 79);
+  //   /* Добавляем выпуклый эффект */
+  //   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  // }
+  // .ready {
+  //   background-color: rgba(107, 170, 7, 0.753);
+  //   /* Добавляем выпуклый эффект */
+  //   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+    
+  // }
+  // .defective {
+  //   background-color: rgb(255, 143, 79);
+  //   /* Добавляем выпуклый эффект */
+  //   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  // }
   
   .retool {
     background-color: rgb(241, 241, 241);

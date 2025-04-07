@@ -138,7 +138,8 @@ interface UnitTaskStackProps {
   getStartFinishOper: (load: UnitLoadItem) => {
     start: { date: string, time: number },
     finish: { date: string, time: number }
-  }
+  },
+  setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void
 }
 
 const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
@@ -153,6 +154,7 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
   otk = false,
   setMessage,
   getStartFinishOper,
+  setStatusLoadsHandler
 }) => {
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
   const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
@@ -180,7 +182,7 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
     setCurrentLoad({} as UnitLoadItem);
   }, [day, schedule])
 
-  // действия пользователя 
+  // Открываем операцию по нажатию кенопки юнитом 
   const openOperHandler = async (load: UnitLoadItem, id_oper: number, id_tCard: number) => {
     setOperView(true);
 
@@ -223,74 +225,57 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
       // setMessage(t('service.noConnection') + e.message)            
     }
   }
-  // действия пользователя 
-  const closeOperHandler = (id_oper: number): void => {
+  // Закрываем операцию без изменения по нажатию кенопки юнитом 
+  const closeOperHandler = (): void => {
     setOperView(false);
     setCurrentOper({} as TCardOperationItem);
     setCurrentTCard({} as TCardItem);
     setCurrentLoad({} as UnitLoadItem);
 
   }
-  // действия пользователя 
-  const performedOperHandler = async (id_oper: number) => {
-    setOperView(true);
+  // Меняем статус операции по нажатию кенопки юнитом 
+  const setOperStatusHandler = async (status: StatusEnum) => {
+    setOperView(false);
+    const operloadsIds = unitLoads
+    .filter(lo => lo.id_oper === currentOper.id && lo.version === currentLoad.version && lo.status === StatusEnum.planed)
+    .map(load => load.id as number); //  все лоады операции
 
-    // try {
-    //   const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
-    //     {
-    //       method: 'post',
-    //       headers: new Headers({
-    //         // 'Authorization': 'Basic ' + token,
-    //         'Content-Type': 'application/json'
-    //       }),
-    //     }
-    //   );
-    //   if (res.status !== 200) {
-    //     const receivedData = await res.json();
-    //     setMessage(receivedData.message);
+    try {
+      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'post',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({
+            operId: currentOper.id,
+            loadsIds: operloadsIds,
+            status: status
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        setMessage(receivedData.message);
 
-    //     //  console.log(t('service.serverUnavailable') + res.status);
-    //     // setMessage(t('service.serverUnavailable') + res.status);
-    //   } else {
-    //     const receivedData = await res.json();
-    //     // console.log("receivedData", receivedData)
-    //     setMessage(receivedData.message);
-    //     if (receivedData.success) {
-    //       //   Обновим текущую карту
-    //       let tCard = receivedData.tCard as TCardItem
-    //       setCurrentTCard(tCard);
-    //       const oper = tCard.tCardOperations?.find((oper) => oper.id === id_oper);
-    //       if (!oper) return
-    //       setCurrentOper(oper as TCardOperationItem);
-    //       setCurrentLoad(load as UnitLoadItem);
-    //       setMessage(receivedData.message);
-    //     }
-    //   }
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)
+        setMessage(receivedData.message);
+        if (receivedData.success) {
+          //   Обновим статус лоадов
+          setStatusLoadsHandler(status, operloadsIds);
+          setMessage(receivedData.message);
+        }
+      }
 
-    // } catch (e: any) {
-    //   // setMessage(t('service.noConnection') + e.message)            
-    // }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
 
-    setCurrentOper({} as TCardOperationItem);
-    setCurrentTCard({} as TCardItem);
-    setCurrentLoad({} as UnitLoadItem);
-  }
-  // действия пользователя 
-  const readyOperHandler = (id_oper: number): void => {
-    setOperView(true);
-
-    // получаем полную операцию и разворачиваем
-    // Запрос на сервер
-    setCurrentOper({} as TCardOperationItem);
-    setCurrentTCard({} as TCardItem);
-    setCurrentLoad({} as UnitLoadItem);
-  }
-  // действия пользователя 
-  const defectOperHandler = (id_oper: number): void => {
-    setOperView(true);
-
-    // получаем полную операцию и разворачиваем
-    // Запрос на сервер
     setCurrentOper({} as TCardOperationItem);
     setCurrentTCard({} as TCardItem);
     setCurrentLoad({} as UnitLoadItem);
@@ -441,15 +426,15 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
             start: terms.start,
             finish: terms.finish
           }}
-          performedOperHandler={performedOperHandler}
-          readyOperHandler={readyOperHandler}
-          defectOperHandler={defectOperHandler}
+          setOperStatusHandler={setOperStatusHandler}
+          // readyOperHandler={readyOperHandler}
+          // defectOperHandler={defectOperHandler}
           closeOperHandler={closeOperHandler}
         />}
       {/* Загрузчик пока карта не загрузилась */}
       {operView && (!currentOper.id) &&
         <div className={styles.loader_container}>
-          <div className={styles.title}>Загрузка карты</div>
+          <div className={styles.title}>Ждем...</div>
           <ButtonLoader width={100} height={100} />
         </div>
       }

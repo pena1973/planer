@@ -19,10 +19,8 @@ export interface LoadMonitorProps {
         start: { date: string, time: number },
         finish: { date: string, time: number }
     },
-    performedOperHandler: (id_oper: number) => void,
-    readyOperHandler: (id_oper: number) => void,
-    defectOperHandler: (id_oper: number) => void,
-    closeOperHandler: (id_oper: number) => void,
+    setOperStatusHandler: (status:StatusEnum) => void,    
+    closeOperHandler: () => void,
 
 }
 
@@ -32,9 +30,7 @@ export default function LoadOper({
     isOTK,
     tCard,
     operInfo,
-    performedOperHandler,
-    readyOperHandler,
-    defectOperHandler,
+    setOperStatusHandler,   
     closeOperHandler,
 
 }: LoadMonitorProps) {
@@ -77,7 +73,7 @@ export default function LoadOper({
             <Image className={styles.icon_cancel}
                 src={cancel}
                 alt="arrow" width={24} height={24}
-                onClick={() => { closeOperHandler(oper.id as number) }}
+                onClick={() => { closeOperHandler() }}
             />
             {/* Здесь будет отображаться информация о загруженной операции */}
             <div className={styles.oper_content_container}>
@@ -88,30 +84,29 @@ export default function LoadOper({
             </div>
 
             <div className={styles.oper_content}>
-                <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Входящие</span></div>
-                    {innReactNodes}
-                </div>
 
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Задание</span></div>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>Result</span></div>
+                    {outReactNodes}
+                </div>
+                <div className={styles.oper_content_container}>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>Task</span></div>
                     <div className={styles.oper_coment}>{(oper.coment) ? oper.coment : "нет коментариев"}</div>
                 </div>
 
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Результат</span></div>
-                    {outReactNodes}
+                    <div className={styles.oper_title}><span className={styles.bold_text}>Source</span></div>
+                    {innReactNodes}
                 </div>
-
 
             </div>
 
             <div className={styles.button_container}>
-                {isOTK && oper.status === StatusEnum.planed && <button onClick={() => performedOperHandler(oper.id as number)}>Выполнен</button>}
-                {!isOTK && oper.status === StatusEnum.planed && <button onClick={() => readyOperHandler(oper.id as number)}>Готов</button>}
-                {!isOTK && oper.status === StatusEnum.planed && <button onClick={() => defectOperHandler(oper.id as number)}>Брак</button>}
-                {oper.status !== StatusEnum.planed
-                    && <button onClick={() => closeOperHandler(oper.id as number)}>Закрыть</button>}
+                {isOTK && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.performed)}>Выполнен</button>}
+                {!isOTK && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.ready)}>Готов</button>}
+                {!isOTK && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.defective)}>Брак</button>}
+                {/* {oper.status !== StatusEnum.planed
+                    && <button onClick={() => closeOperHandler(oper.id as number)}>Закрыть</button>} */}
             </div>
         </div>
 

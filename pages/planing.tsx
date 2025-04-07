@@ -13,7 +13,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
-import { UOMItem, StatusEnum, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, UnitItem, UnitLoadItem, CalendarItem, UnitExceptionItem, TimeTypeEnum, SettingsItem, ScheduleItem } from "@/types";
+import {StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum } from "@/types";
 import { setUnitLoads, setUnitExceptions, setUnits, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
 import { } from '@/store/slices';
 
@@ -539,7 +539,7 @@ export default function Planing() {
         >
           <PlanScaleContainer
             tCards={tCards}
-            units={units}
+            units={units.filter(unit => unit.type!==UnitTypeEnum.control)}
             unitLoads={unitLoads}
             settings={settings}
             schedule={schedule}

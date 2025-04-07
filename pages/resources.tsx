@@ -4,6 +4,7 @@ import UOMSCatalog from "@/components/catalogs/UOMSCatalog/uomsCatalog";
 import ActionsCatalog from "@/components/catalogs/ActionsCatalog/аctionsCatalog";
 import CompanySchedule from "@/components/catalogs/CompanySchedule/сompanySchedule";
 import Settings from "@/components/catalogs/Settings/settings";
+import SystemSettings from "@/components/catalogs/SystemSettings/systemSettings";
 
 import UnitsCatalog from "@/components/catalogs/UnitsCatalog/unitsCatalog";
 // import Arrow1 from "@/components/Arrow1/arrow1";
@@ -105,6 +106,8 @@ export default function Resources({ }: ResourcesProps) {
            {resource === 5 && <div className="contaitainer_catalog"> 
             <div className="catalog_title"> Настройки календаря</div>              
             <Settings setMessage={setMessage} />
+            <div className="catalog_title"> Настройки учета</div>              
+            <SystemSettings setMessage={setMessage} />
           </div>}
         </div>
 
