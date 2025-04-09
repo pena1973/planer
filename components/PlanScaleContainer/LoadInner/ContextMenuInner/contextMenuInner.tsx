@@ -11,15 +11,16 @@ _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 import eraz from "@/public/erazer1-rem.png";
 
-import { TCardItem, UnitLoadItem } from "@/types";
+import { StatusEnum, TCardItem, UnitLoadItem } from "@/types";
 
 export interface ContexMenuInnerProps {
     tCard: TCardItem,
     load: UnitLoadItem,
     left: number,
     width: number,
-    erazLoadHandler: (load_idc: number) => void,    
-    retool: number,   
+    erazLoadHandler: (load_idc: number) => void,
+    retool: number,
+    blocked: boolean
 }
 
 export default function ContexMenuInner({
@@ -29,7 +30,9 @@ export default function ContexMenuInner({
     width,
     erazLoadHandler,
     retool,
-   
+    blocked,
+
+
 }: ContexMenuInnerProps) {
 
     function convertMinutes(totalMinutes: number): { hours: number; minutes: number } {
@@ -39,7 +42,7 @@ export default function ContexMenuInner({
     }
 
     let dur = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration));
-   
+
     const time = convertMinutes(dur);
 
     return (
@@ -73,13 +76,13 @@ export default function ContexMenuInner({
 
 
             {/* <button> отменить</button> */}
-            <div className={styles.container_icon}>
+            {!blocked && <div className={styles.container_icon}>
                 <Image className={styles.icon_edit_save}
                     src={eraz}
                     alt="eraz" width={20} height={20}
                     onClick={() => erazLoadHandler(load.idc)}
                 />
-            </div>
+            </div>}
         </div>
     )
 }

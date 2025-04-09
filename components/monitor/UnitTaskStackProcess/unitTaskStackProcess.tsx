@@ -1,9 +1,9 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import styles from "./unitTaskStack.module.scss";
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
-import LoadMonitor from "./LoadMonitor/loadMonitor";
-import LoadOper from "./LoadOper/loadOper";
+import styles from "./unitTaskStackProcess.module.scss";
+import { CalendarItem, UnitLoadItem,  UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
+import LoadMonitorProcess from "./LoadMonitorProcess/loadMonitorProcess";
+import LoadOperProcess from "./LoadOperProcess/loadOperProcess";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
@@ -124,7 +124,7 @@ function formatIntervTime(intervTime: number): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
 
-interface UnitTaskStackProps {
+interface UnitTaskStackProcessProps {
   unit: UnitItem,
   tCards: TCardItem[],
   day: string; // "YYYY-MM-DD", например, текущая дата
@@ -133,7 +133,7 @@ interface UnitTaskStackProps {
   schedule: ScheduleItem,
   unitExceptions: UnitExceptionItem[],
   containerHeight?: number; // высота контейнера в пикселях, например, 600
-  otk?: boolean // существует отдельно контроль качества
+  isQualControl?: boolean // существует отдельно контроль качества
   setMessage: (message: string) => void,
   getStartFinishOper: (load: UnitLoadItem) => {
     start: { date: string, time: number },
@@ -142,7 +142,7 @@ interface UnitTaskStackProps {
   setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void
 }
 
-const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
+const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   unit,
   tCards,
   day,
@@ -151,7 +151,7 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
   schedule,
   unitExceptions,
   containerHeight = 600,
-  otk = false,
+  isQualControl = false,
   setMessage,
   getStartFinishOper,
   setStatusLoadsHandler
@@ -162,6 +162,7 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
   const [currentOper, setCurrentOper] = useState({} as TCardOperationItem);
   const [currentTCard, setCurrentTCard] = useState({} as TCardItem);
   const [currentLoad, setCurrentLoad] = useState({} as UnitLoadItem);
+  const statistic = useRef({} as { workTime: number, busyTime: number, defectedTime: number, resultTime: number });
 
   let hoursScaleReactNodes = [] as JSX.Element[];
 
@@ -237,8 +238,8 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
   const setOperStatusHandler = async (status: StatusEnum) => {
     setOperView(false);
     const operloadsIds = unitLoads
-    .filter(lo => lo.id_oper === currentOper.id && lo.version === currentLoad.version && lo.status === StatusEnum.planed)
-    .map(load => load.id as number); //  все лоады операции
+      .filter(lo => lo.id_oper === currentOper.id && lo.version === currentLoad.version && lo.status === StatusEnum.planed)
+      .map(load => load.id as number); //  все лоады операции
 
     try {
       const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
@@ -284,7 +285,11 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
   // Функция для генерации шкалы времени  и загруза юнитов для одного дня
   const generateTimeScale = (calendarItem: CalendarItem): JSX.Element[] => {
     let intervalsReactNodes = [] as JSX.Element[];
-
+    let thisWorkinterval = false; //Этот интервал - это рабочее время в расписании юнита включая исключения
+    let workTime = 0; // рабочее время в процентах
+    let busyTime = 0; // Занятое задачами
+    let defectedTime = 0; // время производства брака
+    let resultTime = 0; // время производства результата
 
     const isFirstLoadForOperation = (load: UnitLoadItem, loads: UnitLoadItem[]): boolean => {
       // Если текущий load - ретул, то не считаем его
@@ -320,6 +325,8 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
         intervTime >= breakPeriod.timeStart && intervTime < breakPeriod.timeFinish
       );
 
+      thisWorkinterval = isWorkTime && !isBreakTime
+
       //  расписание предприятия
       let timeStyle = isBreakTime
         ? styles.breakTime  // Если время перерыв, применяем стиль для перерыва
@@ -331,6 +338,7 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
       let unit_unloadEx = "";
       let exs = unitExceptions.filter(ex => ex.unitId === unit.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
 
+
       if (exs.length > 0) {
         // Если есть исключения устанавливатся новое время работы  индивидуально юниту
         // в этом случае оно заменяет общее расписание (Type Work)
@@ -339,18 +347,27 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
 
         let exNotWork = exs.find(ex =>
           ex.type === TimeTypeEnum.notWork && intervTime >= ex.timeStart && intervTime < ex.timeFinish)
-        if (exNotWork) unit_unloadEx = styles.nonWorkTime
+        if (exNotWork) {
+          unit_unloadEx = styles.nonWorkTime;
+          thisWorkinterval = false; //  не рабочий интервал
+        }
 
         let exWork = exs.find(ex => ex.type === TimeTypeEnum.work)
-        if (exWork) { unit_unloadEx = (intervTime >= exWork.timeStart && intervTime < exWork.timeFinish) ? styles.workTime : styles.nonWorkTime }
+        if (exWork) {
+          unit_unloadEx = (intervTime >= exWork.timeStart && intervTime < exWork.timeFinish) ? styles.workTime : styles.nonWorkTime
+          thisWorkinterval = (intervTime >= exWork.timeStart && intervTime < exWork.timeFinish); //  не рабочий интервал
+        }
 
         let exBreack = exs.filter(ex => ex.type === TimeTypeEnum.breack)
         const isBreakTimeEx = exBreack.some(breakPeriod =>
           intervTime >= breakPeriod.timeStart && intervTime < breakPeriod.timeFinish
         );
-        unit_unloadEx = isBreakTimeEx ? styles.breakTime : unit_unloadEx
 
+        unit_unloadEx = isBreakTimeEx ? styles.breakTime : unit_unloadEx
+        thisWorkinterval = isBreakTimeEx ? false : thisWorkinterval
       }
+
+      workTime = workTime + ((thisWorkinterval) ? 5 : 0)
 
       let operBlocksReactNodes = [] as JSX.Element[];
       if (unitLoads.length > 0) {
@@ -359,8 +376,20 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
           return intervTime <= load.timeStart && load.timeStart < (intervTime + 5) && !load.isRetool;
         });
 
+
         // Расставляем блоки интервалов на шкале
         operBlocksReactNodes = operBlocks.map((load, index) => {
+          // подсчет статистики
+          if (load.status !== StatusEnum.cancelled) {
+            busyTime = busyTime + (load.timeFinish - load.timeStart)
+          }
+          if (load.status === StatusEnum.performed || load.status === StatusEnum.ready) {
+            resultTime = resultTime + (load.timeFinish - load.timeStart)
+          }
+
+          if (load.status === StatusEnum.defective) {
+            defectedTime = defectedTime + (load.timeFinish - load.timeStart)
+          }
 
           const loadHeight = (load.timeFinish - load.timeStart) / 5 * intervalHeight
           let titleCard = "";
@@ -368,7 +397,7 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
           if (tCard)
             titleCard = `${padNumberToFourDigits(tCard.number)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
 
-          return <LoadMonitor
+          return <LoadMonitorProcess
             loadHeight={loadHeight}
             showTitle={isFirstLoadForOperation(load, unitLoads)}
             load={load}
@@ -393,12 +422,22 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
         </div> as JSX.Element)
     }
 
+    statistic.current = { workTime, busyTime, defectedTime, resultTime }
     return intervalsReactNodes as JSX.Element[];
   };
 
   hoursScaleReactNodes = generateTimeScale(calendarView);
 
   const terms = getStartFinishOper(currentLoad);
+  
+  // статистика работы юнита в этот день
+  let work = Math.round((statistic.current.busyTime / statistic.current.workTime) * 100);
+  let result = 0;
+  let defect = 0;
+  if (statistic.current.busyTime !== 0) {
+    result = Math.round((statistic.current.resultTime / statistic.current.busyTime) * 100);
+    defect = Math.round((statistic.current.defectedTime / statistic.current.busyTime) * 100);
+  }
 
   return (
     <div className={styles.container}
@@ -413,10 +452,10 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
       </div>}
 
       {operView && (currentOper.id) &&
-        <LoadOper
+        <LoadOperProcess
           containerHeight={containerHeight}
           oper={currentOper}
-          isOTK={otk}
+          isQualControl={isQualControl}
           tCard={currentTCard}
           operInfo={{
             title: currentLoad.loadInfo?.title || "",
@@ -439,12 +478,13 @@ const UnitTaskStack: React.FC<UnitTaskStackProps> = ({
         </div>
       }
 
-      <div className={styles.title_container}>
-        <div className={styles.title}>Выполнено</div>
-        <div className={styles.title}>10%</div>
+      <div className={styles.bottom_container}>
+        <div className={styles.bottom_line}>Загрузка {work}% времени</div>
+        <div className={styles.bottom_line}>результат {result}% : брак {defect}%</div>
+
       </div>
     </div>
   );
 };
 
-export default UnitTaskStack;
+export default UnitTaskStackProcess;

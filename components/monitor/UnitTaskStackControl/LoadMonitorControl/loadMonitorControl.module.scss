@@ -1,0 +1,125 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+.interval {
+  font-size: 12px;
+  position: absolute;
+  // width: calc(100% - 40px);
+  padding-top: 2px;
+  // margin: 0 40px;
+  z-index: 1;
+  // border: 1px solid #ccc;
+  // border-radius: 10px;
+  /* Центрируем текст вертикально и горизонтально */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
+  // overflow: hidden;
+  cursor: pointer;
+  
+}
+
+.title_load {
+  position: relative; /* Добавлено для активации z-index */
+  font-size: 10px;
+  width: calc(100% - 30px);
+  
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;  
+  cursor: pointer;    
+}
+
+
+
+.cancelled {
+  background-color: $load_cancelled; 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.performed {
+  background-color: $load_performed;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.ready {
+  background-color: $load_ready;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.planed {
+  background-color:  $load_planed; 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.prepared {
+  background-color: $load_prepared;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.defective {
+  background-color: $load_defected;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.draft {
+  background-color: $load_draft;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+
+
+.first {
+  position: relative;
+  // background-color: rgb(172, 169, 132);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: 0 -2px 3px rgba(0, 0, 0, 0.5), -1px 0 2px rgba(0, 0, 0, 0.15);
+  /* z-index оставляем по умолчанию */
+}
+
+.second {
+  // background-color: rgb(172, 169, 132);
+
+  /* Все углы прямые */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+
+ 
+  // box-shadow: 0 -2px 3px rgba(0, 0, 0, 0.5), -1px 0 2px rgba(0, 0, 0, 0.15);
+  box-shadow: -1px 0 2px rgba(0, 0, 0, 0.4);
+}
+
+.lighted {
+  box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
+}
+
+
+
+.icon_pinon {
+  position: absolute;
+  border-radius: 5px;
+  cursor: pointer;
+  position: absolute;
+  left: 0;
+  top: 16px;
+  z-index: 2;
+
+}
+
+.icon_pinof {
+  position: absolute;
+  border-radius: 5px;
+  cursor: pointer;
+  position: absolute;
+  left: 0;
+  top: 7px;
+  z-index: 2;
+
+}

@@ -1,12 +1,15 @@
 import Layout from "@/components/Layout/layout";
 import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
-import UnitTaskStack from "@/components/monitor/UnitTaskStack/unitTaskStack";
+import UnitTaskStackProcess from "@/components/monitor/UnitTaskStackProcess/unitTaskStackProcess";
+import UnitTaskStackControl from "@/components/monitor/UnitTaskStackControl/unitTaskStackControl";
+import UnitTaskStackOutsource from "@/components/monitor/UnitTaskStackOutsource/unitTaskStackOutsource";
+
 import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/arrowButton";
 
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
-import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum, TCardOperationItem } from '@/types'
+import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum, TCardOperationItem, UnitTypeEnum } from '@/types'
 
 import Image from 'next/image';
 
@@ -18,6 +21,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { setUnitLoads } from '@/store/slices';
 import { Index } from "typeorm";
 import { get } from "http";
+
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
@@ -79,8 +83,6 @@ const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
 interface MonitorProps {
 
 }
-
-
 
 export default function Monitor({ }: MonitorProps) {
 
@@ -145,7 +147,7 @@ export default function Monitor({ }: MonitorProps) {
       && !elem.isRetool
       && elem.version === load.version
     ) // все лоады операции
-    
+
     if (loads.length === 0) return { start: { date: "", time: 0 }, finish: { date: "", time: 0 } };
 
     let earliestLoad = loads[0];
@@ -167,31 +169,50 @@ export default function Monitor({ }: MonitorProps) {
     };
   }
 
-
   let unitsValueReactNodes = units
     .filter((elem) => elem.belong === UnitBelongEnum.inner)
-    .map((elem, index) => {
+    .map((unit, index) => {
       // фильтрую по юниту
       const unitLoads_ = unitLoads.filter((load) => {
-        return (load.unit.id === elem.id && load.date === day.toLocaleDateString("en-CA"))
+        return (load.unit.id === unit.id && load.date === day.toLocaleDateString("en-CA"))
       });
       const unitExceptions_ = unitExceptions.filter((ex) => {
-        return (ex.unitId === elem.id && ex.date === day.toLocaleDateString("en-CA"))
+        return (ex.unitId === unit.id && ex.date === day.toLocaleDateString("en-CA"))
       });
+      // юниты работники
+      if (unit.type === UnitTypeEnum.process) {
+        return <UnitTaskStackProcess
+          unit={unit}
+          tCards={tCards}
+          day={day.toLocaleDateString("en-CA")}
+          unitLoads={unitLoads_}
+          containerHeight={400}
+          settings={settings}
+          schedule={schedule}
+          unitExceptions={unitExceptions_}
+          setMessage={setMessage}
+          getStartFinishOper={getStartFinishOper}
+          setStatusLoadsHandler={setStatusLoadsHandler}
+        />
+      }
 
-      return <UnitTaskStack
-        unit={elem}
-        tCards={tCards}
-        day={day.toLocaleDateString("en-CA")}
-        unitLoads={unitLoads_}
-        containerHeight={400}
-        settings={settings}
-        schedule={schedule}
-        unitExceptions={unitExceptions_}
-        setMessage={setMessage}
-        getStartFinishOper={getStartFinishOper}
-        setStatusLoadsHandler={setStatusLoadsHandler}
-      />
+      // юниты контролеры используется только если включен контроль качества в настройках
+      if (settings.isQualControl && unit.type === UnitTypeEnum.control) {
+        const performedLoads = unitLoads.filter((lo) => lo.status === StatusEnum.performed);
+
+        return <UnitTaskStackControl
+          unit={unit}
+          tCards={tCards}
+          day={day.toLocaleDateString("en-CA")}
+          performedLoads={performedLoads}
+          containerHeight={400}
+          setMessage={setMessage}
+          getStartFinishOper={getStartFinishOper}
+          setStatusLoadsHandler={setStatusLoadsHandler}
+          isQualControl={settings.isQualControl}
+        />
+
+      }
     }
     )
 
@@ -200,6 +221,7 @@ export default function Monitor({ }: MonitorProps) {
     // console.log('File uploaded with content:', content);
     // Дальнейшая обработка данных
   };
+  const outerLoads = unitLoads.filter((lo) => lo.unit.belong === UnitBelongEnum.outer && lo.status === StatusEnum.planed);
 
   return (
     <Layout>
@@ -209,7 +231,9 @@ export default function Monitor({ }: MonitorProps) {
 
             <div className="container_catalogs">
               <div className="resources_container_catalog" onClick={() => setResource(1)}>Загрузка юнитов</div>
-              <div className="resources_container_catalog" onClick={() => setResource(2)}> KPI, Отчеты</div>
+              <div className="resources_container_catalog" onClick={() => setResource(2)}>Операции на стороне</div>
+              <div className="resources_container_catalog" onClick={() => setResource(3)}> Готовность карт</div>
+              <div className="resources_container_catalog" onClick={() => setResource(3)}> KPI рабочих юнитов</div>
 
             </div>
             <div className="container_cards_title">Пояснение</div>
@@ -256,12 +280,28 @@ export default function Monitor({ }: MonitorProps) {
             </div>
             <div className="monitor_container">{unitsValueReactNodes}</div>
           </div>}
-          {/* Действия */}
+          {/* состояние операций на outsource */}
           {resource === 2 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> KPI, Отчеты</div>
+            <div className="catalog_title"> Операции переданные сторонним исполнителям</div>
+            <UnitTaskStackOutsource
+              outerLoads={outerLoads}
+              tCards={tCards}
+              // day,  
+              setMessage={setMessage}
+              getStartFinishOper={getStartFinishOper}
+              setStatusLoadsHandler={setStatusLoadsHandler} />
             {/* <ActionsCatalog setMessage={setMessage}/> */}
           </div>}
+          {resource === 3 && <div className="contaitainer_catalog">
+            <div className="catalog_title"> Готовность карт</div>
 
+            {/* <ActionsCatalog setMessage={setMessage}/> */}
+          </div>}
+          {resource === 4 && <div className="contaitainer_catalog">
+            <div className="catalog_title"> KPI рабочих юнитов</div>
+
+            {/* <ActionsCatalog setMessage={setMessage}/> */}
+          </div>}
         </div>
 
       </div>

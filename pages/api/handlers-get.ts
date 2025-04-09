@@ -528,8 +528,7 @@ export async function getSettings(
     timeFinishWork: settingsTable.timeFinishWork,
     showHoliday: settingsTable.showHoliday,
     showWeekend: settingsTable.showWeekend,
-
-
+    isQualControl: settingsTable.isQualControl,
   } as SettingsItem;
 
 

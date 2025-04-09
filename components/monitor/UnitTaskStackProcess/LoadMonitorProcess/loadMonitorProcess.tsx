@@ -1,5 +1,5 @@
 
-import styles from "./loadMonitor.module.scss";
+import styles from "./loadMonitorProcess.module.scss";
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
 

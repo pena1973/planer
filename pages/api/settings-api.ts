@@ -50,12 +50,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return;
         }
 
-        const savedSettings = resSettings.savedSchedule as SettingsItem;  //  можно сразу привести типы простые
+        const savedSettings = resSettings.savedSettings as SettingsItem;  //  можно сразу привести типы простые
 
         // отправляем ответ
         res.status(200).json({
           success: true,
-          schedule: savedSettings,
+          settings: savedSettings,
         });
         break;
 
@@ -88,12 +88,13 @@ async function updateSettings(
       timeFinishWork: settings.timeFinishWork,
       showWeekend: settings.showWeekend,      
       showHoliday: settings.showHoliday,      
+      isQualControl: settings.isQualControl,
     });
 
     const savedNewSettings = await settingsRepository.save(newSettings);
     if (!savedNewSettings) return { success: false, message: "Не удалось сохранить расписание" };
 
-    return { success: true, savedSchedule: savedNewSettings };
+    return { success: true, savedSettings: savedNewSettings };
 
   } else {
     // Если расписание существует, обновляем его
@@ -101,11 +102,11 @@ async function updateSettings(
     existingSetting.timeFinishWork = settings.timeFinishWork;
     existingSetting.showHoliday = settings.showHoliday;
     existingSetting.showWeekend = settings.showWeekend;
-
+    existingSetting.isQualControl = settings.isQualControl;
     const savedUpdatedSchedule = await settingsRepository.save(existingSetting);
     if (!savedUpdatedSchedule) return { success: false, message: "Не удалось обновить расписание" };
 
-    return { success: true, savedSchedule: savedUpdatedSchedule };
+    return { success: true, savedSettings: savedUpdatedSchedule };
   }
 }
 

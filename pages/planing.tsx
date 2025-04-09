@@ -13,7 +13,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
-import {StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum } from "@/types";
+import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum } from "@/types";
 import { setUnitLoads, setUnitExceptions, setUnits, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
 import { } from '@/store/slices';
 
@@ -160,9 +160,9 @@ export default function Planing() {
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
           // Если успешно меняем статусы карты и операций
-          const updatedLoads = [...unitLoadsWithoutCard, ...receivedData.tCardLoads]        
+          const updatedLoads = [...unitLoadsWithoutCard, ...receivedData.tCardLoads]
           dispatch(setUnitLoads(updatedLoads));
- 
+
           //  поменяем статус карты  и после этого она перерисуется в запланированные
           let index = tCards.findIndex(tCard => tCard.id === tCardLighted.id);
           let updatedTCard = { ...tCards[index], status: StatusEnum.prepared }
@@ -217,9 +217,9 @@ export default function Planing() {
           let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
           let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
           dispatch(setUnitLoads(updatedLoads));
-          
+
           // меняем статус карты
-          const tCards_ =  tCards.map(card=>(card.id===erazload.id_tCard)? {...card,status:StatusEnum.prepared}:card)
+          const tCards_ = tCards.map(card => (card.id === erazload.id_tCard) ? { ...card, status: StatusEnum.prepared } : card)
           dispatch(setTCards(tCards_));
 
           if (receivedData.success) {
@@ -539,7 +539,7 @@ export default function Planing() {
         >
           <PlanScaleContainer
             tCards={tCards}
-            units={units.filter(unit => unit.type!==UnitTypeEnum.control)}
+            units={units.filter(unit => unit.type !== UnitTypeEnum.control)}
             unitLoads={unitLoads}
             settings={settings}
             schedule={schedule}

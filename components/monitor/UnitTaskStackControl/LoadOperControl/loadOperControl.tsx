@@ -1,15 +1,15 @@
 
-import styles from "./loadOper.module.scss";
+import styles from "./loadOperControl.module.scss";
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardOperationItem, UnitItem, TCardItem } from "@/types";
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
 import cancel from "@/public/cancel.png";
 
-export interface LoadMonitorProps {
+export interface LoadOperControlProps {
     containerHeight: number,
     oper: TCardOperationItem,
-    isOTK: boolean
+    isQualControl: boolean
     tCard: TCardItem,
     operInfo?: {
         title: string,
@@ -24,16 +24,16 @@ export interface LoadMonitorProps {
 
 }
 
-export default function LoadOper({
+export default function LoadOperControl({
     containerHeight,
     oper,
-    isOTK,
+    isQualControl,
     tCard,
     operInfo,
     setOperStatusHandler,   
     closeOperHandler,
 
-}: LoadMonitorProps) {
+}: LoadOperControlProps) {
 
     const formatMinutes = (totalMinutes: number | undefined): string => {
         if (!totalMinutes) return "00-00";
@@ -101,12 +101,9 @@ export default function LoadOper({
 
             </div>
 
-            <div className={styles.button_container}>
-                {isOTK && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.performed)}>Выполнен</button>}
-                {!isOTK && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.ready)}>Готов</button>}
-                {!isOTK && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.defective)}>Брак</button>}
-                {/* {oper.status !== StatusEnum.planed
-                    && <button onClick={() => closeOperHandler(oper.id as number)}>Закрыть</button>} */}
+            <div className={styles.button_container}>                
+                {isQualControl && <button onClick={() => setOperStatusHandler(StatusEnum.ready)}>Готов</button>}
+                {isQualControl && <button onClick={() => setOperStatusHandler(StatusEnum.defective)}>Брак</button>}                
             </div>
         </div>
 

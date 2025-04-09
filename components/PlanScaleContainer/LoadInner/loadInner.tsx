@@ -1,12 +1,12 @@
 
 import styles from "./loadInner.module.scss";
-import ContextMenuInner from "./ContextMenuInner/contextMenuInner";
+
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
 
 import pinon from "@/public/pin_on-rem.png";
 import pinof from "@/public/pin_of-rem.png";
-import ContexMenuInner from "./ContextMenuInner/contextMenuInner";
+import ContextMenuInner from "./ContextMenuInner/contextMenuInner";
 
 
 export interface LoadProps {
@@ -91,6 +91,8 @@ export default function LoadInner({
     let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
     if (!tCard) tCard = {} as TCardItem;
 
+    const blocked = !(load.status === StatusEnum.prepared || load.status === StatusEnum.planed); // запрет смены статуса
+
     return (
         <>
             <div className={intervalClass}
@@ -107,13 +109,14 @@ export default function LoadInner({
             </div>
 
             {contectMenuShow === load.idc &&
-                <ContexMenuInner
+                <ContextMenuInner
                     tCard={tCard}
                     load={load}
                     left={left}
                     width={width}
                     erazLoadHandler={erazLoadHandler}
                     retool={unitView.retool}
+                    blocked={blocked}
                 />}
 
             {load.status === StatusEnum.prepared && (load.isPinned ?

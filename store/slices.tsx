@@ -1,6 +1,6 @@
 import { UOMItem, ActionItem,UnitItem, SettingsItem,
     TCardItem,TCardProductItem, TCardOperationItem,TCardStageItem,UnitLoadItem, ScheduleItem,
-    UnitExceptionItem,SystemSettingsItem} from '@/types';
+    UnitExceptionItem} from '@/types';
 import { createSlice } from '@reduxjs/toolkit';
 
 // типы
@@ -8,8 +8,7 @@ export type CatalogState = {
     uoms: UOMItem[],
     actions: ActionItem[],
     units: UnitItem[],
-    settings: SettingsItem,
-    systemSettings: SystemSettingsItem,
+    settings: SettingsItem, 
     schedule:ScheduleItem,
 }
 
@@ -45,8 +44,7 @@ const catalogIntialState: CatalogState = {
     uoms: [] as UOMItem[],
     actions: [] as ActionItem[],
     units: [] as UnitItem[],
-    settings:{} as SettingsItem,
-    systemSettings:{} as SystemSettingsItem,
+    settings:{} as SettingsItem,    
     schedule:{} as ScheduleItem,
 }
 const dataIntialState: DataState = {
@@ -127,9 +125,7 @@ const catalogSlice = createSlice({
         setSettings: (state, action) => {
             state.settings= action.payload;
         },
-        setSystemSettings: (state, action) => {
-            state.systemSettings= action.payload;
-        },
+      
         setSchedule: (state, action) => {
             state.schedule= action.payload;
         },        
@@ -193,7 +189,7 @@ const planSlice = createSlice({
 
 export default function Foo() { return <></> }  // пустышка для билда
 
-export const { setActions, setUOMs,setUnits,setSettings,setSystemSettings,setSchedule } = catalogSlice.actions;
+export const { setActions, setUOMs,setUnits,setSettings,setSchedule } = catalogSlice.actions;
 export const {setTCards,setTCardCurrent,setTCardCurrentStages,setTCardCurrentMaterials,setTCardCurrentOperations,setTCardCurrentProducts,settCardCurrentWastes,setTCardCurrentMaxIdc} = dataSlice.actions;
 export const {setToken,setLogin,setUserId,setRole,setNickname,setAgreeCookie,setAgreement, setLocale} = authSlice.actions;
 

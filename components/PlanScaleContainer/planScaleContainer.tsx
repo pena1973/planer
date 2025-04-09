@@ -629,14 +629,14 @@ export default function PlanScaleContainer({
           // console.log("unit_unloadEx", unit_unloadEx);
 
         }
-        let dateLoad = unitLoads.filter(elem => {
-          return (elem.unit.id === unitView.id &&
-            elem.date === new Date(calendarItem.date).toLocaleDateString("en-CA"))
+        let dateLoad = unitLoads.filter(lo => {
+          return (lo.unit.id === unitView.id &&
+            lo.date === new Date(calendarItem.date).toLocaleDateString("en-CA"))
         });
         if (dateLoad.length > 0) {
           // ищем позиции которые начинаются а этом интервале
-          const operBlocks = dateLoad.filter(load => {
-            return intervTime <= load.timeStart && load.timeStart < (intervTime + 5);
+          const operBlocks = dateLoad.filter(lo => {
+            return intervTime <= lo.timeStart && lo.timeStart < (intervTime + 5);
           });
 
           // Расставляем блоки интервалов на шкале

@@ -24,6 +24,9 @@ export class SettingsTable {
 
   @Column('boolean', {default:true} )
   showHoliday!: boolean; // показывать праздники
+
+  @Column('boolean', {default:false} )
+  isQualControl!: boolean; // использовать контроль качества
   
   @ManyToOne(() => CompanyTable, { eager: true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'company_id' }) // Указываем колонку, которая является внешним ключом

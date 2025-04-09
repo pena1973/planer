@@ -25,7 +25,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setUnitExceptions, setActions, setUOMs, setUnits, setTCards, setSettings, setSystemSettings, setSchedule,setUnitLoads } from '@/store/slices'
+import { setUnitExceptions, setActions, setUOMs, setUnits, setTCards, setSettings, setSchedule,setUnitLoads } from '@/store/slices'
 
 import words from "@/public/add.jpg";
 import net from "@/public/add.jpg";
@@ -508,8 +508,7 @@ export default function Index({ }: IndexProps) {
   }
   // загружает настройки отображения календаря
   const downloadSystemSettings = async () => {
-    // Заглушка
-    dispatch(setSystemSettings({isOTK:false}));
+    
     // try {
     //   const res = await fetch(`api/settings-api?userId=${1}&companyId=${1}`,
     //     {

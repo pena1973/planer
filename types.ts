@@ -193,19 +193,16 @@ export interface UnitExceptionItem {
     timeFinish:number
     
 }
-//  настройки показа календаря
+//  настройки системы
 export interface SettingsItem {
-    timeStartWork:number,
-    timeFinishWork:number, 
-    showWeekend:boolean,
-    showHoliday: boolean, 
+    timeStartWork:number, //  начало показа календаря
+    timeFinishWork:number, //  конец показа календаря
+    showWeekend:boolean, // показывать выходные дни
+    showHoliday: boolean,// показывать праздники 
+    isQualControl:boolean,// применяется ли контроль качества  
     
 }
-// настройки системы
-export interface SystemSettingsItem {
-    isOTK:boolean,// применяется ли контроль качества
-    
-}
+
 
 
 export enum TimeZoneEnum {

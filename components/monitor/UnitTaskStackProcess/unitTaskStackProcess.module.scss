@@ -68,11 +68,25 @@
   justify-content: space-around;
   align-items: center;
 }
+.bottom_container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
 
 .title {
   margin: 10px;
   min-height: 30px;
   font-weight: lighter;
+  padding: 5px;
+  font-size: 14px;
+  font-weight: bold;
+
+}
+.bottom_line {
+  margin: 1px;
+    
   padding: 5px;
   font-size: 14px;
   font-weight: bold;
