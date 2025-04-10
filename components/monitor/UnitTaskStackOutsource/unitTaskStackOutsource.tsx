@@ -2,9 +2,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./unitTaskStackOutsource.module.scss";
 import { CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
-import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
+
 import Image from 'next/image';
-import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
+import {padNumberToFourDigits} from "@/utils"
 
 
 interface UnitTaskStackOutsourceProps {
@@ -27,55 +27,51 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
   getStartFinishOper,
   setStatusLoadsHandler
 }) => {
- 
+
 
 
   // Меняем статус операции по нажатию кенопки юнитом 
-  const setOperStatusHandler = async (status: StatusEnum) => {
-    // setOperView(false);
-    // const operloadsIds = unitLoads
-    //   .filter(lo => lo.id_oper === currentOper.id && lo.version === currentLoad.version && lo.status === StatusEnum.planed)
-    //   .map(load => load.id as number); //  все лоады операции
+  const setOperStatusHandler = async (currentLoad: UnitLoadItem, status: StatusEnum) => {
 
-    // try {
-    //   const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
-    //     {
-    //       method: 'post',
-    //       headers: new Headers({
-    //         // 'Authorization': 'Basic ' + token,
-    //         'Content-Type': 'application/json'
-    //       }),
-    //       body: JSON.stringify({
-    //         operId: currentOper.id,
-    //         loadsIds: operloadsIds,
-    //         status: status
-    //       }),
-    //     }
-    //   );
-    //   if (res.status !== 200) {
-    //     const receivedData = await res.json();
-    //     setMessage(receivedData.message);
+    const operloadsIds = outerLoads
+      .filter(lo => lo.id_oper === currentLoad.id_oper && lo.version === currentLoad.version && lo.status === StatusEnum.planed)
+      .map(load => load.id as number); //  все лоады операции
 
-    //     //  console.log(t('service.serverUnavailable') + res.status);
-    //     // setMessage(t('service.serverUnavailable') + res.status);
-    //   } else {
-    //     const receivedData = await res.json();
-    //     // console.log("receivedData", receivedData)
-    //     setMessage(receivedData.message);
-    //     if (receivedData.success) {
-    //       //   Обновим статус лоадов
-    //       setStatusLoadsHandler(status, operloadsIds);
-    //       setMessage(receivedData.message);
-    //     }
-    //   }
+    try {
+      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
+        {
+          method: 'post',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({
+            operId: currentLoad.id_oper,
+            loadsIds: operloadsIds,
+            status: status
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        setMessage(receivedData.message);
 
-    // } catch (e: any) {
-    //   // setMessage(t('service.noConnection') + e.message)            
-    // }
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)
+        setMessage(receivedData.message);
+        if (receivedData.success) {
+          //   Обновим статус лоадов
+          setStatusLoadsHandler(status, operloadsIds);
+          setMessage(receivedData.message);
+        }
+      }
 
-    // setCurrentOper({} as TCardOperationItem);
-    // setCurrentTCard({} as TCardItem);
-    // setCurrentLoad({} as UnitLoadItem);
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
   }
 
 
@@ -114,24 +110,27 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
     const terms = getStartFinishOper(lo);
 
     const cardTitle = tCard ? `${padNumberToFourDigits(tCard.number)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
-
+    const statusStyle = lo.status === StatusEnum.ready ? styles.ready : lo.status === StatusEnum.defective ? styles.defective : styles.planed;
     return (<tr key={index}>
 
-      <td> {cardTitle}</td>      
+      <td> {cardTitle}</td>
       <td> {lo.loadInfo?.title}, C{lo.idc_oper}</td>
       <td> {lo.unit.title}</td>
       <td>{`${terms.start.date}: ${terms.start.time} мин`}</td>
       <td>{`${terms.finish.date}: ${terms.finish.time} мин`}</td>
-      <td>{lo.status} </td>
-      <td className={styles.button_row}>
-        <button>готов</button>
+      <td> <div className={styles.status_row}>
+        <div className={statusStyle} />
+        {lo.status}
+      </div>
       </td>
       <td className={styles.button_row}>
-        <button>Брак</button>
+        <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(lo, StatusEnum.ready)}>Готов</button>
+      </td>
+      <td className={styles.button_row}>
+        <button className={styles.button_defected_top} onClick={() => setOperStatusHandler(lo, StatusEnum.defective)}>Брак</button>
       </td>
     </tr>)
-  }
-  )
+  })
 
 
   return (
@@ -141,14 +140,14 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
       <table className={styles._table}>
         <thead>
           <tr>
-            <th className={styles._top}>Карта</th>            
-            <th className={styles._top}>Операция, код</th>
-            <th className={styles._top}>Юнит</th>
-            <th className={styles._top}>Старт</th>
-            <th className={styles._top}>Финиш</th>
-            <th className={styles._top}>Статус</th>
-            <th className={styles.button_top}>Готов</th>
-            <th className={styles.button_top}>Брак</th>
+            <th >Карта</th>
+            <th >Операция, код</th>
+            <th >Юнит</th>
+            <th >Старт</th>
+            <th >Финиш</th>
+            <th >Статус</th>
+            <th >Готов</th>
+            <th >Брак</th>
           </tr>
         </thead>
         <tbody>

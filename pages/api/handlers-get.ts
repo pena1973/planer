@@ -15,8 +15,8 @@ import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions';
 import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule';
 import { SettingsTable } from '@/pages/db/models/plan/settings';
 // types
-import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum } from '@/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, StatusEnum, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem } from '@/types';
+import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, StatusEnum, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem } from '@/types';
 
 
 export async function getUOMs(
@@ -340,8 +340,8 @@ export async function getTCardFull(
         inn: inn,
         action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible } as ActionItem,
         duration: oper.duration, // в милисекундах   
-        status: oper.status,  
-        coment: oper.coment 
+        status: oper.status,
+        coment: oper.coment
       };
     });
 
@@ -359,6 +359,268 @@ export async function getTCardFull(
   } as TCardItem
 
   return tCard
+}
+
+// // КАРТЫ! Список карт вместе с операциями и сроками готовности
+// export async function getTCardsOpers(
+//   tCardRepository:Repository<TCardTable>, 
+//   tCardOperationRepository: Repository<TCardOperationTable>,
+//   tCardProductRepository: Repository<TCardProductTable>,
+//   unitLoadRepository: Repository<UnitLoadTable>,
+
+// ): Promise<TCardTermsItem []> {
+
+//   // // Строим фильтр для поиска по id карты
+//   // const filter: { status?: StatusEnum.cancelled; } = {};
+//   // if (tcardId) {
+//   //   filter.id = tcardId;
+//   // }
+
+//   // // Получаем карту по id
+//   // const tCardtab = await tCardRepository.findOne({
+//   //   where: filter,  // Применяем фильтр к запросу
+//   //   relations: ['company', 'user'],  // Указываем связанные таблицы
+//   // });
+
+//   // // Проверяем, что карта существует
+//   // if (!tCardtab) return undefined;
+
+//   // // ПРОДУКТЫ, МАТЕРИАЛЫ, ОТХОДЫ
+//   // const tCardProductstab = await tCardProductRepository.find({ where: { tcard_id: tcardId } });
+
+//   // // Преобразуем материалы
+//   // const tCardMaterials_ = tCardProductstab
+//   //   .filter(product => product.type === TypeEnum.M)
+//   //   .map(product => {
+//   //     return {
+//   //       id: product.id,
+//   //       idc: product.idc,
+//   //       codeS: product.code_s,  // Используем code_s вместо codeS
+//   //       title: product.title,
+//   //       qtu: product.qtu,
+//   //       uom: {
+//   //         id: product.uom.id,
+//   //         title: product.uom.title,
+//   //         code: product.uom.code,
+//   //       } as UOMItem
+//   //     } as TCardProductItem;
+//   //   });
+//   // // Преобразуем продукты
+//   // const tCardProducts_ = tCardProductstab
+//   //   .filter(product => product.type === TypeEnum.P)
+//   //   .map(product => {
+//   //     return {
+//   //       id: product.id,
+//   //       idc: product.idc,
+//   //       codeS: product.code_s,  // Используем code_s вместо codeS
+//   //       title: product.title,
+//   //       qtu: product.qtu,
+//   //       uom: {
+//   //         id: product.uom.id,
+//   //         title: product.uom.title,
+//   //         code: product.uom.code,
+//   //       } as UOMItem
+//   //     } as TCardProductItem;
+//   //   });
+//   // // Преобразуем отходы
+//   // const tCardWastes_ = tCardProductstab
+//   //   .filter(product => product.type === TypeEnum.W)
+//   //   .map(product => {
+//   //     return {
+//   //       id: product.id,
+//   //       idc: product.idc,
+//   //       codeS: product.code_s,  // Используем code_s вместо codeS
+//   //       title: product.title,
+//   //       qtu: product.qtu,
+//   //       uom: {
+//   //         id: product.uom.id,
+//   //         title: product.uom.title,
+//   //         code: product.uom.code,
+//   //       } as UOMItem
+//   //     } as TCardProductItem;
+//   //   });
+
+//   // // ОПЕРАЦИИ
+//   // const tCardOperationstab = await tCardOperationRepository.find({ where: { tcard_id: tcardId } });
+//   // // Преобразуем операции
+//   // const tCardOperations_ = tCardOperationstab
+//   //   .map(oper => {
+//   //     const inn = tCardProductstab
+//   //       .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
+//   //       .map(product => {
+//   //         return {
+//   //           id: product.id,
+//   //           idc: product.idc,
+//   //           codeS: product.code_s,
+//   //           title: product.title,
+//   //           qtu: product.qtu,
+//   //           uom: {
+//   //             id: product.uom.id,
+//   //             title: product.uom.title,
+//   //             code: product.uom.code,
+//   //           } as UOMItem
+//   //         } as TCardProductItem;
+//   //       });
+
+//   //     const out = tCardProductstab
+//   //       .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
+//   //       .map(product => {
+//   //         return {
+//   //           id: product.id,
+//   //           idc: product.idc,
+//   //           codeS: product.code_s,
+//   //           title: product.title,
+//   //           qtu: product.qtu,
+//   //           uom: {
+//   //             id: product.uom.id,
+//   //             title: product.uom.title,
+//   //             code: product.uom.code,
+//   //           } as UOMItem
+//   //         } as TCardProductItem;
+//   //       });
+
+//   //     return {
+//   //       id: oper.id,
+//   //       idc: oper.idc,
+//   //       stage: {} as TCardStageItem, //  Это чисто для визуала и для расчетов не нужно
+//   //       out: out,
+//   //       inn: inn,
+//   //       action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible } as ActionItem,
+//   //       duration: oper.duration, // в милисекундах   
+//   //       status: oper.status,  
+//   //       coment: oper.coment 
+//   //     };
+//   //   });
+
+//   // const tCard = {
+//   //   id: tCardtab.id,
+//   //   date: tCardtab.date, //  дата       
+//   //   number: tCardtab.number,
+//   //   tCardProducts: tCardProducts_,
+//   //   tCardWastes: tCardWastes_,
+//   //   tCardOperations: tCardOperations_,
+//   //   tCardMaterials: tCardMaterials_,
+//   //   maxId: tCardtab.max_idc,
+//   //   coment: tCardtab.coment,
+//   //   status: tCardtab.status,
+//   // } as TCardItem
+
+//   // return tCard
+//   return [] as TCardTermsItem[]; // Вернуть пустой массив или обработать ошибку
+// }
+
+
+export async function getTCardsOpers(
+  companyId: number,
+  tCardRepository: Repository<TCardTable>,
+  tCardOperationRepository: Repository<TCardOperationTable>,
+  tCardProductRepository: Repository<TCardProductTable>,
+  unitLoadRepository: Repository<UnitLoadTable>
+): Promise<TCardTermsItem[]> {
+
+  // Получаем все карты для заданной компании
+  const tCards = await tCardRepository.find({
+    where: { company_id: companyId },
+    relations: ['company', 'user']
+  });
+
+  const tCardTerms: TCardTermsItem[] = []; // массив на выход
+
+  // Загружаем операции для карт
+  const tCardsIds = tCards.map(card => card.id);
+  const operationsData = await tCardOperationRepository.find({
+    where: { tcard_id: In(tCardsIds) },
+    relations: ['stage', 'action']
+  });
+
+  // Загружаем лоады для операций
+  const operationsIds = operationsData.map(oper => oper.id);
+  const loadsData = await unitLoadRepository.find({
+    where: { id_oper: In(operationsIds) }
+  });
+
+  //  получаем самый поздний фишиш у лоадов
+  interface ReadyTerm {
+    date: string; // Формат: "YYYY-MM-DD"
+    time: number; // Время в минутах от начала дня
+  }
+  function getLatestFinish(loads: UnitLoadTable[]): ReadyTerm {
+    if (loads.length === 0) return { date: "", time: 0 };
+    const latestLoad = loads.reduce((latest, current) => {
+      // Сначала сравниваем дату (так как формат "YYYY-MM-DD" корректно сравнивается как строки)
+      if (current.date > latest.date) {
+        return current;
+      } else if (current.date === latest.date && current.timeFinish > latest.timeFinish) {
+        return current;
+      }
+      return latest;
+    }, loads[0]);
+    return { date: String(latestLoad.date), time: latestLoad.timeFinish };
+  }
+  function getLaterDateTime(dt1: ReadyTerm, dt2: ReadyTerm): ReadyTerm {
+    // Сначала сравниваем даты (формат "YYYY-MM-DD" корректно сравнивается как строка)
+    if (dt1.date > dt2.date) {
+      return dt1;
+    } else if (dt1.date < dt2.date) {
+      return dt2;
+    } else {
+      // Если даты совпадают, сравниваем время (в минутах от начала дня)
+      return dt1.time >= dt2.time ? dt1 : dt2;
+    }
+  }
+
+
+  // Срок готовности карты
+  let cardTerm = {
+    date: '1000-01-01',
+    time: 0
+  } as ReadyTerm
+
+
+  // выбираем операции по картам и формируем ответ Item
+  for (const card of tCards) {
+    const cardOperationsData = operationsData.filter(oper => oper.tcard_id === card.id);
+    let tCardOperations = [] as TCardOperationTermsItem[];
+    // формируем массив операций по карте
+    for (const oper of cardOperationsData) {
+      // Отбираем все загрузки для данной операции
+      const loadsForOper = loadsData.filter(load => load.id_oper === oper.id && !load.isRetool);
+      // Находим загрузку с максимально поздним временем завершения - это дата исполнения операции
+      const latestTerm: ReadyTerm = getLatestFinish(loadsForOper);
+
+      // обновляем срок готовности карты
+      cardTerm = getLaterDateTime(cardTerm, latestTerm);
+
+      tCardOperations.push({
+        id: oper.id,
+        idc: oper.idc,
+        stage: oper.stage,
+        out: [] as TCardProductItem[],
+        inn: [] as TCardProductItem[],
+        action: oper.action as ActionItem,
+        duration: oper.duration,
+        mode: false,
+        status: oper.status,
+        coment: oper.coment,
+        readyTerm: latestTerm,
+        expand: false,
+      } as TCardOperationTermsItem);
+    }
+    tCardTerms.push({
+      id: card.id,
+      date: card.date,
+      number: card.number,
+      modified: false,
+      tCardOperations: tCardOperations as TCardOperationTermsItem[],
+      maxId: card.max_idc,
+      coment: card.coment,
+      status: card.status,
+      readyTerm: cardTerm,
+      expand: false,
+    } as TCardTermsItem)
+  }
+
+  return tCardTerms;
 }
 
 
@@ -589,18 +851,18 @@ export async function getTCardOperations(
   });
 
   const tCardOpers = tCardOperstab.map(tCardOpertab => {
-    
+
     return {
       id: tCardOpertab.id,
       idc: tCardOpertab.idc,
       stage: tCardOpertab.stage,
       out: [],
       inn: [],
-      action:{
+      action: {
         id: tCardOpertab.action.id,
         title: tCardOpertab.action.title,
-        code: tCardOpertab.action.code, 
-        interruptible:tCardOpertab.action.interruptible,    
+        code: tCardOpertab.action.code,
+        interruptible: tCardOpertab.action.interruptible,
       } as ActionItem,
       duration: tCardOpertab.duration,
       status: tCardOpertab.status,

@@ -1,7 +1,7 @@
 import Layout from "@/components/Layout/layout";
-import TCardOper from "@/components/TCardOper/tCardOper";
-import TCardOperNew from "@/components/TCardOperNew/tCardOperNew";
-import TCardProducts from "@/components/TCardProducts/tCardProducts";
+import TCardOper from "@/components/cards/TCardOper/tCardOper";
+import TCardOperNew from "@/components/cards/TCardOperNew/tCardOperNew";
+import TCardProducts from "@/components/cards/TCardProducts/tCardProducts";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import { formatDate, padNumberToFourDigits } from "@/utils"

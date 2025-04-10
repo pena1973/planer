@@ -1,6 +1,6 @@
 import Layout from "@/components/Layout/layout";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import PlanScaleContainer from "@/components/PlanScaleContainer/planScaleContainer";
+import PlanScaleContainer from "@/components/plan/PlanScaleContainer/planScaleContainer";
 
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';

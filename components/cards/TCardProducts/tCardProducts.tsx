@@ -3,8 +3,8 @@ import styles from "./tCardProducts.module.scss";
 import { TCardProductItem, UOMItem } from '@/types'
 import Image from 'next/image';
 
-import TCardProduct from "@/components/TCardProduct/tCardProduct";
-import TCardProductNew from "@/components/TCardProductNew/tCardProductNew";
+import TCardProduct from "@/components/cards/TCardProduct/tCardProduct";
+import TCardProductNew from "@/components/cards/TCardProductNew/tCardProductNew";
 import { useEffect, useState, useRef } from "react";
 
 

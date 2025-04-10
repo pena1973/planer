@@ -3,6 +3,7 @@ import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
 import UnitTaskStackProcess from "@/components/monitor/UnitTaskStackProcess/unitTaskStackProcess";
 import UnitTaskStackControl from "@/components/monitor/UnitTaskStackControl/unitTaskStackControl";
 import UnitTaskStackOutsource from "@/components/monitor/UnitTaskStackOutsource/unitTaskStackOutsource";
+import TCardStages from "@/components/monitor/TCardStages/tCardStages";
 
 import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/arrowButton";
 
@@ -285,17 +286,15 @@ export default function Monitor({ }: MonitorProps) {
             <div className="catalog_title"> Операции переданные сторонним исполнителям</div>
             <UnitTaskStackOutsource
               outerLoads={outerLoads}
-              tCards={tCards}
-              // day,  
+              tCards={tCards}               
               setMessage={setMessage}
               getStartFinishOper={getStartFinishOper}
-              setStatusLoadsHandler={setStatusLoadsHandler} />
-            {/* <ActionsCatalog setMessage={setMessage}/> */}
+              setStatusLoadsHandler={setStatusLoadsHandler} />            
           </div>}
+          {/* Готовность карт */}
           {resource === 3 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Готовность карт</div>
-
-            {/* <ActionsCatalog setMessage={setMessage}/> */}
+            <TCardStages  setMessage={setMessage}/>              
           </div>}
           {resource === 4 && <div className="contaitainer_catalog">
             <div className="catalog_title"> KPI рабочих юнитов</div>

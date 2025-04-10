@@ -76,22 +76,22 @@ export default function LoadOuter({
             intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
             triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDefected}`; // Класс по умолчанию
             triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDefected}`; // Класс по умолчанию                
-
+            break;
         case StatusEnum.ready:
             intervalClass = `${styles.interval} ${styles.ready}`; // готовый
             triangleRightClass = `${styles.triangleRight} ${styles.triangleRightReady}`; // Класс по умолчанию
             triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftReady}`; // Класс по умолчанию                
-        
+            break;
         case StatusEnum.performed:
             intervalClass = `${styles.interval} ${styles.performed}`; // получен от поставщика но не проверен
             triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPerformed}`; // Класс по умолчанию
             triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPerformed}`; // Класс по умолчанию                
+            break;
+        case StatusEnum.cancelled:
+            intervalClass = `${styles.interval} ${styles.cancelled}`; // отменен
+            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightСancelled}`; // Класс по умолчанию
+            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftСancelled}`; // Класс по умолчанию                
 
-            case StatusEnum.cancelled:
-                intervalClass = `${styles.interval} ${styles.cancelled}`; // отменен
-                triangleRightClass = `${styles.triangleRight} ${styles.triangleRightСancelled}`; // Класс по умолчанию
-                triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftСancelled}`; // Класс по умолчанию                
-    
             break;
         default:
             break;

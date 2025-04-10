@@ -48,6 +48,18 @@ export interface TCardItem {
     coment?: string,
     status:StatusEnum
 }
+// расширение интерфейса
+export interface TCardTermsItem extends TCardItem {
+    readyTerm: { date: string, time: number }, // срок готовности
+    expand: boolean, //  состояние развернутости и свернутости
+    tCardOperations: TCardOperationTermsItem[],
+  }
+// расширение интерфейса
+export interface TCardOperationTermsItem extends TCardOperationItem {
+    readyTerm: { date: string, time: number }, // срок готовности
+    expand: boolean, //  состояние развернутости и свернутости
+  }
+
 
 export interface UOMItem {
     id: number,
