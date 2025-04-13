@@ -11,7 +11,6 @@ export type CatalogState = {
     settings: SettingsItem, 
     schedule:ScheduleItem,
 }
-
 export type DataState = {
     tCards: TCardItem[],
     tCardCurrent: TCardItem,
@@ -38,6 +37,10 @@ export type PlanState = {
     unitLoads: UnitLoadItem[],
     unitExceptions:UnitExceptionItem[]
     
+}
+export type ViewState = {
+    monitorPoint: number,
+    resourcePoint: number,        
 }
 // Начальное состояние
 const catalogIntialState: CatalogState = {
@@ -72,6 +75,11 @@ const planIntialState: PlanState = {
     tCardPrepared:{} as TCardItem,    
     unitLoads: [] as UnitLoadItem[],    
     unitExceptions:[] as UnitExceptionItem[],
+}
+// состояние открытых окон
+const viewIntialState: ViewState = {
+    monitorPoint:1,
+    resourcePoint:1,        
 }
 // хранилище
 const authSlice = createSlice({
@@ -186,14 +194,28 @@ const planSlice = createSlice({
     },
 
 })
+const viewSlice = createSlice({
+    name: 'view',
+    initialState: viewIntialState,
+    reducers: {     
+        setMonitorPoint : (state, action) => {
+            state.monitorPoint = action.payload;
+        }, 
+        setResourcePoint : (state, action) => {
+            state.resourcePoint = action.payload;
+        },     
+        
+    },
+
+})
 
 export default function Foo() { return <></> }  // пустышка для билда
 
 export const { setActions, setUOMs,setUnits,setSettings,setSchedule } = catalogSlice.actions;
 export const {setTCards,setTCardCurrent,setTCardCurrentStages,setTCardCurrentMaterials,setTCardCurrentOperations,setTCardCurrentProducts,settCardCurrentWastes,setTCardCurrentMaxIdc} = dataSlice.actions;
 export const {setToken,setLogin,setUserId,setRole,setNickname,setAgreeCookie,setAgreement, setLocale} = authSlice.actions;
-
 export const {setTCardLighted,setTCardPrepared, setUnitLoads,setUnitExceptions} = planSlice.actions;
+export const {setMonitorPoint,setResourcePoint} = viewSlice.actions;
 
-export { authSlice, catalogSlice, dataSlice,planSlice};
+export { authSlice, catalogSlice, dataSlice, planSlice, viewSlice};
 

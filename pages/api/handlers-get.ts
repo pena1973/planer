@@ -572,7 +572,7 @@ export async function getTCardsOpers(
 
   // Срок готовности карты
   let cardTerm = {
-    date: '1000-01-01',
+    date: '0001-01-01',
     time: 0
   } as ReadyTerm
 
@@ -796,7 +796,7 @@ export async function getSettings(
 
   return settings;
 }
-// только шапка
+// 
 export async function getTCardOperation(
   operId: number,
   tCardOperationsRepository: Repository<TCardOperationTable>

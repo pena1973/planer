@@ -85,6 +85,18 @@ export interface UnitItem {
     type: UnitTypeEnum,
     coment?: string
 }
+
+export interface UnitKPIItem {
+    unit: UnitItem;
+    date: string; // "YYYY-MM-DD"
+    productionTime: number;
+    occupiedTime: number;
+    planedTime: number;
+    effectiveTime: number;
+    defectTime: number;
+  }
+  
+
 export interface UnitActionItem {
     id?: number,
     action: ActionItem,
@@ -165,6 +177,9 @@ export interface CalendarItem {
     breaks:{timeStart:number,timeFinish:number}[] // минут с начала дня 
 }
 
+export interface UnitCalendarItem extends CalendarItem {
+    unit:UnitItem,
+  }
 // Описание операции (отрезка времени) на временной шкале юнита
 export interface UnitLoadItem {
     id?:number,

@@ -3,14 +3,15 @@ import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
 import UnitTaskStackProcess from "@/components/monitor/UnitTaskStackProcess/unitTaskStackProcess";
 import UnitTaskStackControl from "@/components/monitor/UnitTaskStackControl/unitTaskStackControl";
 import UnitTaskStackOutsource from "@/components/monitor/UnitTaskStackOutsource/unitTaskStackOutsource";
-import TCardStages from "@/components/monitor/TCardStages/tCardStages";
+import ReportTCardState from "@/components/monitor/ReportTCardState/reportTCardState";
+import ReportUnitsKPI from "@/components/monitor/ReportUnitsKPI/reportUnitsKPI";
 
 import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/arrowButton";
 
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
-import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum, TCardOperationItem, UnitTypeEnum } from '@/types'
+import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum,  UnitTypeEnum } from '@/types'
 
 import Image from 'next/image';
 
@@ -19,7 +20,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 
-import { setUnitLoads } from '@/store/slices';
+import { setUnitLoads,setMonitorPoint } from '@/store/slices';
 import { Index } from "typeorm";
 import { get } from "http";
 
@@ -90,7 +91,7 @@ export default function Monitor({ }: MonitorProps) {
   const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-  const [resource, setResource] = useState(1); // 1 - загрузка юнитов, 2 - KPI, отчеты
+  // const [resource, setResource] = useState(1); // 1 - загрузка юнитов, 2 - KPI, отчеты
 
   const [day, setDay] = useState(() => {
     const date = new Date();
@@ -98,6 +99,10 @@ export default function Monitor({ }: MonitorProps) {
 
     return date;
   });
+
+  const monitorPoint = useSelector((state: RootState) => {
+    return state.viewSlice.monitorPoint;
+  })
 
   const units = useSelector((state: RootState) => {
     return state.catalogSlice.units;
@@ -231,10 +236,10 @@ export default function Monitor({ }: MonitorProps) {
           <div className="container_left_inner">
 
             <div className="container_catalogs">
-              <div className="resources_container_catalog" onClick={() => setResource(1)}>Загрузка юнитов</div>
-              <div className="resources_container_catalog" onClick={() => setResource(2)}>Операции на стороне</div>
-              <div className="resources_container_catalog" onClick={() => setResource(3)}> Готовность карт</div>
-              <div className="resources_container_catalog" onClick={() => setResource(3)}> KPI рабочих юнитов</div>
+              <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(1))}>Загрузка юнитов</div>
+              <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(2))}>Операции на стороне</div>
+              <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(3))}>Готовность карт</div>
+              <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(4))}>KPI рабочих юнитов</div>
 
             </div>
             <div className="container_cards_title">Пояснение</div>
@@ -250,7 +255,7 @@ export default function Monitor({ }: MonitorProps) {
         <div className="container_right">
 
           {/* Настройки */}
-          {resource === 1 && <div className="contaitainer_catalog">
+          {monitorPoint === 1 && <div className="contaitainer_catalog">
 
             <div className="catalog_title"> Загрузка юнитов</div>
             <div className="monitor_container_navigation">
@@ -282,7 +287,7 @@ export default function Monitor({ }: MonitorProps) {
             <div className="monitor_container">{unitsValueReactNodes}</div>
           </div>}
           {/* состояние операций на outsource */}
-          {resource === 2 && <div className="contaitainer_catalog">
+          {monitorPoint === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Операции переданные сторонним исполнителям</div>
             <UnitTaskStackOutsource
               outerLoads={outerLoads}
@@ -292,14 +297,13 @@ export default function Monitor({ }: MonitorProps) {
               setStatusLoadsHandler={setStatusLoadsHandler} />            
           </div>}
           {/* Готовность карт */}
-          {resource === 3 && <div className="contaitainer_catalog">
+          {monitorPoint === 3 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Готовность карт</div>
-            <TCardStages  setMessage={setMessage}/>              
+            <ReportTCardState  setMessage={setMessage}/>              
           </div>}
-          {resource === 4 && <div className="contaitainer_catalog">
+          {monitorPoint === 4 && <div className="contaitainer_catalog">
             <div className="catalog_title"> KPI рабочих юнитов</div>
-
-            {/* <ActionsCatalog setMessage={setMessage}/> */}
+            <ReportUnitsKPI  setMessage={setMessage}/>              
           </div>}
         </div>
 

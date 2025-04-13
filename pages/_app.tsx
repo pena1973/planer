@@ -17,7 +17,7 @@ import React, { StrictMode, Suspense} from 'react';
 import { Provider, useDispatch } from 'react-redux';
 // это набор утилит для редукс облегчающий его настройку
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import {authSlice, catalogSlice,  dataSlice, planSlice} from '@/store/slices';
+import {authSlice, catalogSlice,  dataSlice, planSlice, viewSlice} from '@/store/slices';
 
 import {
   persistReducer,
@@ -40,13 +40,14 @@ export const rootReducer = combineReducers({
   catalogSlice: catalogSlice.reducer,
   dataSlice: dataSlice.reducer,  
   planSlice: planSlice.reducer,  
+  viewSlice: viewSlice.reducer,  
 });
 
-// // key нужен чтобы создавать несколько хранилищ
+// key нужен чтобы создавать несколько хранилищ
 const persistConfig = {
   key: 'myPersistKeyword',
   storage: storageSession,  
-  whitelist: ['authSlice', 'catalogSlice', 'dataSlice','planSlice'],
+  whitelist: ['authSlice', 'catalogSlice', 'dataSlice','planSlice','viewSlice'],
   // timeout: 1000,
 };
 

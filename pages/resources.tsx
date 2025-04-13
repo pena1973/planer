@@ -64,11 +64,13 @@ export default function Resources({ }: ResourcesProps) {
           <div className="container_left_inner">
 
             <div className="container_catalogs">
+              <div className="resources_container_catalog" onClick={()=> setResource(0)}>Компания</div>
               <div className="resources_container_catalog" onClick={()=> setResource(1)}>Расписание</div>
               <div className="resources_container_catalog" onClick={()=> setResource(2)}>Действия</div>
               <div className="resources_container_catalog" onClick={()=> setResource(3)}>Единицы измерения</div>
               <div className="resources_container_catalog" onClick={()=> setResource(4)}>Юниты</div>
               <div className="resources_container_catalog" onClick={()=> setResource(5)}>Настройки</div>
+              <div className="resources_container_catalog" onClick={()=> setResource(6)}>Роли и юзеры</div>
 
             </div>
             <div className="container_cards_title">Пояснение</div>
@@ -81,7 +83,11 @@ export default function Resources({ }: ResourcesProps) {
 
         </div>
         <div className="container_right">
-          {/* Настройки */}
+          {/* компания */}
+          {resource === 0 && <div className="contaitainer_catalog">
+            <div className="catalog_title"> Компания</div>            
+            </div>}
+          {/* расписание */}
           {resource === 1 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Расписание работы предприятия</div>
             <CompanySchedule setMessage={setMessage}/>
@@ -109,6 +115,9 @@ export default function Resources({ }: ResourcesProps) {
             <div className="catalog_title"> Настройки учета</div>              
             <SystemSettings setMessage={setMessage} />
           </div>}
+            {resource === 6 && <div className="contaitainer_catalog">
+            <div className="catalog_title"> Роли и юзеры</div>            
+            </div>}
         </div>
 
       </div>

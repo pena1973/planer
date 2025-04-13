@@ -265,6 +265,7 @@ function findAvailableTimeForOperation(
         isPinned: isPinned,
         isOuterStart: false,//  это старт оутсортера, здесь не применяется
         isOuterFinish: false,//  это финиш оутсортера        
+        version: Number(operation.id) + 1 // НАДО СГЕНЕРИТЬ УНИКАЛЬНОЕ версия планирования для связи цепочки лоадов
       });
     });
     const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];

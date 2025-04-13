@@ -95,3 +95,16 @@ export function convertMillisecondsToTime(ms: number): {
 export function convertTimeToMilliseconds(hours: number, minutes: number, seconds: number, milliseconds: number): number {
   return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds;
 }
+// конвертация минут во время
+export function convertMinutesToTime(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours.toString().padStart(2, '0')}-${minutes.toString().padStart(2, '0')}`;
+}
+
+// конвертация минут во время (формат 00 час 00 мин)
+export function convertMinutesToTime1(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours.toString().padStart(2, '0')} час ${minutes.toString().padStart(2, '0')} мин`;
+}
