@@ -1,5 +1,10 @@
 @import '@/styles/colors.scss';
 
+.container_cards_left_inner {
+    max-height: calc(100% - 100px);
+    overflow: hidden;
+    flex: 1;
+}
 
 .container_cards_title {
     display: flex;
@@ -51,33 +56,8 @@
     padding-top: 10px;
 }
 
-.container_message {
-    display: flex;
-    flex-direction: column;
-    // margin: 10px 0;
-    border-top: 1px solid black;
-    height: 100px;
-    overflow: auto;
-    color: brown;
-    background-color: rgb(191, 207, 236);
-    width: 218px;
-    font-size: 12px;
-    padding: 10px;
-}
 
 ///////////////Загрузка файла////////////
-// .container_card_load {
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-//     text-align: center;
-//     font-size: 40;
-//     min-height: 100px;
-//     width: 100%;
-//     border-radius: 5px;
-//     border: 2px solid $button_border;   
-//     justify-self: center;
-// }
 
 .container_card_load {
     display: flex;
@@ -87,9 +67,10 @@
     font-size: 16px; // Более сдержанный размер шрифта
     min-height: 100px;
     width: 100%;
-    border-radius: 5px; // Скругленные углы
-    border: 2px solid rgb(200, 200, 200); // Легкая серая граница для согласования с остальной цветовой гаммой
-    background-color: rgb(245, 245, 245); // Светло-серый фон для сдержанности
+    // border-radius: 5px; // Скругленные углы
+    // border: 2px solid rgb(200, 200, 200); // Легкая серая граница для согласования с остальной цветовой гаммой
+    border: $border;
+    // background-color: rgb(245, 245, 245); // Светло-серый фон для сдержанности
     color: rgb(100, 100, 100); // Темно-серый текст, чтобы было легко читать
     cursor: pointer; // Курсор указывает, что это область для перетаскивания
     transition: background-color 0.3s ease, border-color 0.3s ease; // Плавный переход для фона и границы

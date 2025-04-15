@@ -4,7 +4,7 @@ import styles from "./unitTaskStackOutsource.module.scss";
 import { CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
 
 import Image from 'next/image';
-import {padNumberToFourDigits} from "@/utils"
+import {padNumberToFourDigits,convertMinutesToTime1} from "@/utils"
 
 
 interface UnitTaskStackOutsourceProps {
@@ -116,8 +116,8 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
       <td> {cardTitle}</td>
       <td> {lo.loadInfo?.title}, C{lo.idc_oper}</td>
       <td> {lo.unit.title}</td>
-      <td>{`${terms.start.date}: ${terms.start.time} мин`}</td>
-      <td>{`${terms.finish.date}: ${terms.finish.time} мин`}</td>
+      <td>{`${terms.start.date}: ${convertMinutesToTime1(terms.start.time)}`}</td>
+      <td>{`${terms.finish.date}: ${convertMinutesToTime1(terms.finish.time)}`}</td>
       <td> <div className={styles.status_row}>
         <div className={statusStyle} />
         {lo.status}

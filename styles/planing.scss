@@ -2,7 +2,7 @@
 
 // background: rgb(240, 240, 240); 
 
-.container_planing_title {
+.container_plan_title {
     display: flex;
     flex-direction: row;
     width: 100%;
@@ -10,16 +10,16 @@
     margin: 10px 0 5px 0;
     
 }
-.container_planing_title_n {
+.container_plan_title_no {
     display: flex;
     flex-direction: row;
     width: 100%;
     justify-content: center;
     margin: 10px 0 5px 0;
-    border-top: 1px solid black;
+    border-top: $border;
 }
 
-.container_planing {
+.container_plan_planed_card {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -27,7 +27,7 @@
     overflow: auto;
     // background-color: aliceblue;
 }
-.container_planing_n {
+.container_plan_prepared_card {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -107,12 +107,12 @@
 }
 
 // срдержание правой области
-.pl_container_right {
+.container_plan_right {
     flex-direction: column;
     
-    // background-color: rgb(245, 243, 240);
-    background-color:rgb(240, 240, 240)
-    // background-color: rgb(241, 238, 182);
+    background-color:$main_body_background_color;
+    // background-color:rgb(240, 240, 240)
+    
 }
 .pl_container_title {
     width: fit-content;

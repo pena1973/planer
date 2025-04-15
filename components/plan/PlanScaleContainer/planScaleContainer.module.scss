@@ -41,12 +41,11 @@
   width: calc(100% - 200px);
 
   margin-right: 20px;
-  // background-color: rgb(245, 243, 240);
-  background-color: #f0f0f0;
+  
   /* Светло-серый фон */
-  border-bottom: 1px solid #ccc;
+  border-bottom: $border;
   /* Граница снизу */
-
+  background-color:$main_body_background_color;
   /* Граница справа */
   // background-color: aliceblue;
 }

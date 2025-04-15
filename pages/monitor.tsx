@@ -11,7 +11,7 @@ import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
-import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum,  UnitTypeEnum } from '@/types'
+import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum, UnitTypeEnum } from '@/types'
 
 import Image from 'next/image';
 
@@ -20,7 +20,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 
-import { setUnitLoads,setMonitorPoint } from '@/store/slices';
+import { setUnitLoads, setMonitorPoint } from '@/store/slices';
 import { Index } from "typeorm";
 import { get } from "http";
 
@@ -222,40 +222,28 @@ export default function Monitor({ }: MonitorProps) {
     }
     )
 
-  // Загрузка файла
-  const onFileUpload = (content: UOMItem | ActionItem | UnitItem) => {
-    // console.log('File uploaded with content:', content);
-    // Дальнейшая обработка данных
-  };
   const outerLoads = unitLoads.filter((lo) => lo.unit.belong === UnitBelongEnum.outer && lo.status === StatusEnum.planed);
 
   return (
     <Layout>
-      <div className="container" >
-        <div className="container_left">
-          <div className="container_left_inner">
+      <div className="container_global" >
+        <div className="container_global_left">          
+          <div className="container_catalogs">
+            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(1))}>Загрузка юнитов</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(2))}>Операции на стороне</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(3))}>Готовность карт</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(4))}>KPI рабочих юнитов</div>
 
-            <div className="container_catalogs">
-              <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(1))}>Загрузка юнитов</div>
-              <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(2))}>Операции на стороне</div>
-              <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(3))}>Готовность карт</div>
-              <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(4))}>KPI рабочих юнитов</div>
-
-            </div>
-            <div className="container_cards_title">Пояснение</div>
-            <div className="container_message">{message}</div>
           </div>
-
-          <FileUploadButton
-            onFileUpload={onFileUpload}
-            expectedInterface={{} as UOMItem} />
+          <div className="container_cards_title">Пояснение</div>
+          <div className="container_global_message">{message}</div>
 
         </div>
 
-        <div className="container_right">
+        <div className="container_global_right">
 
           {/* Настройки */}
-          {monitorPoint === 1 && <div className="contaitainer_catalog">
+          {monitorPoint === 1 && <div className="container_monitor">
 
             <div className="catalog_title"> Загрузка юнитов</div>
             <div className="monitor_container_navigation">
@@ -287,23 +275,23 @@ export default function Monitor({ }: MonitorProps) {
             <div className="monitor_container">{unitsValueReactNodes}</div>
           </div>}
           {/* состояние операций на outsource */}
-          {monitorPoint === 2 && <div className="contaitainer_catalog">
+          {monitorPoint === 2 && <div className="container_monitor">
             <div className="catalog_title"> Операции переданные сторонним исполнителям</div>
             <UnitTaskStackOutsource
               outerLoads={outerLoads}
-              tCards={tCards}               
+              tCards={tCards}
               setMessage={setMessage}
               getStartFinishOper={getStartFinishOper}
-              setStatusLoadsHandler={setStatusLoadsHandler} />            
+              setStatusLoadsHandler={setStatusLoadsHandler} />
           </div>}
           {/* Готовность карт */}
-          {monitorPoint === 3 && <div className="contaitainer_catalog">
+          {monitorPoint === 3 && <div className="container_monitor">
             <div className="catalog_title"> Готовность карт</div>
-            <ReportTCardState  setMessage={setMessage}/>              
+            <ReportTCardState setMessage={setMessage} />
           </div>}
-          {monitorPoint === 4 && <div className="contaitainer_catalog">
+          {monitorPoint === 4 && <div className="container_monitor">
             <div className="catalog_title"> KPI рабочих юнитов</div>
-            <ReportUnitsKPI  setMessage={setMessage}/>              
+            <ReportUnitsKPI setMessage={setMessage} />
           </div>}
         </div>
 

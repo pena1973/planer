@@ -51,73 +51,60 @@ export default function Resources({ }: ResourcesProps) {
     // Дальнейшая обработка данных
   };
 
-  // Загрузка файла
-  const onFileUpload = (content: UOMItem | ActionItem | UnitItem) => {
-    // console.log('File uploaded with content:', content);
-    // Дальнейшая обработка данных
-  };
 
   return (
     <Layout>
-      <div className="container" >
-        <div className="container_left">
-          <div className="container_left_inner">
-
+      <div className="container_global" >
+        <div className="container_global_left">
             <div className="container_catalogs">
-              <div className="resources_container_catalog" onClick={()=> setResource(0)}>Компания</div>
-              <div className="resources_container_catalog" onClick={()=> setResource(1)}>Расписание</div>
-              <div className="resources_container_catalog" onClick={()=> setResource(2)}>Действия</div>
-              <div className="resources_container_catalog" onClick={()=> setResource(3)}>Единицы измерения</div>
-              <div className="resources_container_catalog" onClick={()=> setResource(4)}>Юниты</div>
-              <div className="resources_container_catalog" onClick={()=> setResource(5)}>Настройки</div>
-              <div className="resources_container_catalog" onClick={()=> setResource(6)}>Роли и юзеры</div>
+              <div className="resources_container_catalog" onClick={() => setResource(0)}>Команда</div>
+              <div className="resources_container_catalog" onClick={() => setResource(1)}>Расписание</div>
+              <div className="resources_container_catalog" onClick={() => setResource(2)}>Действия</div>
+              <div className="resources_container_catalog" onClick={() => setResource(3)}>Единицы измерения</div>
+              <div className="resources_container_catalog" onClick={() => setResource(4)}>Юниты</div>
+              <div className="resources_container_catalog" onClick={() => setResource(5)}>Настройки</div>
+              
 
             </div>
             <div className="container_cards_title">Пояснение</div>
-            <div className="container_message">{message}</div>
-          </div>
-          {/* Загрузка справочников для начала работы */}
-          <FileUploadButton
-            onFileUpload={onFileUpload}
-            expectedInterface={{} as UOMItem} />
+            <div className="container_global_message">{message}</div>
 
         </div>
-        <div className="container_right">
+        <div className="container_global_right">
           {/* компания */}
           {resource === 0 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Компания</div>            
-            </div>}
+            <div className="catalog_title"> Команда</div>
+            Номер команды
+            И пользователи команды с назначенными ролями
+          </div>}
           {/* расписание */}
           {resource === 1 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Расписание работы предприятия</div>
-            <CompanySchedule setMessage={setMessage}/>
-            </div>}
+            <CompanySchedule setMessage={setMessage} />
+          </div>}
           {/* Действия */}
           {resource === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Каталог производственных операций предприятия</div>
-            <ActionsCatalog setMessage={setMessage}/>
+            <ActionsCatalog setMessage={setMessage} />
           </div>}
           {/* ЕдИзм */}
           {resource === 3 &&
             <div className="contaitainer_catalog">
               <div className="catalog_title"> Каталог единиц измерения</div>
-              <UOMSCatalog setMessage={setMessage}/>
+              <UOMSCatalog setMessage={setMessage} />
             </div>}
           {/* Юниты */}
-          {resource === 4 && <div className="contaitainer_catalog">         
-            <div className="catalog_title"> Настройки юнитов</div>   
+          {resource === 4 && <div className="contaitainer_catalog">
+            <div className="catalog_title"> Настройки юнитов</div>
             <UnitsCatalog setMessage={setMessage} />
           </div>}
-           {/* Визуальные настройки календаря */}
-           {resource === 5 && <div className="contaitainer_catalog"> 
-            <div className="catalog_title"> Настройки календаря</div>              
+          {/* Визуальные настройки календаря */}
+          {resource === 5 && <div className="contaitainer_catalog">
+            <div className="catalog_title"> Настройки календаря</div>
             <Settings setMessage={setMessage} />
-            <div className="catalog_title"> Настройки учета</div>              
+            <div className="catalog_title"> Настройки учета</div>
             <SystemSettings setMessage={setMessage} />
           </div>}
-            {resource === 6 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Роли и юзеры</div>            
-            </div>}
         </div>
 
       </div>

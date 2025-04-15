@@ -972,9 +972,9 @@ export default function Cards({ }: CardsProps) {
 
   return (
     <Layout>
-      <div className="container" >
-        <div className="container_left">
-          <div className="container_left_inner">
+      <div className="container_global" >
+        <div className="container_global_left">
+          <div className="container_cards_left_inner">
             <div className="container_cards_title">тех карты</div>
             <div className="container_cards">
               {tCardsReactNodes}
@@ -983,10 +983,8 @@ export default function Cards({ }: CardsProps) {
               </div>
             </div>
             <div className="container_cards_title">Пояснение</div>
-            <div className="container_message">{message}
-              {/* <div className="container_cards_lack_item">
-                <div className="container_cards_lack_code">{message}</div>
-              </div> */}
+            <div className="container_global_message">{message}
+              
             </div>
           </div>
           <div
@@ -998,7 +996,7 @@ export default function Cards({ }: CardsProps) {
           > Загрузите файл JSON сюда </div>
 
         </div>
-        {(tCardCurrent.id) && <div className="container_right card_container_right">
+        {(tCardCurrent.id) && <div className="container_global_right card_container_right">
 
           <div className={`container_status`}>
             status: {tCardCurrent.status}

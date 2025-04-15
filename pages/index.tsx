@@ -647,11 +647,11 @@ export default function Index({ }: IndexProps) {
   return (
     <Layout>
       <pre />
-      <div className="ind_container">
-        <div className="ind_left">
-          <div className="ind_title">Planer</div>
-          <div className="ind_describtion">Планировщик загрузки ресурсов компании
-            <div className="ind_line"></div>
+      <div className="container_index">
+        <div className="container_index_left">
+          <div className="index_title">Planing tool</div>
+          <div className="index_describtion">Планировщик загрузки ресурсов компании
+            <div className="index_line"></div>
           </div>
           <div className="ads"><Image className="img_" src={words} alt="words" />Работает в соответствии с заказом от клиента</div>
           <div className="ads"><Image className="img_" src={exercises} alt="words" />Выстраивает технологическую карту выполнения заказа</div>
@@ -660,7 +660,7 @@ export default function Index({ }: IndexProps) {
           <div className="ads"><Image className="img_" src={topic} alt="words" />Автоматически моделирует загрузку ваших приизводственных центров</div>
           <div className="ads"><Image className="img_" src={learn} alt="words" />Формирует задания исполнителям и отслеживает выполнение</div>
         </div>
-        <div className="ind_right">
+        <div className="container_index_right">
 
           {loginMode && <div className="login_container">
             <div className="login_input_container">

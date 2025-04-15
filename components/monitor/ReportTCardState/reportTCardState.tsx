@@ -127,7 +127,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
 
 
   return (
-    <>
+    <div className={styles.container}>
       {showLoader &&
         <div className={styles.loader_container}>
           <div className={styles.title}>Ждем...</div>
@@ -135,7 +135,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
         </div>
       }
       {!showLoader && <div>  фильтр заглушка</div>}
-      {!showLoader && <div className={styles.container}>
+      {!showLoader && <div className={styles.table_container}>
         {/* Шапка таблицы */}
         <table className={styles._table}>
           <thead>
@@ -166,7 +166,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
 
 
       </div>}
-    </>
+    </div>
   )
 };
 

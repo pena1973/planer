@@ -5,20 +5,13 @@
 .interval {
   font-size: 12px;
   position: absolute;
-  // width: calc(100% - 40px);
   padding-top: 2px;
-  // margin: 0 40px;
   z-index: 1;
-  // border: 1px solid #ccc;
-  // border-radius: 10px;
-  /* Центрируем текст вертикально и горизонтально */
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  flex-direction: column;
-  // overflow: hidden;
-  cursor: pointer;
-  
+  flex-direction: column;  
+  cursor: pointer;  
 }
 
 .title_load {

@@ -39,43 +39,29 @@ export default function Resources({ }: ResourcesProps) {
 
   }, []);
 
-
-  // Загрузка файла
-  const onFileUpload = (content: UOMItem | ActionItem | UnitItem) => {
-    // console.log('File uploaded with content:', content);
-    // Дальнейшая обработка данных
-  };
-
   return (
     <Layout>
-      <div className="container" >
-        <div className="container_left">
-          <div className="container_left_inner">
-
-            <div className="container_catalogs">
-              <div className="resources_container_catalog" onClick={()=> setResource(1)}>Обращения</div>
-              <div className="resources_container_catalog" onClick={()=> setResource(2)}>Оплаты</div>
-            </div>
-            <div className="container_cards_title">Пояснение</div>
-            <div className="container_message">{message}</div>
+      <div className="container_global" >
+        <div className="container_global_left">
+          <div className="container_catalogs">
+            <div className="resources_container_catalog" onClick={() => setResource(1)}>Обращения</div>
+            <div className="resources_container_catalog" onClick={() => setResource(2)}>Оплаты</div>
           </div>
-          {/* Загрузка справочников для начала работы */}
-          <FileUploadButton
-            onFileUpload={onFileUpload}
-            expectedInterface={{} as UOMItem} />
+          <div className="container_cards_title">Пояснение</div>
+          <div className="container_global_message">{message}</div>
 
         </div>
-        <div className="container_right">
+        <div className="container_global_right">
           {/* Настройки */}
           {resource === 1 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Обращения в тех. поддержку</div>
             {/* <CompanySchedule setMessage={setMessage} /> */}
-            </div>}
+          </div>}
           {/* Действия */}
           {resource === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Счета и оплаты</div>
             {/* <ActionsCatalog setMessage={setMessage}/> */}
-          </div>}          
+          </div>}
         </div>
 
       </div>

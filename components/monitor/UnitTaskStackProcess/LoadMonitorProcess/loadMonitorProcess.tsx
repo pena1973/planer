@@ -3,7 +3,7 @@ import styles from "./loadMonitorProcess.module.scss";
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
 
-export interface LoadMonitorProps {
+export interface LoadMonitorProcessProps {
     loadHeight: number,
     showTitle: boolean,
     load: UnitLoadItem,
@@ -12,14 +12,14 @@ export interface LoadMonitorProps {
     index: number,
 }
 
-export default function LoadMonitor({
+export default function LoadMonitorProcess({
     loadHeight,
     showTitle,
     load,
     titleCard,
     openOperHandler,
     index,
-}: LoadMonitorProps) {
+}: LoadMonitorProcessProps) {
 
     let intervalClass = `${styles.interval}`; // Класс по умолчанию
     let titleClass = `${styles.title_load}`; // Класс по умолчанию

@@ -1,14 +1,15 @@
 @import '@/styles/colors.scss';
 
 
-.container_catalogs {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: calc(100% - 134px);
-    overflow: auto;
-    //  background-color: aliceblue;
-    padding: 20px 10px;
+.container_monitor {
+    width: -webkit-fill-available;
+    min-width: fit-content;
+    height: fit-content;
+    min-height: -webkit-fill-available;
+    padding: 10px;
+    background-color: $second_body_background_color;
+    padding: 10px 10px;
+    // color: $third_text_color;
 }
 
 .resources_container_catalog {
@@ -20,7 +21,7 @@
     display: flex;
     width: 100%;
     justify-content: space-evenly;
-    margin: 10px;
+    margin: 10px 0;
 }
 
 /* //////////////////// */
@@ -67,12 +68,12 @@
 //     width: 100%;
 // }
 
-// .catalog_title {
-//     font-size: 16px;
-//     padding: 5px;
-//     font-weight: bold;
-
-// }
+.catalog_title {
+    font-size: $header2_font_size;
+    padding: 5px;
+    font-weight: bold;
+    color: $third_text_color;
+}
 
 .monitor_container {
     display: inline-flex;

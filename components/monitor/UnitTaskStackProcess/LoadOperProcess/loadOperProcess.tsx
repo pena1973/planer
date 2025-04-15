@@ -6,7 +6,7 @@ import { padNumberToFourDigits, } from "@/utils"
 
 import cancel from "@/public/cancel.png";
 
-export interface LoadMonitorProps {
+export interface LoadOperProcessProps {
     containerHeight: number,
     oper: TCardOperationItem,
     isQualControl: boolean
@@ -24,7 +24,7 @@ export interface LoadMonitorProps {
 
 }
 
-export default function LoadOper({
+export default function LoadOperProcess({
     containerHeight,
     oper,
     isQualControl,
@@ -33,7 +33,7 @@ export default function LoadOper({
     setOperStatusHandler,   
     closeOperHandler,
 
-}: LoadMonitorProps) {
+}: LoadOperProcessProps) {
 
     const formatMinutes = (totalMinutes: number | undefined): string => {
         if (!totalMinutes) return "00-00";
@@ -102,9 +102,9 @@ export default function LoadOper({
             </div>
 
             <div className={styles.button_container}>
-                {isQualControl && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.performed)}>Выполнен</button>}
-                {!isQualControl && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.ready)}>Готов</button>}
-                {!isQualControl && oper.status === StatusEnum.planed && <button onClick={() => setOperStatusHandler(StatusEnum.defective)}>Брак</button>}
+                {isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_perfotmed_top} onClick={() => setOperStatusHandler(StatusEnum.performed)}>Выполнен</button>}
+                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(StatusEnum.ready)}>Готов</button>}
+                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_defected_top}onClick={() => setOperStatusHandler(StatusEnum.defective)}>Брак</button>}
                 {/* {oper.status !== StatusEnum.planed
                     && <button onClick={() => closeOperHandler(oper.id as number)}>Закрыть</button>} */}
             </div>

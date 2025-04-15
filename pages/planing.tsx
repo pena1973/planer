@@ -516,23 +516,21 @@ export default function Planing() {
 
   return (
     <Layout>
-      <div className="container" >
-        <div className="container_left">
-          <div className="container_planing_title">запланированы</div>
-          <div className="container_planing">
+      <div className="container_global" >
+        <div className="container_global_left">
+          <div className="container_plan_title">запланированы</div>
+          <div className="container_plan_planed_card">
             {tCardsPlanedReactNodes}
           </div>
-          <div className="container_planing_title_n"> не запланированы</div>
-          <div className="container_planing_n">
+          <div className="container_plan_title_no"> не запланированы</div>
+          <div className="container_plan_prepared_card">
             {tCardsToPlanReactNodes}
           </div>
-          <div className="container_planing_title">Пояснение</div>
-          <div className="container_message">{message}
-            {/* </div> */}
-          </div>
+          <div className="container_plan_title">Пояснение</div>
+          <div className="container_global_message">{message}</div>
 
         </div>
-        <div className="container_right pl_container_right"
+        <div className="container_global_right container_plan_right"
 
           onDragOver={handleDragOverTCard} // Устанавливаем обработчик для перетаскивания
           onDrop={handleDropTCard} // Обрабатываем отпускание элемента

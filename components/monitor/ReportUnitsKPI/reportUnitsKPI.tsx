@@ -236,15 +236,15 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
 
 
   return (
-    <>
+    <div className={styles.container}>
       {showLoader &&
         <div className={styles.loader_container}>
           <div className={styles.title}>Ждем...</div>
           <ButtonLoader width={100} height={100} />
         </div>
       }
-      <div>  фильтр заглушка</div>
-      <div className={styles.container}>
+      {!showLoader && <div>  фильтр заглушка</div>}
+      {!showLoader && <div className={styles.table_container}>
         {/* Шапка таблицы */}
         <table className={styles._table}>
           <thead>
@@ -290,8 +290,8 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
             {unitsReactNodes}
           </tbody>
         </table>
-      </div >
-    </>
+      </div >}
+    </div >
   )
 };
 

@@ -8,58 +8,29 @@
   width: 250px;
   height: auto;
   margin: 5px;
-  border-radius: 10px;
-  /* Скругленные углы */
-  background-color: #f0f0f0;
-  /* Светло-серый фон */
-  border: 1px solid #ccc;
-  /* Равномерная серая граница */
+  border-radius: 10px;  
+  background-color: $main_container_background_color;  
+  border: 1px solid $container_border_color;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  /* Легкая тень для глубины */
   transition: box-shadow 0.3s ease;
-  /* Плавный переход для эффекта при наведении */
-  // position: relative;
-  // background-color: beige;
   overflow: hidden
-}
-
-.unit_load {
-  position: relative;
-  // margin-top: 20px;
-  width: 100%;
-  background-color: rgb(119, 116, 69);
-  // min-height: 50px;
-  padding: 10px 0;
-  // font-weight: bold;    
 }
 
 .unit_unload {
   position: relative;
-  // margin-top: 20px;  
-  width: 100%;
-  // background-color: rgb(255, 251, 199);
-  // min-height: 50px;
-  // font-weight: bold;    
-
-  // border-bottom: 1px dashed #ccc;
+  width: 100%;  
 }
 
 .workTime {
-  // background-color: rgb(208, 226, 208);
-  background-color: rgb(216, 226, 216);
-  /* Задайте цвет для рабочего времени */
+  background-color: $workTime_color;  
 }
 
 .breakTime {
-  background-color: rgb(235, 224, 205);
-
-  /* Цвет для перерывов */
-  // background-color: rgb(61, 10, 30)
+  background-color: $breakTime_color;
 }
 
 .nonWorkTime {
-  background-color: rgb(255, 255, 255);
-  /* Цвет для выходного времени */
+  background-color: $nonWorkTime_color;
 }
 
 .title_container {
@@ -85,8 +56,7 @@
 
 }
 .bottom_line {
-  margin: 1px;
-    
+  margin: 1px;    
   padding: 5px;
   font-size: 14px;
   font-weight: bold;
@@ -95,24 +65,20 @@
 
 .timeLabel {
   position: absolute;
-  // margin: 10px;
-  // min-height: 30px;
-  // font-weight: lighter;
   padding: 5px;
-  font-size: 12px;
-  // font-weight: bold;
+  font-size: 12px;  
   z-index: 2;
 }
 
 //////////////// открытая операция
 /// 
-.oper_container{
-   background-color: rgb(241, 241, 241);
-   display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-direction: column;
-}
+// .oper_container{
+//    background-color: rgb(167, 100, 100);
+//    display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     flex-direction: column;
+// }
       
  
  .oper_title{
@@ -126,21 +92,21 @@
   // cursor: pointer;
  }
       
- .oper_content{
-  font-size: 14px;  
-  width: 100%;
-  height: 100%;
-  background-color: rosybrown;
- }
+//  .oper_content{
+//   font-size: 14px;  
+//   width: 100%;
+//   height: 100%;
+//   background-color: rosybrown;
+//  }
 
- .button_container{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 5px;
-  margin-bottom: 5px;
-  padding: 0 10px;
- }
+//  .button_container{
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
+//   margin-top: 5px;
+//   margin-bottom: 5px;
+//   padding: 0 10px;
+//  }
 
  .loader_container{
   display: flex;
@@ -149,6 +115,6 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  
- 
+  background-color: $second_container_background_color;
+   
 }
