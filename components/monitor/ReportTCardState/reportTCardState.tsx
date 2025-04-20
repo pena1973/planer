@@ -24,7 +24,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   const getTCardsTerms = async () => {
     setShowLoader(true);
     try {
-      const res = await fetch(`api/tcards-opers-terms-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`api/tcards-opers-terms-api?userId=${1}&teamId=${1}`,
         {
           method: 'get',
           headers: new Headers({

@@ -6,7 +6,7 @@ import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 
 import { TypeEnum } from '@/pages/db/models/enums';
 import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem } from '@/types';
@@ -26,15 +26,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const teamsRepository = dbConnection.getRepository(TeamTable);
     const tCardRepository = dbConnection.getRepository(TCardTable);
     // const tCardOrderedProductRepository = dbConnection.getRepository(TCardOrderedProductTable);
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId, tcardId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId, tcardId } = req.query;
 
     //  можно заменить на getTCardFull
 
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Получаем карту по id
         const tCardtab = await tCardRepository.findOne({
           where: filter,  // Применяем фильтр к запросу
-          relations: ['company', 'user'],  // Указываем связанные таблицы (если необходимо)
+          relations: ['teams', 'user'],  // Указываем связанные таблицы (если необходимо)
         });
 
         // Проверяем, что карта существует
@@ -197,7 +197,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           tCardStages,
         } = req.body as RequestBody;
 
-        const resCard = await updateCard(tCardRepository, tCard, Number(userId), Number(companyId), tCardMaxIdc)
+        const resCard = await updateCard(tCardRepository, tCard, Number(userId), Number(teamId), tCardMaxIdc)
 
         if (!resCard.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
@@ -377,7 +377,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // получаю максимальный номер карты
 // КАРТА
 // получаю максимальный номер карты
-async function generateNewNumberForCompany(tCardRepository: Repository<TCardTable>) {
+async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>) {
 
   const result = await tCardRepository
     .createQueryBuilder("tCard")
@@ -396,7 +396,7 @@ async function generateNewNumberForCompany(tCardRepository: Repository<TCardTabl
 }
 
 // ТКАРТА
-async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardItem, userId: number, companyId: number, tCardMaxIdc: number) {
+async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardItem, userId: number, teamId: number, tCardMaxIdc: number) {
   let savedTCard = null;
   let error = "";
 
@@ -404,7 +404,7 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
   let newCardNumber = Number(tCard.number);
 
   if (tCard.number === 0) {
-    newCardNumber = await generateNewNumberForCompany(tCardRepository);
+    newCardNumber = await generateNewNumberForTeam(tCardRepository);
     if (!newCardNumber) {
       error = `Ошибка при генерации номера карты`;
       console.log(error);
@@ -419,7 +419,7 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
     savedTCard = await tCardRepository.save({
       ...tCard,  // сохраняем все поля карты, включая id
       user_id: Number(userId),
-      company_id: Number(companyId),
+      team_id: Number(teamId),
       max_idc: tCardMaxIdc,
       coment: tCard.coment,
       status: tCard.status,
@@ -431,7 +431,7 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
     const newTCard = tCardRepository.create({
       user_id: Number(userId),
       date: tCard.date,
-      company_id: Number(companyId),
+      team_id: Number(teamId),
       number: newCardNumber,
       max_idc: tCardMaxIdc,
       coment: tCard.coment,

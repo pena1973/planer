@@ -4,15 +4,24 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import styles from "./layout.module.scss";
 
 import {
+    UOMItem, ActionItem, UnitItem, SettingsItem,
+    TCardItem,  UnitLoadItem, ScheduleItem,
+    UnitExceptionItem, UserItem,
+    TeamItem
+} from '@/types'
 
-} from '@/store/slices';
+import {
+    setTeam, setToken, setUser,
+    setUnitExceptions, setActions,
+    setUOMs, setUnits, setTCards,
+    setSettings, setSchedule, setUnitLoads
+} from '@/store/slices'
 
 import Head from "next/head";
 import Image from 'next/image';
-import Link from 'next/link'; 
+import Link from 'next/link';
 // import clouds from "./cloud.module.css";
 // import header1 from "./header.module.scss";
-
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -20,18 +29,20 @@ import '../../i18n'
 
 const locales = ['en', 'lv', 'ru'];
 
-
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 export default function Layout({ children }: PropsWithChildren) {
     const { t, i18n } = useTranslation();
-    const [isActive, setIsActive] = useState(false);
     const { push, back } = useRouter();
     const pathname = usePathname();
     const dispatch = useAppDispatch();
-    
+
+    const user = useSelector((state: RootState) => {
+        return state.authSlice.user;
+    })
+
     // язык
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState(i18n.resolvedLanguage);
@@ -41,8 +52,22 @@ export default function Layout({ children }: PropsWithChildren) {
     const selectLanguage = (locale: string) => {
         setSelectedLanguage(locale);
         setDropdownOpen(false);
-        i18n.changeLanguage(locale);        
+        i18n.changeLanguage(locale);
     }
+    const exit = () => {
+        dispatch(setToken(""));
+        dispatch(setUser({} as UserItem));
+        dispatch(setTeam({} as TeamItem));
+        dispatch(setUnitExceptions([] as UnitExceptionItem[]));
+        dispatch(setActions([] as ActionItem[]));
+        dispatch(setUOMs([] as UOMItem[]));
+        dispatch(setUnits([] as UnitItem[]));
+        dispatch(setTCards([] as TCardItem[]));
+        dispatch(setSettings( {} as SettingsItem));
+        dispatch(setSchedule({} as ScheduleItem));
+        dispatch(setUnitLoads([] as UnitLoadItem[]));
+        push("/");
+    };
 
     return (
         <>
@@ -58,13 +83,13 @@ export default function Layout({ children }: PropsWithChildren) {
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
 
-                        <Link className={styles.header_menu_item} href="/">Optimizer</Link>
-                        <Link className={styles.header_menu_item} href="/cards">Cards</Link>
-                        <Link className={styles.header_menu_item} href="/planing">Planing</Link>
-                        <Link className={styles.header_menu_item} href="/resources">Resources</Link>
-                        <Link className={styles.header_menu_item} href="/monitor">Monitor</Link>
-                        <Link className={styles.header_menu_item} href="/support">Support</Link>
-                        
+                        {(!user.id) && <Link className={styles.header_menu_item} href="/">Optimizer</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/cards">Cards</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/planing">Planing</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/resources">Resources</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/monitor">Monitor</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/support">Support</Link>}
+
 
                     </ul>
                 </div>
@@ -85,9 +110,9 @@ export default function Layout({ children }: PropsWithChildren) {
                                 ))}
                             </div>
                         )}
-                    </div>
-                    <button>логин</button>
+                    </div>                    
                     <button>Профиль</button>
+                    {(user.id) &&  <button onClick={exit}>Выход</button>}
                 </div>
             </div>
             <main className={styles.layout}>{children}</main>

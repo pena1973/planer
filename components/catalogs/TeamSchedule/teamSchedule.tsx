@@ -1,10 +1,10 @@
 
-import styles from "./сompanySchedule.module.scss";
+import styles from "./teamSchedule.module.scss";
 
 import DropdownSelectWeekDay from "./DropdownSelectWeekDay/dropdownSelectWeekDay";
 import DropdownSelectTimeZone from "./DropdownSelectTimeZone/dropdownSelectTimeZone";
 
-import { DaysOfWeek, CompanyItem, ScheduleItem,TimeZoneEnum } from '@/types'
+import { DaysOfWeek, TeamItem, ScheduleItem,TimeZoneEnum } from '@/types'
 import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";
@@ -23,11 +23,11 @@ import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
-export interface CompanyScheduleProps {
+export interface TeamScheduleProps {
     setMessage: (message: string) => void
 }
 
-export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
+export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
 
     const dispatch = useAppDispatch();
 
@@ -38,7 +38,7 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
 
-    const [companyValue, setCompanyValue] = useState("");
+    const [teamValue, setTeamValue] = useState("");
     const [prefixValue, setPrefixValue] = useState("");
     const [timeZoneValue, setTimeZoneValue] = useState("");
     const [timeStartWorkValue, setTimeStartWorkValue] = useState(0);
@@ -49,16 +49,17 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
     const [workdaysValue, setWorkdaysValue] = useState([] as { date: string, timeStart: number, timeFinish: number }[]);
 
     useEffect(() => {
-        
-        setCompanyValue(schedule.company.title);
-        setPrefixValue(schedule.company.prefix)
+    //    если есть расписание 
+       if (schedule.team){
+        setTeamValue(schedule.team.title);
+        setPrefixValue(schedule.team.prefix)
         setTimeStartWorkValue(schedule.timeStartWork);
         setTimeFinishWorkValue(schedule.timeFinishWork);
         setBreaksValue(schedule.breaks);
         setHolidaysValue(schedule.holidays);
         setWeekendsValue(schedule.weekends);
         setWorkdaysValue(schedule.workdays);
-        setTimeZoneValue(schedule.timeZone);
+        setTimeZoneValue(schedule.timeZone);}
     }, []);
 
     // колбеки кнопки
@@ -66,7 +67,7 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
     const saveScheduleHandler = async () => {
         setMessage("");
         let schedule = {
-            company: { id: 1, title: companyValue, coment: "", prefix: prefixValue } as CompanyItem,
+            team: { id: 1, title: teamValue, coment: "", prefix: prefixValue } as TeamItem,
             timeStartWork: timeStartWorkValue,
             timeFinishWork: timeFinishWorkValue,
             breaks: breaksValue,
@@ -79,7 +80,7 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/schedule-api?userId=${1}&companyId=${1}`,
+            const res = await fetch(`api/schedule-api?userId=${1}&teamId=${1}`,
                 {
                     method: 'post',
                     headers: new Headers({
@@ -105,8 +106,8 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
                     //   Обновим текущую карту
                     let schedule = receivedData.schedule as ScheduleItem
                     dispatch(setSchedule(schedule));
-                    setCompanyValue(schedule.company.title);
-                    setPrefixValue(schedule.company.prefix)
+                    setTeamValue(schedule.team.title);
+                    setPrefixValue(schedule.team.prefix)
                     setTimeStartWorkValue(schedule.timeStartWork);
                     setTimeFinishWorkValue(schedule.timeFinishWork);
                     setBreaksValue(schedule.breaks);
@@ -127,8 +128,8 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
     };
 
     const cancelScheduleHandler = () => {
-        setCompanyValue(schedule.company.title);
-        setPrefixValue(schedule.company.prefix)
+        setTeamValue(schedule.team.title);
+        setPrefixValue(schedule.team.prefix)
         setTimeStartWorkValue(schedule.timeStartWork);
         setTimeFinishWorkValue(schedule.timeFinishWork);
         setBreaksValue(schedule.breaks);
@@ -143,8 +144,8 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
     const changeHandler = (value: string | number|TimeZoneEnum|null, field: string) => {
 
         switch (field) {
-            case "company":
-                setCompanyValue(value as string);
+            case "team":
+                setTeamValue(value as string);
             case "timeStart":
                 setTimeStartWorkValue(value as number);
                 break;
@@ -465,13 +466,13 @@ export default function CompanySchedule({ setMessage }: CompanyScheduleProps) {
 
             <div className={styles.field_container}>
                 <div className={styles.title}>Компания</div>
-                <input className={styles.company_input}
-                    id={"company"}
+                <input className={styles.team_input}
+                    id={"team"}
                     autoComplete="off"
-                    value={companyValue} type="text"
+                    value={teamValue} type="text"
                     onChange={e => {
                         setModified(true);
-                        changeHandler(e.target.value, "company")
+                        changeHandler(e.target.value, "team")
                     }} />
                 <div className={styles.prefix_container}>
                     <div className={styles.time_top}>Префикс</div>

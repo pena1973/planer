@@ -13,9 +13,11 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.1.0",
+    "@types/jsonwebtoken": "^9.0.9",
     "i18next-browser-languagedetector": "^8.0.2",
     "i18next-http-backend": "^3.0.1",
     "i18next-resources-to-backend": "^1.2.1",
+    "jsonwebtoken": "^9.0.2",
     "next": "^14.2.20",
     "node-fetch": "^3.3.2",
     "pg": "^8.13.1",

@@ -15,9 +15,10 @@ const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
+  if (schedule.team)
   return schedule.workdays.some(workday =>
     new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-  );
+  ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
 const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
@@ -50,17 +51,22 @@ const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
   }
 
   // Проверяем, является ли день выходным
-  return schedule.weekends.includes(dayString);
+  
+  if (schedule.team) return schedule.weekends.includes(dayString);
+  else return false
 }
+
 //  функция определяемт входит ли  дата в список праздниклв расписания
 const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
+  if (schedule.team)
   return schedule.holidays.some(holiday =>
     new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
   );
+  else return false;
 }
 
 // генерация привычной нам даты - ее использую как id дня
@@ -73,6 +79,7 @@ const idDay = (date: Date): string => {
 };
 // генерация одного дня на шкале
 const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
+ 
   const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
   currentDate.setHours(0, 0, 0, 0);
 
@@ -82,7 +89,7 @@ const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem
 
   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-  let breaks = _isWeekend || _isHoliday ? [] : [...schedule.breaks];
+  let breaks = _isWeekend || _isHoliday || (!schedule.team)? [] : [...schedule.breaks];
 
   if (_isAdditionalTime) {
     const workday = schedule.workdays.find(
@@ -191,7 +198,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     // Запрос на сервер
 
     try {
-      const res = await fetch(`api/tcard-api1?userId=${1}&companyId=${1}&tCardId=${id_tCard}`,
+      const res = await fetch(`api/tcard-api1?userId=${1}&teamId=${1}&tCardId=${id_tCard}`,
         {
           method: 'get',
           headers: new Headers({
@@ -242,7 +249,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       .map(load => load.id as number); //  все лоады операции
 
     try {
-      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&teamId=${1}`,
         {
           method: 'post',
           headers: new Headers({

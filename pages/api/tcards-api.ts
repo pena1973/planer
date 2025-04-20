@@ -11,15 +11,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Используем репозиторий для работы с сущностью TCardTable
     const tCardRepository = dbConnection.getRepository(TCardTable);
    
-    // Извлекаем параметры userId и companyId из строки запроса
-        const { userId, companyId } = req.query;
+    // Извлекаем параметры userId и teamId из строки запроса
+        const { userId, teamId } = req.query;
     
     switch (req.method) {
       case 'GET':    
         // Строим фильтр для поиска
         const filter: any = {};       
-        if (companyId) {
-          filter.company_id = companyId;  // Фильтрация по company_id
+        if (teamId) {
+          filter.team_id = teamId;  // Фильтрация по team_id
         }
 
         // Выполняем запрос с фильтрацией

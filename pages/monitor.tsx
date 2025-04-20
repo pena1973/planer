@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout/layout";
-import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
+import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 import UnitTaskStackProcess from "@/components/monitor/UnitTaskStackProcess/unitTaskStackProcess";
 import UnitTaskStackControl from "@/components/monitor/UnitTaskStackControl/unitTaskStackControl";
 import UnitTaskStackOutsource from "@/components/monitor/UnitTaskStackOutsource/unitTaskStackOutsource";
@@ -35,9 +35,10 @@ const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
+  if (schedule.team)
   return schedule.workdays.some(workday =>
     new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-  );
+  ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
 const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
@@ -70,7 +71,8 @@ const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
   }
 
   // Проверяем, является ли день выходным
-  return schedule.weekends.includes(dayString);
+  if (schedule.team) return schedule.weekends.includes(dayString);
+  else return false
 }
 //  функция определяемт входит ли  дата в список праздниклв расписания
 const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
@@ -78,9 +80,10 @@ const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
+  if (schedule.team)
   return schedule.holidays.some(holiday =>
     new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-  );
+  ); else return false
 }
 interface MonitorProps {
 

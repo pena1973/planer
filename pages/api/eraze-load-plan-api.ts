@@ -8,7 +8,7 @@ import { getTCard, getTCardFull } from './handlers-get';  //
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 
 import { TCardProductItem, TCardOperationItem, UnitLoadItem, StatusEnum, } from "@/types";
 
@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
 
-    const { userId, companyId } = req.query;
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'POST':

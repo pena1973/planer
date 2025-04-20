@@ -85,7 +85,7 @@ export default function Planing() {
     let tCardLoadsWithoutPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status !== StatusEnum.prepared) })
     let unitLoadsWithoutCard = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id) })
     try {
-      const res = await fetch(`/api/save-card-loads-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`/api/save-card-loads-api?userId=${1}&teamId=${1}`,
         {
           method: 'post',
           headers: new Headers({
@@ -136,7 +136,7 @@ export default function Planing() {
     let tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
     let unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
     try {
-      const res = await fetch(`/api/eraze-card-plan-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`/api/eraze-card-plan-api?userId=${1}&teamId=${1}`,
         {
           method: 'post',
           headers: new Headers({
@@ -192,7 +192,7 @@ export default function Planing() {
     if (erazload) {
 
       try {
-        const res = await fetch(`/api/eraze-load-plan-api?userId=${1}&companyId=${1}`,
+        const res = await fetch(`/api/eraze-load-plan-api?userId=${1}&teamId=${1}`,
           {
             method: 'post',
             headers: new Headers({
@@ -247,7 +247,7 @@ export default function Planing() {
         // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
         // проверяем согласованность предыдущих и перепланируем последующие
         try {
-          const res = await fetch(`/api/pre-moveload-api?userId=${1}&companyId=${1}`,
+          const res = await fetch(`/api/pre-moveload-api?userId=${1}&teamId=${1}`,
             {
               method: 'post',
               headers: new Headers({
@@ -311,7 +311,7 @@ export default function Planing() {
     // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
     // проверяем согласованность предыдущих и перепланируем последующие
     try {
-      const res = await fetch(`/api/pre-unpinload-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`/api/pre-unpinload-api?userId=${1}&teamId=${1}`,
         {
           method: 'post',
           headers: new Headers({
@@ -401,7 +401,7 @@ export default function Planing() {
     let tCardLoadsWithout = unitLoads_.filter(lo => lo.id_tCard !== tCard_.id)
 
     try {
-      const res = await fetch(`/api/pre-fullcardplan-api?userId=${1}&companyId=${1}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
+      const res = await fetch(`/api/pre-fullcardplan-api?userId=${1}&teamId=${1}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
         {
           method: 'get',
           headers: new Headers({

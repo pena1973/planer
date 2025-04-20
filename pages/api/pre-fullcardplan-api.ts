@@ -3,17 +3,17 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
 import {  getAllPreparedOperationsIds, planTCardFromOperINC } from './handlers-plan';  // планирование карты
-import { getTCard,  getCompanyShedule, getExceptions, getTCardFull } from './handlers-get';  // 
+import { getTCard,  getTeamShedule, getExceptions, getTCardFull } from './handlers-get';  // 
 
 import { Repository, In } from 'typeorm';
 
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions';
-import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule';
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
+import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule';
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 
 import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
@@ -37,12 +37,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardRepository = dbConnection.getRepository(TCardTable);
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const companyScheduleRepository = dbConnection.getRepository(CompanyScheduleTable);
+    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
 
-    // userId, companyId в любом случае
-    const { userId, companyId, tCardId, today } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId, tCardId, today } = req.query;
 
     switch (req.method) {
       // ПРЕДВАРИТЕЛЬНОЕ ПЛАНИРОВАНИЕ/допланирование недостающих операций карты
@@ -64,13 +64,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let allPreparedOperationsIds = getAllPreparedOperationsIds(tCard);
                
         // запросим юниты
-        const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
+        const units_ = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
 
         // запросим расписание компании
-        const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
+        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
 
         //  получим исключения рабочего времени юнитов         
-        const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
+        const exceptionItems = await getExceptions(Number(teamId), unitExceptionsRepository)
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
         const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
         //  уберем из нее лоады нашей карты
@@ -111,11 +111,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // async function updateLoads(
 //   unitLoadRepository: Repository<UnitLoadTable>,
 //   loads: UnitLoadItem[],
-//   company_id: number
+//   team_id: number
 // ): Promise<{ success: boolean, savedUnitLoads?: UnitLoadItem[], message?: string }> {
 
 //   // СПИСОК ЗАГРУЗОК в базе по этой компании
-//   const existingLoads = await unitLoadRepository.find({ where: { company_id: company_id } });
+//   const existingLoads = await unitLoadRepository.find({ where: { team_id: team_id } });
 //   // удаленных загрузок здесь не будет потому что это может быть только при удалении операции 
 //   // (потом надо дописать при удалении в процессе редактуры тех карты)
 //   //  может быть только добавление новой и редактирование существующей загрузки
@@ -141,7 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 //       id_tCard: load.id_tCard, // Идентификатор тех карты
 //       timeStart: load.timeStart, // Время начала в минутах
 //       timeFinish: load.timeFinish, // Время окончания в минутах
-//       company_id: company_id,
+//       team_id: team_id,
 //       unit_id: load.unit.id
 //     });
 //   });

@@ -2,17 +2,17 @@
 import { Repository, In } from 'typeorm';
 // tables
 import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TypeEnum } from '@/pages/db/models/enums';
 import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions';
-import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule';
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
+import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule';
 import { SettingsTable } from '@/pages/db/models/plan/settings';
 // types
 import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
@@ -20,16 +20,16 @@ import { TCardItem, TCardOperationItem, TCardProductItem, StatusEnum, TCardStage
 
 
 export async function getUOMs(
-  companyId: number,
+  teamId: number,
   uomsRepository: Repository<UOMsTable>
 ): Promise<UOMItem[]> {
 
   // Строим фильтр для поиска
 
-  const filter: { company_id?: number; } = {};
+  const filter: { team_id?: number; } = {};
 
-  if (companyId) {
-    filter.company_id = companyId;
+  if (teamId) {
+    filter.team_id = teamId;
   }
 
   // Выполняем запрос с фильтрацией
@@ -50,13 +50,13 @@ export async function getUOMs(
 }
 
 export async function getActions(
-  companyId: number,
+  teamId: number,
   actionsRepository: Repository<ActionTable>
 ): Promise<ActionItem[]> {
   // Строим фильтр для поиска
   const filter: any = {};
-  if (companyId) {
-    filter.company_id = companyId;
+  if (teamId) {
+    filter.team_id = teamId;
   }
 
   // Выполняем запрос с фильтрацией
@@ -79,13 +79,13 @@ export async function getActions(
 }
 
 export async function getUnits(
-  companyId: number,
+  teamId: number,
   unitRepository: Repository<UnitTable>,
   unitActionsRepository: Repository<UnitActionTable>): Promise<UnitItem[]> {
   // Строим фильтр для поиска
   const filter: any = {};
-  if (companyId) {
-    filter.company_id = companyId;
+  if (teamId) {
+    filter.team_id = teamId;
   }
 
   // Выполняем запрос с фильтрацией
@@ -197,7 +197,7 @@ export async function getTCard(
   // Получаем карту по id
   const tCardtab = await tCardRepository.findOne({
     where: filter,  // Применяем фильтр к запросу
-    relations: ['company', 'user'],  // Указываем связанные таблицы (если необходимо)
+    relations: ['team', 'user'],  // Указываем связанные таблицы (если необходимо)
   });
 
   // Проверяем, что карта существует
@@ -232,7 +232,7 @@ export async function getTCardFull(
   // Получаем карту по id
   const tCardtab = await tCardRepository.findOne({
     where: filter,  // Применяем фильтр к запросу
-    relations: ['company', 'user'],  // Указываем связанные таблицы
+    relations: ['team', 'user'],  // Указываем связанные таблицы
   });
 
   // Проверяем, что карта существует
@@ -379,7 +379,7 @@ export async function getTCardFull(
 //   // // Получаем карту по id
 //   // const tCardtab = await tCardRepository.findOne({
 //   //   where: filter,  // Применяем фильтр к запросу
-//   //   relations: ['company', 'user'],  // Указываем связанные таблицы
+//   //   relations: ['team', 'user'],  // Указываем связанные таблицы
 //   // });
 
 //   // // Проверяем, что карта существует
@@ -511,7 +511,7 @@ export async function getTCardFull(
 
 
 export async function getTCardsOpers(
-  companyId: number,
+  teamId: number,
   tCardRepository: Repository<TCardTable>,
   tCardOperationRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
@@ -520,8 +520,8 @@ export async function getTCardsOpers(
 
   // Получаем все карты для заданной компании
   const tCards = await tCardRepository.find({
-    where: { company_id: companyId },
-    relations: ['company', 'user']
+    where: { team_id: teamId },
+    relations: ['team', 'user']
   });
 
   const tCardTerms: TCardTermsItem[] = []; // массив на выход
@@ -695,12 +695,12 @@ export async function getTCardsOpers(
 // }
 
 export async function getExceptions(
-  companyId: number,
+  teamId: number,
   unitExceptionsRepository: Repository<UnitExceptionTable>): Promise<UnitExceptionItem[]> {
   // Строим фильтр для поиска
   const filter: any = {};
-  if (companyId) {
-    filter.company_id = companyId;
+  if (teamId) {
+    filter.team_id = teamId;
   }
 
   const receivedExceptions = await unitExceptionsRepository.find({
@@ -727,26 +727,26 @@ export async function getExceptions(
   return excertions;
 }
 
-export async function getCompanyShedule(
-  companyId: number,
-  companyScheduleRepository: Repository<CompanyScheduleTable>
+export async function getTeamShedule(
+  teamId: number,
+  teamScheduleRepository: Repository<TeamScheduleTable>
 ): Promise<ScheduleItem> {
   // Строим фильтр для поиска
   const filter: any = {};
-  if (companyId) {
-    filter.company_id = companyId;
+  if (teamId) {
+    filter.team_id = teamId;
   }
 
-  const receivedSchedule = await companyScheduleRepository.find({
+  const receivedSchedule = await teamScheduleRepository.find({
     where: filter,  // Применяем фильтр к запросу
-    relations: ['company'], // Добавляем связь с таблицей company
+    relations: ['team'], // Добавляем связь с таблицей team
   });
 
   if (!receivedSchedule || receivedSchedule.length === 0) return {} as ScheduleItem;
 
   let scheduleTable = receivedSchedule[0]
   const schedule = {
-    company: scheduleTable.company,
+    team: scheduleTable.team,
     timeStartWork: scheduleTable.timeStartWork,
     timeFinishWork: scheduleTable.timeFinishWork,
     breaks: scheduleTable.breaks,
@@ -767,25 +767,25 @@ export async function getCompanyShedule(
 }
 
 export async function getSettings(
-  companyId: number,
+  teamId: number,
   settingsRepository: Repository<SettingsTable>
 ): Promise<SettingsItem> {
   // Строим фильтр для поиска
   const filter: any = {};
-  if (companyId) {
-    filter.company_id = companyId;
+  if (teamId) {
+    filter.team_id = teamId;
   }
 
   const receivedSettings = await settingsRepository.find({
     where: filter,  // Применяем фильтр к запросу
-    relations: ['company'], // Добавляем связь с таблицей company
+    relations: ['team'], // Добавляем связь с таблицей team
   });
 
   if (!receivedSettings || receivedSettings.length === 0) return {} as SettingsItem;
 
   let settingsTable = receivedSettings[0]
   const settings = {
-    company: settingsTable.company,
+    team: settingsTable.team,
     timeStartWork: settingsTable.timeStartWork,
     timeFinishWork: settingsTable.timeFinishWork,
     showHoliday: settingsTable.showHoliday,

@@ -39,7 +39,7 @@ export default function UOMSCatalog({
     const downloadActions = async () => {
         // Загружаем классификатор действий
         try {
-          const res = await fetch(`api/actions-api?userId=${1}&companyId=${1}`,
+          const res = await fetch(`api/actions-api?userId=${1}&teamId=${1}`,
             {
               method: 'get',
               headers: new Headers({
@@ -112,7 +112,7 @@ export default function UOMSCatalog({
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/actions-api?userId=${1}&companyId=${1}`,
+            const res = await fetch(`api/actions-api?userId=${1}&teamId=${1}`,
                 {
                     method: 'post',
                     headers: new Headers({

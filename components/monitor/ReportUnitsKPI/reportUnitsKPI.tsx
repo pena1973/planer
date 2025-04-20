@@ -43,7 +43,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   const getTCardsTerms = async () => {
     setShowLoader(true);
     try {
-      const res = await fetch(`api/units-kpi-api?userId=${1}&companyId=${1}&today=${today.toLocaleDateString('en-CA')}`,
+      const res = await fetch(`api/units-kpi-api?userId=${1}&teamId=${1}&today=${today.toLocaleDateString('en-CA')}`,
         {
           method: 'get',
           headers: new Headers({

@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads, getTCardOperations } from './handlers-get';  // расчеты
 
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 
 import { UnitTable } from '@/pages/db/models/catalogs/units'
 
@@ -25,13 +25,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // const unitCalendarRepository = dbConnection.getRepository(UnitCalendarTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId, tcardId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId, tcardId } = req.query;
 
     switch (req.method) {
       case 'GET':
         // запросим юниты
-        const units = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
+        const units = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
 
         //  получим юниты с загрузкой  до планирования новой карты         
         const unitsLoads = await getUnitLoads(units, unitLoadRepository)

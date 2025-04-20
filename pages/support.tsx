@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout/layout";
-import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
+import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";
@@ -55,7 +55,7 @@ export default function Resources({ }: ResourcesProps) {
           {/* Настройки */}
           {resource === 1 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Обращения в тех. поддержку</div>
-            {/* <CompanySchedule setMessage={setMessage} /> */}
+            {/* <TeamSchedule setMessage={setMessage} /> */}
           </div>}
           {/* Действия */}
           {resource === 2 && <div className="contaitainer_catalog">

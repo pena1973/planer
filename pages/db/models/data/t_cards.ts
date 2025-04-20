@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, OneToMany, } from 'typeorm';
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UserTable } from '@/pages/db/models/catalogs/users'
 import { StatusEnum } from '@/pages/db/models/enums';
 
@@ -20,11 +20,11 @@ export class TCardTable {
   @Column()
   user_id!: number;
 
-  @ManyToOne(() => CompanyTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'company_id' }) // Указываем колонку, которая является внешним ключом
-  company!: CompanyTable;  // Связь с таблицей UOMsTable
+  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
+  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
+  team!: TeamTable;  // Связь с таблицей UOMsTable
   @Column()
-  company_id!: number;
+  team_id!: number;
 
   @Column()
   number!: number;  // Номер для синхронизации с внешними системами

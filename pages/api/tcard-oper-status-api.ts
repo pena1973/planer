@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 
 import { TypeEnum } from '@/pages/db/models/enums';
 import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, UnitLoadItem, StatusEnum } from '@/types';
@@ -23,11 +23,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const companiesRepository = dbConnection.getRepository(TeamTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    // userId, companyId в любом случае
-    const { userId, companyId, tcardId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId, tcardId } = req.query;
 
     switch (req.method) {
       case 'POST':

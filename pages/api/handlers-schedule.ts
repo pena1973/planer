@@ -10,9 +10,10 @@ const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
+  if (schedule.team)
   return schedule.workdays.some(workday =>
     new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-  );
+  ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
 const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
@@ -45,7 +46,8 @@ const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
   }
 
   // Проверяем, является ли день выходным
-  return schedule.weekends.includes(dayString);
+  if (schedule.team) return schedule.weekends.includes(dayString);
+  else return false
 }
 //  функция определяемт входит ли  дата в список праздниклв расписания
 const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
@@ -53,9 +55,10 @@ const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
+  if (schedule.team)
   return schedule.holidays.some(holiday =>
     new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-  );
+  ); else return false
 }
 
 // генерация привычной нам даты - ее использую как id дня
@@ -78,7 +81,7 @@ const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem =
 
   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-  let breaks = _isWeekend || _isHoliday ? [] : [...schedule.breaks];
+  let breaks = _isWeekend || _isHoliday || (!schedule.team)? [] : [...schedule.breaks];
 
   if (_isAdditionalTime) {
     const workday = schedule.workdays.find(

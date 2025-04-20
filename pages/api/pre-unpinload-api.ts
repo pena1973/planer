@@ -1,7 +1,7 @@
 // Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getTCardFull, getUnits, getCompanyShedule, getUnitLoads, getExceptions, getTCardOperation } from './handlers-get';  // 
+import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getTCardOperation } from './handlers-get';  // 
 import {
   getPreviousOpers, getFinishOperations, getLaterDateTime, 
   planTCardFromOperINC, planOperOnUnit, getDependentOperationsIds
@@ -10,13 +10,13 @@ import {
 
 import { Repository, In } from 'typeorm';
 
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions';
-import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule';
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
+import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule';
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 
 import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
@@ -42,11 +42,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardRepository = dbConnection.getRepository(TCardTable);
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const companyScheduleRepository = dbConnection.getRepository(CompanyScheduleTable);
+    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-    // userId, companyId в любом случае
+    // userId, teamId в любом случае
 
-    const { userId, companyId } = req.query;
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
 
@@ -105,13 +105,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let planedCardLoads = [...cardLoadsWithoutOperEndDep];
 
         // запросим юниты
-        const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
+        const units_ = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
 
         // запросим расписание компании
-        const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
+        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
 
         //  получим исключения рабочего времени юнитов         
-        const exceptionItems = await getExceptions(Number(companyId), unitExceptionsRepository)
+        const exceptionItems = await getExceptions(Number(teamId), unitExceptionsRepository)
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
         const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
         //  уберем из нее лоады нашей карты

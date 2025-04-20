@@ -141,7 +141,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         try {
 
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/unit-api?userId=${1}&companyId=${1}`,
+            const res = await fetch(`api/unit-api?userId=${1}&teamId=${1}`,
                 {
                     method: 'post',
                     headers: new Headers({

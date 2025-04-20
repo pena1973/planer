@@ -3,8 +3,8 @@ import connectDb from '@/pages/db/database';  // Импортируем функ
 import { getExceptions } from './handlers-get';  // расчеты
 
 import { Repository, In } from 'typeorm';
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
 
 import { UnitItem, UnitExceptionItem } from '@/types';
 
@@ -18,16 +18,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const companiesRepository = dbConnection.getRepository(TeamTable);
     // const unitRepository = dbConnection.getRepository(UnitTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'GET':
-        const exceptions_ = await getExceptions(Number(companyId), unitExceptionsRepository)
+        const exceptions_ = await getExceptions(Number(teamId), unitExceptionsRepository)
 
         exceptions_.sort((a, b) => {
           // Проверяем, что даты определены

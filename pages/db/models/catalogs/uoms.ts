@@ -1,6 +1,6 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import {CompanyTable} from './companies'
+import {TeamTable} from './teams'
 
 @Entity("uoms")
 export class UOMsTable {
@@ -19,9 +19,9 @@ export class UOMsTable {
   @Column({ default: "", nullable: true })
   code!: string;
 
-  @ManyToOne(() => CompanyTable, { eager: true, cascade: true,nullable: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'company_id' }) // Указываем колонку, которая является внешним ключом
-  company!: CompanyTable;  // Связь с таблицей UOMsTable
+  @ManyToOne(() => TeamTable, { eager: true, cascade: true,nullable: true }) // Указываем связь "многие к одному"
+  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
+  team!: TeamTable;  // Связь с таблицей UOMsTable
   @Column()
-  company_id!: number;
+  team_id!: number;
 }

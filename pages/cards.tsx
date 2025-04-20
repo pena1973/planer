@@ -262,7 +262,7 @@ export default function Cards({ }: CardsProps) {
   // // загружает активные карты  
   // const selectTCards = async () => {
   //   try {
-  //     const res = await fetch(`/api/tcards-api?userId=${1}&companyId=${1}`,
+  //     const res = await fetch(`/api/tcards-api?userId=${1}&teamId=${1}`,
   //       {
   //         method: 'get',
   //         headers: new Headers({
@@ -421,7 +421,7 @@ export default function Cards({ }: CardsProps) {
     setModified(true);
     try {
       // запрос получение текста из БД вместе со словами     textId: number, userId:number
-      const res = await fetch(`api/tcard-api?userId=${1}&companyId=${1}&tcardId=${idToRemove}`,
+      const res = await fetch(`api/tcard-api?userId=${1}&teamId=${1}&tcardId=${idToRemove}`,
         {
           method: 'delete',
           headers: new Headers({
@@ -483,7 +483,7 @@ export default function Cards({ }: CardsProps) {
       const indexCurrentCard = tCards.findIndex(card => card.id === idCurrentCard);
 
       // запрос получение текста из БД вместе со словами     textId: number, userId:number
-      const res = await fetch(`api/tcard-api?userId=${1}&companyId=${1}&tcardId=${idCurrentCard}`,
+      const res = await fetch(`api/tcard-api?userId=${1}&teamId=${1}&tcardId=${idCurrentCard}`,
         {
           method: 'post',
           headers: new Headers({
@@ -492,7 +492,7 @@ export default function Cards({ }: CardsProps) {
           }),
           body: JSON.stringify({
             userId: 1,
-            companyId: 1,
+            teamId: 1,
             tCard: tCardCurrent,
             tCardMaxIdc: tCardCurrentMaxIdc,
             tCardProducts: tCardCurrentProducts,
@@ -581,7 +581,7 @@ export default function Cards({ }: CardsProps) {
     // запрос к базе на загрузку карты
 
     try {
-      const res = await fetch(`api/tcard-api?userId=${1}&companyId=${1}&tcardId=${selectedTCard.id}`,
+      const res = await fetch(`api/tcard-api?userId=${1}&teamId=${1}&tcardId=${selectedTCard.id}`,
         {
           method: 'get',
           headers: new Headers({

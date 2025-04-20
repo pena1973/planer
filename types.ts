@@ -107,11 +107,10 @@ export interface UnitActionItem {
 export interface UserItem {
     id: number,
     login: string,
-    pass: string,
-    cookieAgree?: boolean
-    role: string,
-    nickname: string,
-    locale: string
+    pass: string, 
+    name: string,
+    locale: string,
+    isAdmin:boolean
 }
 
 export enum UserRoleEnum {
@@ -134,11 +133,11 @@ export enum UnitBelongEnum {
 }
 
 // компания
-export interface CompanyItem {
+export interface TeamItem {
     id:number,
     title: string;  
     coment: string,
-    prefix: string,
+    prefix: string,   
 }
 
 // Шкала времени
@@ -156,7 +155,7 @@ export enum DaysOfWeek {
 
 // рабочее  время компании
 export interface ScheduleItem {
-    company: CompanyItem,    
+    team: TeamItem,    
     timeStartWork: number, // минут с начала дня 
     timeFinishWork: number, // минут с начала дня 
     breaks:{ timeStart:number, timeFinish:number}[] // минут с начала дня 

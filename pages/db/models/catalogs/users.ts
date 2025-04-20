@@ -1,6 +1,6 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import {CompanyTable} from './companies'
+import {TeamTable} from './teams'
 
 @Entity("users")
 export class UserTable {
@@ -10,9 +10,8 @@ export class UserTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
-
-  @Column()
-  email!: string;
+  @Column({default:""})
+  name!: string;
 
   @Column()
   login!: string;
@@ -20,28 +19,25 @@ export class UserTable {
   @Column()
   pass!: string;
 
-  @Column()
+  @Column({default:""})
   loginhash!: string;
 
-  @Column()
+  @Column({default:"en"})
   locale!: string;
 
-  @Column()
-  cookieagree!: boolean;
+  @Column({default:false})
+  isAdmin!: string;
 
-  @Column()
-  role!: string;
+  @Column({default:false})
+  confirmed!: boolean; //  е мейл подтвержден
 
-  @Column()
-  confirmed!: boolean;
-
-  @Column()
+  @Column({default:""})
   coment!: string;
 
-  @ManyToOne(() => CompanyTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'company_id' }) // Указываем колонку, которая является внешним ключом
-  company!: CompanyTable;  
+  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
+  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
+  team!: TeamTable;  
   @Column()
-  company_id!: number;
+  team_id!: number;
 
 }

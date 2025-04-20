@@ -1,11 +1,11 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { CompanyTable } from '../catalogs/companies'; // Подключаем сущность для связи
+import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
 import { DaysOfWeek,TimeZoneEnum } from "@/types"; // Подключаем сущность для связи
 
 
-@Entity("company_schedule")
-export class CompanyScheduleTable {
+@Entity("team_schedule")
+export class TeamScheduleTable {
   
   @PrimaryGeneratedColumn()
   id!: number;
@@ -31,12 +31,12 @@ export class CompanyScheduleTable {
   @Column('json', { nullable: true })
   workdays!: { date: string, timeStart: number, timeFinish: number }[]; // Даты, когда работа возможна в выходные (переносы), использует строковый формат для даты
   
-  @ManyToOne(() => CompanyTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'company_id' }) // Указываем колонку, которая является внешним ключом
-  company!: CompanyTable;  // Связь с таблицей CompanyTable
+  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
+  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
+  team!: TeamTable;  // Связь с таблицей TeamTable
   
   @Column()
-  company_id!: number;
+  team_id!: number;
 
   @Column('varchar', {default:"", length: 255 })
   timeZone!: TimeZoneEnum; // Зона в которой работает основное расписание, от нее будем пересчитывать работников

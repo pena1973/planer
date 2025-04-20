@@ -8,14 +8,18 @@ import { TCardProductTable} from '@/pages/db/models/data/t_card_products'
 
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { ActionTable} from '@/pages/db/models/catalogs/actions'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UserTable } from '@/pages/db/models/catalogs/users'
 import { UnitTable } from '@/pages/db/models/catalogs/units'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule'
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads'
+import { AgreementTable } from '@/pages/db/models/catalogs/agreements'
+import { UserAgreeTable } from '@/pages/db/models/catalogs/user_agree'
+
+import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule'
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads'
 import { SettingsTable} from '@/pages/db/models/plan/settings'
+
 
 import { TypeEnum } from '@/pages/db/models/enums';
 
@@ -38,8 +42,9 @@ const config: ConnectionOptions = {
     TCardOperationTable,
     TCardProductTable,
     TCardStageTable,
-    UOMsTable,ActionTable,CompanyTable,UnitTable,UserTable,UnitActionTable,
-    CompanyScheduleTable,UnitExceptionTable,UnitLoadTable,SettingsTable
+    UOMsTable,ActionTable,TeamTable,UnitTable,UserTable,UnitActionTable,
+    TeamScheduleTable,UnitExceptionTable,UnitLoadTable,SettingsTable,
+    AgreementTable,UserAgreeTable
   ],
   migrations: ["/pages/db/migrations/**/*.ts"],  // Путь к миграциям
   subscribers: [],

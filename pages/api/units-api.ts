@@ -5,7 +5,7 @@ import { getUnits } from './handlers-get';  // расчеты
 import { Repository, In } from 'typeorm';
 
 import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,16 +14,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const companiesRepository = dbConnection.getRepository(TeamTable);
     const unitRepository = dbConnection.getRepository(UnitTable);
     const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'GET':
-        const units_ = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
+        const units_ = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
 
         units_.sort((a, b) => {
           // Проверяем, что id определено

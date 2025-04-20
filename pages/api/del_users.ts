@@ -15,10 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).json(users);
       break;
     case 'POST':
-      const {email,login,pass,loginhash,locale,cookieagree,role,confirmed,coment,company_id } = req.body;
-      const newUser = userRepository.create({ email, login, pass,loginhash,locale,cookieagree,role,confirmed,coment,company_id });
-      await userRepository.save(newUser);
-      res.status(201).json(newUser);
+      const {email,login,pass,loginhash,locale,cookieagree,role,confirmed,coment,teamId } = req.body;
+      // const newUser = userRepository.create({ email, login, pass,loginhash,locale,cookieagree,role,confirmed,coment,teamId });
+      // await userRepository.save(newUser);
+      // res.status(201).json(newUser);
       break;
     default:
       res.status(405).end(); // Метод не поддерживается

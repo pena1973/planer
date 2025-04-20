@@ -17,12 +17,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Используем репозиторий для работы с сущностью TCardTable
     const uomsRepository = dbConnection.getRepository(UOMsTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'GET':
-        const uoms__ = await getUOMs(Number(companyId),uomsRepository)
+        const uoms__ = await getUOMs(Number(teamId),uomsRepository)
       
         uoms__.sort((a, b) => {
           // Проверяем, что id определено
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                const resUOMS = await updateUOMS(
                  uomsRepository,
                  uoms,
-                 Number(companyId)
+                 Number(teamId)
                )
                if (!resUOMS.success) {
                  res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUOMS.message });
@@ -85,11 +85,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function updateUOMS(
   uomsRepository: Repository<UOMsTable>,
   uoms: UOMItem[],
-  company_id: number
+  teamId: number
 ) {
 
   // СПИСОК ДЕЙСТВИЙ в базе
-  const existingUOMS = await uomsRepository.find({ where: { company_id: company_id } });
+  const existingUOMS = await uomsRepository.find({ where: { team_id: teamId } });
 
   // 1. Найдём удалённые единицы измерения
   const uomsToDelete = existingUOMS.filter(uom =>
@@ -115,7 +115,7 @@ async function updateUOMS(
   const newUOMS = uomsToAdd.map(uom => {
     return uomsRepository.create({
       title: uom.title,
-      company_id: company_id,
+      team_id: teamId,
     });
   });
   let savedNewUOMS = [] as UOMsTable[]

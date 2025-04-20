@@ -2,18 +2,18 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { Repository } from 'typeorm';
 
-import { getTCardsOpers, getUnits, getUnitLoads, getCompanyShedule, getExceptions } from './handlers-get';  // 
+import { getTCardsOpers, getUnits, getUnitLoads, getTeamShedule, getExceptions } from './handlers-get';  // 
 import { getUnitsSchedule } from './handlers-schedule';  // 
 
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule'
+import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions'
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
 
 import { UnitCalendarItem, UnitLoadItem, StatusEnum, UnitItem, UnitKPIItem } from "@/types";
 
@@ -24,33 +24,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const companiesRepository = dbConnection.getRepository(TeamTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
     const tCardRepository = dbConnection.getRepository(TCardTable);
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const unitRepository = dbConnection.getRepository(UnitTable);
     const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
-    const companyScheduleRepository = dbConnection.getRepository(CompanyScheduleTable);
+    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-    // userId, companyId в любом случае
-    const { userId, companyId, tcardId, today } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId, tcardId, today } = req.query;
 
     switch (req.method) {
       case 'GET':
 
         // запросим юниты
-        const units = await getUnits(Number(companyId), unitRepository, unitActionsRepository)
+        const units = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
 
         // запросим лоады
         const unitLoads = await getUnitLoads(units, unitLoadRepository)
 
         // запросим расписание
-        const schedule = await getCompanyShedule(Number(companyId), companyScheduleRepository)
+        const schedule = await getTeamShedule(Number(teamId), teamScheduleRepository)
 
         // запросим исключения по юнитам
 
-        const exceptions = await getExceptions(Number(companyId), unitExceptionsRepository)
+        const exceptions = await getExceptions(Number(teamId), unitExceptionsRepository)
 
         // запросим расписание юнитов по дням
         const unitShedule = getUnitsSchedule(String(today), schedule, exceptions, units)

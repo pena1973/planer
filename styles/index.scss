@@ -120,7 +120,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    font-size: 16px;
+    font-size: $header3_font_size;
     font-weight: bold;
     // color: $dark_text;
 }
@@ -133,31 +133,32 @@
 }
 
 .login_link {
-    font-size: 14px;
-    // color: $dark_text;       
+    font-size: $header4_font_size;
+    color: $text_color_italic;
+    font-style: italic;
     cursor: pointer;
     margin: 10px;
     text-decoration: underline;
 }
 
-.login_link_forgot {
-    font-size: 10px;
-    // color: $dark_text;       
-    cursor: pointer;
-    margin: 5px;
-    text-decoration: underline;
-}
 
 .login_message_container {
-    margin-left: 10px;
     text-align: center;
+    font-size: $header4_font_size;
+    color: $text_color_italic;
+    font-style: italic;
+    // margin-left: 10px;
+    // text-align: center;
+    
 }
 
 .login_message {
     font-size: 14px;
     // color: $dark_text;    
 }
-
+.login_button{
+    width: 100px;
+}
 
 /// регистрация
 
@@ -166,17 +167,16 @@
     padding: 15px;
     max-width: 242px;
     min-width: 242px;
-    border-radius: 10px;
-    /* Скругленные углы */
-    // background-color: #f0f0f0; /* Светло-серый фон */
+    border-radius: 6px;
     background-color: $main_container_background_color;
-    // border: 1px solid #ccc; /* Равномерная серая граница */
     border: $border;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    /* Легкая тень для глубины */
+    color: $second_text_color;
 }
 
 .register_input_container {
+    display: flex;
+    flex-direction: column;
     margin: 10px;
     width: 180px;
 }
@@ -196,9 +196,15 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    font-size: 16px;
+    font-size: $header3_font_size;
     font-weight: bold;
     // color: $dark_text;
+}
+
+.register_notice {
+    font-size: $header4_font_size;
+    color: $text_color_italic;
+    font-style: italic;
 }
 
 .register_input {
@@ -209,23 +215,51 @@
 }
 
 .register_link {
-    font-size: 14px;
-    // color: $dark_text;       
+    font-size: $header4_font_size;
+    color: $text_color_italic;
+    font-style: italic;
     cursor: pointer;
     margin: 10px;
     text-decoration: underline;
 }
 
+.register_pass_message_container {
+    font-size: $header4_font_size;
+    color: $text_color_italic;
+    font-style: italic;    
+}
 
 .register_message_container {
-    margin-left: 10px;
+    // margin-left: 10px;
     // color: $dark_text;    
     text-align: center;
-
+    font-size: $header4_font_size;
+    color: $text_color_italic;
+    font-style: italic;
+    // background-color: aqua;
 }
 
 .register_message {
-    font-size: 14px;
+    font-size: $header4_font_size;
     // color: $dark_text;
 
+}
+
+.register_button{
+    width: 100px;
+}
+
+// начальная загрузка
+.loader_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 110px);
+    flex-direction: column;
+
+}
+
+.loader_title {
+    font-size: $header1_font_size;
+    margin: 10px;
 }

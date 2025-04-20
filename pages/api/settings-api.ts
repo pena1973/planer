@@ -3,7 +3,7 @@ import connectDb from '@/pages/db/database';  // Импортируем функ
 import { getSettings } from './handlers-get';  // расчеты
 
 import { Repository, In } from 'typeorm';
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { SettingsTable} from '@/pages/db/models/plan/settings'
 
 import { UnitItem, SettingsItem } from '@/types';
@@ -18,16 +18,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const teamsRepository = dbConnection.getRepository(TeamTable);
 
     const settingsRepository = dbConnection.getRepository(SettingsTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'GET':
-        const settings_ = await getSettings(Number(companyId), settingsRepository)
+        const settings_ = await getSettings(Number(teamId), settingsRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const resSettings = await updateSettings(
           settingsRepository,
           settings,
-          Number(companyId)
+          Number(teamId)
         )
         if (!resSettings.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSettings.message });
@@ -74,16 +74,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function updateSettings(
   settingsRepository: Repository<SettingsTable>,
   settings: SettingsItem,
-  company_id: number
+  teamId: number
 ) {
 
   // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
-  const existingSetting = await settingsRepository.findOne({ where: { company: { id: company_id } } });
+  const existingSetting = await settingsRepository.findOne({ where: { team: { id: teamId } } });
 
   if (!existingSetting) {
     // Если расписания нет, создаем новое
     const newSettings = settingsRepository.create({      
-      company: { id: company_id }, // Вместо company_id передаем объект CompanyTable
+      team: { id: teamId }, // Вместо team_id передаем объект TeamTable
       timeStartWork: settings.timeStartWork,
       timeFinishWork: settings.timeFinishWork,
       showWeekend: settings.showWeekend,      

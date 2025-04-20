@@ -4,9 +4,9 @@ import { Repository } from 'typeorm';
 
 import { UnitTable } from '@/pages/db/models/catalogs/units'
 
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit-exceptions'
+import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
 
 
 import { UnitItem, UnitActionItem, UnitExceptionItem } from '@/types';
@@ -24,13 +24,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const companiesRepository = dbConnection.getRepository(TeamTable);
     const unitRepository = dbConnection.getRepository(UnitTable);
     const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'GET':
@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const unitExceptions = req.body.exceptions as UnitExceptionItem[]
 
         // ЮНИТ
-        const resUnit = await updateUnit(unitRepository, unit, Number(userId), Number(companyId))
+        const resUnit = await updateUnit(unitRepository, unit, Number(userId), Number(teamId))
 
         if (!resUnit.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUnit.message });
@@ -99,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // ОТКЛОНЕНИЯ ЮНИТА ОТ РАСПИСАНИЯ КОМПАНИИ
 
-        const resEx = await updateExceptions(unitExceptionsRepository, unitExceptions, savedUnit, Number(companyId))
+        const resEx = await updateExceptions(unitExceptionsRepository, unitExceptions, savedUnit, Number(teamId))
 
         if (!resEx.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resEx.message });
@@ -143,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 // ЮНИТ
-async function updateUnit(unitRepository: Repository<UnitTable>, unit: UnitItem, userId: number, companyId: number) {
+async function updateUnit(unitRepository: Repository<UnitTable>, unit: UnitItem, userId: number, teamId: number) {
   let savedUnit = null;
   let error = "";
 
@@ -153,7 +153,7 @@ async function updateUnit(unitRepository: Repository<UnitTable>, unit: UnitItem,
     // Обновляем существующую карту
     savedUnit = await unitRepository.save({
       ...unit,  // сохраняем все поля карты, включая id     
-      company_id: Number(companyId),
+      team_id: Number(teamId),
       title: unit.title,
       code: unit.code,
       retool: unit.retool,
@@ -165,7 +165,7 @@ async function updateUnit(unitRepository: Repository<UnitTable>, unit: UnitItem,
   } else {
     // Создаем новую карту
     const newUnit = unitRepository.create({
-      company_id: Number(companyId),
+      team_id: Number(teamId),
       title: unit.title,
       code: unit.code,
       retool: unit.retool,
@@ -289,7 +289,7 @@ async function updateExceptions(
   unitExceptionsRepository: Repository<UnitExceptionTable>,
   unitExceptions: UnitExceptionItem[],
   savedUnit: UnitTable,
-  companyId: number
+  teamId: number
 ) {
 
   // СПИСОК ЮНИТОВ в базе
@@ -325,7 +325,7 @@ async function updateExceptions(
       timeFinish: unitException.timeFinish,
       unit_id: savedUnit.id,
       unit: savedUnit,
-      company_id: companyId,
+      team_id: teamId,
     });
   });
   let savedNewUnitExceptions = [] as UnitExceptionTable[]

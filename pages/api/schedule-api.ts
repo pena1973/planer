@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getCompanyShedule } from './handlers-get';  // расчеты
+import { getTeamShedule } from './handlers-get';  // расчеты
 
 import { Repository, In } from 'typeorm';
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
-import { CompanyScheduleTable } from '@/pages/db/models/plan/company-schedule'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
+import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule'
 
 import { UnitItem, ScheduleItem, TimeZoneEnum } from '@/types';
 
@@ -18,16 +18,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const teamsRepository = dbConnection.getRepository(TeamTable);
 
-    const companyScheduleRepository = dbConnection.getRepository(CompanyScheduleTable);
+    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'GET':
-        const shedule_ = await getCompanyShedule(Number(companyId), companyScheduleRepository)
+        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -41,16 +41,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { schedule } = req.body as RequestBody;
         
         const resSchedule = await updateShedule(
-          companyScheduleRepository,
+          teamScheduleRepository,
           schedule,
-          Number(companyId)
+          Number(teamId)
         )
         if (!resSchedule.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSchedule.message });
           return;
         }
 
-        const savedSchedule = resSchedule.savedSchedule as CompanyScheduleTable;
+        const savedSchedule = resSchedule.savedSchedule as TeamScheduleTable;
 
         // отправляем ответ
         res.status(200).json({
@@ -72,18 +72,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 // ДЕЙСТВИЯ
 async function updateShedule(
-  scheduleRepository: Repository<CompanyScheduleTable>,
+  scheduleRepository: Repository<TeamScheduleTable>,
   schedule: ScheduleItem,
-  company_id: number
+  teamId: number
 ) {
 
   // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
-  const existingSchedule = await scheduleRepository.findOne({ where: { company: { id: company_id } } });
+  const existingSchedule = await scheduleRepository.findOne({ where: { team: { id: teamId } } });
 
   if (!existingSchedule) {
     // Если расписания нет, создаем новое
     const newSchedule = scheduleRepository.create({      
-      company: { id: company_id }, // Вместо company_id передаем объект CompanyTable
+      team: { id: teamId }, // Вместо team_id передаем объект TeamTable
       timeStartWork: schedule.timeStartWork,
       timeFinishWork: schedule.timeFinishWork,
       breaks: schedule.breaks,      

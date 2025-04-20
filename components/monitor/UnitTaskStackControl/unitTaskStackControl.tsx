@@ -58,7 +58,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     // Запрос на сервер
 
     try {
-      const res = await fetch(`api/tcard-api1?userId=${1}&companyId=${1}&tCardId=${id_tCard}`,
+      const res = await fetch(`api/tcard-api1?userId=${1}&teamId=${1}&tCardId=${id_tCard}`,
         {
           method: 'get',
           headers: new Headers({
@@ -109,7 +109,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       .map(load => load.id as number); //  все лоады операции
 
     try {
-      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&teamId=${1}`,
         {
           method: 'post',
           headers: new Headers({

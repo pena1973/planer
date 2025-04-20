@@ -106,6 +106,7 @@ a {
     overflow: auto;
 
 }
+
 .container_global_message {
     display: flex;
     flex-direction: column;
@@ -116,8 +117,8 @@ a {
     overflow: auto;
     // color: brown;
     // background-color: rgb(191, 207, 236);
-    background-color: $third_body_background_color;
-    
+    background-color: $main_body_background_color;
+
     width: 218px;
     font-size: 12px;
     padding: 10px;
@@ -212,7 +213,7 @@ button {
     border: none;
     padding: 4px 8px;
     color: $button_text_color;
-    font-size: 12px;
+    font-size: 14px;
     border-radius: 6px;
     cursor: pointer;
     align-self: center;
@@ -243,3 +244,119 @@ button {
 //     background-color: $button_hover_background_color;
 //     /* затемняем при наведении */
 //}
+
+// общий чекбокс
+
+input[type="checkbox"] {
+    /* урезаем нативный вид */
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid $border;
+    border-radius: 3px;
+    background-color: $main_body_background_color;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+        border-color: darken($checkbox_accent_color, 10%);
+    }
+
+    &:checked {
+        background-color: $checkbox_accent_color;
+        border-color: $checkbox_accent_color;
+
+        /* галочка через псевдоэлемент */
+        &::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 1px;
+            width: 4px;
+            height: 8px;
+            border: solid $third_text_color;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    }
+}
+
+label {
+
+    display: inline-flex;
+    align-items: center;
+
+    font-size: $header4_font_size;
+    color: $text_color_italic;
+    font-style: italic;
+}
+
+input {
+    // Существующие стили...
+    border-radius: 10px;
+    padding: 5px;
+    border: 1px solid $border_card;
+    color: $second_text_color;
+
+    // Стили для плейсхолдера
+    &::placeholder {
+        color: $second_text_color; // rgb(107,114,128)
+        opacity: 0.6; // чуть более прозрачный
+        font-style: italic; // курсив, если нужно
+    }
+
+    // Для лучшей кросс‑браузерности (IE, старые WebKit)
+    &:-ms-input-placeholder {
+        color: $second_text_color;
+        opacity: 0.6;
+        font-style: italic;
+    }
+
+    &::-ms-input-placeholder {
+        color: $second_text_color;
+        opacity: 0.6;
+        font-style: italic;
+    }
+
+    &::-webkit-input-placeholder {
+        color: $second_text_color;
+        opacity: 0.6;
+        font-style: italic;
+    }
+}
+
+textarea {
+    // Существующие стили...
+    border-radius: 10px;
+    padding: 5px;
+    border: 1px solid $border_card;
+    color: $second_text_color;
+
+    // Стили для плейсхолдера
+    &::placeholder {
+        color: $second_text_color; // rgb(107,114,128)
+        opacity: 0.6; // чуть более прозрачный
+        font-style: italic; // курсив, если нужно
+    }
+
+    // Для лучшей кросс‑браузерности (IE, старые WebKit)
+    &:-ms-input-placeholder {
+        color: $second_text_color;
+        opacity: 0.6;
+        font-style: italic;
+    }
+
+    &::-ms-input-placeholder {
+        color: $second_text_color;
+        opacity: 0.6;
+        font-style: italic;
+    }
+
+    &::-webkit-input-placeholder {
+        color: $second_text_color;
+        opacity: 0.6;
+        font-style: italic;
+    }
+}

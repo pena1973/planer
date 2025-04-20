@@ -1,6 +1,6 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import {CompanyTable} from './companies'
+import {TeamTable} from './teams'
 import {ActionTable} from './actions'
 import {UnitTable} from './units'
 @Entity("unit_actions")

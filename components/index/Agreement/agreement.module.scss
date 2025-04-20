@@ -1,0 +1,57 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+/***********
+ * Контейнер
+ ***********/
+
+.container {
+
+  margin: 10px;
+  padding: 10px;
+  background-color: $main_container_background_color;
+  border: 1px solid $container_border_color;
+  border-radius: 6px;
+  color: $second_text_color;
+  width: 100%;
+  min-height: calc(100vh - 110px);
+}
+
+.container_block {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  border-radius: 10px;
+  margin-bottom: 5px;
+  
+  // @media screen and (max-width: 640px) {
+  //   flex-direction: column;
+  // }
+}
+
+.button_container {
+  display: flex;
+  justify-content: center;
+  padding-left: 5px;
+}
+
+
+
+.label {
+  display: flex;
+  align-items: center;
+  font-size: $header3_font_size;
+  color: $second_text_color; 
+}
+
+
+.textAgreement {
+  height: calc(100vh - 200px);
+  font-size: $header3_font_size; 
+  color: $second_text_color;
+  border: 1px solid $border_card;
+  width: 100%;
+  resize: none;
+  padding: 10px;
+}

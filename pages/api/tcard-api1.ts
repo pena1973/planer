@@ -7,7 +7,7 @@ import { TCardTable } from '@/pages/db/models/data/t_cards'
 // import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
 
 // import { TypeEnum } from '@/pages/db/models/enums';
 // import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem } from '@/types';
@@ -20,15 +20,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const companiesRepository = dbConnection.getRepository(TeamTable);
     const tCardRepository = dbConnection.getRepository(TCardTable);
 
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
 
 
-    // userId, companyId в любом случае
-    const { userId, companyId, tCardId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId, tCardId } = req.query;
 
     //  можно заменить на getTCardFull
 

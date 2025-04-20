@@ -38,7 +38,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
       .map(load => load.id as number); //  все лоады операции
 
     try {
-      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&companyId=${1}`,
+      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&teamId=${1}`,
         {
           method: 'post',
           headers: new Headers({

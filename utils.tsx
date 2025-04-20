@@ -108,3 +108,16 @@ export function convertMinutesToTime1(totalMinutes: number): string {
   const minutes = totalMinutes % 60;
   return `${hours.toString().padStart(2, '0')} час ${minutes.toString().padStart(2, '0')} мин`;
 }
+
+
+// преобразование номера команды
+export function generateTeamNumber(prefix: string, id: number): string {
+  // Дополняем id нулями до 8 символов
+  const formattedId = id.toString().padStart(8, '0');
+  return `${prefix}${formattedId}`;
+}
+export function extractIdFromTeamNumber(teamNumber: string): number {
+  // Извлекаем последние 8 символов, которые являются ID
+  const idPart = teamNumber.slice(-8);
+  return parseInt(idPart, 10);
+}

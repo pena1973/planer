@@ -1,8 +1,8 @@
 import Layout from "@/components/Layout/layout";
-import FileUploadButton from "@/components/FileUploadButton/fileUploadButton";
+import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 import UOMSCatalog from "@/components/catalogs/UOMSCatalog/uomsCatalog";
 import ActionsCatalog from "@/components/catalogs/ActionsCatalog/аctionsCatalog";
-import CompanySchedule from "@/components/catalogs/CompanySchedule/сompanySchedule";
+import TeamSchedule from "@/components/catalogs/TeamSchedule/teamSchedule";
 import Settings from "@/components/catalogs/Settings/settings";
 import SystemSettings from "@/components/catalogs/SystemSettings/systemSettings";
 
@@ -80,7 +80,7 @@ export default function Resources({ }: ResourcesProps) {
           {/* расписание */}
           {resource === 1 && <div className="contaitainer_catalog">
             <div className="catalog_title"> Расписание работы предприятия</div>
-            <CompanySchedule setMessage={setMessage} />
+            <TeamSchedule setMessage={setMessage} />
           </div>}
           {/* Действия */}
           {resource === 2 && <div className="contaitainer_catalog">

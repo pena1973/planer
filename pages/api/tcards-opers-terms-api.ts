@@ -6,8 +6,8 @@ import { getTCardsOpers, } from './handlers-get';  //
 
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { CompanyTable } from '@/pages/db/models/catalogs/companies'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit-loads';
+import { TeamTable } from '@/pages/db/models/catalogs/teams'
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,21 +16,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(CompanyTable);
+    const companiesRepository = dbConnection.getRepository(TeamTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
     const tCardRepository = dbConnection.getRepository(TCardTable);
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
 
 
-    // userId, companyId в любом случае
-    const { userId, companyId, tcardId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId, tcardId } = req.query;
 
     switch (req.method) {
       case 'GET':
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCards = await getTCardsOpers(Number(companyId),tCardRepository, tCardOperationsRepository, tCardProductRepository, unitLoadRepository)
+        const tCards = await getTCardsOpers(Number(teamId),tCardRepository, tCardOperationsRepository, tCardProductRepository, unitLoadRepository)
         if (!tCards) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

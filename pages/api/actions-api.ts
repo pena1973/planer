@@ -18,12 +18,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Используем репозиторий для работы с сущностью TCardTable
     const actionsRepository = dbConnection.getRepository(ActionTable);
 
-    // userId, companyId в любом случае
-    const { userId, companyId } = req.query;
+    // userId, teamId в любом случае
+    const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'GET':
-        const actions__ = await getActions(Number(companyId), actionsRepository)
+        const actions__ = await getActions(Number(teamId), actionsRepository)
        
         actions__.sort((a, b) => a.id - b.id);
         
@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const resActions = await updateActions(
           actionsRepository,
           actions,
-          Number(companyId)
+          Number(teamId)
         )
         if (!resActions.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resActions.message });
@@ -82,11 +82,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function updateActions(
   actionsRepository: Repository<ActionTable>,
   actions: ActionItem[],
-  company_id: number
+  team_id: number
 ) {
 
   // СПИСОК ДЕЙСТВИЙ в базе
-  const existingActions = await actionsRepository.find({ where: { company_id: company_id } });
+  const existingActions = await actionsRepository.find({ where: { team_id: team_id } });
 
   // 1. Найдём удалённые операции
   const actionToDelete = existingActions.filter(action =>
@@ -113,7 +113,7 @@ async function updateActions(
     return actionsRepository.create({
       title: action.title,
       interruptible: action.interruptible,
-      company_id: company_id,
+      team_id: team_id,
     });
   });
   let savedNewActions = [] as ActionTable[]
