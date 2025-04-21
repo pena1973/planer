@@ -112,6 +112,7 @@ export function convertMinutesToTime1(totalMinutes: number): string {
 
 // преобразование номера команды
 export function generateTeamNumber(prefix: string, id: number): string {
+  if (!id) return "";
   // Дополняем id нулями до 8 символов
   const formattedId = id.toString().padStart(8, '0');
   return `${prefix}${formattedId}`;

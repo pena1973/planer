@@ -1,0 +1,123 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+.container_team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+    height: auto;
+    margin: 5px;
+    background-color: $main_container_background_color;
+    border-radius: $border-radius;
+    // background-color: #f0f0f0;
+     border: $border;
+    // border: 1px solid #ccc;
+    // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: $box-shadow;
+    transition: box-shadow 0.3s ease;
+    position: relative;
+    padding: 5px;
+    position: relative;
+    color: $second_text_color;
+    font-size: $header4_font_size;
+}
+
+.field_container {
+    width: 100%;
+    padding: 10px 0 2px;
+    border-bottom: 1px solid #ccc;
+    justify-content: center;
+}
+
+
+
+.label_container {
+    display: flex;
+    margin-top: 5px;    
+    padding: 2px;
+    color: $second_text_color;
+    font-size: $header4_font_size;
+    font-weight: bold;
+    
+}
+.label {  
+    width: 80px;    
+}
+
+.team_input {
+    padding: 2px;    
+    font-size: $header4_font_size;
+    
+    width: 100%;
+}
+
+.team_number_input{
+    padding: 2px;    
+    font-size: $header4_font_size;    
+    width: 100%; 
+    background-color:$main_body_background_color ;
+}
+
+.coment_input {
+    padding: 2px;    
+    width: 100%;    
+    resize: none;
+}
+
+
+.coment_label {
+    
+    min-width: 90px;
+    margin-top: 5px; 
+    padding: 2px;
+    font-weight: bold;
+    text-align: center;
+}
+
+
+
+
+
+.icon_del {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.icon_del_top {
+    height: 20px;
+    min-width: 22px;
+}
+
+
+.container_buttons_row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    width: calc(100% - 4px);
+    overflow: hidden;
+}
+
+.container_icon_edit_save {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
+}
+
+.icon_edit_save {
+    border-top-left-radius: 5px;
+}
+
+.icon_cancel {
+    border-radius: 10px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: pointer;
+    // width: 24px;
+    // height: 24px;
+}

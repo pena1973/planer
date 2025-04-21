@@ -4,7 +4,7 @@ import styles from "./teamSchedule.module.scss";
 import DropdownSelectWeekDay from "./DropdownSelectWeekDay/dropdownSelectWeekDay";
 import DropdownSelectTimeZone from "./DropdownSelectTimeZone/dropdownSelectTimeZone";
 
-import { DaysOfWeek, TeamItem, ScheduleItem,TimeZoneEnum } from '@/types'
+import { DaysOfWeek, TeamItem, ScheduleItem, TimeZoneEnum } from '@/types'
 import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";
@@ -49,17 +49,18 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
     const [workdaysValue, setWorkdaysValue] = useState([] as { date: string, timeStart: number, timeFinish: number }[]);
 
     useEffect(() => {
-    //    если есть расписание 
-       if (schedule.team){
-        setTeamValue(schedule.team.title);
-        setPrefixValue(schedule.team.prefix)
-        setTimeStartWorkValue(schedule.timeStartWork);
-        setTimeFinishWorkValue(schedule.timeFinishWork);
-        setBreaksValue(schedule.breaks);
-        setHolidaysValue(schedule.holidays);
-        setWeekendsValue(schedule.weekends);
-        setWorkdaysValue(schedule.workdays);
-        setTimeZoneValue(schedule.timeZone);}
+        //    если есть расписание 
+        if (schedule.team) {
+            setTeamValue(schedule.team.title);
+            setPrefixValue(schedule.team.prefix)
+            setTimeStartWorkValue(schedule.timeStartWork);
+            setTimeFinishWorkValue(schedule.timeFinishWork);
+            setBreaksValue(schedule.breaks);
+            setHolidaysValue(schedule.holidays);
+            setWeekendsValue(schedule.weekends);
+            setWorkdaysValue(schedule.workdays);
+            setTimeZoneValue(schedule.timeZone);
+        }
     }, []);
 
     // колбеки кнопки
@@ -141,7 +142,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
     };
 
 
-    const changeHandler = (value: string | number|TimeZoneEnum|null, field: string) => {
+    const changeHandler = (value: string | number | TimeZoneEnum | null, field: string) => {
 
         switch (field) {
             case "team":
@@ -157,25 +158,27 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 break;
             case "timeZone":
                 setTimeZoneValue(value as TimeZoneEnum);
-                break;                
+                break;
             default:
                 break;
         }
 
         setModified(true);
     };
-    const changeRowHandler = (indexToChange: number, value: string | number  | DaysOfWeek | null, field: string) => {
+    const changeRowHandler = (indexToChange: number, value: string | number | DaysOfWeek | null, field: string) => {
 
         switch (field) {
             // Доп рабочие дни
             case "workDayDate":
-                {if (value) {
-                    let workday = workdaysValue[indexToChange];
-                    let updatedworkday = { ...workday, date: value as string }
-                    // let updatedworkday = { ...workday, date: value.toLocaleString().split(',')[0] }
-                    let workdaysValueUpdated = [...workdaysValue]
-                    workdaysValueUpdated.splice(indexToChange, 1, updatedworkday)
-                    setWorkdaysValue(workdaysValueUpdated)}
+                {
+                    if (value) {
+                        let workday = workdaysValue[indexToChange];
+                        let updatedworkday = { ...workday, date: value as string }
+                        // let updatedworkday = { ...workday, date: value.toLocaleString().split(',')[0] }
+                        let workdaysValueUpdated = [...workdaysValue]
+                        workdaysValueUpdated.splice(indexToChange, 1, updatedworkday)
+                        setWorkdaysValue(workdaysValueUpdated)
+                    }
                 }
                 break;
             case "workTimeStart":
@@ -230,12 +233,14 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 }
                 break;
             case "holidayDate":
-                {if (value) {
-                    // let updatedholiday = value.toLocaleString().split(',')[0];
-                    let holidaysValueUpdated = [...holidaysValue]
-                    holidaysValueUpdated.splice(indexToChange, 1, value as string)
-                    setHolidaysValue(holidaysValueUpdated)
-                }}
+                {
+                    if (value) {
+                        // let updatedholiday = value.toLocaleString().split(',')[0];
+                        let holidaysValueUpdated = [...holidaysValue]
+                        holidaysValueUpdated.splice(indexToChange, 1, value as string)
+                        setHolidaysValue(holidaysValueUpdated)
+                    }
+                }
 
             default:
                 break;
@@ -286,7 +291,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
         setModified(true);
     };
     const addWorkdayHandler = () => {
-        let newWorkday = {date:"", timeStart: 0, timeFinish: 0 } as { date: string, timeStart: number, timeFinish: number };
+        let newWorkday = { date: "", timeStart: 0, timeFinish: 0 } as { date: string, timeStart: number, timeFinish: number };
         setWorkdaysValue([...workdaysValue, newWorkday])
         setModified(true);
     };
@@ -465,7 +470,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
             />
 
             <div className={styles.field_container}>
-                <div className={styles.title}>Компания</div>
+                {/* <div className={styles.title}>Команда</div>
                 <input className={styles.team_input}
                     id={"team"}
                     autoComplete="off"
@@ -485,7 +490,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                             setModified(true);
                             changeHandler(e.target.value, "prefix")
                         }} />
-                </div>
+                </div> */}
                 <div className={styles.title}>Рабочие часы </div>
                 <div className={styles.time_container} >
                     <div className={styles.input_container}>

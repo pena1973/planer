@@ -287,17 +287,22 @@ label {
 
     display: inline-flex;
     align-items: center;
-
     font-size: $header4_font_size;
     color: $text_color_italic;
     font-style: italic;
 }
 
+input, textarea {
+    font-family: 'Roboto', Arial, sans-serif;  // Указываем одинаковый шрифт для обоих элементов
+    font-size: $header4_font_size;  // Устанавливаем одинаковый размер шрифта для обоих элементов
+    line-height: 1.5; // Устанавливаем одинаковый межстрочный интервал
+}
+
 input {
     // Существующие стили...
-    border-radius: 10px;
+    border-radius: 6px;
     padding: 5px;
-    border: 1px solid $border_card;
+    border: $border_input;
     color: $second_text_color;
 
     // Стили для плейсхолдера
@@ -329,9 +334,9 @@ input {
 
 textarea {
     // Существующие стили...
-    border-radius: 10px;
+    border-radius: 6px;
     padding: 5px;
-    border: 1px solid $border_card;
+    border: $border_input;
     color: $second_text_color;
 
     // Стили для плейсхолдера
