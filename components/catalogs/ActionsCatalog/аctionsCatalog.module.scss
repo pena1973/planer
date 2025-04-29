@@ -2,98 +2,82 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
-.container_actions {
+
+.container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 340px;
+    width: 360px;
     height: auto;
     margin: 5px;
-    border-radius: 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: $main_container_background_color;
+    border-radius: $border-radius;
+    border: $border;
+    box-shadow: $box-shadow;
     transition: box-shadow 0.3s ease;
-    position: relative;
+
     padding: 5px;
     position: relative;
+    color: $second_text_color;
+    font-size: $header4_font_size;
 }
 
-.actions_title {
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    width: 200px;
-
-
+///////////////
+._table {
+    width: 100%;
+    margin-bottom: 5px;
 }
 
-.actions_title_top {
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    min-width: 202px;
-    text-align: center;
+._table thead th:nth-child(1) {
+    width: 29px;
+}
 
+._table thead th:nth-child(2) {
+    width: 60px;
 }
-.actions_interruptible {
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    width: 20px;
+
+._table thead th:nth-child(3) {
+    width: 160px;
 }
-.actions_td{
-    text-align: center; /* Горизонтальное выравнивание по центру */
-    vertical-align: middle; /* Вертикальное выравнивание по центру */ 
-}
-.actions_interruptible_top {
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    min-width: 22px;
-    text-align: center;
+
+._table thead th:nth-child(4) {
+    width: 40px;
 
 }
 
-.icon_del{
-width: 20px;
-height: 20px;
-    cursor: pointer;
-}
-
-.icon_del_top {
-    height: 20px;
-    min-width: 22px;
+.actions_input {
+    width: 100%;
 }
 
 
-.container_buttons_row{
+.actions_td {
+    text-align: center;   
+    vertical-align: middle;    
+}
+
+
+.container_buttons_row_table {
     display: flex;
     flex-direction: row;
     align-items: flex-end;
     justify-content: flex-end;
-    border-top: 1px solid #ccc; /* Серая граница */
-    // background-color: aquamarine;
     width: calc(100% - 4px);
-    // position: absolute;
-    // right: 0;
-    // top: 0;
     overflow: hidden;
+    border-top: $border;
 }
-.container_icon_edit_save{
-     display: flex;
-     flex-direction: row;
-     align-items: center;   
-     cursor: pointer;   
+
+.container_icon_edit_save {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
 }
-.icon_edit_save{       
+
+.icon_edit_save {
     border-top-left-radius: 5px;
 }
-.icon_cancel{       
+
+.icon_cancel {
     border-radius: 10px;
     position: absolute;
     right: 0;
@@ -102,5 +86,3 @@ height: 20px;
     width: 24px;
     height: 24px;
 }
-
-    

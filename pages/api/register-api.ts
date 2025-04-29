@@ -6,11 +6,15 @@ import { UserTable } from '@/pages/db/models/catalogs/users';
 import { TeamTable } from '@/pages/db/models/catalogs/teams';
 import { UserAgreeTable } from '@/pages/db/models/catalogs/user_agree';
 import { AgreementTable } from '../db/models/catalogs/agreements';
+import { SettingsTable } from '@/pages/db/models/plan/settings'
+
+import { updateSettings } from './handlers-update';  // расчеты
 
 import { Repository } from 'typeorm';
-import { TeamItem, UserItem } from '@/types';
+import { TeamItem, UserItem, SettingsItem} from '@/types';
+
 import { sign } from 'jsonwebtoken';
-import { getUser, createNewTeam, createNewUser, getTeam, isUserExist,getLastAgreement } from './handlers-auth';  // расчеты
+import { getUser, createNewTeam, createNewUser, getTeam, isUserExist, getLastAgreement } from './handlers-auth';  // расчеты
 
 interface RequestBody {
   login: string,
@@ -30,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const teamsRepository = dbConnection.getRepository(TeamTable);
     const userAgreeRepository = dbConnection.getRepository(UserAgreeTable);
     const agreementRepository = dbConnection.getRepository(AgreementTable);
-
+    const settingsRepository = dbConnection.getRepository(SettingsTable);
 
     switch (req.method) {
       // регистер
@@ -75,8 +79,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
 
           team = resTeam1.team;
-
         }
+
+
+        // Настройки команды
+        const settings = {
+          timeStartWork: 0,
+          timeFinishWork: 1440,
+          showWeekend: false,
+          showHoliday: false,
+          isQualControl: true
+        }
+        const resSettings = await updateSettings(
+          settingsRepository,
+          settings,
+          team.id
+        )
+        if (!resSettings.success) {
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSettings.message });
+          return;
+        }
+
+        const savedSettings = resSettings.savedSettings as SettingsItem;  //  можно сразу привести типы простые
 
         // Юзер
 
@@ -97,22 +121,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         //  юзер записался генерю токен
         const token = sign({ data: login }, String(process.env.JWTSECRET), { expiresIn: '24h' });
- 
+
         //  юзер получен проверяю актуальное соглашение
         const resAgreement = await getLastAgreement(savedUser.id, userAgreeRepository, agreementRepository)
         //  { text: string, signed: boolean, dateSigned?: string, message?: string }> 
-        
-        const agreementText =  resAgreement.agreementText;        
+
+        const agreementText = resAgreement.agreementText;
         const agreementId = resAgreement.agreementId;
-        
+
         // отправляем ответ
         res.status(200).json({
           success: true,
           team: team,
           token: token,
           user: savedUser,
-          agreementText:agreementText,
-          agreementId:agreementId,
+          agreementText: agreementText,
+          agreementId: agreementId,
         });
         break;
       default:

@@ -1,7 +1,6 @@
 @import '@/styles/colors.scss';
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
-
 .units {
     display: flex;
     flex-direction: column;
@@ -9,90 +8,140 @@
 
 .contaitainer_catalog_left {
     display: flex;
-
     flex-direction: column;
-    // background-color: rgb(182, 217, 247);
     margin-right: 10px;
-
 }
 
 .contaitainer_catalog_right {
     display: flex;
     flex: 1;
     flex-direction: row;
-    // background-color: antiquewhite;
 }
 
-.container_units {
+.container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 860px;
+    // width: 906px;
     height: auto;
     margin: 5px;
-    border-radius: 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: $main_container_background_color;
+    border-radius: $border-radius;
+    border: $border;
+    box-shadow: $box-shadow;
     transition: box-shadow 0.3s ease;
-    position: relative;
+
     padding: 5px;
     position: relative;
+    color: $second_text_color;
+    font-size: $header4_font_size;
+
 
 }
 
-.container_unit_actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 280px;
-    height: auto;
-    margin: 5px;
-    border-radius: 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s ease;
-    position: relative;
-    padding: 5px;
-    position: relative;
+._units {
+    width: 906px;
 }
 
-.container_unit_exceptions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 380px;
-    height: auto;
-    margin: 5px;
-    border-radius: 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s ease;
-    position: relative;
-    padding: 5px;
-    position: relative;
+._unit_actions {
+    width: 300px;
 }
 
+._unit_exceptions {
+    width: 406px;
+}
+
+///////////////
+._table {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+
+
+._table thead th:nth-child(1) {
+    width: 29px;
+}
+
+._table thead th:nth-child(2) {
+    width: 69px;
+}
+
+._table thead th:nth-child(3) {
+    width: 209px;
+}
+
+._table thead th:nth-child(4) {
+    width: 100px;
+}
+
+._table thead th:nth-child(5) {
+    width: 108px;
+}
+
+._table thead th:nth-child(6) {
+    width: 100px;
+}
+._table tr td:nth-child(7) {
+ position: relative; 
+}
 .icon_del {
     width: 20px;
     height: 20px;
     cursor: pointer;
 }
 
+.point{
+    position: absolute;
+    right: -5px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+}
+
+
+///////////////
+._table_a {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+._table_a thead th:nth-child(1) {
+    width: 29px;
+}
+
+._table_a thead th:nth-child(2) {
+    width: 150px;
+}
+
+///////////////
+._table_e {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+._table_e thead th:nth-child(1) {
+    width: 29px;
+}
+
+._table_e thead th:nth-child(2) {
+    width: 115px;
+}
+._table_e thead th:nth-child(3) {
+    width: 74px;
+}
+._table_e thead th:nth-child(4) {
+    width: 74px;
+}
+
+
 .container_buttons_row {
     display: flex;
     flex-direction: row;
     align-items: flex-end;
     justify-content: flex-end;
-    border-top: 1px solid #ccc;
-    /* Серая граница */
-    // background-color: aquamarine;
-    width: calc(100% - 4px);
-    // position: absolute;
-    // right: 0;
-    // top: 0;
+    border-top: $border;    
+    width: calc(100% - 4px);    
     overflow: hidden;
 }
 
@@ -113,19 +162,17 @@
     right: 0;
     top: 0;
     cursor: pointer;
-    width: 24px;
-    height: 24px;
+   
 }
-
-.message {
-    font-size: 12px;
-    /* Размер шрифта для информации о времени */
-    color: #666;
-    /* Светло-серый цвет для дополнительной информации */
-    text-align: center;
-    width: 100%;
-    color: red;
-}
+// .message {
+//     font-size: 12px;
+//     /* Размер шрифта для информации о времени */
+//     color: #666;
+//     /* Светло-серый цвет для дополнительной информации */
+//     text-align: center;
+//     width: 100%;
+//     color: red;
+// }
 
 
 // Таблица Юнитов
@@ -148,51 +195,51 @@
 
 .units_code {
     width: 60px;
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
+    // padding: 2px;
+    // border: 1px solid #ccc;
+    // border-radius: 4px;
+    // font-size: 12px;
+    // font-weight: bold;
 
 }
 
-.units_code_top {
-    min-width: 62px;
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
+// .units_code_top {
+//     min-width: 62px;
+//     padding: 2px;
+//     font-size: 16px;
+//     font-weight: bold;
+//     text-align: center;
 
-}
+// }
 
 .units_title {
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    width: 200px;
-
-
-}
-
-.units_title_top {
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    min-width: 202px;
-    text-align: center;
+    // padding: 2px;
+    // border: 1px solid #ccc;
+    // border-radius: 4px;
+    // font-size: 12px;
+    // font-weight: bold;
+    // width: 200px;
+    width: 100%;
 
 }
+
+// .units_title_top {
+//     padding: 2px;
+//     font-size: 16px;
+//     font-weight: bold;
+//     min-width: 202px;
+//     text-align: center;
+
+// }
 
 .units_retool {
-    width: 100px;
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    text-align: center;
+    width: 100%;
+    //  padding: 2px;
+    // border: 1px solid #ccc;
+    // border-radius: 4px;
+    // font-size: 12px;
+    // font-weight: bold;
+     text-align: center;
 }
 
 /* Дополнительно, для удаления стрелочек на мобильных устройствах (например, на iOS) */
@@ -202,67 +249,68 @@
     margin: 0;
 }
 
-.units_retool_top {
-    min-width: 102px;
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-}
+// .units_retool_top {
+//     min-width: 102px;
+//     padding: 2px;
+//     font-size: 16px;
+//     font-weight: bold;
+//     text-align: center;
+// }
 
-.units_belong_top {
-    min-width: 92px;
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-}
+// .units_belong_top {
+//     min-width: 92px;
+//     padding: 2px;
+//     font-size: 16px;
+//     font-weight: bold;
+//     text-align: center;
+// }
 
-.units_type_top {
-    min-width: 92px;
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
+// .units_type_top {
+//     min-width: 92px;
+//     padding: 2px;
+//     font-size: 16px;
+//     font-weight: bold;
+//     text-align: center;
 
-}
+// }
 
-.units_coment {
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    width: 200px;
+ .units_coment {
+//     padding: 2px;
+//     border: 1px solid #ccc;
+//     border-radius: 4px;
+//     font-size: 12px;
+//     font-weight: bold;
+//     width: 200px;
+     width: 100%;
+ }
 
-}
+// .units_coment_top {
+//     padding: 2px;
+//     font-size: 16px;
+//     font-weight: bold;
+//     min-width: 202px;
+//     text-align: center;
 
-.units_coment_top {
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    min-width: 202px;
-    text-align: center;
+// }
 
-}
 ///Таблица действий///////////////////////////
 // Таблица действий
-.unit_action_top {
-    min-width: 162px;
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-}
+// .unit_action_top {
+//     min-width: 162px;
+//     padding: 2px;
+//     font-size: 16px;
+//     font-weight: bold;
+//     text-align: center;
+// }
 
-// Таблица действий
-.unit_koef_top {
-    min-width: 52px;
-    padding: 2px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-}
+// // Таблица действий
+// .unit_koef_top {
+//     min-width: 52px;
+//     padding: 2px;
+//     font-size: 16px;
+//     font-weight: bold;
+//     text-align: center;
+// }
 
 // Таблица действий
 .unit_action {
@@ -277,14 +325,14 @@
 
 // Таблица действий
 .unit_koef {
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    width: 50px;
+    // padding: 2px;
+    // border: 1px solid #ccc;
+    // border-radius: 4px;
+    // font-size: 12px;
+    // font-weight: bold;
+    // width: 50px;
     text-align: center;
-
+    width: 100%;
 }
 
 /* Дополнительно, для удаления стрелочек на мобильных устройствах (например, на iOS) */
@@ -312,7 +360,7 @@
     padding: 2px;
     font-size: 16px;
     font-weight: bold;
-    text-align: center;    
+    text-align: center;
 }
 
 .exception_time {
@@ -329,13 +377,14 @@
     padding: 2px;
     font-size: 16px;
     font-weight: bold;
-    text-align: center; 
+    text-align: center;
 }
+
 .exception_time_type_top {
     min-width: 92px;
     padding: 2px;
     font-size: 16px;
     font-weight: bold;
     text-align: center;
-    
+
 }

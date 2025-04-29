@@ -31,6 +31,13 @@ export default function Settings({ setMessage }: SettingsProps) {
     const settings = useSelector((state: RootState) => {
         return state.catalogSlice.settings;
     })
+    const team = useSelector((state: RootState) => {
+        return state.catalogSlice.team;
+    })
+
+    const user = useSelector((state: RootState) => {
+        return state.authSlice.user;
+    })
 
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
@@ -41,11 +48,11 @@ export default function Settings({ setMessage }: SettingsProps) {
 
     useEffect(() => {
         setTimeStartWorkValue(settings.timeStartWork);
-        setTimeFinishWorkValue(settings.timeFinishWork);
+        setTimeFinishWorkValue(settings.timeFinishWork);             
         setShowWeekendValue(settings.showWeekend);
         setShowHolidayValue(settings.showHoliday);
         setModified(false);
-        // setMessage("Прочитаны настройки");    
+        
     }, []);
 
     // колбеки кнопки
@@ -63,7 +70,7 @@ export default function Settings({ setMessage }: SettingsProps) {
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/settings-api?userId=${1}&teamId=${1}`,
+            const res = await fetch(`api/settings-api`,
                 {
                     method: 'post',
                     headers: new Headers({
@@ -71,6 +78,8 @@ export default function Settings({ setMessage }: SettingsProps) {
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
+                        userId:user.id,
+                        teamId:team.id,
                         settings: settings,
                     }),
                 }
@@ -108,6 +117,7 @@ export default function Settings({ setMessage }: SettingsProps) {
     const cancelScheduleHandler = () => {
       
         setModified(false)
+        setMessage("");
     };
 
 
@@ -126,13 +136,15 @@ export default function Settings({ setMessage }: SettingsProps) {
         }
 
         setModified(true);
+        setMessage("");
     };
    
 
 
     return (
-        <div className={styles.container_schedule}>
-            <Image className={styles.icon_cancel}
+        <div className={styles.container}>
+            <Image 
+                className={styles.icon_cancel}
                 src={cancel}
                 alt="arrow" width={24} height={24}
                 onClick={() => { cancelScheduleHandler() }}
@@ -143,7 +155,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                 &nbsp;
                 <div className={styles.time_container} >
                     <div className={styles.input_container}>
-                        <div className={styles.time_top}>Начало</div>
+                        <div className={styles.title}>Начало</div>
                         <input
                             className={styles.time_input}
                             id="timeStart"
@@ -153,6 +165,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                                 : ""}
                             type="time"
                             onChange={e => {
+                                setMessage("");
                                 setModified(true);
                                 const [hours, minutes] = e.target.value.split(":").map(Number);
                                 const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
@@ -161,7 +174,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                         />
                     </div>
                     <div className={styles.input_container}>
-                        <div className={styles.time_top}>Конец</div>
+                        <div className={styles.title}>Конец</div>
                         <input
                             className={styles.time_input}
                             id="timeFinish"
@@ -171,6 +184,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                                 : ""}
                             type="time"
                             onChange={e => {
+                                setMessage("");
                                 setModified(true);
                                 const [hours, minutes] = e.target.value.split(":").map(Number);
                                 const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
@@ -189,12 +203,13 @@ export default function Settings({ setMessage }: SettingsProps) {
                 <div className={styles.title}>Показывать выходные</div>
                 <div className={styles.input_container}>
                     <input
-                        className={styles.time_input}
+                      
                         id="showWeekend"
                         autoComplete="off"
                         checked={showWeekendValue}
                         type="checkbox"
                         onChange={e => {
+                            setMessage("");
                             setModified(true);
                             setShowWeekendValue(!showWeekendValue)
                         }}
@@ -206,12 +221,13 @@ export default function Settings({ setMessage }: SettingsProps) {
                 <div className={styles.title}>Показывать праздники</div>
                 <div className={styles.input_container}>
                     <input
-                        className={styles.time_input}
+                      
                         id="showWeekend"
                         autoComplete="off"
                         checked={showHolidayValue}
                         type="checkbox"
                         onChange={e => {
+                            setMessage("");
                             setModified(true);
                             setShowHolidayValue(!showHolidayValue)
                         }}

@@ -31,44 +31,53 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         return state.catalogSlice.uoms;
     })
 
+    const team = useSelector((state: RootState) => {
+        return state.catalogSlice.team;
+    })
+
+    const user = useSelector((state: RootState) => {
+        return state.authSlice.user;
+    })
+
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [uomsValue, setUomsValue] = useState([] as UOMItem[]);
 
-    const downloadUoms = async () => {
-        try {
-            const res = await fetch(`api/uoms-api?userId=${1}&teamId=${1}`,
-                {
-                    method: 'get',
-                    headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                let error = receivedData.error;
-                setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+    // const downloadUoms = async () => {
+    //     try {
+    //         const res = await fetch(`api/uoms-api?userId=${1}&teamId=${1}`,
+    //             {
+    //                 method: 'get',
+    //                 headers: new Headers({
+    //                     // 'Authorization': 'Basic ' + token,
+    //                     'Content-Type': 'application/json'
+    //                 }),
+    //             }
+    //         );
+    //         if (res.status !== 200) {
+    //             const receivedData = await res.json();
+    //             let error = receivedData.error;
+    //             setMessage(error);
+    //             //  console.log(t('service.serverUnavailable') + res.status);
+    //             // setMessage(t('service.serverUnavailable') + res.status);
 
-            } else {
-                const receivedData = await res.json();
-                if (receivedData.success) {
-                    let uoms_ = receivedData.uoms as UOMItem[]
-                    setUomsValue(uoms_);
-                    dispatch(setUOMs(uoms_));
-                }
-                else setMessage(receivedData.error);
-            }
-        } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
-        }
-    }
+    //         } else {
+    //             const receivedData = await res.json();
+    //             if (receivedData.success) {
+    //                 let uoms_ = receivedData.uoms as UOMItem[]
+    //                 setUomsValue(uoms_);
+    //                 dispatch(setUOMs(uoms_));
+    //             }
+    //             else setMessage(receivedData.error);
+    //         }
+    //     } catch (e: any) {
+    //         // setMessage(t('service.noConnection') + e.message)            
+    //     }
+    // }
 
     useEffect(() => {
-        downloadUoms();
+        setUomsValue(uoms);
+        // downloadUoms();
     }, []);
 
     // колбеки кнопки
@@ -79,13 +88,25 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         setModified(true);
     };
 
-    const changeUOMSTitleHandler = (indexToChange: number, title: string) => {
-        let uom = uomsValue[indexToChange];
-        let updatedUOM = { ...uom, title: title }
+    const changeUOMHandler = (indexToChange: number, value: string, field: string) => {
+        setModified(true);
+        let updatedUOM = uomsValue[indexToChange];
+
+        switch (field) {
+            case "title":
+
+                updatedUOM = { ...updatedUOM, title: value }
+                break;
+            case "code":
+                updatedUOM = { ...updatedUOM, code: value }
+                break;
+            default:
+                break;
+        }
         let uomsValueUpdated = [...uomsValue]
         uomsValueUpdated.splice(indexToChange, 1, updatedUOM)
         setUomsValue(uomsValueUpdated)
-        setModified(true);
+
     };
 
     const saveUOMSHandler = async () => {
@@ -99,7 +120,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/uoms-api?userId=${1}&teamId=${1}`,
+            const res = await fetch(`api/uoms-api`,
                 {
                     method: 'post',
                     headers: new Headers({
@@ -107,6 +128,8 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
+                        userId: user.id,
+                        teamId: team.id,
                         uoms: uomsValue
                     }),
                 }
@@ -152,24 +175,37 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
 
 
-    let uomsValueReactNodes = uomsValue.map((elem, index) => (
+    let uomsValueReactNodes = uomsValue.map((uom, index) => (
         (
             <tr key={index}>
                 <td>
-                    <Image className={styles.icon_del}
+                    <Image
+
                         src={del} alt="del" width={20} height={20}
                         onClick={() => deleteUOMSHandler(index)}
                     />
                 </td>
-
                 <td>
-                    <input className={styles.uoms_title}
-                        id={"title" + elem.title}
+                    <input
+                        className={styles.uoms_input}
+                        id={"code" + uom.title}
                         autoComplete="off"
-                        value={elem.title} type="text"
+                        value={uom.code} type="text"
+                        maxLength={6}
                         onChange={e => {
                             setModified(true);
-                            changeUOMSTitleHandler(index, e.target.value)
+                            changeUOMHandler(index, e.target.value, "code")
+                        }} />
+                </td>
+                <td>
+                    <input
+                        className={styles.uoms_input}
+                        id={"title" + uom.title}
+                        autoComplete="off"
+                        value={uom.title} type="text"
+                        onChange={e => {
+                            setModified(true);
+                            changeUOMHandler(index, e.target.value, "title")
                         }} />
 
                 </td>
@@ -177,24 +213,25 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         )
     ))
     return (
-        <div className={styles.container_uoms}>
+        <div className={styles.container}>
             <Image className={styles.icon_cancel}
                 src={cancel}
                 alt="arrow" width={24} height={24}
                 onClick={() => { cancelUOMtHandler() }}
             />
-            <table >
+            <table className={styles._table}>
                 <thead>
                     <tr>
-                        <th className={styles.icon_del_top}></th>
-                        <th className={styles.uoms_title_top}>Название</th>
+                        <th></th>
+                        <th>Code</th>
+                        <th>Name</th>
                     </tr>
                 </thead>
                 <tbody>
                     {uomsValueReactNodes}
                 </tbody>
             </table>
-            <div className={styles.container_buttons_row}>
+            <div className={styles.container_buttons_row_table}>
                 <div className={styles.container_icon_edit_save}>
                     <Image className={styles.icon_edit_save}
                         src={add}

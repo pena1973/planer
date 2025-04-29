@@ -11,6 +11,7 @@ import { ActionTable} from '@/pages/db/models/catalogs/actions'
 import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UserTable } from '@/pages/db/models/catalogs/users'
 import { UnitTable } from '@/pages/db/models/catalogs/units'
+import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { AgreementTable } from '@/pages/db/models/catalogs/agreements'
 import { UserAgreeTable } from '@/pages/db/models/catalogs/user_agree'
@@ -44,8 +45,8 @@ const config: ConnectionOptions = {
     TCardStageTable,
     UOMsTable,ActionTable,TeamTable,UnitTable,UserTable,UnitActionTable,
     TeamScheduleTable,UnitExceptionTable,UnitLoadTable,SettingsTable,
-    AgreementTable,UserAgreeTable
-  ],
+    AgreementTable,UserAgreeTable,UserUnitTable
+    ],
   migrations: ["/pages/db/migrations/**/*.ts"],  // Путь к миграциям
   subscribers: [],
   ssl: {

@@ -34,6 +34,9 @@ export class UserTable {
   @Column({default:""})
   coment!: string;
 
+  @Column({ default: false })
+  activ!: boolean; //  запись действующая
+  
   @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
   team!: TeamTable;  

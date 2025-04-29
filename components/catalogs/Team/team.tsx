@@ -77,7 +77,6 @@ export default function TeamSchedule({
     const saveTeamHandler = async () => {    
         setMessage("");
 
-
         // запрос на сохранение
         try {            
             const res = await fetch(`api/team-api?userId=${user.id}&teamId=${team.id}`,
@@ -122,10 +121,11 @@ export default function TeamSchedule({
 
 
     return (
-        <div className={styles.container_team}>
+        <div className={styles.container}>
             <Image className={styles.icon_cancel}
                 src={cancel}
-                alt="arrow" width={20} height={20}
+                alt="arrow" 
+                width={24} height={24}
                 onClick={() => { cancelHandler() }}
             />
 

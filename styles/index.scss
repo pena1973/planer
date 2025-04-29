@@ -130,6 +130,7 @@
     padding: 5px;
     border: 1px solid $border_card;
     // background: $light_background;
+    width: 100%;
 }
 
 .login_link {
@@ -178,7 +179,7 @@
     display: flex;
     flex-direction: column;
     margin: 10px;
-    width: 180px;
+    // width: 180px;
 }
 
 .register_link_container {
@@ -211,6 +212,7 @@
     border-radius: 10px;
     padding: 5px;
     border: 1px solid $border_card;
+    width: 100%;
     // background: $light_background;
 }
 

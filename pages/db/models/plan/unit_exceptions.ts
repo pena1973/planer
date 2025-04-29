@@ -15,6 +15,9 @@ export class UnitExceptionTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
+  @Column('int', { unique: true })
+  idc!: number;
+  
   @Column('date')
   date!: Date; // 
 
@@ -38,4 +41,7 @@ export class UnitExceptionTable {
   unit!: UnitTable;
   @Column()
   unit_id!: number
+  @Column()
+  unit_idc!: number;
+
 }

@@ -12,6 +12,9 @@ export class UnitTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
+  @Column('int', { unique: true })
+  idc!: number;
+  
   @Column()
   title!: string;
 
@@ -37,7 +40,9 @@ export class UnitTable {
     default: UnitTypeEnum.process
   })
   type!: UnitTypeEnum;
-
+  
+  @Column({ default: false })
+  activ!: boolean; //  запись действующая
 
   @ManyToOne(() => TeamTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом

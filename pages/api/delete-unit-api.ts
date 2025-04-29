@@ -14,8 +14,10 @@ import { Action } from 'redux';
 import { ActionTable } from '../db/models/catalogs/actions';
 
 interface RequestBody {
+  userId: number,
+  teamId: number,
   unit: UnitItem,
-  exceptions: UnitExceptionItem
+  exceptions: UnitExceptionItem[],  
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -24,13 +26,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(TeamTable);
+    const teamRepository = dbConnection.getRepository(TeamTable);
     const unitRepository = dbConnection.getRepository(UnitTable);
     const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
-    // userId, teamId в любом случае
-    const { userId, teamId } = req.query;
+    
+    // const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'GET':
@@ -45,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'POST':
 
         // Извлекаем данные из тела запроса
-        const { unit } = req.body as RequestBody;
+        const { unit,userId,teamId } = req.body as RequestBody;
         const unitActions = unit.actions as UnitActionItem[]
         const unitExceptions = req.body.exceptions as UnitExceptionItem[]
 

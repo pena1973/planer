@@ -1,7 +1,7 @@
 import {
     UOMItem, ActionItem, UnitItem, SettingsItem,
     TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, UnitLoadItem, ScheduleItem,
-    UnitExceptionItem, UserItem,
+    UnitExceptionItem, UnitActionItem, UserItem,
     TeamItem
 } from '@/types';
 import { createSlice } from '@reduxjs/toolkit';
@@ -37,6 +37,7 @@ export type PlanState = {
     tCardPrepared: TCardItem,
     unitLoads: UnitLoadItem[],
     unitExceptions: UnitExceptionItem[]
+    unitActions: UnitActionItem[]
 
 }
 export type ViewState = {
@@ -72,6 +73,7 @@ const planIntialState: PlanState = {
     tCardPrepared: {} as TCardItem,
     unitLoads: [] as UnitLoadItem[],
     unitExceptions: [] as UnitExceptionItem[],
+    unitActions: [] as UnitActionItem[],
 }
 // состояние открытых окон
 const viewIntialState: ViewState = {
@@ -176,6 +178,9 @@ const planSlice = createSlice({
         setUnitExceptions: (state, action) => {
             state.unitExceptions = action.payload;
         },
+        setUnitActions: (state, action) => {
+            state.unitActions = action.payload;
+        },
 
     },
 
@@ -200,7 +205,7 @@ export default function Foo() { return <></> }  // пустышка для би�
 export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule } = catalogSlice.actions;
 export const { setTCards, setTCardCurrent, setTCardCurrentStages, setTCardCurrentMaterials, setTCardCurrentOperations, setTCardCurrentProducts, settCardCurrentWastes, setTCardCurrentMaxIdc } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement} = authSlice.actions;
-export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions } = planSlice.actions;
+export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
 export const { setMonitorPoint, setResourcePoint } = viewSlice.actions;
 
 export { authSlice, catalogSlice, dataSlice, planSlice, viewSlice };

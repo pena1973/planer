@@ -1,6 +1,8 @@
 
 import styles from "./unitsCatalog.module.scss";
-import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types'
+import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types';
+import { generateUniqueIdc, generateUniqueId } from '@/utils'
+
 import Image from 'next/image';
 import { useEffect, useState, useRef } from "react";
 
@@ -13,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
-import { setUnits, setUnitExceptions } from '@/store/slices'
+import { setUnits, setUnitExceptions, setUnitActions } from '@/store/slices'
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
@@ -23,20 +25,37 @@ import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
+function generateUniqueCode(units: UnitItem[]): string {
+    // Находим максимальный номер из существующих кодов
+    const maxCode = units.reduce((max, unit) => {
+        const codeNumber = parseInt(unit.code.slice(1), 10); // Извлекаем цифры из кода, начиная с позиции 1
+        return Math.max(max, codeNumber);
+    }, 0);
 
-function generateUniqueId(): number {
-    const timestamp = Date.now(); // Получаем текущее время в миллисекундах
-    const randomFactor = Math.floor(Math.random() * 1000); // Добавляем случайное число для уникальности
-    return timestamp + randomFactor;
+    // Увеличиваем номер на 1
+    const newCodeNumber = maxCode + 1;
+
+    // Формируем новый код с ведущими нулями
+    const newCode = `U${newCodeNumber.toString().padStart(3, '0')}`;
+
+    return newCode;
 }
+
 
 export interface UOMSCatalogProps {
     setMessage: (message: string) => void
 }
 
-export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
+export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
     const dispatch = useAppDispatch();
 
+    const team = useSelector((state: RootState) => {
+        return state.catalogSlice.team;
+    })
+
+    const user = useSelector((state: RootState) => {
+        return state.authSlice.user;
+    })
     const units = useSelector((state: RootState) => {
         return state.catalogSlice.units;
     })
@@ -46,30 +65,19 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     const unitExceptions = useSelector((state: RootState) => {
         return state.planSlice.unitExceptions;
     })
+    const unitActions = useSelector((state: RootState) => {
+        return state.planSlice.unitActions;
+    })
     const [unitsValue, setUnitsValue] = useState([] as UnitItem[]); //временное хранилище юнитов
     const [exceptionsValue, setExceptionsValue] = useState([] as UnitExceptionItem[]); //отклонения распиания юнитов от общего расписания
+    const [actionsValue, setActionsValue] = useState([] as UnitActionItem[]); //действия юнитов
 
     // const [message, setMessage] = useState("");
-    const [focusIndexUnit, setFocusIndexUnit] = useState(NaN); // Юнит на мкотором стоит курсор
+    const [focusIndexUnit, setFocusIndexUnit] = useState(NaN); // Юнит на мкотором стоит курсор 
 
-    function generateUniqueCode(units: UnitItem[]): string {
-        // Находим максимальный номер из существующих кодов
-        const maxCode = units.reduce((max, unit) => {
-            const codeNumber = parseInt(unit.code.slice(1), 10); // Извлекаем цифры из кода, начиная с позиции 1
-            return Math.max(max, codeNumber);
-        }, 0);
-
-        // Увеличиваем номер на 1
-        const newCodeNumber = maxCode + 1;
-
-        // Формируем новый код с ведущими нулями
-        const newCode = `U${newCodeNumber.toString().padStart(3, '0')}`;
-
-        return newCode;
-    }
-   
     useEffect(() => {
         setExceptionsValue(unitExceptions)
+        setActionsValue(unitActions)
         setUnitsValue(units)
     }, []);
 
@@ -78,6 +86,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         let unitsValueUpdated = [...unitsValue]
         unitsValueUpdated.splice(indexToRemove, 1)
         setUnitsValue(unitsValueUpdated)
+        setFocusIndexUnit(indexToRemove - 1);
     };
     const changeHandler = (indexToChange: number, value: string | null | UnitBelongEnum | UnitTypeEnum, field: string) => {
         let unit = unitsValue[indexToChange];
@@ -111,37 +120,80 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         setFocusIndexUnit(indexToChange);
     };
 
-    const saveUnitHandler = async (index: number) => {
+    const saveUnitsHandler = async () => {
         setMessage("");
+        let message = ""
+        let exit = false;
 
-        let unit = unitsValue[index];
-        let unitEx = exceptionsValue.filter(elem => elem.unitId === unit.id)
+        //  проверка на заполненность
+        unitsValue.forEach((unit, index) => {
 
-        if (!unit.code) {
-            setMessage(`Заполните код производственного центра строка ${index + 1}!`);
-            return;
-        }
-        if (!unit.title) {
-            setMessage("Заполните название действия строка ${index+1}!!");
-            return;
-        }
-        // if (!unit.retool) {
-        //     setMessage("Заполните время на переналадку между операциями строка ${index+1}!!");
-        //     return;
-        // }
-        if (!unit.belong) {
-            setMessage("Заполните признак свой или сторонний юнит строка ${index+1}!!");
-            return;
-        }
-        if (!unit.type) {
-            setMessage("Заполните тип Юнита производство или хранение строка ${index+1}!!");
-            return;
-        }
+            if (!unit.code) {
+                message = message + `Заполните код производственного центра строка ${index + 1}!\n`;
+                exit = true;
+            }
+            if (!unit.title) {
+                message = message + `Заполните название действия строка ${index + 1}!\n`;
+                exit = true;
+            }
+            if (!unit.belong) {
+                message = message + `Заполните признак свой или сторонний юнит строка ${index + 1}!\n`;
+                exit = true;
+            }
+            if (!unit.type) {
+                message = message + `Заполните тип Юнита производство или хранение строка ${index + 1}!\n`;
+                exit = true;
+            }
+        })
+        //  проверка на заполненность действий
+        actionsValue.forEach((act) => {
+
+            if (!act.action) {
+                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
+                message = message + `Заполните операцию в списке действий юнита ${title}!\n`;
+                exit = true;
+            }
+            if (!act.koef) {
+                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
+                message = message + `Заполните коэфициент в списке действий юнита ${title}!\n`;
+                exit = true;
+            }
+        })
+
+        //  проверка на заполненность исключений
+        exceptionsValue.forEach((ex) => {
+
+            if (!ex.date) {
+                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
+                message = message + `Заполните дату в списке действий юнита ${title}!\n`;
+                exit = true;
+            }
+            if (!ex.timeStart) {
+                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
+                message = message + `Заполните время старта в списке отклонений расписания юнита ${title}!\n`;
+                exit = true;
+            }
+            if (!ex.timeFinish) {
+                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
+                message = message + `Заполните время финиша в списке отклонений расписания юнита ${title}!\n`;
+                exit = true;
+            }
+            if (!ex.type) {
+                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
+                message = message + `Заполните тип времени в списке отклонений расписания юнита ${title}!\n`;
+                exit = true;
+            }
+        })
+
+        if (exit) {
+            setMessage(message);
+            return
+        };
+
         // запрос на сохранение
         try {
 
-            // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/unit-api?userId=${1}&teamId=${1}`,
+            const res = await fetch(`api/units-api`,
                 {
                     method: 'post',
                     headers: new Headers({
@@ -149,8 +201,11 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
-                        unit: unit,
-                        exceptions: unitEx
+                        userId: user.id,
+                        teamId: team.id,
+                        units: unitsValue,
+                        actions: actionsValue,
+                        exceptions: exceptionsValue
                     }),
                 }
             );
@@ -166,23 +221,21 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                 // setMessage(receivedData.error);
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let unit = receivedData.unit as UnitItem
-                    let exceptions = receivedData.exceptions as UnitExceptionItem[]
-                    // временное хранилище
-                    let updatedUnits = [...unitsValue];
-                    updatedUnits.splice(index, 1, unit);
-                    setUnitsValue(updatedUnits);
-
-                    // сеансовое хранилище
-                    updatedUnits = [...units];
-                    updatedUnits.splice(index, 1, unit);
-                    dispatch(setUnits(updatedUnits));
-                    // отклонения
-                    // Убираем все элементы с указанным unit
-                    let updatetExceptions = exceptionsValue.filter(exception => exception.unitId !== unit.id)
-                    // добавляем сохраненные
-                    setExceptionsValue([...updatetExceptions, ...exceptions])
-                    dispatch(setUnitExceptions([...updatetExceptions, ...exceptions]));
+                    let units_ = receivedData.units as UnitItem[]
+                    let exceptions_ = receivedData.exceptions as UnitExceptionItem[]
+                    let actions_ = receivedData.actions as UnitActionItem[]
+                    // временное хранилище                  
+                    setUnitsValue(units_);
+                    // сеансовое хранилище                  
+                    dispatch(setUnits(units_));
+                    // отклонения                    
+                    setExceptionsValue(exceptions_)
+                    dispatch(setUnitExceptions(exceptions_));
+                    // отклонения                    
+                    setActionsValue(actions_)
+                    dispatch(setUnitActions(actions_));
+                    setMessage(receivedData.error)
+                    setMessage("Обновлен список юнитов, их действий и отклонений расписания");
                 } else setMessage(receivedData.error);
             }
 
@@ -192,104 +245,112 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
 
     };
-
     const addUnitHandler = () => {
         let newUnit = {
             title: "Юнит",
             code: generateUniqueCode(unitsValue),
             retool: 1,
             modified: true,
-            actions: [] as { action: ActionItem, koef: number }[],
+            idc: generateUniqueIdc(),
+            // actions: [] as { action: ActionItem, koef: number }[],
         } as UnitItem;
         setUnitsValue([...unitsValue, newUnit])
         setFocusIndexUnit(unitsValue.length)
     };
-    const cancelUnitHandler = (indexToCancel: number) => {
-        let id = unitsValue[indexToCancel].id;
-        let canceledUnit = units.find(elem => elem.id === id);
 
-        if (canceledUnit!)
-            canceledUnit = {
-                title: "Юнит",
-                code: generateUniqueCode(unitsValue),
-                retool: 1,
-                modified: true,
-                actions: [] as { action: ActionItem, koef: number }[],
-            } as UnitItem;
-
-
-        if (canceledUnit) {
-            let unitsValueUpdated = [...unitsValue]
-            unitsValueUpdated.splice(indexToCancel, 1, canceledUnit)
-            setUnitsValue(unitsValueUpdated)
-            setFocusIndexUnit(indexToCancel);
-        };
-    }
-    // для операций юнита
-    const changeUnitActionHandler = (indexToChange: number, value: number | null | { id: number, title: string }, field: string) => {
-        let unit = unitsValue[focusIndexUnit]
-        let updatedUnit = unit;
-        let updatedActions = [...unit.actions];
-        let u_action = unit.actions[indexToChange] as { id?: number, action: ActionItem, koef: number };
-        let updated_u_action = { ...u_action }
-
-        switch (field) {
-            case "action":
-
-                const actionValue = value as { id: number, title: string }
-                const action = actions.find(elem => elem.id === actionValue.id)
-                updated_u_action = { ...u_action, action: (!action) ? {} as ActionItem : action }
-                break;
-            case "koef":
-                const value_k = value as number;
-                updated_u_action = { ...u_action, koef: value_k }
-                break;
-            default:
-                break;
-        }
-
-        updatedActions.splice(indexToChange, 1, updated_u_action)
-        updatedUnit = { ...unit, actions: updatedActions, modified: true }
-        let unitsValueUpdated = [...unitsValue]
-        unitsValueUpdated.splice(focusIndexUnit, 1, updatedUnit)
-        setUnitsValue(unitsValueUpdated)
-
-    }
-    const addUnitActionHandler = () => {
-        let unit = unitsValue[focusIndexUnit];
-        let actions = [...unit.actions, { action: {} as ActionItem, koef: 1 } as UnitActionItem]
-        let updatedUnit = { ...unit, actions: actions };
-        let unitsValueUpdated = [...unitsValue];
-        unitsValueUpdated.splice(focusIndexUnit, 1, updatedUnit);
-        setUnitsValue(unitsValueUpdated);
-    };
-    const deleteUnitActionHandler = (indexToRemove: number) => {
-        let actionsUpdated = [...unitsValue[focusIndexUnit].actions];
-        actionsUpdated.splice(indexToRemove, 1)
-
-        let updatedUnit = { ...unitsValue[focusIndexUnit], actions: actionsUpdated, modified: true };
-
-        let unitsValueUpdated = [...unitsValue]
-        unitsValueUpdated.splice(focusIndexUnit, 1, updatedUnit)
-        setUnitsValue(unitsValueUpdated)
-
+    // Отмена изменений
+    const cancelHandler = () => {
+        setExceptionsValue(unitExceptions)
+        setActionsValue(unitActions)
+        setUnitsValue(units)
     };
 
-    // для отклонений расписания юнита
-    const changeExceptionHandler = (idToChange: number, value: string | number | null | TimeTypeEnum, field: string) => {
-
+    function unitModified() {
         // укажу что юнит модифицирован
         let unit = unitsValue[focusIndexUnit]
         let updatedUnit = { ...unit, modified: true }
         let unitsValueUpdated = [...unitsValue]
         unitsValueUpdated.splice(focusIndexUnit, 1, updatedUnit)
         setUnitsValue(unitsValueUpdated)
+    }
+
+    // для операций юнита
+    const changeUnitActionHandler = (idToChange: number | undefined, idcToChange: number, value: number | null | { id: number, title: string }, field: string) => {
+        unitModified();
+        // отклонения
+        let actionsValueUpdated = [...actionsValue]
+        let indexToChange = -1;
+
+        if (!idToChange) {
+            indexToChange = actionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
+            if (indexToChange < 0) return
+        }
+        else {
+            indexToChange = actionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
+            if (indexToChange < 0) return
+        }
+
+        let unitaction = actionsValueUpdated[indexToChange];
+
+
+        switch (field) {
+            case "action":
+
+                const actionValue = value as { id: number, title: string }
+                const action = actions.find(elem => elem.id === actionValue.id)
+                unitaction = { ...unitaction, action: (!action) ? {} as ActionItem : action }
+
+                break;
+            case "koef":
+                const value_k = value as number;
+                unitaction = { ...unitaction, koef: value_k }
+                break;
+            default:
+                break;
+        }
+
+        actionsValueUpdated.splice(indexToChange, 1, unitaction)
+        setActionsValue(actionsValueUpdated)
+    }
+    const addUnitActionHandler = () => {
+        unitModified();
+        let unit = unitsValue[focusIndexUnit];
+        let actionsValueUpdated = [...actionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, koef: 1 } as UnitActionItem]
+        setActionsValue(actionsValueUpdated);
+    };
+    const deleteUnitActionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
+        unitModified();
+        let indexToRemove = -1;
+        if (!idToRemove) {
+            indexToRemove = actionsValue.findIndex(elem => elem.idc === idcToRemove)
+            if (indexToRemove < 0) return
+        }
+        else {
+            indexToRemove = actionsValue.findIndex(elem => elem.id === idToRemove)
+            if (indexToRemove < 0) return
+        }
+        let actionsValueUpdated = [...actionsValue];
+        actionsValueUpdated.splice(indexToRemove, 1)
+        setActionsValue(actionsValueUpdated);
+    };
+
+    // для отклонений расписания юнита
+    const changeExceptionHandler = (idToChange: number | undefined, idcToChange: number, value: string | number | null | TimeTypeEnum, field: string) => {
+        unitModified();
+
 
         // отклонения
         let exceptionsValueUpdated = [...exceptionsValue]
-        let indexToChange = exceptionsValueUpdated.findIndex(elem => elem.id === idToChange)
+        let indexToChange = -1;
 
-        if (indexToChange < 0) return
+        if (!idToChange) {
+            indexToChange = exceptionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
+            if (indexToChange < 0) return
+        }
+        else {
+            indexToChange = exceptionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
+            if (indexToChange < 0) return
+        }
 
         let exception = exceptionsValueUpdated[indexToChange];
 
@@ -314,30 +375,31 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         setExceptionsValue(exceptionsValueUpdated)
     }
     const addExceptionHandler = () => {
-        const id = generateUniqueId();
-
+        unitModified();
         let unit = unitsValue[focusIndexUnit];
-        let exceptionsValueUpdated = [...exceptionsValue, { id: id, unitId: unit.id, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
+        let exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
         setExceptionsValue(exceptionsValueUpdated);
     };
-    const deleteExceptionHandler = (idToRemove: number) => {
-        let indexToRemove = exceptionsValue.findIndex(elem => elem.id === idToRemove)
-        if (indexToRemove < 0) return
-
+    const deleteExceptionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
+        unitModified();
+        let indexToRemove = -1;
+        if (!idToRemove) {
+            indexToRemove = exceptionsValue.findIndex(elem => elem.idc === idcToRemove)
+            if (indexToRemove < 0) return
+        }
+        else {
+            indexToRemove = exceptionsValue.findIndex(elem => elem.id === idToRemove)
+            if (indexToRemove < 0) return
+        }
         let exceptionsValueUpdated = [...exceptionsValue];
         exceptionsValueUpdated.splice(indexToRemove, 1)
         setExceptionsValue(exceptionsValueUpdated);
     };
 
+    // Юниты
     let unitsValueReactNodes = unitsValue.map((elem, index) => (
         <tr key={index}>
-            <td>
-                <Image className={styles.icon_del}
-                    src={cancel}
-                    alt="cancel" width={20} height={20}
-                    onClick={() => { cancelUnitHandler(index) }}
-                />
-            </td>
+
             <td>
                 <Image className={styles.icon_del}
                     src={del} alt="del" width={20} height={20}
@@ -413,34 +475,26 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                         setFocusIndexUnit(index)
                     }
                 />
-            </td>
-            <td>
-                <div className={styles.container_icon_edit_save}>
-                    <Image className={styles.icon_edit_save}
-                        src={save}
-                        alt="arrow" width={20} height={20}
-                        onClick={() => { saveUnitHandler(index) }}
-                    />
-                    {elem.modified && <div>*</div>}
-                </div>
+                {elem.modified && <div className={styles.point}>*</div>}
             </td>
         </tr>
     ))
-
+    // Исключения
     let unitFocusExceptionsValueReactNodes = exceptionsValue
         .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
-        .map((elem) => (
+        .map((elem, index) => (
 
-            <tr key={elem.id}>
+            <tr key={"ex" + index}>
                 <td>
-                    <Image className={styles.icon_del}
+                    <Image
+                        // className={styles.icon_del}
                         src={del} alt="del" width={20} height={20}
-                        onClick={() => deleteExceptionHandler(elem.id)}
+                        onClick={() => deleteExceptionHandler(elem.id, elem.idc)}
                     />
                 </td>
                 <td>
                     <input
-                        className={styles.exception_date}
+                        // className={styles.exception_date}
                         id={`date-${elem.id}`}
                         autoComplete="off"
                         value={elem.date ? (new Date(elem.date)).toLocaleDateString('en-CA') : ""}
@@ -448,13 +502,13 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                         onChange={e => {
                             const date = new Date(e.target.value);
                             date.setHours(0, 0, 0, 0);
-                            changeExceptionHandler(elem.id, date.toLocaleDateString("en-CA"), "date");
+                            changeExceptionHandler(elem.id, elem.idc, date.toLocaleDateString("en-CA"), "date");
                         }}
                     />
                 </td>
                 <td>
                     <input
-                        className={styles.exception_time}
+                        // className={styles.exception_time}
                         id={`timeStart-${elem.id}`}
                         autoComplete="off"
                         value={elem.timeStart !== undefined
@@ -464,13 +518,13 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                         onChange={e => {
                             const [hours, minutes] = e.target.value.split(":").map(Number);
                             const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
-                            changeExceptionHandler(elem.id, totalMinutes, "timeStart");
+                            changeExceptionHandler(elem.id, elem.idc, totalMinutes, "timeStart");
                         }}
                     />
                 </td>
                 <td>
                     <input
-                        className={styles.exception_time}
+                        // className={styles.exception_time}
                         id={`timeFinish-${elem.id}`}
                         autoComplete="off"
                         value={elem.timeFinish !== undefined
@@ -481,14 +535,14 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                         onChange={e => {
                             const [hours, minutes] = e.target.value.split(":").map(Number);
                             const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
-                            changeExceptionHandler(elem.id, totalMinutes, "timeFinish");
+                            changeExceptionHandler(elem.id, elem.idc, totalMinutes, "timeFinish");
                         }}
                     />
                 </td>
                 <td>
 
                     <DropdownSelectTimeType
-                        onSelect={(value) => { changeExceptionHandler(elem.id, value, "timeType"); }}
+                        onSelect={(value) => { changeExceptionHandler(elem.id, elem.idc, value, "timeType"); }}
                         selectedValue={elem.type || null}
                     />
                 </td>
@@ -496,104 +550,113 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         )
 
         )
-    let unitFocusActionValueReactNodes = unitsValue[focusIndexUnit]?.actions.map((elem, index) => (
 
-        (
-            <tr key={index}>
-                <td>
-                    <Image className={styles.icon_del}
-                        src={del} alt="del" width={20} height={20}
-                        onClick={() => deleteUnitActionHandler(index)}
-                    />
-                </td>
+    // let unitFocusActionValueReactNodes = unitsValue[focusIndexUnit]?.actions.map((elem, index) => (
+    let unitFocusActionValueReactNodes = actionsValue
+        .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
+        .map((elem, index) => (
+            (
+                <tr key={"ac" + index}>
+                    <td>
+                        <Image
+                            // className={styles.icon_del}
+                            src={del} alt="del" width={20} height={20}
+                            onClick={() => deleteUnitActionHandler(elem.id, elem.idc)}
+                        />
+                    </td>
 
 
-                <td>
-                    <DropdownSelectUnitAction
-                        options={actions}
-                        onSelect={(value) => { changeUnitActionHandler(index, value, "action"); }}
-                        selectedValue={elem.action?.id || null}
+                    <td>
+                        <DropdownSelectUnitAction
+                            options={actions}
+                            onSelect={(value) => { changeUnitActionHandler(elem.id, elem.idc, value, "action"); }}
+                            selectedValue={elem.action?.id || null}
 
-                    />
-                </td>
-                <td>
-                    <input
-                        className={styles.unit_koef}
-                        id={`koef-${index}`}
-                        // autoComplete="off"
-                        value={elem.koef}
-                        type="number"
-                        step="0.01"
-                        max={2147483647}
-                        min={0}
-                        onChange={e => {
-                            const value = e.target.value;
-                            if (/^\d*(,|\.)?\d{0,2}?$/.test(value)) {
-                                changeUnitActionHandler(index, Number(e.target.value), "koef");
-                            }
-                        }}
-                    />
-                </td>
-            </tr>
-        )
-    ))
+                        />
+                    </td>
+                    <td>
+                        <input
+                            className={styles.unit_koef}
+                            id={`koef-${index}`}
+                            // autoComplete="off"
+                            value={elem.koef}
+                            type="number"
+                            step="0.01"
+                            max={2147483647}
+                            min={0}
+                            onChange={e => {
+                                const value = e.target.value;
+                                if (/^\d*(,|\.)?\d{0,2}?$/.test(value)) {
+                                    changeUnitActionHandler(elem.id, elem.idc, Number(e.target.value), "koef");
+                                }
+                            }}
+                        />
+                    </td>
+                </tr>
+            )
+        ))
+
     return (
 
         <div className={styles.units}>
-            <div className={styles.contaitainer_catalog_left}>
-                <div className="catalog_title">Каталог производственных центров (юнитов)</div>
-                <div className={styles.container_units}>
+            <div className={`${styles.contaitainer_catalog_left} ${styles.container} ${styles._units}`}>
+                <Image className={styles.icon_cancel}
+                    src={cancel}
+                    alt="arrow"
+                    width={24} height={24}
+                    onClick={() => { cancelHandler() }}
+                />
+                {/* Шапка таблицы */}
+                <table className={styles._table}>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Whoos?</th>
+                            <th>Retool (min.)</th>
+                            <th>Type</th>
+                            <th>Coment</th>
 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {unitsValueReactNodes}
+                    </tbody>
+                </table>
 
-                    {/* Шапка таблицы */}
-                    <table className={styles.units_table}>
-                        <thead>
-                            <tr>
-                                <th className={styles.icon_del_top}></th>
-                                <th className={styles.icon_del_top}></th>
-                                <th className={styles.units_code_top}>Код</th>
-                                <th className={styles.units_title_top}>Название</th>
-                                <th className={styles.units_belong_top}>Чей</th>
-                                <th className={styles.units_retool_top}>Наладка(мин.)</th>
-                                <th className={styles.units_type_top}>Тип</th>
-                                <th className={styles.units_coment_top}>Коментарий</th>
-                                <th className={styles.icon_save_top}></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {unitsValueReactNodes}
-
-                        </tbody>
-                    </table>
-                    <div className={styles.container_buttons_row}>
-
-
-                        <div className={styles.container_icon_edit_save}>
-                            <Image className={styles.icon_edit_save}
-                                src={add}
-                                alt="arrow" width={20} height={20}
-                                onClick={() => { addUnitHandler() }}
-                            />
-                        </div>
-                        <div className={styles.container_icon_edit_save}>
-                        </div>
+                <div className={styles.container_buttons_row}>
+                    <div className={styles.container_icon_edit_save}>
+                        <Image className={styles.icon_edit_save}
+                            src={add}
+                            alt="arrow" width={20} height={20}
+                            onClick={() => { addUnitHandler() }}
+                        />
+                    </div>
+                    <div className={styles.container_icon_edit_save}>
+                        <Image className={styles.icon_edit_save}
+                            src={save}
+                            alt="arrow" width={20} height={20}
+                            onClick={() => { saveUnitsHandler() }}
+                        />
                     </div>
                 </div>
+
+
             </div>
-
-
 
             {(focusIndexUnit >= 0) &&
                 <div className={styles.contaitainer_catalog_right}>
                     <div>
                         <div className="catalog_title">Действия юнита: {unitsValue[focusIndexUnit].title}</div>
-                        <div className={styles.container_unit_actions}>
-                            <table >
+                        {/* <div className={styles.container_unit_actions}> */}
+                        <div className={`${styles.container} ${styles._unit_actions}`}>
+                            <table className={styles._table_a}>
                                 <thead>
                                     <tr>
-                                        <th className={styles.icon_del_top}></th>
-                                        <th className={styles.unit_action_top}>Действие</th>
-                                        <th className={styles.unit_koef_top}>Коэф</th>
+                                        <th></th>
+                                        <th>Действие</th>
+                                        <th>Коэф. времени</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -612,17 +675,19 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                             </div>
                         </div>
                     </div>
+
                     <div>
-                        <div className="catalog_title">Отклонения юнита от общего графика</div>
-                        <div className={styles.container_unit_exceptions}>
-                            <table >
+                        <div className="catalog_title">Отклонения расписания юнита от общего графика</div>
+                        <div className={`${styles.container} ${styles._unit_exceptions}`}>
+                            {/* <div className={styles.container_unit_exceptions}> */}
+                            <table className={styles._table_e}>
                                 <thead>
                                     <tr>
-                                        <th className={styles.icon_del_top}></th>
-                                        <th className={styles.exception_date_top}>Дата</th>
-                                        <th className={styles.exception_time_top}>Начало</th>
-                                        <th className={styles.exception_time_top}>Конец</th>
-                                        <th className={styles.exception_time_type_top}>Тип</th>
+                                        <th></th>
+                                        <th>Дата</th>
+                                        <th>Начало</th>
+                                        <th>Конец</th>
+                                        <th>Тип</th>
                                     </tr>
                                 </thead>
                                 <tbody>

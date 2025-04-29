@@ -64,26 +64,28 @@ export interface TCardOperationTermsItem extends TCardOperationItem {
 export interface UOMItem {
     id: number,
     title: string,
-    code?: string, // для синхронизации 
+    code: string, // для синхронизации 
     modified?: boolean, // указание что модифицирована и не сохранена
 }
 export interface ActionItem {
     id: number,
     title: string,
-    code?: string, // для синхронизации 
+    code: string, // для синхронизации 
     modified?: boolean, // указание что модифицирована и не сохранена
     interruptible:boolean, // можно ли прервать операцию с окончанием смены а потом продолжитть на след день
 }
 export interface UnitItem {
     id?: number,
+    idc: number,
     title: string,
-    code: string, // для синхронизации 
-    actions: UnitActionItem[],
+    code: string, // для синхронизации , заполнение обязательно и должен быть уникален
+    // actions: UnitActionItem[],
     retool: number, // общее время на переналадку станка между каждой операцией  в минутах
     modified: boolean, // указание что модифицирована и не сохранена
     belong: UnitBelongEnum,
     type: UnitTypeEnum,
-    coment?: string
+    coment: string,
+    activ:boolean, 
 }
 
 export interface UnitKPIItem {
@@ -99,10 +101,23 @@ export interface UnitKPIItem {
 
 export interface UnitActionItem {
     id?: number,
+    idc: number,
     action: ActionItem,
-    koef: number
+    koef: number,
+    unitId:number,
+    unitIdc:number, // временно для синхронизации пока юнит не записан
 }
-
+//  отклонения юнита от расписания
+export interface UnitExceptionItem {
+    id?:number,
+    idc: number,
+    date:string,
+    type: TimeTypeEnum, 
+    timeStart:number,
+    timeFinish:number,
+    unitId:number, 
+    unitIdc:number, // временно для синхронизации пока юнит не записан     
+}
 // ТБ users
 export interface UserItem {
     id: number,
@@ -110,15 +125,25 @@ export interface UserItem {
     pass: string, 
     name: string,
     locale: string,
-    isAdmin:boolean
+    isAdmin:boolean,
+    activ:boolean 
 }
 
-export enum UserRoleEnum {
-    OPERATOR = "оператор",
-    PLANNER = "планер",
-    UNIT = "юнит",
-    CONTROL = "контролер",
+//  users-units
+export interface UserUnitItem {
+    id: number,
+    userId: number,    
+    name: string,
+    unit: UnitItem | null;       
+    active:boolean //  пригнак того что юзер инрает роль юнита
 }
+
+// export enum UserRoleEnum {
+//     OPERATOR = "оператор",
+//     PLANNER = "планер",
+//     UNIT = "юнит",
+//     CONTROL = "контролер",
+// }
 
 // хранить обрабатывать
 export enum UnitTypeEnum {
@@ -209,16 +234,7 @@ export enum TimeTypeEnum {
     retool = 'retool',
 }
 
-//  отклонения юнита от расписания
-export interface UnitExceptionItem {
-    id:number,
-    unitId:number, 
-    date:string,
-    type: TimeTypeEnum, 
-    timeStart:number,
-    timeFinish:number
-    
-}
+
 //  настройки системы
 export interface SettingsItem {
     timeStartWork:number, //  начало показа календаря

@@ -2,19 +2,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
-.container_team {
+.container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 300px;
+    width: 360px;
     height: auto;
     margin: 5px;
     background-color: $main_container_background_color;
     border-radius: $border-radius;
-    // background-color: #f0f0f0;
-     border: $border;
-    // border: 1px solid #ccc;
-    // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: $border;    
     box-shadow: $box-shadow;
     transition: box-shadow 0.3s ease;
     position: relative;
@@ -78,8 +75,6 @@
 
 
 
-
-
 .icon_del {
     width: 20px;
     height: 20px;
@@ -118,6 +113,5 @@
     right: 0;
     top: 0;
     cursor: pointer;
-    // width: 24px;
-    // height: 24px;
+   
 }

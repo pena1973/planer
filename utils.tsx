@@ -122,3 +122,21 @@ export function extractIdFromTeamNumber(teamNumber: string): number {
   const idPart = teamNumber.slice(-8);
   return parseInt(idPart, 10);
 }
+
+
+export function generateUniqueIdc(): number {
+  // Генерируем уникальное число на основе времени (в миллисекундах)
+  const timestamp = Date.now();  // Текущее время в миллисекундах
+
+  // Ограничиваем результат до 9 цифр (чтобы влезло в диапазон int)
+  const uniqueInt = timestamp % 1000000000;  // Берем последние 9 цифр
+
+  return uniqueInt;
+}
+
+
+export function generateUniqueId(): number {
+  const timestamp = Date.now(); // Получаем текущее время в миллисекундах
+  const randomFactor = Math.floor(Math.random() * 1000); // Добавляем случайное число для уникальности
+  return timestamp + randomFactor;
+}

@@ -10,6 +10,7 @@ import {
   UserItem,
   SettingsItem,
   ScheduleItem,
+  UnitActionItem,
   UnitExceptionItem,
   UnitLoadItem,
   TeamItem
@@ -28,7 +29,8 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 
 import {
   setTeam, setToken, setUser,
-  setUnitExceptions, setActions,
+  setUnitExceptions, setUnitActions,
+  setActions,
   setUOMs, setUnits, setTCards,
   setSettings, setSchedule,
   setUnitLoads, setSignedAgreement
@@ -317,7 +319,7 @@ export default function Index({ }: IndexProps) {
   // НАЧАЛЬАЯ ЗАГРУЗКА
   const downloadUoms = async () => {
     try {
-      const res = await fetch(`api/uoms-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/uoms-api?userId=${user.id}&teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -338,9 +340,7 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let uoms_ = receivedData.uoms as UOMItem[]
           dispatch(setUOMs(uoms_));
-          setMessage("Загружены единицы измерения")
-          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
-          // setdownloadedAllValue(downloadedAllValue+1);
+          setMessage("Загружены единицы измерения")          
         }
         else setMessage(receivedData.error);
       }
@@ -352,7 +352,7 @@ export default function Index({ }: IndexProps) {
   const downloadActions = async () => {
     // Загружаем классификатор действий
     try {
-      const res = await fetch(`api/actions-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/actions-api?userId=${user.id}&teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -373,9 +373,7 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let actions_ = receivedData.actions as ActionItem[]
           dispatch(setActions(actions_));
-          setMessage("Загружены действия")
-          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
-          //   setdownloadedAllValue(downloadedAllValue+1);
+          setMessage("Загружены действия")          
         }
         else setMessage(receivedData.error);
       }
@@ -387,7 +385,7 @@ export default function Index({ }: IndexProps) {
   const downloadUnits = async () => {
     // Загружаем классификатор действий
     try {
-      const res = await fetch(`api/units-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/units-api?userId=${user.id}&teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -422,7 +420,7 @@ export default function Index({ }: IndexProps) {
   const downloadUnutsExceptions = async () => {
     // Загружаем классификатор действий
     try {
-      const res = await fetch(`api/exceptions-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/exceptions-api?userId=${user.id}&teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -452,11 +450,44 @@ export default function Index({ }: IndexProps) {
     }
 
   }
+  const downloadUnutsActions = async () => {
+    // Загружаем классификатор действий
+    try {
+      const res = await fetch(`api/unit-actions-api?userId=${user.id}&teamId=${team.id}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+
+      } else {
+        const receivedData = await res.json();
+        if (receivedData.success) {
+          let unitActions = receivedData.exceptions as UnitActionItem[]
+          dispatch(setUnitActions(unitActions)); 
+          setMessage("Загружены действия юнитов")
+        }
+        else setMessage(receivedData.error);
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+
+  }
 
   // загружает активные карты  
   const downloadTCards = async () => {
     try {
-      const res = await fetch(`/api/tcards-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`/api/tcards-api?userId=${user.id}&teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -491,7 +522,7 @@ export default function Index({ }: IndexProps) {
   // загружает настройки отображения календаря
   const downloadSettings = async () => {
     try {
-      const res = await fetch(`api/settings-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/settings-api?teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -527,7 +558,7 @@ export default function Index({ }: IndexProps) {
   // загружает  расписание работы компании
   const downloadSchedule = async () => {
     try {
-      const res = await fetch(`api/schedule-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/schedule-api?userId=${user.id}&teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -562,7 +593,7 @@ export default function Index({ }: IndexProps) {
   const downloadLoads = async () => {
 
     try {
-      const res = await fetch(`/api/loads-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`/api/loads-api?userId=${user.id}&teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -608,6 +639,7 @@ export default function Index({ }: IndexProps) {
         await downloadUoms();
         await downloadActions();
         await downloadUnits();
+        await downloadUnutsActions();
         await downloadUnutsExceptions();
         await downloadSettings();        
         await downloadSchedule();

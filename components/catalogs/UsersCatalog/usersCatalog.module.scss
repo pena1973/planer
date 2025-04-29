@@ -6,214 +6,41 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: fit-content;
+    width: 360px;
     height: auto;
     margin: 5px;
     background-color: $main_container_background_color;
-    border-radius: $border-radius;
-    // background-color: #f0f0f0;
-     border: $border;
-    // border: 1px solid #ccc;
-    // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: $border-radius;    
+    border: $border;    
     box-shadow: $box-shadow;
     transition: box-shadow 0.3s ease;
-    position: relative;
+    
     padding: 5px;
     position: relative;
     color: $second_text_color;
     font-size: $header4_font_size;
 }
-
-.field_container {
-    width: 100%;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #ccc;
-    justify-content: center;
-}
-
-.time_container {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    justify-content: center;
-    // background-color: aquamarine;
-    padding-bottom: 5px;
-    // border-bottom: 1px solid #ccc;
-}
-
-.coment_container {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #ccc;
-    justify-content: center;
-    margin-top: 5px;
-}
-
-
-.time_input {
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-    width: 80px;
-}
-
-.team_input {
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
+.table_container{
     width: 100%;
 }
-.coment_input {
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
+///////////////
+._table{
     width: 100%;
-    min-height: 60px;
-    resize: none;
+    margin-bottom: 5px;
 }
-.coment_top {
-    min-width: 90px;
-
-    padding: 2px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-    text-align: center;
-}
-
-
-
-.title {
-    margin-top: 5px;
-    padding: 2px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-    // min-width: 202px;
-    text-align: center;
-    width: 100%;
-}
-
-.input_container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-}
-
-.breack_time {
-    width: 70px;
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-}
-
-.time_top {
-    min-width: 72px;
-
-    padding: 2px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-    text-align: center;
-}
-
-.weekend_top {
-
-    min-width: 72px;
-    padding: 2px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-    text-align: center;
-}
-
-.holiday_date {
-    width: 100px;
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-}
-
-.holiday_date_top {
-    min-width: 102px;
-    padding: 2px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-    text-align: center;
-}
-
-.work_date {
-    width: 100px;
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-}
-
-.date_top {
-    min-width: 72px;
-    padding: 2px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-    text-align: center;
-}
-
-.work_time {
-    width: 70px;
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: $second_text_color;
-    font-size: $header4_font_size;
-    font-weight: bold;
-}
-
-// .time_top {
-//     min-width: 72px;
-//     padding: 2px;
-//     font-size: 16px;
-//     font-weight: bold;
-//     text-align: center; 
-// }
-
-
-// .schedule_table{
-//     background-color: darkkhaki;
-//     width: 100%;
-// }
-
-// .schedule_td{
-//     text-align: center;
-// }
-
-
-
-
-
-
+._table thead th:nth-child(1) {
+    width: 29px;    
+  }
+._table thead th:nth-child(2) {
+     width: 100%;    
+  }
+  ._table thead th:nth-child(3) {
+    width: 80px;    
+  }
+  ._table tr td:nth-child(4) {
+    width: 20px;
+    text-align: center;    
+  }
 
 .icon_del {
     width: 20px;
@@ -232,13 +59,8 @@
     flex-direction: row;
     align-items: flex-end;
     justify-content: flex-end;
-    // border-top: 1px solid #ccc;
-    /* Серая граница */
-    // background-color: aquamarine;
-    width: calc(100% - 4px);
-    // position: absolute;
-    // right: 0;
-    // top: 0;
+    border-top: $border;
+    width: calc(100% - 4px);    
     overflow: hidden;
 }
 
@@ -259,6 +81,6 @@
     right: 0;
     top: 0;
     cursor: pointer;
-    width: 24px;
-    height: 24px;
+    // width: 24px;
+    // height: 24px;
 }

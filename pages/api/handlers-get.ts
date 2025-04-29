@@ -1,5 +1,5 @@
 
-import { Repository, In } from 'typeorm';
+import { Repository, In, Any } from 'typeorm';
 // tables
 import { UnitTable } from '@/pages/db/models/catalogs/units'
 import { TeamTable } from '@/pages/db/models/catalogs/teams'
@@ -14,9 +14,15 @@ import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
 import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule';
 import { SettingsTable } from '@/pages/db/models/plan/settings';
+
+import { UserTable } from '@/pages/db/models/catalogs/users';
+import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
+
+
+
 // types
 import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, StatusEnum, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem } from '@/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem } from '@/types';
 
 
 export async function getUOMs(
@@ -42,6 +48,7 @@ export async function getUOMs(
     .map(uom => {
       return {
         id: uom.id,
+        code: uom.code,
         title: uom.title,
       };
     });
@@ -69,6 +76,7 @@ export async function getActions(
     .map(action => {
       return {
         id: action.id,
+        code: action.code,
         title: action.title,
         interruptible: action.interruptible
       } as ActionItem;
@@ -81,7 +89,8 @@ export async function getActions(
 export async function getUnits(
   teamId: number,
   unitRepository: Repository<UnitTable>,
-  unitActionsRepository: Repository<UnitActionTable>): Promise<UnitItem[]> {
+  // unitActionsRepository: Repository<UnitActionTable>
+): Promise<UnitItem[]> {
   // Строим фильтр для поиска
   const filter: any = {};
   if (teamId) {
@@ -93,45 +102,47 @@ export async function getUnits(
     where: filter,  // Применяем фильтр к запросу
   });
 
-  if (!receivedUnits) return [] as UnitItem[]
+  // if (!receivedUnits) return [] as UnitItem[]
 
-  const unitIds = receivedUnits.map(unit => unit.id);
+  // const unitIds = receivedUnits.map(unit => unit.id);
 
-  const filter1: any = {};
-  if (unitIds.length > 0) {
-    filter1.unit_id = In(unitIds);  // Используем In() для фильтрации по массиву ID
-  }
+  // const filter1: any = {};
+  // if (unitIds.length > 0) {
+  //   filter1.unit_id = In(unitIds);  // Используем In() для фильтрации по массиву ID
+  // }
 
-  // Выполняем запрос с фильтрацией
-  const receivedActionsUnit = await unitActionsRepository.find({
-    where: filter1,  // Применяем фильтр к запросу
-  });
+  // // Выполняем запрос с фильтрацией
+  // const receivedActionsUnit = await unitActionsRepository.find({
+  //   where: filter1,  // Применяем фильтр к запросу
+  // });
 
   // console.log(receivedUnits);
 
   const units = receivedUnits
     .map(unit => {
 
-      const actions: UnitActionItem[] = receivedActionsUnit
-        .filter(unitAction => unitAction.unit_id === unit.id)
-        .map(unitAction => {
-          return ({
-            id: unitAction.id,
-            action: unitAction.action,
-            koef: unitAction.koef
-          })
-        })
+      // const actions: UnitActionItem[] = receivedActionsUnit
+      //   .filter(unitAction => unitAction.unit_id === unit.id)
+      //   .map(unitAction => {
+      //     return ({
+      //       id: unitAction.id,
+      //       action: unitAction.action,
+      //       koef: unitAction.koef
+      //     })
+      //   })
 
       return {
         id: unit.id,
+        idc: unit.idc,
         title: unit.title,
         code: unit.code,
-        actions: actions,
+        // actions: actions,
         retool: unit.retool,
         modified: false,
         belong: unit.belong as UnitBelongEnum,
         type: unit.type as UnitTypeEnum,
-        coment: unit.coment
+        coment: unit.coment,
+        activ: unit.activ
       };
     });
 
@@ -726,6 +737,36 @@ export async function getExceptions(
 
   return excertions;
 }
+export async function getUnitActions(
+  teamId: number,
+  unitActionsRepository: Repository<UnitActionTable>): Promise<UnitActionItem[]> {
+
+  // Строим фильтр для поиска
+  const filter: any = {};
+  if (teamId) {
+    filter.team_id = teamId;
+  }
+
+  const receivedUnitActions = await unitActionsRepository.find({
+    where: filter,  // Применяем фильтр к запросу
+    relations: ['unit'], // Добавляем связь с таблицей Unit
+  });
+
+  if (!receivedUnitActions) return [] as UnitActionItem[]
+
+  const unitActions = receivedUnitActions
+    .map(ac => {
+      return {
+        id: ac.id,
+        action: ac.action as ActionItem,
+        koef: ac.koef,
+        unitId: ac.unit_id,
+        unitIdc: ac.unit.idc,
+      } as UnitActionItem;
+    });
+
+  return unitActions;
+}
 
 export async function getTeamShedule(
   teamId: number,
@@ -870,4 +911,149 @@ export async function getTCardOperations(
   });
 
   return tCardOpers;
+}
+
+
+// export async function getUsersUnits(
+//   teamId:number,
+//   usersRepository: Repository<UserTable>,
+//   usersUnitsRepository: Repository<UserUnitTable>,
+//   unitsRepository: Repository<UnitTable>
+// ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
+
+
+//   // Шаг 1: Получаем всех  пользователей
+//   const activeUsers = await usersRepository.find({ where: { team_id: teamId } });
+
+//   // Если активные пользователи не найдены
+//   if (activeUsers.length === 0) {
+//     return {
+//       success: false,
+//       userUnits: [],
+//       message: 'Нет активных пользователей.',
+//     };
+//   }
+
+//   // Шаг 2: Получаем все юниты, сопоставленные с пользователями из таблицы users_units
+//   const usersUnits = await usersUnitsRepository.find({
+//     where: { user_id: In(activeUsers.map(user => user.id)), activ: true },
+//     relations: ['user', 'unit'], // Загружаем данные о пользователе и юните
+//   });
+
+//   // Если не найдено ни одного юнита
+//   if (usersUnits.length === 0) {
+//     return {
+//       success: true,
+//       userUnits: [],
+//       message: 'Нет сопоставленных юнитов для активных пользователей.',
+//     };
+//   }
+
+//   // Шаг 3: Преобразуем данные в формат UserUnitItem
+//   const userUnits: UserUnitItem[] = usersUnits.map(userUnit => ({
+//     id: userUnit.id,
+//     userId: userUnit.user_id,
+//     name: userUnit.name,
+//     unit:{
+//       id: userUnit.unit?.id,              // ID юнита
+//       title: userUnit.unit?.title,        // Название юнита
+//       code: userUnit.unit?.code || '',    // Код юнита (если есть)
+//       retool: userUnit.unit?.retool,      // Время на переналадку
+//       belong: userUnit.unit?.belong,      // Принадлежность юнита (enum)
+//       type: userUnit.unit?.type,          // Тип юнита (enum)
+//       coment: userUnit.unit?.coment,      // Комментарий юнита (если есть)
+//       activ: userUnit.unit?.activ,        // Статус активности
+//     }as UnitItem,
+
+//     dateStart: userUnit.dateStart.toISOString().split('T')[0],  // Преобразуем в строку (формат YYYY-MM-DD)
+//     dateFinish: userUnit.dateFinish.toISOString().split('T')[0], // Преобразуем в строку (формат YYYY-MM-DD)
+//     activ: userUnit.activ,
+//   } ));
+
+//   return {
+//     success: true,
+//     userUnits: userUnits,
+//     message: 'Данные успешно получены.',
+//   };
+// }
+
+export async function getUsersUnits(
+  teamId: number,
+  usersRepository: Repository<UserTable>,
+  usersUnitsRepository: Repository<UserUnitTable>,
+  unitsRepository: Repository<UnitTable>
+): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
+
+  try {
+    // Шаг 1: Получаем всех пользователей команды
+    const activeUsers = await usersRepository.find({ where: { team_id: teamId } });
+
+    // Если активные пользователи не найдены
+    if (activeUsers.length === 0) {
+      return {
+        success: false,
+        userUnits: [],
+        message: 'Нет активных пользователей.',
+      };
+    }
+
+    // Шаг 2: Используем левое соединение для получения данных юнитов для каждого пользователя
+    const usersUnits = await usersUnitsRepository.createQueryBuilder('uu')
+      .leftJoinAndSelect('uu.user', 'user') // Левое соединение с таблицей пользователей
+      .leftJoinAndSelect('uu.unit', 'unit') // Левое соединение с таблицей юнитов
+      .where('user.team_id = :teamId', { teamId }) // Фильтруем по teamId
+      .andWhere('uu.activ = true') // Только активные записи в users_units
+      .getMany();
+
+    // Шаг 3: Преобразуем данные в формат UserUnitItem
+    const userUnits: UserUnitItem[] = activeUsers.map(user => {
+      const userUnitData = usersUnits.filter(u => u.user_id === user.id);
+
+      // Если для пользователя нет юнита, возвращаем объект с null для юнита
+      if (userUnitData.length === 0) {
+        return {
+          id: user.id,
+          userId: user.id,
+          name: user.name,
+          unit: null,  // У юнита нет данных
+          // dateStart: '',
+          // dateFinish: '',
+          activ: false,
+        };
+      }
+
+      // Если для пользователя есть один или несколько юнитов
+      return userUnitData.map(userUnit => ({
+        id: userUnit.id,
+        userId: userUnit.user_id,
+        name: userUnit.name,
+        unit: {
+          id: userUnit.unit?.id,              // ID юнита
+          title: userUnit.unit?.title,        // Название юнита
+          code: userUnit.unit?.code || '',    // Код юнита (если есть)
+          retool: userUnit.unit?.retool,      // Время на переналадку
+          belong: userUnit.unit?.belong,      // Принадлежность юнита (enum)
+          type: userUnit.unit?.type,          // Тип юнита (enum)
+          coment: userUnit.unit?.coment,      // Комментарий юнита (если есть)
+          activ: userUnit.unit?.activ,        // Статус активности
+        } as UnitItem,
+        // dateStart: userUnit.dateStart.toISOString().split('T')[0],  // Преобразуем в строку (формат YYYY-MM-DD)
+        // dateFinish: userUnit.dateFinish.toISOString().split('T')[0], // Преобразуем в строку (формат YYYY-MM-DD)
+        activ: userUnit.activ,
+      }))[0];  // Мы можем получить несколько юнитов, но выбираем первый, если их несколько
+    }).flat();  // Преобразуем массив массивов в один массив объектов
+
+    return {
+      success: true,
+      userUnits: userUnits,
+      message: 'Данные успешно получены.',
+    };
+
+  } catch (error: any) {
+    return {
+      success: false,
+      userUnits: [],
+      message: `Ошибка при получении данных: ${error.message}`,
+    };
+  }
 }

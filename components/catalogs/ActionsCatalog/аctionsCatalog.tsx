@@ -33,44 +33,54 @@ export default function UOMSCatalog({
     })
 
 
+    const team = useSelector((state: RootState) => {
+        return state.catalogSlice.team;
+    })
+
+    const user = useSelector((state: RootState) => {
+        return state.authSlice.user;
+    })
+
+
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [actionsValue, setActionsValue] = useState([] as ActionItem[]);
-  
-    const downloadActions = async () => {
-        // Загружаем классификатор действий
-        try {
-          const res = await fetch(`api/actions-api?userId=${1}&teamId=${1}`,
-            {
-              method: 'get',
-              headers: new Headers({
-                // 'Authorization': 'Basic ' + token,
-                'Content-Type': 'application/json'
-              }),
-            }
-          );
-          if (res.status !== 200) {
-            const receivedData = await res.json();
-            let error = receivedData.error;
-            setMessage(error);
-            //  console.log(t('service.serverUnavailable') + res.status);
-            // setMessage(t('service.serverUnavailable') + res.status);
-    
-          } else {
-            const receivedData = await res.json();
-            if (receivedData.success) {
-              let actions_ = receivedData.actions as ActionItem[]             
-              setActionsValue(actions_); 
-              dispatch(setActions(actions_));
-            }
-            else setMessage(receivedData.error);
-          }
-        } catch (e: any) {
-          // setMessage(t('service.noConnection') + e.message)            
-        }
-    
-      }
+
+    // const downloadActions = async () => {
+    //     // Загружаем классификатор действий
+    //     try {
+    //         const res = await fetch(`api/actions-api?userId=${1}&teamId=${1}`,
+    //             {
+    //                 method: 'get',
+    //                 headers: new Headers({
+    //                     // 'Authorization': 'Basic ' + token,
+    //                     'Content-Type': 'application/json'
+    //                 }),
+    //             }
+    //         );
+    //         if (res.status !== 200) {
+    //             const receivedData = await res.json();
+    //             let error = receivedData.error;
+    //             setMessage(error);
+    //             //  console.log(t('service.serverUnavailable') + res.status);
+    //             // setMessage(t('service.serverUnavailable') + res.status);
+
+    //         } else {
+    //             const receivedData = await res.json();
+    //             if (receivedData.success) {
+    //                 let actions_ = receivedData.actions as ActionItem[]
+    //                 setActionsValue(actions_);
+    //                 dispatch(setActions(actions_));
+    //             }
+    //             else setMessage(receivedData.error);
+    //         }
+    //     } catch (e: any) {
+    //         // setMessage(t('service.noConnection') + e.message)            
+    //     }
+
+    // }
     useEffect(() => {
-        downloadActions()        
+        setActionsValue(actions);
+        // downloadActions()
     }, []);
 
     // колбеки кнопки
@@ -85,6 +95,9 @@ export default function UOMSCatalog({
         let action = actionsValue[indexToChange];
         let updatedAction = action;
         switch (field) {
+            case "code":
+                updatedAction = { ...action, code: value as string }
+                break;            
             case "interruptible":
                 updatedAction = { ...action, interruptible: value as boolean }
                 break;
@@ -120,6 +133,8 @@ export default function UOMSCatalog({
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
+                        userId: user.id,
+                        teamId: team.id,
                         actions: actionsValue
                     }),
                 }
@@ -162,36 +177,51 @@ export default function UOMSCatalog({
         setModified(false)
     };
 
-    let unitFocusActionValueReactNodes = actionsValue.map((elem, index) => (
+    let unitFocusActionValueReactNodes = actionsValue.map((action, index) => (
         (
             <tr key={index}>
                 <td>
-                    <Image className={styles.icon_del}
+                    <Image
+                    //  className={styles.icon_del}
                         src={del} alt="del" width={20} height={20}
                         onClick={() => deleteActionHandler(index)}
                     />
                 </td>
-
                 <td>
-                    <input className={styles.actions_title}
-                        id={"title" + elem.id}
+                    <input
+                        className={styles.actions_input}
+                        id={"code" + action.title}
                         autoComplete="off"
-                        value={elem.title} type="text"
+                        value={action.code} type="text"
+                        maxLength={6}
                         onChange={e => {
                             setModified(true);
-                            changeActionHandler(index, e.target.value,"title")
+                            changeActionHandler(index, e.target.value, "code")
+                        }} />
+                </td>
+                <td>
+                    <input 
+                    className={styles.actions_input}
+                    // className={styles.actions_title}
+                        id={"title" + action.id}
+                        autoComplete="off"
+                        value={action.title} type="text"
+                        onChange={e => {
+                            setModified(true);
+                            changeActionHandler(index, e.target.value, "title")
                         }} />
 
                 </td>
                 <td className={styles.actions_td}>
-                    <input className={styles.actions_interruptible}
-                        id={"interruptible" + elem.id}
+                    <input 
+                    // className={styles.actions_interruptible}
+                        id={"interruptible" + action.id}
                         autoComplete="off"
-                        checked={elem.interruptible}
+                        checked={action.interruptible}
                         type="checkbox"
                         onChange={e => {
                             setModified(true);
-                            changeActionHandler(index, e.target.checked,"interruptible")
+                            changeActionHandler(index, e.target.checked, "interruptible")
                         }} />
 
                 </td>
@@ -200,25 +230,26 @@ export default function UOMSCatalog({
     ))
 
     return (
-        <div className={styles.container_actions}>
+        <div className={styles.container}>
             <Image className={styles.icon_cancel}
                 src={cancel}
                 alt="arrow" width={24} height={24}
                 onClick={() => { cancelActionsHandler() }}
             />
-            <table >
+            <table className={styles._table}>
                 <thead>
                     <tr>
-                        <th className={styles.icon_del_top}></th>
-                        <th className={styles.actions_title_top}>Название</th>
-                        <th className={styles.actions_interruptible_top}>Можно прервать</th>
+                        <th ></th>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Interaptible</th>
                     </tr>
                 </thead>
                 <tbody>
                     {unitFocusActionValueReactNodes}
                 </tbody>
             </table>
-            <div className={styles.container_buttons_row}>
+            <div className={styles.container_buttons_row_table}>
                 <div className={styles.container_icon_edit_save}>
                     <Image className={styles.icon_edit_save}
                         src={add}

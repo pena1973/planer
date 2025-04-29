@@ -81,28 +81,28 @@ export default function Resources({ }: ResourcesProps) {
         <div className="container_global_right">
           {/* компания */}
           {resourcePoint === 1 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Команда</div>
-            Номер команды
-            И пользователи команды с назначенными ролями
+            <div className="catalog_title"> Команда</div>          
             <Team
               user={user}
               team={team}
               setMessage={setMessage}              
             />
+            <pre/>
             <UsersCatalog
-              users={[] as UserItem[]}
+            user={user}
+              team={team}              
               setMessage={setMessage}
 
             />
           </div>}
           {/* расписание */}
           {resourcePoint === 2 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Расписание работы предприятия</div>
+            <div className="catalog_title"> Расписание работы команды</div>
             <TeamSchedule setMessage={setMessage} />
           </div>}
           {/* Действия */}
           {resourcePoint === 3 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Каталог производственных операций предприятия</div>
+            <div className="catalog_title"> Каталог производственных операций команды</div>
             <ActionsCatalog setMessage={setMessage} />
           </div>}
           {/* ЕдИзм */}
@@ -113,7 +113,7 @@ export default function Resources({ }: ResourcesProps) {
             </div>}
           {/* Юниты */}
           {resourcePoint === 5 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Настройки юнитов</div>
+            <div className="catalog_title"> Каталог производственных центров (юнитов) и настройки</div>
             <UnitsCatalog setMessage={setMessage} />
           </div>}
           {/* Визуальные настройки календаря */}

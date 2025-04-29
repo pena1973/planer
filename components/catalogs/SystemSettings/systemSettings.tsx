@@ -29,7 +29,12 @@ export default function Settings({ setMessage }: SettingsProps) {
     const settings = useSelector((state: RootState) => {
         return state.catalogSlice.settings;
     })
-
+    const team = useSelector((state: RootState) => {
+        return state.catalogSlice.team;
+    })
+    const user = useSelector((state: RootState) => {
+        return state.authSlice.user;
+    })
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [isQualControlValue, setIsQualControlValue] = useState(true);
     // const [showHolidayValue, setShowHolidayValue] = useState(true);
@@ -50,7 +55,7 @@ export default function Settings({ setMessage }: SettingsProps) {
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/settings-api?userId=${1}&teamId=${1}`,
+            const res = await fetch(`api/settings-api`,
                 {
                     method: 'post',
                     headers: new Headers({
@@ -58,6 +63,8 @@ export default function Settings({ setMessage }: SettingsProps) {
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
+                        userId:user.id,
+                        teamId:team.id,
                         settings: settings_,
                     }),
                 }
@@ -94,7 +101,7 @@ export default function Settings({ setMessage }: SettingsProps) {
 
 
     return (
-        <div className={styles.container_schedule}>
+        <div className={styles.container}>
             <Image className={styles.icon_cancel}
                 src={cancel}
                 alt="arrow" width={24} height={24}
@@ -105,7 +112,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                 <div className={styles.title}>Контроль качества (ОТК)</div>
                 <div className={styles.input_container}>
                     <input
-                        className={styles.time_input}
+                        
                         id="showWeekend"
                         autoComplete="off"
                         checked={isQualControlValue}
@@ -118,22 +125,6 @@ export default function Settings({ setMessage }: SettingsProps) {
                 </div>
             </div>
 
-            {/* <div className={styles.field_container}>
-                <div className={styles.title}>Показывать праздники</div>
-                <div className={styles.input_container}>
-                    <input
-                        className={styles.time_input}
-                        id="showWeekend"
-                        autoComplete="off"
-                        checked={showHolidayValue}
-                        type="checkbox"
-                        onChange={e => {
-                            setModified(true);
-                            setShowHolidayValue(!showHolidayValue)
-                        }}
-                    />
-                </div>
-            </div> */}
             <div className={styles.container_buttons_row}>
                 <div className={styles.container_icon_edit_save}>
                     <Image className={styles.icon_edit_save}

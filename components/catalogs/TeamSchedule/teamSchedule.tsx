@@ -34,7 +34,13 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
     const schedule = useSelector((state: RootState) => {
         return state.catalogSlice.schedule;
     })
+    const team = useSelector((state: RootState) => {
+        return state.catalogSlice.team;
+    })
 
+    const user = useSelector((state: RootState) => {
+        return state.authSlice.user;
+    })
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
 
@@ -68,7 +74,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
     const saveScheduleHandler = async () => {
         setMessage("");
         let schedule = {
-            team: { id: 1, title: teamValue, coment: "", prefix: prefixValue } as TeamItem,
+            team: team as TeamItem,
             timeStartWork: timeStartWorkValue,
             timeFinishWork: timeFinishWorkValue,
             breaks: breaksValue,
@@ -81,7 +87,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/schedule-api?userId=${1}&teamId=${1}`,
+            const res = await fetch(`api/schedule-api?userId=${user.id}&teamId=${team.id}`,
                 {
                     method: 'post',
                     headers: new Headers({
@@ -309,7 +315,6 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
 
                 <td >
                     <input
-                        className={styles.breack_time}
                         id={`timeStart-${index}`}
                         autoComplete="off"
                         value={elem.timeStart !== undefined
@@ -328,7 +333,6 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </td>
                 <td  >
                     <input
-                        className={styles.breack_time}
                         id={`timeFinish-${index}`}
                         autoComplete="off"
                         value={elem.timeFinish !== undefined
@@ -381,7 +385,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </td>
                 <td>
                     <input
-                        className={styles.work_date}
+                        // className={styles.work_date}
                         id={`date-${index}`}
                         autoComplete="off"
                         value={elem.date ? new Date(elem.date).toLocaleDateString('en-CA') : ""}
@@ -395,7 +399,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </td>
                 <td>
                     <input
-                        className={styles.work_time}
+                        // className={styles.work_time}
                         id={`timeStart-${index}`}
                         autoComplete="off"
                         value={elem.timeStart !== undefined
@@ -411,7 +415,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </td>
                 <td>
                     <input
-                        className={styles.work_time}
+                        // className={styles.work_time}
                         id={`timeFinish-${index}`}
                         autoComplete="off"
                         value={elem.timeFinish !== undefined
@@ -443,7 +447,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
 
                 <td >
                     <input
-                        className={styles.holiday_date}
+                        // className={styles.holiday_date}
                         id={`date-${index}`}
                         autoComplete="off"
                         value={elem ? (new Date(elem)).toLocaleDateString('en-CA') : ""}
@@ -462,7 +466,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
     ))
 
     return (
-        <div className={styles.container_schedule}>
+        <div className={styles.container}>
             <Image className={styles.icon_cancel}
                 src={cancel}
                 alt="arrow" width={24} height={24}
@@ -470,31 +474,10 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
             />
 
             <div className={styles.field_container}>
-                {/* <div className={styles.title}>Команда</div>
-                <input className={styles.team_input}
-                    id={"team"}
-                    autoComplete="off"
-                    value={teamValue} type="text"
-                    onChange={e => {
-                        setModified(true);
-                        changeHandler(e.target.value, "team")
-                    }} />
-                <div className={styles.prefix_container}>
-                    <div className={styles.time_top}>Префикс</div>
-                    <input className={styles.prefix_input}
-                        id={"prefix"}
-                        autoComplete="off"
-                        maxLength={3}
-                        value={prefixValue} type="text"
-                        onChange={e => {
-                            setModified(true);
-                            changeHandler(e.target.value, "prefix")
-                        }} />
-                </div> */}
                 <div className={styles.title}>Рабочие часы </div>
                 <div className={styles.time_container} >
                     <div className={styles.input_container}>
-                        <div className={styles.time_top}>Начало</div>
+                        <div className={styles.title}>Начало</div>
                         <input
                             className={styles.time_input}
                             id="timeStart"
@@ -512,7 +495,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                         />
                     </div>
                     <div className={styles.input_container}>
-                        <div className={styles.time_top}>Конец</div>
+                        <div className={styles.title}>Конец</div>
                         <input
                             className={styles.time_input}
                             id="timeFinish"
@@ -529,26 +512,34 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                             }}
                         />
                     </div>
-
-
-
+                </div>
+            </div>
+            <div className={styles.field_container}>
+                <div className={styles.title}>Тайм зона</div>
+                <div className={styles.time_container} >
+                    <DropdownSelectTimeZone
+                        onSelect={(value) => {
+                            changeHandler(value, "timeZone");
+                        }}
+                        selectedValue={timeZoneValue || null}
+                    />
                 </div>
             </div>
             <div className={styles.field_container}>
                 <div className={styles.title}>Перерывы рабочего дня</div>
-                <table>
+                <table className={styles._table}>
                     <thead>
                         <tr>
-                            <th className={styles.icon_del_top}></th>
-                            <th className={styles.time_top}>начало</th>
-                            <th className={styles.time_top}>конец</th>
+                            <th ></th>
+                            <th >Start</th>
+                            <th >Finish</th>
                         </tr>
                     </thead>
                     <tbody>
                         {breaksValueReactNodes}
                     </tbody>
                 </table>
-                <div className={styles.container_buttons_row}>
+                <div className={styles.container_buttons_row_table}>
                     <div className={styles.container_icon_edit_save}>
                         <Image className={styles.icon_edit_save}
                             src={add}
@@ -561,12 +552,19 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
 
             <div className={styles.field_container}>
                 <div className={styles.title}>Выходные</div>
-                <table >
+                <table className={styles._table}>
+                    <thead>
+                        <tr>
+                            <th ></th>
+                            <th >Week day</th>
+
+                        </tr>
+                    </thead>
                     <tbody>
                         {weekendsValueReactNodes}
                     </tbody>
                 </table >
-                <div className={styles.container_buttons_row}>
+                <div className={styles.container_buttons_row_table}>
                     <div className={styles.container_icon_edit_save}>
                         <Image className={styles.icon_edit_save}
                             src={add}
@@ -578,15 +576,19 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
             </div>
             <div className={styles.field_container}>
                 <div className={styles.title}>Праздники (даты)</div>
-                <table >
-                    <thead>
 
+                <table className={styles._table}>
+                    <thead>
+                        <tr>
+                            <th ></th>
+                            <th >Date</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {holidaysValueReactNodes}
                     </tbody>
                 </table>
-                <div className={styles.container_buttons_row}>
+                <div className={styles.container_buttons_row_table}>
                     <div className={styles.container_icon_edit_save}>
                         <Image className={styles.icon_edit_save}
                             src={add}
@@ -598,13 +600,13 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
             </div>
             <div className={styles.field_container}>
                 <div className={styles.title}>Дополнительное рабочее время (даты и часы)</div>
-                <table >
+                <table className={styles._table}>
                     <thead>
                         <tr>
-                            <th className={styles.icon_del_top}></th>
-                            <th className={styles.date_top}>Дата</th>
-                            <th className={styles.time_top}>Начало</th>
-                            <th className={styles.time_top}>Конец</th>
+                            <th></th>
+                            <th >Date</th>
+                            <th >Start</th>
+                            <th >Finish</th>
 
                         </tr>
                     </thead>
@@ -612,7 +614,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                         {workdaysValueReactNodes}
                     </tbody>
                 </table>
-                <div className={styles.container_buttons_row}>
+                <div className={styles.container_buttons_row_table}>
                     <div className={styles.container_icon_edit_save}>
                         <Image className={styles.icon_edit_save}
                             src={add}
@@ -623,16 +625,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </div>
             </div>
 
-            <div className={styles.field_container}>
-                <div className={styles.title}>Тайм зона</div>
-                <DropdownSelectTimeZone
-                    onSelect={(value) => {
-                        changeHandler(value, "timeZone");
-                    }}
-                    selectedValue={timeZoneValue || null}
-                />
 
-            </div>
 
             <div className={styles.container_buttons_row}>
                 <div className={styles.container_icon_edit_save}>
