@@ -56,7 +56,6 @@ export async function createNewTeam(
   }
 }
 
-
 export async function createNewUser(
   login: string,
   pass: string,
@@ -70,7 +69,7 @@ export async function createNewUser(
   const newUser = new UserTable();
   newUser.login = login;
   newUser.pass = await hashFoo(pass);
-  newUser.isAdmin = isAdmin ? 'true' : 'false';
+  newUser.isAdmin = isAdmin;
   newUser.name = name;
   newUser.team_id = teamId;
   newUser.locale = 'ru';
@@ -130,12 +129,13 @@ export async function getUser(
     pass: userRecord.pass, // Можно исключить, если не хотите передавать пароль
     name: userRecord.name, // Или другое поле, которое представляет собой никнейм
     locale: userRecord.locale,
-    isAdmin: userRecord.isAdmin === 'true' // Конвертируем строку в булево значение
+    isAdmin: userRecord.isAdmin // Конвертируем строку в булево значение
   };
 
   // Возвращаем результат
   return { success: true, user, message: '' };
 }
+
 export async function isUserExist(
   login: string,
   usersRepository: Repository<UserTable>
@@ -150,6 +150,7 @@ export async function isUserExist(
   return !(!userRecord)
 
 }
+
 export async function getTeam(
   teamId: number,
   teamsRepository: Repository<TeamTable>
@@ -178,8 +179,7 @@ export async function getTeam(
   };
 
 }
-
-// 
+ 
 export async function getLastAgreement(
   userId: number,
   userAgreeRepository: Repository<UserAgreeTable>,

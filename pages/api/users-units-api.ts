@@ -8,21 +8,21 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 import { UnitTable } from '../db/models/catalogs/units';
 
 import { Repository } from 'typeorm';
-import { TeamItem, UserItem } from '@/types';
+import { UserUnitItem, UserItem } from '@/types';
 import { sign } from 'jsonwebtoken';
 // import { getUser, createNewTeam, createNewUser, getTeam, getLastAgreement } from './handlers-auth';  // расчеты
-import { getUsersUnits } from './handlers-get';  // расчеты
+import { getUsersUnits, getUsers } from './handlers-get';  // расчеты
+import { updateUsersUnits, updateUsers } from './handlers-update';  // расчеты
+import { deleteUsers } from './handlers-delete';  // расчеты
 
 import { text } from 'stream/consumers';
 
-
 interface RequestBody {
-  login: string,
-  pass: string,
-  teamNumber: string,
-  createTeam: boolean,
-  nickname: string,
+  userId: number,
+  teamId: number,
+  users_units: UserUnitItem[];
 }
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -36,90 +36,112 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const unitsRepository = dbConnection.getRepository(UnitTable);
 
 
-    // userId, teamId в любом случае
-    const { userId, teamId } = req.query;
-
 
     switch (req.method) {
 
       case 'GET':
-        //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
-        const resUserUnits = await getUsersUnits(
-          Number(teamId),
-            usersRepository,
-            usersUnitsRepository,
-            unitsRepository
-            // Number(teamId), actionsRepository
-          )
 
-        if (!resUserUnits.success) {
+        // userId, teamId в любом случае
+        const { userId: getUserId, teamId: getTeamId } = req.query;
+
+        //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
+        const resUserUnits_ = await getUsersUnits(
+          Number(getTeamId),
+          usersRepository,
+          usersUnitsRepository,
+          unitsRepository
+        )
+
+        if (!resUserUnits_.success) {
           res.status(200).json({
-            success: false,           
-            message: resUserUnits.message,
+            success: false,
+            message: resUserUnits_.message,
           });
           ;
         }
         res.status(200).json({
           success: true,
-          users_units: resUserUnits.userUnits,
-          message: resUserUnits.message,
+          users_units: resUserUnits_.userUnits,
+          message: resUserUnits_.message,
         });
 
 
         break;
-      // регистер
-      // case 'POST':
-      //   // Извлекаем данные из тела запроса
-      //   const { login, pass } = req.body as RequestBody;
 
-      //   const resUser = await getUser(login, pass, usersRepository)
-      //   if (!resUser.success) {
-      //     res.status(200).json({
-      //       success: false,
-      //       message: resUser.message,
-      //     });
-      //     ;
-      //   }
-      //   const user = resUser.user as UserItem;
+      case 'POST':
+        const { users_units, userId, teamId } = req.body as RequestBody;
 
-      //   const resTeam = await getTeam(user.id, teamsRepository)
+        // СПИСОК СООТВЕТСТВИЙ 
+        const resUserUnits = await updateUsersUnits(
+          usersUnitsRepository,
+          users_units,
+          teamId
+        );
+        if (!resUserUnits.success) {
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUserUnits.message });
+          return;
+        }
 
-      //   if (!resTeam.success) {
-      //     res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUser.message });
-      //     break;
-      //   }
+        const savedUsersUnits = resUserUnits.savedUsersUnits as UserUnitTable[];
 
-      //   const team = resTeam.team;
+        // Получаем всех пользователей для данной команды
+        const resUsers = await getUsers(teamId, usersRepository);
 
-      //   //  юзер получен проверяю актуальное соглашение
-      //   const resAgreement = await getLastAgreement(user.id, userAgreeRepository, agreementRepository)
-      //   //  { text: string, signed: boolean, dateSigned?: string, message?: string }> 
+        if (!resUsers.success) {
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUsers.message });
+          return;
+        }
 
-      //   const signed = resAgreement.signed;
-      //   const agreementText = resAgreement.agreementText;
-      //   const dateSigned = signed ? resAgreement.dateSigned : null;
-      //   const agreementId = resAgreement.agreementId;
+        // Все текущие юзеры
+        const users = resUsers.users as UserItem[];
 
-      //   //  юзер получен генерю токен
-      //   const token = sign({ data: login }, String(process.env.JWTSECRET), { expiresIn: '24h' });
+        // Фильтруем пользователей, которых нет в списке userUnits и исключаем пользователей с isAdmin === true
+        const usersToUnactive = users.filter(user =>
+          !savedUsersUnits.some(saved => saved.user_id === user.id) && user.isAdmin == false
+        );
 
-      //   // отправляем ответ
-      //   res.status(200).json({
-      //     success: true,
-      //     team: team,
-      //     token: token,
-      //     user: user,
-      //     agreementText: agreementText,
-      //     agreementId: agreementId,
-      //     signed: signed,
-      //     dateSigned: dateSigned,
-      //   });
-      //   break;
+        // Преобразуем пользователей в массив объектов с active = false
+        const usersToUnactive_ = usersToUnactive.map(user => {return{...user, active: false}});
+        
+        // let message = '';
+        // let remainingUsers: UserUnitTable[] = [];
+
+        // Делаем удаленных юзеров неактивными
+        if (usersToUnactive_.length > 0) {
+          const resUsersDel = await updateUsers(usersRepository, usersToUnactive_, teamId)
+
+          if (!resUsersDel.success) {
+            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUsersDel.message });
+            return;
+          }
+
+          // const savedUsersUnits = resUsersDel.savedUsers as UserTable[];
+          // неактивных никуда не передаем, просто помечаем их как неактивные
+        }
+        // Преобразуем оставшихся пользователей в необходимый формат для ответа
+        const remainingUsers_ = savedUsersUnits
+          .map(u => ({
+            id: u.id,
+            userId: u.user_id,
+            name: u.user?.name,
+            unit: u.unit,
+            active: u.active,
+            unitId: u.unit_id,
+          } as UserUnitItem));
+
+        // отправляем ответ
+        res.status(200).json({
+          success: true,
+          users_units: remainingUsers_,
+          message: "",  // Сообщение об удалении
+        });
+        break;
+
       default:
         res.status(405).end(); // Метод не поддерживается
     }
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (login-api):', error);
+    console.error('Ошибка подключения или выполнения запроса (unit-users-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }

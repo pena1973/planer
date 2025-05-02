@@ -12,9 +12,6 @@ export class UserUnitTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
-  @Column({ default: "" }) //  имя юзера
-  name!: string;
-
   @ManyToOne(() => UserTable, { eager: true })
   @JoinColumn({ name: 'user_id' })
   user!: UserTable;
@@ -30,13 +27,14 @@ export class UserUnitTable {
  
   @ManyToOne(() => UnitTable, { eager: true, nullable: true })
   @JoinColumn({ name: 'unit_id' }) // Указываем внешний ключ для поля unit_id
-  unit?: UnitTable;  // Ссылка на UnitTable, которая будет сгенерирована TypeORM
+  unit?: UnitTable|null;  // Ссылка на UnitTable, которая будет сгенерирована TypeORM
 
   @Column({ nullable: true })
-  unit_id?: number;  // unit_id теперь является необязательным и будет генерироваться автоматически
+  unit_id?: number|null;  // unit_id теперь является необязательным и будет генерироваться автоматически
+    
 
   @Column({type: 'boolean', default: false })
-  activ!: boolean; //  запись действующая
+  active!: boolean; //  запись действующая
 
 }
 

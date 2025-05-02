@@ -1,6 +1,13 @@
 @import '@/styles/colors.scss';
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
+.dropdownContainer{
+    display: flex; /* Используем flexbox для выравнивания */
+    align-items: center; /* Вертикальное выравнивание по центру */
+    justify-content: center; /* Горизонтальное выравнивание по центру */
+    width: 100%; /* Ширина контейнера */
+    height: 100%; /* Высота контейнера */    
+}
 .type_select {
     // flex: 1; /* Каждый элемент занимает равное пространство */
     padding: 1px; /* Внутренние отступы для инпута */

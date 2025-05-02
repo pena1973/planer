@@ -81,11 +81,11 @@ export interface UnitItem {
     code: string, // для синхронизации , заполнение обязательно и должен быть уникален
     // actions: UnitActionItem[],
     retool: number, // общее время на переналадку станка между каждой операцией  в минутах
-    modified: boolean, // указание что модифицирована и не сохранена
+    modified?: boolean, // указание что модифицирована и не сохранена
     belong: UnitBelongEnum,
     type: UnitTypeEnum,
     coment: string,
-    activ:boolean, 
+    active:boolean, 
 }
 
 export interface UnitKPIItem {
@@ -125,8 +125,8 @@ export interface UserItem {
     pass: string, 
     name: string,
     locale: string,
-    isAdmin:boolean,
-    activ:boolean 
+    isAdmin:boolean,   
+    active?:boolean, 
 }
 
 //  users-units

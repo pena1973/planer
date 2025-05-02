@@ -26,16 +26,16 @@ export class UserTable {
   locale!: string;
 
   @Column({default:false})
-  isAdmin!: string;
-
+  isAdmin!: boolean;
+  
   @Column({default:false})
   confirmed!: boolean; //  е мейл подтвержден
 
   @Column({default:""})
   coment!: string;
 
-  @Column({ default: false })
-  activ!: boolean; //  запись действующая
+  @Column({ default: true })
+  active!: boolean; //  запись действующая
   
   @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом

@@ -21,11 +21,11 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 
 
 // types
-import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
+import { UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
 import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem } from '@/types';
 
 
-// 
+// НАСТРОЙКИ
 export async function updateSettings(
   settingsRepository: Repository<SettingsTable>,
   settings: SettingsItem,
@@ -37,12 +37,12 @@ export async function updateSettings(
 
   if (!existingSetting) {
     // Если расписания нет, создаем новое
-    const newSettings = settingsRepository.create({      
+    const newSettings = settingsRepository.create({
       team: { id: teamId }, // Вместо team_id передаем объект TeamTable
       timeStartWork: settings.timeStartWork,
       timeFinishWork: settings.timeFinishWork,
-      showWeekend: settings.showWeekend,      
-      showHoliday: settings.showHoliday,      
+      showWeekend: settings.showWeekend,
+      showHoliday: settings.showHoliday,
       isQualControl: settings.isQualControl,
     });
 
@@ -65,7 +65,7 @@ export async function updateSettings(
   }
 }
 
-// 
+// ЕДИНИЦЫ ИЗМЕРЕНИЯ
 export async function updateUOMS(
   uomsRepository: Repository<UOMsTable>,
   uoms: UOMItem[],
@@ -98,7 +98,7 @@ export async function updateUOMS(
   // Добавляем новые единицы измерения
   const newUOMS = uomsToAdd.map(uom => {
     return uomsRepository.create({
-      code:uom.code,
+      code: uom.code,
       title: uom.title,
       team_id: teamId,
     });
@@ -112,8 +112,8 @@ export async function updateUOMS(
   const updatedUOMS = uomsToUpdate.map(uom => {
     const existingUOM = existingUOMS.find(existingUOM => existingUOM.id === uom.id);
     if (existingUOM) {
-      existingUOM.title = uom.title; 
-      existingUOM.code = uom.code; 
+      existingUOM.title = uom.title;
+      existingUOM.code = uom.code;
       return uomsRepository.create(existingUOM);
     }
     return null;
@@ -189,8 +189,8 @@ export async function updateActions(
   // Добавляем новые стадии
   const newAction = actionToAdd.map(action => {
     return actionsRepository.create({
-      code:action.code,
-      title: action.title,      
+      code: action.code,
+      title: action.title,
       interruptible: action.interruptible,
       team_id: team_id,
     });
@@ -205,7 +205,7 @@ export async function updateActions(
     const existingAction = existingActions.find(existingAction => existingAction.id === action.id);
     if (existingAction) {
       existingAction.code = action.code,
-      existingAction.title = action.title; // Обновляем нужные поля
+        existingAction.title = action.title; // Обновляем нужные поля
       existingAction.interruptible = action.interruptible; // Обновляем нужные поля
       return actionsRepository.create(existingAction);
     }
@@ -249,7 +249,6 @@ export async function updateActions(
   return { success: true, savedActions: savedActions }
 }
 
-
 // ЮНИТЫ
 export async function updateUnits(
   unitRepository: Repository<UnitTable>,
@@ -290,7 +289,7 @@ export async function updateUnits(
       coment: unit.coment,
       belong: unit.belong,
       type: unit.type,
-      idc:unit.idc
+      idc: unit.idc
     });
   });
 
@@ -486,7 +485,7 @@ export async function updateExceptions(
       timeFinish: unitException.timeFinish,
       unit_id: unitException.unitId,
       unit_idc: unitException.unitIdc,
-      team_id: teamId,      
+      team_id: teamId,
     });
   });
   let savedNewUnitExceptions = [] as UnitExceptionTable[]
@@ -542,4 +541,181 @@ export async function updateExceptions(
     }
   }
   return { success: true, savedUnitExceptions: savedUnitExceptions }
+}
+
+
+// НАЗНАЧЕНИЯ ЮНИТА ПОЛЬЗОВАТЕЛЮ
+export async function updateUsersUnits(
+  usersUnitsRepository: Repository<UserUnitTable>,
+  users_units: UserUnitItem[],  // Новый массив юнитов для пользователей
+  teamId: number
+) {
+  // Получаем все существующие назначения юнитов в базе
+  const existingUsersUnits = await usersUnitsRepository.find({ where: { team_id: teamId } });
+
+  // 1. Найдём назначения юнитов, которые нужно удалить
+  const usersUnitsToDelete = existingUsersUnits.filter(existingUserUnit =>
+    !users_units.some(userUnit => userUnit.id === existingUserUnit.id)  // Сравниваем по id
+  );
+
+  // 2. Найдём назначения юнитов, которые нужно добавить
+  const usersUnitsToAdd = users_units.filter(userUnit =>
+    !existingUsersUnits.some(existingUserUnit => existingUserUnit.id === userUnit.id)  // Сравниваем по id
+  );
+
+  // 3. Найдём назначения юнитов, которые нужно обновить
+  const usersUnitsToUpdate = users_units.filter(userUnit =>
+    existingUsersUnits.some(existingUserUnit => existingUserUnit.id === userUnit.id)  // Сравниваем по id
+  );
+
+  // Удаляем старые назначения юнитов
+  if (usersUnitsToDelete.length > 0) {
+    await usersUnitsRepository.remove(usersUnitsToDelete);
+  }
+
+  // Добавляем новые назначения юнитов
+  const newUsersUnits = usersUnitsToAdd.map(userUnit => {
+    return usersUnitsRepository.create({
+      user_id: userUnit.userId,        // Обязательно указываем user_id
+      team_id: teamId,                 // Обязательно указываем team_id
+      unit_id: userUnit.unit ? userUnit.unit.id : null,  // Если unit существует, указываем его id, если нет - null
+      active: userUnit.active,
+    });
+  });
+
+  let savedNewUsersUnits = [] as UserUnitTable[];
+  if (newUsersUnits.length > 0) savedNewUsersUnits = await usersUnitsRepository.save(newUsersUnits);
+  if (!savedNewUsersUnits) return { success: false, message: "Не удалось сохранить новые назначения юнитов" };
+
+  // Обновляем существующие назначения юнитов
+  const updatedUsersUnits = usersUnitsToUpdate.map(userUnit => {
+    const existingUserUnit = existingUsersUnits.find(existingUserUnit => existingUserUnit.id === userUnit.id);
+
+    if (existingUserUnit) {
+
+      if (userUnit.unit?.id) {
+        return {
+          id: userUnit.id,
+          unit_id: userUnit.unit.id,
+          active: userUnit.active,
+        }
+      }
+      else {
+        return {
+          id: userUnit.id,
+          unit_id: null,
+          active: userUnit.active,
+        }
+      }
+      // Возвращаем обновленный объект
+    } else
+      return null;  // Возвращаем null, если соответствующая запись не найдена
+
+  }).filter(userUnit => userUnit !== null);  // Отфильтровываем null значения
+
+  // Сохраняем обновленные записи в базе данных
+  let savedUpdatedUsersUnits = [] as UserUnitTable[];
+  if (updatedUsersUnits.length > 0) savedUpdatedUsersUnits = await usersUnitsRepository.save(updatedUsersUnits);
+  if (!savedUpdatedUsersUnits) return { success: false, message: "Не удалось обновить назначения юнитов" };
+  //  получаем полные записи UserUnitTable для обновленных назначений
+
+  // Получаем полные записи UserUnitTable для обновленных назначений
+  savedUpdatedUsersUnits = await usersUnitsRepository.find({
+    where: { id: In(savedUpdatedUsersUnits.map(unit => unit.id)) }, // Получаем только обновленные записи
+    relations: ['unit', 'user'], // Загружаем связь с таблицей UnitTable
+  });
+
+  // Все назначения юнитов сохранены, проверка
+  let error = "";
+  const savedUsersUnits = [...savedNewUsersUnits, ...savedUpdatedUsersUnits] as UserUnitTable[];
+
+  // Проверка, что количество назначений совпадает
+  if (savedUsersUnits.length > 0 && users_units.length !== savedUsersUnits.length) {
+    error = `Не удалось сохранить назначения юнитов`;
+    console.log(error);
+    return { success: false, message: error };
+  }
+
+  // Проверка, что все объекты имеют сгенерированный id
+  if (savedUsersUnits.length > 0) {
+    savedUsersUnits.forEach((userUnit, index) => {
+      if (userUnit.id) {
+        console.log(`Назначение юнита ${index + 1} успешно сохранено с id: ${userUnit.id}`);
+      } else {
+        error = `Ошибка при сохранении назначения юнита ${index + 1}`;
+        console.log(error);
+        return { success: false, message: error };
+      }
+    });
+  } else {
+    error = `Не удалось сохранить назначения юнитов`;
+    console.log(error);
+    return { success: false, message: error };
+  }
+
+  return { success: true, savedUsersUnits: savedUsersUnits };
+}
+
+
+// Пользователи  снимаю отметку активности
+export async function updateUsers(
+  usersRepository: Repository<UserTable>,
+  users: UserItem[],
+  teamId: number
+) {
+
+  // СПИСОК ДЕЙСТВИЙ в базе
+  const existingUsers = await usersRepository.find({ where: { team_id: teamId } });
+
+  // 3. Найдём существующие  для обновления
+  const usersToUpdate = users.filter(user =>
+    existingUsers.some(existingUsers => existingUsers.id === user.id) // Сравниваем id для существующих стадий
+  );
+
+
+  // Обновляем существующие 
+  const updatedUsers = usersToUpdate.map(user => {
+    const existingUser = existingUsers.find(existingUser => existingUser.id === user.id);
+    if (existingUser) {
+      existingUser.active = user.active === true; // Обновляем нужные поля
+
+      return usersRepository.create(existingUser);
+    }
+    return null;
+  }).filter(user => user !== null);
+
+  let savedUpdatedUsers = [] as UserTable[]
+  if (updatedUsers.length > 0) savedUpdatedUsers = await usersRepository.save(updatedUsers);
+  if (!savedUpdatedUsers) return { success: false, message: "Не удалось сохранить юзеров " }
+
+  // Все единицы измерения сохранены, проверка
+  let error = ""
+
+  // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
+  if (savedUpdatedUsers.length > 0 && users.length !== savedUpdatedUsers.length) {
+    error = `Не удалось сохранить единицы измерения`;
+    console.log(error);
+    return { success: false, message: error }
+  }
+
+  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
+  if (savedUpdatedUsers.length > 0 && users.length > 0) {
+    if (savedUpdatedUsers.length > 0) {
+
+      savedUpdatedUsers.forEach((user, index) => {
+        if (user.id) {
+          console.log(`Единица измерения успешно сохранена с id: ${user.id}`);
+        } else {
+          error = `Ошибка при сохранении единицы измерения ${index + 1}`;
+          console.log(error);
+          return { success: false, message: error }
+        }
+      });
+    } else {
+      error = `Не удалось сохранить единицы измерени`;
+      console.log(error);
+      return { success: false, message: error }
+    }
+  }
+  return { success: true, savedUsers: savedUpdatedUsers }
 }

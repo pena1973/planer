@@ -42,7 +42,7 @@ export class UnitTable {
   type!: UnitTypeEnum;
   
   @Column({ default: false })
-  activ!: boolean; //  запись действующая
+  active!: boolean; //  запись действующая
 
   @ManyToOne(() => TeamTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом

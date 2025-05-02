@@ -1,14 +1,27 @@
 @import '@/styles/colors.scss';
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
-// .container{
-  
-//     width: 0,
-//     height: 0,
-//     borderTop: '10px solid transparent',
-//     borderBottom: '10px solid transparent',
-//     borderRight: '15px solid black',
-//     cursor: 'pointer',
-//     ...style,
-  
-//   }
+.arrow_button_forward {
+     width: 0;
+     height: 0;
+     border-top: 10px solid transparent;
+     border-bottom: 10px solid transparent;
+     border-left: 15px solid $button1_background_color;
+    
+    cursor: pointer;   
+    &:hover {
+        border-left: 15px solid $button1_hover_background_color;
+    } 
+}
+
+.arrow_button_backward {
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 15px solid $button1_background_color;
+    cursor: pointer;
+    &:hover {
+        border-right: 15px solid $button1_hover_background_color;
+    }
+  }

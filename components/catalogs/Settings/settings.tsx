@@ -96,7 +96,7 @@ export default function Settings({ setMessage }: SettingsProps) {
 
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let settings = receivedData.schedule as SettingsItem
+                    let settings = receivedData.settings as SettingsItem
                     dispatch(setSettings(settings));                  
                     setTimeStartWorkValue(settings.timeStartWork);
                     setTimeFinishWorkValue(settings.timeFinishWork);
@@ -115,8 +115,11 @@ export default function Settings({ setMessage }: SettingsProps) {
     };
 
     const cancelScheduleHandler = () => {
-      
-        setModified(false)
+        setTimeStartWorkValue(settings.timeStartWork);
+        setTimeFinishWorkValue(settings.timeFinishWork);             
+        setShowWeekendValue(settings.showWeekend);
+        setShowHolidayValue(settings.showHoliday);
+        setModified(false);        
         setMessage("");
     };
 
@@ -126,10 +129,10 @@ export default function Settings({ setMessage }: SettingsProps) {
         switch (field) {
 
             case "timeStart":
-                setTimeStartWorkValue(value as number);
+                setTimeStartWorkValue((!value)?0:value as number);
                 break;
             case "timeFinish":
-                setTimeFinishWorkValue(value as number);
+                setTimeFinishWorkValue((!value)?0:value as number);
                 break;
             default:
                 break;
@@ -162,7 +165,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                             autoComplete="off"
                             value={timeStartWorkValue !== undefined
                                 ? `${String(Math.floor(timeStartWorkValue / 60)).padStart(2, '0')}:${String(timeStartWorkValue % 60).padStart(2, '0')}`
-                                : ""}
+                                : "00:00"}
                             type="time"
                             onChange={e => {
                                 setMessage("");
@@ -181,7 +184,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                             autoComplete="off"
                             value={timeFinishWorkValue !== undefined
                                 ? `${String(Math.floor(timeFinishWorkValue / 60)).padStart(2, '0')}:${String(timeFinishWorkValue % 60).padStart(2, '0')}`
-                                : ""}
+                                : "00:00"}
                             type="time"
                             onChange={e => {
                                 setMessage("");

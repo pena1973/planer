@@ -867,9 +867,6 @@ export default function Index({ }: IndexProps) {
                   {!loaderButtonRegister && t('register.buttonRegister')}
                 </button>
               </div>
-
-
-
               <div className="register_link_container">
                 <div className="register_link" onClick={(e) => {
                   setStep(2);

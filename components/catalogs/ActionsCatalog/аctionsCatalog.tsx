@@ -125,7 +125,7 @@ export default function UOMSCatalog({
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/actions-api?userId=${1}&teamId=${1}`,
+            const res = await fetch(`api/actions-api`,
                 {
                     method: 'post',
                     headers: new Headers({

@@ -21,7 +21,7 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 
 
 // types
-import { UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
+import { UserItem, UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
 import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem } from '@/types';
 
 
@@ -142,7 +142,7 @@ export async function getUnits(
         belong: unit.belong as UnitBelongEnum,
         type: unit.type as UnitTypeEnum,
         coment: unit.coment,
-        activ: unit.activ
+        active: unit.active
       };
     });
 
@@ -191,7 +191,6 @@ export async function getUnitLoads(
   });
   return unitLoadItems;
 }
-
 
 // КАРТА! только шапка
 export async function getTCard(
@@ -520,7 +519,6 @@ export async function getTCardFull(
 //   return [] as TCardTermsItem[]; // Вернуть пустой массив или обработать ошибку
 // }
 
-
 export async function getTCardsOpers(
   teamId: number,
   tCardRepository: Repository<TCardTable>,
@@ -633,7 +631,6 @@ export async function getTCardsOpers(
 
   return tCardTerms;
 }
-
 
 // export async function getTCardMatOper(
 //   tcardId: number,
@@ -913,70 +910,6 @@ export async function getTCardOperations(
   return tCardOpers;
 }
 
-
-// export async function getUsersUnits(
-//   teamId:number,
-//   usersRepository: Repository<UserTable>,
-//   usersUnitsRepository: Repository<UserUnitTable>,
-//   unitsRepository: Repository<UnitTable>
-// ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
-
-
-//   // Шаг 1: Получаем всех  пользователей
-//   const activeUsers = await usersRepository.find({ where: { team_id: teamId } });
-
-//   // Если активные пользователи не найдены
-//   if (activeUsers.length === 0) {
-//     return {
-//       success: false,
-//       userUnits: [],
-//       message: 'Нет активных пользователей.',
-//     };
-//   }
-
-//   // Шаг 2: Получаем все юниты, сопоставленные с пользователями из таблицы users_units
-//   const usersUnits = await usersUnitsRepository.find({
-//     where: { user_id: In(activeUsers.map(user => user.id)), activ: true },
-//     relations: ['user', 'unit'], // Загружаем данные о пользователе и юните
-//   });
-
-//   // Если не найдено ни одного юнита
-//   if (usersUnits.length === 0) {
-//     return {
-//       success: true,
-//       userUnits: [],
-//       message: 'Нет сопоставленных юнитов для активных пользователей.',
-//     };
-//   }
-
-//   // Шаг 3: Преобразуем данные в формат UserUnitItem
-//   const userUnits: UserUnitItem[] = usersUnits.map(userUnit => ({
-//     id: userUnit.id,
-//     userId: userUnit.user_id,
-//     name: userUnit.name,
-//     unit:{
-//       id: userUnit.unit?.id,              // ID юнита
-//       title: userUnit.unit?.title,        // Название юнита
-//       code: userUnit.unit?.code || '',    // Код юнита (если есть)
-//       retool: userUnit.unit?.retool,      // Время на переналадку
-//       belong: userUnit.unit?.belong,      // Принадлежность юнита (enum)
-//       type: userUnit.unit?.type,          // Тип юнита (enum)
-//       coment: userUnit.unit?.coment,      // Комментарий юнита (если есть)
-//       activ: userUnit.unit?.activ,        // Статус активности
-//     }as UnitItem,
-
-//     dateStart: userUnit.dateStart.toISOString().split('T')[0],  // Преобразуем в строку (формат YYYY-MM-DD)
-//     dateFinish: userUnit.dateFinish.toISOString().split('T')[0], // Преобразуем в строку (формат YYYY-MM-DD)
-//     activ: userUnit.activ,
-//   } ));
-
-//   return {
-//     success: true,
-//     userUnits: userUnits,
-//     message: 'Данные успешно получены.',
-//   };
-// }
-
 export async function getUsersUnits(
   teamId: number,
   usersRepository: Repository<UserTable>,
@@ -986,8 +919,7 @@ export async function getUsersUnits(
 
   try {
     // Шаг 1: Получаем всех пользователей команды
-    const activeUsers = await usersRepository.find({ where: { team_id: teamId } });
-
+    const activeUsers = await usersRepository.find({ where: { team_id: teamId, isAdmin: false, active: true } });    
     // Если активные пользователи не найдены
     if (activeUsers.length === 0) {
       return {
@@ -996,37 +928,27 @@ export async function getUsersUnits(
         message: 'Нет активных пользователей.',
       };
     }
+    const usersUnits = await usersUnitsRepository.find({ where: { team_id: teamId } });
 
-    // Шаг 2: Используем левое соединение для получения данных юнитов для каждого пользователя
-    const usersUnits = await usersUnitsRepository.createQueryBuilder('uu')
-      .leftJoinAndSelect('uu.user', 'user') // Левое соединение с таблицей пользователей
-      .leftJoinAndSelect('uu.unit', 'unit') // Левое соединение с таблицей юнитов
-      .where('user.team_id = :teamId', { teamId }) // Фильтруем по teamId
-      .andWhere('uu.activ = true') // Только активные записи в users_units
-      .getMany();
-
-    // Шаг 3: Преобразуем данные в формат UserUnitItem
+    // Шаг 3: Преобразуем данные в формат UserUnitItem 
     const userUnits: UserUnitItem[] = activeUsers.map(user => {
-      const userUnitData = usersUnits.filter(u => u.user_id === user.id);
+      const userUnit = usersUnits.find(u => u.user_id === user.id);
 
-      // Если для пользователя нет юнита, возвращаем объект с null для юнита
-      if (userUnitData.length === 0) {
+      if (!userUnit) {
         return {
-          id: user.id,
+          id: NaN,
           userId: user.id,
           name: user.name,
-          unit: null,  // У юнита нет данных
-          // dateStart: '',
-          // dateFinish: '',
-          activ: false,
+          unit: null,  // У юнита нет данных         
+          active: false,
         };
-      }
-
+      } else
+        userUnit
       // Если для пользователя есть один или несколько юнитов
-      return userUnitData.map(userUnit => ({
+      return {
         id: userUnit.id,
         userId: userUnit.user_id,
-        name: userUnit.name,
+        name: userUnit.user.name,
         unit: {
           id: userUnit.unit?.id,              // ID юнита
           title: userUnit.unit?.title,        // Название юнита
@@ -1035,14 +957,11 @@ export async function getUsersUnits(
           belong: userUnit.unit?.belong,      // Принадлежность юнита (enum)
           type: userUnit.unit?.type,          // Тип юнита (enum)
           coment: userUnit.unit?.coment,      // Комментарий юнита (если есть)
-          activ: userUnit.unit?.activ,        // Статус активности
+          active: userUnit.unit?.active,        // Статус активности
         } as UnitItem,
-        // dateStart: userUnit.dateStart.toISOString().split('T')[0],  // Преобразуем в строку (формат YYYY-MM-DD)
-        // dateFinish: userUnit.dateFinish.toISOString().split('T')[0], // Преобразуем в строку (формат YYYY-MM-DD)
-        activ: userUnit.activ,
-      }))[0];  // Мы можем получить несколько юнитов, но выбираем первый, если их несколько
-    }).flat();  // Преобразуем массив массивов в один массив объектов
-
+        active: userUnit.active,
+      } as UserUnitItem;
+    })
     return {
       success: true,
       userUnits: userUnits,
@@ -1053,6 +972,51 @@ export async function getUsersUnits(
     return {
       success: false,
       userUnits: [],
+      message: `Ошибка при получении данных: ${error.message}`,
+    };
+  }
+}
+
+export async function getUsers(
+  teamId: number,
+  usersRepository: Repository<UserTable>,
+): Promise<{ success: boolean, users: UserItem[], message: string }> {
+
+  try {
+    // Шаг 1: Получаем всех пользователей команды
+    const users = await usersRepository.find({ where: { team_id: teamId, isAdmin: false } });
+
+    // Если активные пользователи не найдены
+    if (users.length === 0) {
+      return {
+        success: false,
+        users: [],
+        message: 'Нет пользователей.',
+      };
+    }
+
+    const users_ = users.map(user => {
+      return {
+        id: user.id,
+        login: "",
+        pass: "",
+        name: user.name,
+        locale: user.locale,
+        isAdmin: user.isAdmin,
+        active: user.active,
+      } as UserItem
+    });
+
+    return {
+      success: true,
+      users: users_,
+      message: 'Данные успешно получены.',
+    };
+
+  } catch (error: any) {
+    return {
+      success: false,
+      users: [],
       message: `Ошибка при получении данных: ${error.message}`,
     };
   }

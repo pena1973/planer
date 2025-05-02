@@ -1,9 +1,9 @@
 
 import styles from "./usersCatalog.module.scss";
-
+import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import DropdownSelectUnit from "./DropdownSelectUnit/dropdownSelectUnit";
 
-import { DaysOfWeek, TeamItem, UserUnitItem, TimeZoneEnum, UserItem, UnitItem } from '@/types'
+import { TeamItem, UserUnitItem, UserItem, UnitItem } from '@/types'
 import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";
@@ -34,15 +34,21 @@ export default function UsersCatalog({
     team,
     setMessage
 }: usersCatalogProps) {
-
-    const dispatch = useAppDispatch();
+   
     const [users_units, setUsersUnits] = useState([] as UserUnitItem[]);
-    const users_units_old = useRef(users_units); // для восстановления по cancel
+    const users_units_old = useRef(users_units); // для восстановления по cancel    
 
-
+    const [modified, setModified] = useState(false);
+    const [showLoader, setShowLoader] = useState(false);
+    const [buttonLoader, setButtonLoader] = useState(false);
+   
     const units = useSelector((state: RootState) => {
         return state.catalogSlice.units;
     })
+
+    let selectedUnits = users_units
+        .map((u) => u.unit)
+        .filter((unit) => unit !== undefined && unit !== null);  // Фильтруем null и undefined
 
     const getUsersUnits = async () => {
         setShowLoader(true);
@@ -82,44 +88,50 @@ export default function UsersCatalog({
 
     useEffect(() => {
         getUsersUnits();
+
     }, []);
 
+    const saveUsersUnitsHandler = async () => {
+        setButtonLoader(true);
 
+        try {
+            const res = await fetch(`api/users-units-api`,
+                {
+                    method: 'post',
+                    headers: new Headers({
+                        // 'Authorization': 'Basic ' + token,
+                        'Content-Type': 'application/json'
+                    }),
+                    body: JSON.stringify({
+                        userId: user.id,
+                        teamId: team.id,
+                        users_units: users_units
+                    }),
+                }
+            );
+            if (res.status !== 200) {
+                const receivedData = await res.json();
+                let error = receivedData.error;
+                setMessage(error);
+                //  console.log(t('service.serverUnavailable') + res.status);
+                // setMessage(t('service.serverUnavailable') + res.status);
+            } else {
+                const receivedData = await res.json();
+                // console.log("receivedData", receivedData)
 
-    //!!!!  Загрузить всех юзеров в таблицу
-
-    const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
-
-    const [showLoader, setShowLoader] = useState(false);
-
-    const saveUsersUnitsHandler = () => {
-        // setShowLoader(true);
-        // fetch(`api/users-units-api`, {
-        //     method: 'post',
-        //     headers: new Headers({
-        //         'Content-Type': 'application/json'
-        //     }),
-        //     body: JSON.stringify(users_units)
-        // })
-        //     .then((res) => {
-        //         if (res.status !== 200) {
-        //             const receivedData = res.json();
-        //             setMessage(receivedData.message);
-        //         } else {
-        //             const receivedData = res.json();
-        //             if (receivedData.success) {
-        //                 setMessage(receivedData.message);
-        //                 users_units_old.current = users_units;
-        //                 setModified(false);
-        //             }
-        //         }
-        //     })
-        //     .catch((e) => {
-        //         // setMessage(t('service.noConnection') + e.message)
-        //     })
-        //     .finally(() => {
-        //         setShowLoader(false);
-        //     });
+                if (receivedData.success) {
+                    //   Обновим текущую карту
+                    let users_units_ = receivedData.users_units as UserUnitItem[]
+                    setUsersUnits(users_units_)
+                    users_units_old.current = users_units_;
+                    setModified(false);
+                    setMessage("Обновлен список пользователей");
+                } else setMessage(receivedData.error);
+            }
+        } catch (e: any) {
+            // setMessage(t('service.noConnection') + e.message)            
+        }
+        setButtonLoader(false);
     };
     const cancelHandler = () => {
         setUsersUnits(users_units_old.current);
@@ -130,19 +142,17 @@ export default function UsersCatalog({
 
         switch (field) {
             case "units":
+                let unit = null;
                 if (typeof value === 'number') {
-                    let unit = units.find(unit => unit.id === value);
+                    unit = units.find(unit => unit.id === value);
                     if (!unit) return;
-
-                    let user_unit = users_units[indexToChange];
-                    let updated_user_unit = { ...user_unit, unit: unit as UnitItem };
-                    let updated_users_units = [...users_units];
-                    updated_users_units.splice(indexToChange, 1, updated_user_unit);
-                    setUsersUnits(updated_users_units);
                 }
+                let user_unit = users_units[indexToChange];
+                let updated_user_unit = { ...user_unit, unit: unit };
+                let updated_users_units = [...users_units];
+                updated_users_units.splice(indexToChange, 1, updated_user_unit);
+                setUsersUnits(updated_users_units);
                 break;
-
-
 
             case "active":
                 if (typeof value === 'boolean') {
@@ -187,6 +197,7 @@ export default function UsersCatalog({
                         }}
                         selectedValue={user.unit?.id || null}
                         units={units}
+                        selectedUnits={selectedUnits}  // Передаем массив выбранных юнитов
                     />
                 </td>
                 <td>
@@ -207,11 +218,11 @@ export default function UsersCatalog({
         )
     })
 
-
     return (
         <div className={styles.container}>
 
-            {!showLoader && <div>  фильтр заглушка</div>}
+            {!showLoader && <div> фильтр заглушка</div>}
+
             {!showLoader && <div className={styles.table_container}>
                 <Image className={styles.icon_cancel}
                     src={cancel}
@@ -228,7 +239,7 @@ export default function UsersCatalog({
                             <th> </th>
                             <th>User</th>
                             <th>Unit </th>
-                            <th>Activ</th>
+                            <th>Active</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -252,6 +263,11 @@ export default function UsersCatalog({
                 </div>
 
             </div >}
+            {showLoader && <div>
+                <pre />
+                <ButtonLoader width={200} height={200} />
+                <pre />
+            </div>}
         </div>
     )
 }

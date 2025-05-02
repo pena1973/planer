@@ -36,9 +36,9 @@ const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.team)
-  return schedule.workdays.some(workday =>
-    new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-  ); else return false
+    return schedule.workdays.some(workday =>
+      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+    ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
 const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
@@ -81,9 +81,9 @@ const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
 
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.team)
-  return schedule.holidays.some(holiday =>
-    new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-  ); else return false
+    return schedule.holidays.some(holiday =>
+      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+    ); else return false
 }
 interface MonitorProps {
 
@@ -230,7 +230,7 @@ export default function Monitor({ }: MonitorProps) {
   return (
     <Layout>
       <div className="container_global" >
-        <div className="container_global_left">          
+        <div className="container_global_left">
           <div className="container_catalogs">
             <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(1))}>Загрузка юнитов</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(2))}>Операции на стороне</div>
@@ -261,7 +261,7 @@ export default function Monitor({ }: MonitorProps) {
                 setDay(newDate);
               }} />
 
-              {day.toLocaleDateString("en-CA")}
+              <span className="current_day">{day.toLocaleDateString("en-CA")}</span>
 
               <ForwardButton onClick={() => {
                 let newDate = new Date(day);
