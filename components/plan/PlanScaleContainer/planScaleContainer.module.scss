@@ -8,7 +8,7 @@
   height: 100%;
   // width: calc(100% - 40px);
   // margin: 20px;
-   background-color: $third_body_background_color;
+  background-color: $second_body_background_color;
   // background-color: #f0f0f0;
   /* Светло-серый фон */
   // border-bottom: 1px solid #ccc;
@@ -16,20 +16,46 @@
 }
 
 .plug {
-  height: 82px;
+  display: flex;
+  justify-content: center;
+  height: 48px;
   width: 100%;
-  // background-color: cadetblue;
+  background-color: $second_body_background_color;
+
 }
 
+.plug1 {
+  display: flex;
+  justify-content: center;
+  height: 40px;
+  width: 100%;
+  background-color: $main_body_background_color;
+  border-top-left-radius: $border-radius;
+}
+.plug2 {
+  display: flex;
+  justify-content: center;
+  height: 100px;
+  width: 100%;
+  background-color: $main_body_background_color;
+     /* Используем flex-grow для того, чтобы блок занял оставшееся пространство */
+   flex-grow: 1;  /* Блок будет растягиваться, заполняя доступное пространство */
+  
+}
+.button_reset{
+  background-color: $button1_background_color;
+  color: $button1_text_color;
+}
 .plan_scale_container_right {
   display: flex;
   flex-direction: column;
-  margin: 20px;
+  margin-left: 30px;
   margin-bottom: 0;
   width: 140px;
   min-width: 140px;
-  // background-color: aliceblue;
-  padding: 10px;
+  background-color: $second_body_background_color;
+  // border-radius: 10px;
+  // padding: 10px 0;
   // padding-top: 85px; // верхняя граница шкалы
 
 }
@@ -41,11 +67,12 @@
   width: calc(100% - 200px);
 
   margin-right: 20px;
-  
+
   /* Светло-серый фон */
   border-bottom: $border;
   /* Граница снизу */
-  background-color:$main_body_background_color;
+  // background-color: $main_body_background_color;
+  background-color: $second_body_background_color;
   /* Граница справа */
   // background-color: aliceblue;
 }
@@ -55,9 +82,17 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  margin-top: 10px;
+  padding-top: 10px;
+  border-top-right-radius: $border-radius;
   // background-color: rgb(223, 182, 130);
-
+  background-color: $main_body_background_color;
+  /* Граница снизу */
+  // background-color: $main_body_background_color;
+  /* Граница справа */
+  // background-color: aliceblue;
+  // background-color: rgb(223, 182, 130);
+  // background-color: rgb(172, 155, 133);
+  // background-color: rgb(255, 255, 255);
 }
 
 //ok
@@ -124,12 +159,20 @@
   margin-top: 5px;
 }
 
+.scale_header {
+  background-color: $second_body_background_color;
+  
+  
+}
+
 .scale_controls {
   margin-top: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-direction: column;
+  background-color: $second_body_background_color;
+
 }
 
 .rangeSlider {
@@ -144,15 +187,23 @@
   appearance: none;
   /* Стандартное свойство для совместимости с другими браузерами */
   outline: none;
+  background-color: $main_body_background_color;
+  // background-color:$button_background_color;
 }
+.rangeSlider_label {
+  color: $third_text_color;
+}
+
 
 
 .rangeSlider[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 20px;
   height: 20px;
-  background: #333;
+  // background: #333;
+  background: $text_color_italic;
   border-radius: 50%;
+  border: $border;
   cursor: pointer;
 }
 
@@ -169,24 +220,24 @@
   background-color: rgb(175, 159, 159);
 }
 
-.marker {
-  position: relative;
-  bottom: 0;
-  width: 20px;
-  height: 100%;
-  // background-color: black;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  background-color: aqua;
-}
+// .marker {
+//   position: relative;
+//   bottom: 0;
+//   width: 20px;
+//   height: 100%;
+//   // background-color: black;
+//   display: flex;
+//   justify-content: center;
+//   align-items: flex-end;
+//   // background-color: aqua;
+// }
 
-.marker span {
-  font-size: 12px;
-  transform: rotate(90deg);
-  /* Разворачиваем текст вертикально */
-  margin-bottom: 5px;
-}
+// .marker span {
+//   font-size: 12px;
+//   transform: rotate(90deg);
+//   /* Разворачиваем текст вертикально */
+//   margin-bottom: 5px;
+// }
 
 
 .today_scale {
@@ -219,7 +270,7 @@
 
 .breakTime {
   background-color: rgb(235, 224, 205);
-  
+
   /* Цвет для перерывов */
   // background-color: rgb(61, 10, 30)
 }
@@ -347,23 +398,28 @@
 ///// UNITS
 /// 
 .unit_name {
-  margin: 10px;
+  padding: 20px 10px 10px;
   width: 100%;
   // padding-left: 10px;
-  // background-color: rgb(235, 228, 137);
+  background-color: $main_body_background_color;
   min-height: 30px;
   font-weight: bold;
+  // background-color: rgb(188, 188, 199);
+  // border: 1px solid #020202;
 
 }
 
 .units_title {
-  margin: 10px;
+  // margin: 1px;
   width: 100%;
-  // padding-left: 10px;
+  padding: 20px 10px 10px;
   // background-color: rgb(235, 228, 137);
   min-height: 30px;
   font-weight: lighter;
-
+  background-color: $main_body_background_color;
+  // background-color: rgb(161, 161, 167);
+  font-style: italic;
+  font-size: $header3_font_size;
 }
 
 
@@ -434,7 +490,7 @@
   // background-color: rgb(255, 251, 199);
   min-height: 50px;
   // font-weight: bold;    
-  
+
   border-bottom: 1px dashed #ccc;
 }
 

@@ -5,121 +5,123 @@ import { CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, 
 import LoadMonitorProcess from "./LoadMonitorProcess/loadMonitorProcess";
 import LoadOperProcess from "./LoadOperProcess/loadOperProcess";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-
+import { generateCalendarItem, isWeekend,isHoliday,isAdditionalTime,idDay } from "@/utils";
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
-//  функция определяемт входит ли  дата в список дат дополнительного времени работы
-const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
+// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
+// const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
-    return schedule.workdays.some(workday =>
-      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-    ); else return false
-}
-//  функция определяемт входит ли  дата в список выходных расписания
-const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
-  const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.team)
+//     return schedule.workdays.some(workday =>
+//       new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+//     ); else return false
+// }
+// //  функция определяемт входит ли  дата в список выходных расписания
+// const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
+//   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
 
-  let dayString = DaysOfWeek.SUNDAY;
+//   let dayString = DaysOfWeek.SUNDAY;
 
-  switch (dayOfWeek) {
-    case 1:
-      dayString = DaysOfWeek.MONDAY;
-      break;
-    case 2:
-      dayString = DaysOfWeek.TUESDAY;
-      break;
-    case 3:
-      dayString = DaysOfWeek.WEDNESDAY;
-      break;
-    case 4:
-      dayString = DaysOfWeek.THURSDAY;
-      break;
-    case 5:
-      dayString = DaysOfWeek.FRIDAY;
-      break;
-    case 6:
-      dayString = DaysOfWeek.SATURDAY;
-      break;
-    default:
-      dayString = DaysOfWeek.SUNDAY;
-      break;
-  }
+//   switch (dayOfWeek) {
+//     case 1:
+//       dayString = DaysOfWeek.MONDAY;
+//       break;
+//     case 2:
+//       dayString = DaysOfWeek.TUESDAY;
+//       break;
+//     case 3:
+//       dayString = DaysOfWeek.WEDNESDAY;
+//       break;
+//     case 4:
+//       dayString = DaysOfWeek.THURSDAY;
+//       break;
+//     case 5:
+//       dayString = DaysOfWeek.FRIDAY;
+//       break;
+//     case 6:
+//       dayString = DaysOfWeek.SATURDAY;
+//       break;
+//     default:
+//       dayString = DaysOfWeek.SUNDAY;
+//       break;
+//   }
 
-  // Проверяем, является ли день выходным
+//   // Проверяем, является ли день выходным
 
-  if (schedule.team) return schedule.weekends.includes(dayString);
-  else return false
-}
+//   if (schedule.team) return schedule.weekends.includes(dayString);
+//   else return false
+// }
 
-//  функция определяемт входит ли  дата в список праздниклв расписания
-const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+// //  функция определяемт входит ли  дата в список праздниклв расписания
+// const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
-    return schedule.holidays.some(holiday =>
-      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-    );
-  else return false;
-}
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.team)
+//     return schedule.holidays.some(holiday =>
+//       new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+//     );
+//   else return false;
+// }
 
-// генерация привычной нам даты - ее использую как id дня
-const idDay = (date: Date): string => {
-  const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-  const year = date.getFullYear();  // Год
+// // генерация привычной нам даты - ее использую как id дня
+// const idDay = (date: Date): string => {
+//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
+//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
+//   const year = date.getFullYear();  // Год
 
-  return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-};
-// генерация одного дня на шкале
-const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
+//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
+// };
+// // генерация одного дня на шкале
+// const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
 
-  const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-  currentDate.setHours(0, 0, 0, 0);
+//   const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
+//   currentDate.setHours(0, 0, 0, 0);
 
-  const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
-  const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
-  const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
+//   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
+//   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
+//   const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
 
-  let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
-  let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-  let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
+//   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
+//   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
+//   let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
 
-  if (_isAdditionalTime) {
-    const workday = schedule.workdays.find(
-      workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
-    // если дата есть, то нужно просто взять дополнительное время из workday  
-    if (workday) {
-      if (_isWeekend || _isHoliday) {
-        timeStartWork = workday.timeStart;
-        timeFinishWork = workday.timeFinish;
-      } else {
-        timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
-        timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
-      }
-      //  проверим перерывы и если попадают в рабочий период вставим
-      breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
-    }
-  }
+//   if (_isAdditionalTime) {
+//     const workday = schedule.workdays.find(
+//       workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+//     // если дата есть, то нужно просто взять дополнительное время из workday  
+//     if (workday) {
+//       if (_isWeekend || _isHoliday) {
+//         timeStartWork = workday.timeStart;
+//         timeFinishWork = workday.timeFinish;
+//       } else {
+//         timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
+//         timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
+//       }
+//       //  проверим перерывы и если попадают в рабочий период вставим
+//       breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
+//     }
+//   }
 
-  // Создаем объект CalendarItem
-  const calendarItem: CalendarItem = {
-    idDay: idDay(currentDate),
-    date: new Date(currentDate),  // Текущая дата
-    mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
-    day: true,  // Указываем, что это день
-    timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
-    timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
-    breaks: breaks,
-  };
-  return calendarItem;  // Возвращаем один элемент календаря
-};
+//   // Создаем объект CalendarItem
+//   const calendarItem: CalendarItem = {
+//     idDay: idDay(currentDate),
+//     date: new Date(currentDate),  // Текущая дата
+//     mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+//     day: true,  // Указываем, что это день
+//     timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
+//     timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
+//     breaks: breaks,
+//   };
+//   return calendarItem;  // Возвращаем один элемент календаря
+// };
+
+
 // Функция определяет что интервал в 5 минут является началом часа
 function isStartOfHour(intervTime: number): boolean {
   return intervTime % 60 === 0;
@@ -181,20 +183,20 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // // вычислим высоту интервала в 5 мин
   //  const intervalHeight = containerHeight / ((dayEnd - dayStart) / 5); // x интервалов по 5 минут в дне
   // let quants = 288;  // 288 5 минуток в дне (24 часа * 60/5 минут)  если показывать полные сутки
-   //let startQuant = 0;
-   //let finishQuant = 288;
+  //let startQuant = 0;
+  //let finishQuant = 288;
 
   // Если в настройках указано иное
   // if (settings.timeFinishWork > 0 || settings.timeStartWork > 0) {
-    // Округляем время начала работы до целого числа
-   const startQuant = Math.floor(settings.timeStartWork / 5);
-    // Если время завершения работы равно 0, присваиваем значение 1440
-    const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
-    // Округляем время завершения работы до целого числа и добавляем 1
-    const finishQuant = Math.ceil(timeFinishWork / 5);
-    // Рассчитываем количество промежуточных значений
-    const  quants = finishQuant - startQuant;
-    const intervalHeight = containerHeight / ((finishQuant - startQuant) / 1); // x интервалов по 5 минут в дне
+  // Округляем время начала работы до целого числа
+  const startQuant = Math.floor(settings.timeStartWork / 5);
+  // Если время завершения работы равно 0, присваиваем значение 1440
+  const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
+  // Округляем время завершения работы до целого числа и добавляем 1
+  const finishQuant = Math.ceil(timeFinishWork / 5);
+  // Рассчитываем количество промежуточных значений
+  const quants = finishQuant - startQuant;
+  const intervalHeight = containerHeight / ((finishQuant - startQuant) / 1); // x интервалов по 5 минут в дне
   // }
 
 
@@ -308,7 +310,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   }
 
   // Функция для генерации шкалы времени  и загруза юнитов для одного дня
-  const generateTimeScale = (calendarItem: CalendarItem): JSX.Element[] => {
+  const generateTimeScaleMonitor = (calendarItem: CalendarItem): JSX.Element[] => {
     let intervalsReactNodes = [] as JSX.Element[];
     let thisWorkinterval = false; //Этот интервал - это рабочее время в расписании юнита включая исключения
     let workTime = 0; // рабочее время в процентах
@@ -332,22 +334,18 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       // Сравниваем идентификаторы (или другие уникальные поля)
       return firstLoad.id === load.id;
     }
-    let quants = 288;  // 288 5 минуток в дне (24 часа * 60/5 минут)  если показывать полные сутки
-    let startQuant = 0;
-    let finishQuant = 288;
+    // 288 5 минуток в дне (24 часа * 60/5 минут)  если показывать полные сутки
 
-    // Если в настройках указано иное
-    // if (settings.timeFinishWork > 0 || settings.timeStartWork > 0) {
-      // Округляем время начала работы до целого числа
-      startQuant = Math.floor(settings.timeStartWork / 5);
-      // Если время завершения работы равно 0, присваиваем значение 1440
-      const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
-      // Округляем время завершения работы до целого числа и добавляем 1
-      finishQuant = Math.ceil(timeFinishWork / 5);
-      // Рассчитываем количество промежуточных значений
-      quants = finishQuant - startQuant;
-     
-    // }
+    // Округляем время начала работы до целого числа
+    let startQuant = Math.floor(settings.timeStartWork / 5);
+    // Если время завершения работы равно 0, присваиваем значение 1440
+    const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
+    // Округляем время завершения работы до целого числа и добавляем 1
+    let finishQuant = Math.ceil(timeFinishWork / 5);
+    // Рассчитываем количество промежуточных значений
+    let quants = finishQuant - startQuant;
+
+
 
     for (let i = startQuant; i < finishQuant; i++) {
       const intervTime = i * 5;
@@ -446,8 +444,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
           className={`${styles.unit_unload} ${unit_unloadEx} ${timeStyle} `}
           style={{ height: intervalHeight }}>
           {isStartOfHour(intervTime) && <div className={styles.timeLabel}>
-            {formatIntervTime(intervTime)} 
-              {/* 0 это начало 1 часа */}
+            {formatIntervTime(intervTime)}
+            {/* 0 это начало 1 часа */}
           </div>}
           {operBlocksReactNodes}
         </div> as JSX.Element)
@@ -457,7 +455,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     return intervalsReactNodes as JSX.Element[];
   };
 
-  hoursScaleReactNodes = generateTimeScale(calendarView);
+  hoursScaleReactNodes = generateTimeScaleMonitor(calendarView);
 
   const terms = getStartFinishOper(currentLoad);
 
