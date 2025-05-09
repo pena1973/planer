@@ -1,29 +1,29 @@
 // Определение перечисления
-export enum TypeEnum {
-  P = 'P',
-  W = 'W',
-  M = 'M',
-  I = 'I',
-  O = 'O',
-}
-// Статусы операций  и карт
-export enum StatusEnum {
-  draft     = 'draft', // черновик
-  prepared  = 'prepared', // готов к началу планирования
-  planed    = 'planed', // запланирован
-  performed = 'performed',// выполнен юнитом
-  ready     = 'ready', // готов (проверен на брак)
-  defective = 'defective', // бракован
-  cancelled = 'cancelled', // отменен   
-}
+// export enum TypeEnum {
+//   P = 'P',
+//   W = 'W',
+//   M = 'M',
+//   I = 'I',
+//   O = 'O',
+// }
+// // // Статусы операций  и карт
+// export enum StatusEnum {
+//   draft     = 'draft', // черновик
+//   prepared  = 'prepared', // готов к началу планирования
+//   planed    = 'planed', // запланирован
+//   performed = 'performed',// выполнен юнитом
+//   ready     = 'ready', // готов (проверен на брак)
+//   defective = 'defective', // бракован
+//   cancelled = 'cancelled', // отменен   
+// }
 
-// роли
-export enum UserRoleEnum {
-  OPERATOR = "оператор",
-  PLANNER = "планер",
-  UNIT = "юнит",
-  CONTROL = "контролер"
-}
+// // роли
+// export enum UserRoleEnum {
+//   OPERATOR = "оператор",
+//   PLANNER = "планер",
+//   UNIT = "юнит",
+//   CONTROL = "контролер"
+// }
 
 // // хранить обрабатывать
 // export enum UnitTypeEnum {

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
 import { UnitTable } from '../catalogs/units'; // Подключаем сущность для связи
-import { StatusEnum } from '@/pages/db/models/enums';
+import { StatusEnum } from '@/types';
 
 @Entity("unit_loads")
 export class UnitLoadTable {

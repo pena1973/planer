@@ -1,23 +1,79 @@
 @import '@/styles/colors.scss';
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
-.container_tCardOper {
+
+
+.container {
     display: flex;
     flex-direction: column;
-    width: 400px;
+    width: 500px;
     height: auto;
     margin: 5px;
-    border-radius: 10px; /* Скругленные углы */
-    background-color: #f0f0f0; /* Светло-серый фон */
-    border: 1px solid #ccc; /* Равномерная серая граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень для глубины */
-    transition: box-shadow 0.3s ease; /* Плавный переход для эффекта при наведении */
+    background-color: $main_container_background_color;
+    border-radius: $border-radius;
+    border: $border;
+    box-shadow: $box-shadow;
+    transition: box-shadow 0.3s ease;
+    padding: 5px;
     position: relative;
+    color: $second_text_color;
+    font-size: $header4_font_size;
 }
-.tCardOper_id{
-    position: absolute;
-    margin: 5px;
+
+.container_header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    padding: 5px;
+    border-bottom: $border;
+    /* Нижняя граница для отделения заголовка от содержимого */
+    font-size: $header4_font_size;
+    /* Размер шрифта для заголовка */
+    color: $text_color;
+    /* Цвет текста заголовка */
 }
+
+.container_status {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.container_tables {
+    display: flex;
+    flex-direction: row;
+    width: auto;
+    height: auto;
+
+
+}
+
+.plug {
+    width: 40px;
+}
+
+// .container_tCardOper {
+//     display: flex;
+//     flex-direction: column;
+//     width: 400px;
+//     height: auto;
+//     margin: 5px;
+//     border-radius: 10px; /* Скругленные углы */
+//     background-color: #f0f0f0; /* Светло-серый фон */
+//     border: 1px solid #ccc; /* Равномерная серая граница */
+//     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень для глубины */
+//     transition: box-shadow 0.3s ease; /* Плавный переход для эффекта при наведении */
+//     position: relative;
+// }
+
+// .tCardOper_id{
+//     position: absolute;
+//     margin: 5px;
+// }
 .icon_cancel {
     border-radius: 10px;
     position: absolute;
@@ -28,99 +84,184 @@
     // height: 24px;    
 }
 
-.container_tCardOper:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
-}
 
-.container_tCardOper > .content {
-    flex: 1; /* Разделяет пространство для содержимого */
-    padding: 10px; /* Отступы для содержимого */
-    color: #333; /* Темно-серый цвет текста */
-    font-weight: normal; /* Обычный текст */
-    font-family: Arial, sans-serif; /* Шрифт для офисного стиля */
-}
+// .container_tCardOper:hover {
+//     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
+// }
 
-.container_tCardOper {
-    display: flex; /* Используем Flexbox для расположения блоков в ряд */
-    justify-content: space-between; /* Равномерное распределение пространства между блоками */
-    width: 100%; /* Ширина контейнера */
-}
+// .container_tCardOper > .content {
+//     flex: 1; /* Разделяет пространство для содержимого */
+//     padding: 10px; /* Отступы для содержимого */
+//     color: #333; /* Темно-серый цвет текста */
+//     font-weight: normal; /* Обычный текст */
+//     font-family: Arial, sans-serif; /* Шрифт для офисного стиля */
+// }
 
-.container_tCardOper_out,
-.container_tCardOper_in{
-    flex: 1; 
-    display: flex; 
+// .container_tCardOper {
+//     display: flex; /* Используем Flexbox для расположения блоков в ряд */
+//     justify-content: space-between; /* Равномерное распределение пространства между блоками */
+//     width: 100%; /* Ширина контейнера */
+// }
+
+.container_out,
+.container_in {
+    flex: 1;
+    display: flex;
     flex-direction: column;
 }
-.container_tCardOper_action{    
-    display: flex; 
+
+.container_action {
+    display: flex;
     flex-direction: column;
     width: auto;
 }
-.tCardOper_out,
-.tCardOper_action,
-.tCardOper_in {    
-    flex: 1; /* Каждый блок займет равное пространство */
-    margin: 3px; /* Отступы между блоками */
-    padding: 2px 2px; /* Внутренние отступы для содержимого */
-    background-color: #ffffff; /* Белый фон для блоков */
-    border: 1px solid #ccc; /* Серая граница */
-    border-radius: 5px; /* Скругленные углы */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Легкая тень для блоков */
+
+._out,
+._in,
+._action,
+._coment {
+    flex: 1;
+    padding: 1px 1px;
+    // background-color: $second_container_background_color;
+    // border: $border;
+    border-radius: $border-radius;
     height: auto;
 }
-.tCardOper_action{
+
+._action {
     display: flex;
     flex-direction: row;
+    align-items: center;
+}
+
+// ._action {
+//     flex: 1;
+//     margin: 0 3px;
+//     padding: 1px 1px;
+//     background-color: $second_container_background_color;
+//     border: $border;
+//     border-radius: $border-radius;
+//     height: auto;
+// }
+
+.coment_input {
+    flex: 1;
+    margin: 3px;
+    padding: 1px 1px;
+    background-color: $second_container_background_color;
+    border: $border;
+    border-radius: $border-radius;
+    height: auto;
+    width: 100%;
+    min-height: 40px;  /* минимальная высота */
+    // max-height: 100px;
+    resize: none;  /* отключаем изменение размера пользователем */
+    // overflow-y: auto;  /* прокрутка по вертикали */
+}
+
+
+.tCardOper_out,
+.tCardOper_action,
+.tCardOper_in {
+    flex: 1;
+    margin: 3px;
+    padding: 2px 2px;
+    background-color: #ffffff;
+    /* Белый фон для блоков */
+    border: 1px solid #ccc;
+    /* Серая граница */
+    border-radius: 5px;
+    /* Скругленные углы */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* Легкая тень для блоков */
+    height: auto;
+}
+
+// .tCardOper_action{
+//     display: flex;
+//     flex-direction: row;
+// }
+
+
+.out_title,
+.action_title,
+.in_title,
+.coment_title {
+    font-weight: bold;
+    color: $second_text_color;
+    text-align: center;
+    height: auto;
+    font-size: $header4_font_size;
+}
+
+._oper_title,
+._oper_qtu {
+    font-size: $header4_font_size;
+    color: $text_color_italic;
+    margin: 10px 5px;
+    text-align: center;
 }
 
 .tCardOper_out_title,
 .tCardOper_action_title,
 .tCardOper_in_title {
-    font-weight: bold; /* Жирный текст для заголовков */    
-    color: #333; /* Темно-серый цвет текста */
+    font-weight: bold;
+    /* Жирный текст для заголовков */
+    color: #333;
+    /* Темно-серый цвет текста */
     text-align: center;
     height: auto;
     margin: 2px;
 }
 
 .tCardOper_oper_title,
-.tCardOper_oper_ms
-.tCardOper_oper_qtu  {
-    font-size: 12px; /* Размер шрифта для информации о времени */
-    color: #666; /* Светло-серый цвет для дополнительной информации */
+.tCardOper_oper_ms .tCardOper_oper_qtu {
+    font-size: 12px;
+    /* Размер шрифта для информации о времени */
+    color: #666;
+    /* Светло-серый цвет для дополнительной информации */
     margin: 10px 5px;
     text-align: center;
 }
 
-.tCardOper_oper_ms{
+.tCardOper_oper_ms {
     margin: 3px 5px;
 }
+
 //----OUT IN-----
-.container_in_out_item {    
-    display: flex; /* Используем Flexbox для расположения ячеек в строке */    
-    justify-content: space-between; /* Равномерное распределение пространства между ячейками */
-    padding: 2px 0; /* Внутренние отступы для ячеек */
+.container_in_out_item {
+    display: flex;
+    /* Используем Flexbox для расположения ячеек в строке */
+    justify-content: space-between;
+    /* Равномерное распределение пространства между ячейками */
+    padding: 2px 0;
+    /* Внутренние отступы для ячеек */
     // border-bottom: 1px solid #ccc; /* Нижняя граница для разделения строк */
     font-size: 12px;
     width: 100%;
 }
 
 .container_in_out_item:last-child {
-    border-bottom: none; /* Убираем границу у последней строки */
+    border-bottom: none;
+    /* Убираем границу у последней строки */
 }
+
 .in_out_item_code,
 .in_out_item_title,
 .in_out_item_uom,
 .in_out_item_qtu {
     // flex: 1; /* Каждая ячейка занимает равное пространство */
-    text-align: center; /* Выравнивание текста по центру */
+    text-align: center;
+    /* Выравнивание текста по центру */
 }
+
 .in_out_item_title,
 .in_out_item_uom,
 .in_out_item_qtu {
-    margin: 0 2px; /* Отступ между ячейками для количества и единицы измерения */
-    color: #666; /* Светло-серый цвет для количества и единицы измерения */
+    margin: 0 2px;
+    /* Отступ между ячейками для количества и единицы измерения */
+    color: #666;
+    /* Светло-серый цвет для количества и единицы измерения */
     // width: 20%;
     // background-color: #ccc;
 }
@@ -131,45 +272,68 @@
 // }
 
 //------inputs.outputs---------
-.in_out_item_code_out {   
+.in_out_item_code_out {
     min-width: 60px;
     margin: 5px 0;
 }
-.in_out_item_codeS {   
-    max-width: 60px; 
-    flex: 1; /* Каждый инпут занимает равное пространство */    
-    padding: 2px; /* Внутренние отступы для инпутов */
-    border: 1px solid #ccc; /* Серая граница для инпутов */
-    border-radius: 4px; /* Скругленные углы */
-    font-size: 12px; /* Размер шрифта */
-    font-weight: bold; /* Жирный текст для кода */
-    
+
+.in_out_item_codeS {
+    max-width: 60px;
+    flex: 1;
+    /* Каждый инпут занимает равное пространство */
+    padding: 2px;
+    /* Внутренние отступы для инпутов */
+    border: 1px solid #ccc;
+    /* Серая граница для инпутов */
+    border-radius: 4px;
+    /* Скругленные углы */
+    font-size: 12px;
+    /* Размер шрифта */
+    font-weight: bold;
+    /* Жирный текст для кода */
+
 }
+
 .in_out_item_title {
-    flex: 1; /* Каждый инпут занимает равное пространство */
+    flex: 1;
+    /* Каждый инпут занимает равное пространство */
     // margin: 0 5px; /* Отступы между инпутами */
-    padding: 2px; /* Внутренние отступы для инпутов */
-    border: 1px solid #ccc; /* Серая граница для инпутов */
-    border-radius: 4px; /* Скругленные углы */
-    font-size: 12px; /* Размер шрифта */
-    font-weight: bold; /* Жирный текст для кода */
+    padding: 2px;
+    /* Внутренние отступы для инпутов */
+    border: 1px solid #ccc;
+    /* Серая граница для инпутов */
+    border-radius: 4px;
+    /* Скругленные углы */
+    font-size: 12px;
+    /* Размер шрифта */
+    font-weight: bold;
+    /* Жирный текст для кода */
     width: 80%;
 }
 
 .in_out_item_title:focus {
     // border-color: #007bff; /* Синий цвет границы при фокусе */
-    outline: none; /* Убираем стандартное выделение */
+    outline: none;
+    /* Убираем стандартное выделение */
 }
 
 .in_out_item_qtu {
-    -moz-appearance: textfield; /* Убираем стрелки для числового инпута в Firefox */
-    -webkit-appearance: none;  /* Убираем стрелки для числового инпута в Chrome, Safari */
-    appearance: none;          /* Стандарт для других браузеров */
-    padding: 2px; /* Внутренние отступы для инпутов */
-    border: 1px solid #ccc; /* Серая граница для инпутов */
-    border-radius: 4px; /* Скругленные углы */
-    font-size: 12px; /* Размер шрифта */
-    font-weight: bold; /* Жирный текст для кода */
+    -moz-appearance: textfield;
+    /* Убираем стрелки для числового инпута в Firefox */
+    -webkit-appearance: none;
+    /* Убираем стрелки для числового инпута в Chrome, Safari */
+    appearance: none;
+    /* Стандарт для других браузеров */
+    padding: 2px;
+    /* Внутренние отступы для инпутов */
+    border: 1px solid #ccc;
+    /* Серая граница для инпутов */
+    border-radius: 4px;
+    /* Скругленные углы */
+    font-size: 12px;
+    /* Размер шрифта */
+    font-weight: bold;
+    /* Жирный текст для кода */
     width: 20%;
 }
 
@@ -182,7 +346,8 @@
 
 .in_out_item_code[type="number"]::-webkit-outer-spin-button,
 .in_out_item_code[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none; /* Убираем стрелки для числового инпута в Chrome */
+    -webkit-appearance: none;
+    /* Убираем стрелки для числового инпута в Chrome */
 }
 
 // /* Стили для выпадающего списка */
@@ -207,7 +372,7 @@
 
 
 
-.container_icon_edit_save{
+.container_icon_edit_save {
     display: flex;
     flex-direction: row;
     // position: absolute;
@@ -216,25 +381,29 @@
     cursor: pointer;
     // border-top-left-radius: 5px;
 }
-.icon_edit_save{
-       
+
+.icon_edit_save {
+
     border-top-left-radius: 5px;
 }
-.icon_del{
-   cursor: pointer;
+
+.icon_del {
+    cursor: pointer;
 }
 
-.tCardOper_buttons_container{
-display: flex;
-flex-direction: row;
-justify-content: flex-end;
+.tCardOper_buttons_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
 }
-.container_buttons_row{
+
+.container_buttons_row {
     display: flex;
     flex-direction: row;
     align-items: flex-end;
     justify-content: flex-end;
-    border-top: 1px solid #ccc; /* Серая граница */
+    border-top: 1px solid #ccc;
+    /* Серая граница */
     // background-color: aquamarine;
     width: calc(100% - 4px);
     // position: absolute;
@@ -245,10 +414,12 @@ justify-content: flex-end;
     // padding-top: 2px;
 }
 
-.message{
-    font-size: 12px; /* Размер шрифта для информации о времени */
-    color: #666; /* Светло-серый цвет для дополнительной информации */    
-    text-align: center;    
+.message {
+    font-size: 12px;
+    /* Размер шрифта для информации о времени */
+    color: #666;
+    /* Светло-серый цвет для дополнительной информации */
+    text-align: center;
     width: 100%;
     color: red;
 }

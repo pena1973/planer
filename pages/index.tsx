@@ -487,7 +487,7 @@ export default function Index({ }: IndexProps) {
   // загружает активные карты  
   const downloadTCards = async () => {
     try {
-      const res = await fetch(`/api/tcards-api?userId=${user.id}&teamId=${team.id}`,
+      const res = await fetch(`/api/tcards-api?teamId=${team.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -507,7 +507,7 @@ export default function Index({ }: IndexProps) {
         if (receivedData.success) {
           let tCards = receivedData.tCards as TCardItem[]
           // Сортируем tCards по номеру (если number это число)
-          let tCards_ = tCards.sort((a, b) => a.number - b.number);
+          let tCards_ = tCards.sort((a, b) => a.idc - b.idc);
           let tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
           dispatch(setTCards(tCardsUpdated));
           setMessage("Загружены карты");

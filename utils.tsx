@@ -73,7 +73,8 @@ export function formatDate(date: Date) {
 }
 
 export function padNumberToFourDigits(number: number): string {
-  if (!number) return "";
+  if (!number) return "new";
+  if (number===0) return "new";
   return number.toString().padStart(4, '0');
 }
 

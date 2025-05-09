@@ -1,151 +1,221 @@
 @import '@/styles/colors.scss';
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
-.container_tCardOper {
+
+.container {
     display: flex;
     flex-direction: column;
-    width: 400px;
+    width: 500px;
     height: auto;
     margin: 5px;
-    border-radius: 10px; /* Скругленные углы */
-    background-color: #f0f0f0; /* Светло-серый фон */
-    border: 1px solid #ccc; /* Равномерная серая граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень для глубины */
-    transition: box-shadow 0.3s ease; /* Плавный переход для эффекта при наведении */
+    background-color: $main_container_background_color;
+    border-radius: $border-radius;
+    border: $border;
+    box-shadow: $box-shadow;
+    transition: box-shadow 0.3s ease;
+    padding: 5px;
     position: relative;
+    color: $second_text_color;
+    font-size: $header4_font_size;
 }
-.tCardOper_id{
-    position: absolute;
-    margin: 5px;
-}
-.container_tCardOper_body {
+
+.container_header {
     display: flex;
     flex-direction: row;
-    width: auto;    
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
     height: auto;
-    margin: 5px;
-    
-}
-.container_tCardOper:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
-}
-
-.container_tCardOper > .content {
-    flex: 1; /* Разделяет пространство для содержимого */
-    padding: 10px; /* Отступы для содержимого */
-    color: #333; /* Темно-серый цвет текста */
-    font-weight: normal; /* Обычный текст */
-    font-family: Arial, sans-serif; /* Шрифт для офисного стиля */
+    padding: 5px;
+    border-bottom: $border;
+    /* Нижняя граница для отделения заголовка от содержимого */
+    font-size: $header4_font_size;
+    /* Размер шрифта для заголовка */
+    color: $text_color;
+    /* Цвет текста заголовка */
 }
 
-
-
-.container_tCardOper {
-    display: flex; /* Используем Flexbox для расположения блоков в ряд */
-    justify-content: space-between; /* Равномерное распределение пространства между блоками */
-    width: 100%; /* Ширина контейнера */
+.container_status {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.container_tCardOper_out,
-.container_tCardOper_in{
-    flex: 1; 
-    display: flex; 
+.container_tables {
+    display: flex;
+    flex-direction: row;
+    width: auto;
+    height: auto;
+
+
+}
+
+// .container:hover {
+//     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
+// }
+
+// .container .content {
+//     flex: 1; /* Разделяет пространство для содержимого */
+//     padding: 10px; /* Отступы для содержимого */
+//     color: #333; /* Темно-серый цвет текста */
+//     font-weight: normal; /* Обычный текст */
+//     font-family: Arial, sans-serif; /* Шрифт для офисного стиля */
+// }
+
+
+
+// .container_tCardOper {
+//     display: flex; /* Используем Flexbox для расположения блоков в ряд */
+//     justify-content: space-between; /* Равномерное распределение пространства между блоками */
+//     width: 100%; /* Ширина контейнера */
+// }
+
+.container_out,
+.container_in {
+    flex: 1;
+    display: flex;
     flex-direction: column;
     // background-color: azure;
 }
-.container_tCardOper_action{    
-    display: flex; 
+
+.container_action {
+    display: flex;
     flex-direction: column;
-    min-width:  60px;
+    min-width: 60px;
 
 }
-.tCardOper_out,
-.tCardOper_action,
-.tCardOper_in {    
-    flex: 1; /* Каждый блок займет равное пространство */
-    margin: 3px; /* Отступы между блоками */
-    padding: 1px 5px; /* Внутренние отступы для содержимого */
-    background-color: #ffffff; /* Белый фон для блоков */
-    border: 1px solid #ccc; /* Серая граница */
-    border-radius: 5px; /* Скругленные углы */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Легкая тень для блоков */
+
+.container_coment {
+    display: flex;
+    flex-direction: column;
+    // min-width:  60px;
+    min-height: 50px;
+
+}
+
+._out,
+._in {
+    flex: 1;
+    padding: 1px 1px;
+    background-color: $second_container_background_color;
+    border: $border;
+    border-radius: $border-radius;
     height: auto;
 }
 
-.tCardOper_out_title,
-.tCardOper_action_title,
-.tCardOper_in_title {
-    font-weight: bold; /* Жирный текст для заголовков */    
-    color: #333; /* Темно-серый цвет текста */
+._action {
+    flex: 1;
+    margin: 0 3px;
+    padding: 1px 1px;
+    background-color: $second_container_background_color;
+    border: $border;
+    border-radius: $border-radius;
+    height: auto;
+}
+
+._coment {
+    flex: 1;
+    margin: 3px;
+    padding: 1px 1px;
+    background-color: $second_container_background_color;
+    border: $border;
+    border-radius: $border-radius;
+    height: auto;
+}
+
+
+.out_title,
+.action_title,
+.in_title,
+.coment_title {
+    font-weight: bold;    
+    color: $second_text_color;    
     text-align: center;
     height: auto;
+    font-size: $header4_font_size;
 }
 
-.tCardOper_oper_title,
-.tCardOper_oper_qtu  {
-    font-size: 12px; /* Размер шрифта для информации о времени */
-    color: #666; /* Светло-серый цвет для дополнительной информации */
+._oper_title,
+._oper_qtu {
+    font-size: $header4_font_size;
+    color: $text_color_italic;
     margin: 10px 5px;
     text-align: center;
 }
 
 //----OUT IN-----
 .container_in_out_item {
-    display: flex; /* Используем Flexbox для расположения ячеек в строке */    
-    justify-content: space-between; /* Равномерное распределение пространства между ячейками */
-    padding: 2px; /* Внутренние отступы для ячеек */
-    border-bottom: 1px solid #ccc; /* Нижняя граница для разделения строк */
+    display: flex;
+    /* Используем Flexbox для расположения ячеек в строке */
+    justify-content: space-between;
+    /* Равномерное распределение пространства между ячейками */
+    padding: 2px;
+    /* Внутренние отступы для ячеек */
+    border-bottom: 1px solid #ccc;
+    /* Нижняя граница для разделения строк */
     font-size: 12px;
     width: 100%;
 }
 
 .container_in_out_item:last-child {
-    border-bottom: none; /* Убираем границу у последней строки */
+    border-bottom: none;
+    /* Убираем границу у последней строки */
 }
+
 .in_out_item_code,
 .in_out_item_title,
 .in_out_item_uom,
 .in_out_item_qty {
     // flex: 1; /* Каждая ячейка занимает равное пространство */
-    text-align: center; /* Выравнивание текста по центру */
+    text-align: center;
+    /* Выравнивание текста по центру */
 }
+
 .in_out_item_title,
 .in_out_item_uom,
 .in_out_item_qty {
-    margin-left: 2px; /* Отступ между ячейками для количества и единицы измерения */
+    margin-left: 2px;
+    /* Отступ между ячейками для количества и единицы измерения */
 }
+
 .in_out_item_title:last-child,
 .in_out_item_code:last-child,
 .in_out_item_qty:last-child,
 .in_out_item_uom:last-child {
-    margin-left: 0; /* Убираем отступ для последней ячейки в строке */
+    margin-left: 0;
+    /* Убираем отступ для последней ячейки в строке */
 }
 
 /* Дополнительные стили для улучшения внешнего вида */
 .container_in_out_item:hover {
-    background-color: #f9f9f9; /* Изменение фона при наведении */
+    background-color: #f9f9f9;
+    /* Изменение фона при наведении */
 }
 
 
-.in_out_item_code { 
-    font-weight: bold; /* Жирный текст для кода */  
+.in_out_item_code {
+    font-weight: bold;
+    /* Жирный текст для кода */
     min-width: 60px;
 }
 
 .in_out_item_title {
-    font-weight: bold; /* Жирный текст для кода */
+    font-weight: bold;
+    /* Жирный текст для кода */
     width: 80%;
     // background-color: #ccc;
 }
 
 .in_out_item_qty,
-.in_out_item_uom  {
-    color: #666; /* Светло-серый цвет для количества и единицы измерения */
+.in_out_item_uom {
+    color: #666;
+    /* Светло-серый цвет для количества и единицы измерения */
     width: 20%;
     // background-color: #ccc;
 }
 
-.container_icon_edit_save{
+.container_icon_edit_save {
     display: flex;
     flex-direction: row;
     // position: absolute;
@@ -154,37 +224,37 @@
     cursor: pointer;
     border-top-left-radius: 5px;
 }
-.icon_edit_save{
-       
+
+.icon_edit_save {
+
     border-top-left-radius: 5px;
 }
 
-.icon_del{
+.icon_del {
     width: 20px;
     height: 20px;
-        cursor: pointer;
-    }
+    cursor: pointer;
+}
 
 
-.container_buttons_row{
+.container_buttons_row {
     display: flex;
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
-    border-top: 1px solid #ccc; /* Серая граница */
-    // background-color: aquamarine;
+    border-top: 1px solid #ccc;
     width: calc(100% - 4px);
-    // position: absolute;
-    // right: 0;
-    // top: 0;
     overflow: hidden;
     padding: 3px 5px;
     margin-left: 5px;
-//     border-top: $border;
-//     padding-top: 2px;
- }
+    height: 30px;   
+}
 
-.button_status{
-    padding: 0;
+.button_status {
+    // padding: 0;
     margin: 0;
+}
+
+.plug {
+    width: 40px;
 }

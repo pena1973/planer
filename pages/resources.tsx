@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout/layout";
-import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
+
 import UOMSCatalog from "@/components/catalogs/UOMSCatalog/uomsCatalog";
 import ActionsCatalog from "@/components/catalogs/ActionsCatalog/аctionsCatalog";
 import TeamSchedule from "@/components/catalogs/TeamSchedule/teamSchedule";

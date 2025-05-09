@@ -45,8 +45,9 @@ export const rootReducer = combineReducers({
 
 // key нужен чтобы создавать несколько хранилищ
 const persistConfig = {
-  key: 'myPersistKeyword',
+  key: 'root',
   storage: storageSession,  
+  
   whitelist: ['authSlice', 'catalogSlice', 'dataSlice','planSlice','viewSlice'],
   // timeout: 1000,
 };

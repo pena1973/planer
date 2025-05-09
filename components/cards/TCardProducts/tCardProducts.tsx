@@ -1,10 +1,12 @@
 
 import styles from "./tCardProducts.module.scss";
-import { TCardProductItem, UOMItem } from '@/types'
+import { TCardOperationItem, TCardProductItem, UOMItem } from '@/types'
 import Image from 'next/image';
 
 import TCardProduct from "@/components/cards/TCardProduct/tCardProduct";
 import TCardProductNew from "@/components/cards/TCardProductNew/tCardProductNew";
+import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
+
 import { useEffect, useState, useRef } from "react";
 
 
@@ -18,12 +20,13 @@ import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
 export interface TCardProductProps {
-    tCardCurrentProducts: TCardProductItem[],
-    saveCurrentProductsHandler: (tProductsValue: TCardProductItem[]) => void;
+    tCardProducts: TCardProductItem[],
+    tCardOperations?: TCardOperationItem[], // для прорисовки статусов
+    saveProductsHandler: (tProductsValue: TCardProductItem[]) => void;
     dragOverHandler: (e: React.DragEvent<HTMLElement>) => void,
     dropHandler: (e: React.DragEvent<HTMLElement>) => void,
     setCurrentDraggingElement: ({ }: string) => void,
-    handleMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void,
+    handleMouseDown: (code: string) => void,
     handleMouseUp: (e: React.MouseEvent<HTMLDivElement>) => void,
     isDragging: boolean,
     currentDraggingElement: string,
@@ -32,13 +35,17 @@ export interface TCardProductProps {
     handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,
     possibleEdit: boolean,
     prefix: string,
-    useUniqueId: () => number
-    setCartEdited: () => void
+    updateIdc: (currentId: number) => void,
+    setCartEdited: () => void,
+    maxIdc: number,
+    setMaxIdc: (maxIdc: number) => void,
+    lightProduct: number,  // idc  продукта который нужно выделить цветом  
 }
 
 export default function TCardProducts({
-    tCardCurrentProducts,
-    saveCurrentProductsHandler,
+    tCardProducts,
+    tCardOperations,
+    saveProductsHandler,
     dragOverHandler,
     dropHandler,
     setCurrentDraggingElement,
@@ -51,8 +58,11 @@ export default function TCardProducts({
     handleDrop,
     possibleEdit,
     prefix,
-    useUniqueId,
+    updateIdc,
     setCartEdited,
+    maxIdc,
+    setMaxIdc,
+    lightProduct
 }: TCardProductProps) {
 
     const [edited, setEdited] = useState(false);
@@ -61,22 +71,22 @@ export default function TCardProducts({
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        setTProductsValue(tCardCurrentProducts);
-    }, [tCardCurrentProducts]);
+        setTProductsValue(tCardProducts);
+    }, [tCardProducts]);
 
     // колбеки кнопки
     const deleteProductHandler = (indexToRemove: number) => {
         let tProductsValueUpdated = [...tProductsValue]
-        tProductsValueUpdated.splice(indexToRemove,1)
+        tProductsValueUpdated.splice(indexToRemove, 1)
         setTProductsValue(tProductsValueUpdated)
         setCartEdited();
     };
 
-    const changeProductHandler = (indexToChange: number,id: number, title: string, qtu: number, uom: UOMItem | null) => {
+    const changeProductHandler = (indexToChange: number, id: number, title: string, qtu: number, uom: UOMItem | null) => {
         let product = tProductsValue[indexToChange];
-        let updatedProduct = {...product, title:title, qtu:qtu, uom: uom ?? product.uom}
+        let updatedProduct = { ...product, title: title, qtu: qtu, uom: uom ?? product.uom }
         let tProductsValueUpdated = [...tProductsValue]
-        tProductsValueUpdated.splice(indexToChange,1,updatedProduct)
+        tProductsValueUpdated.splice(indexToChange, 1, updatedProduct)
         setTProductsValue(tProductsValueUpdated)
         setCartEdited();
     };
@@ -90,7 +100,7 @@ export default function TCardProducts({
             uom.title.trim() !== ""
         );
     };
-    const saveProductsHandler = () => {
+    const saveProducts = () => {
         setMessage("");
         // проверяем на заполненность
         let isOK = true;
@@ -108,16 +118,16 @@ export default function TCardProducts({
             }
         })
         if (isOK) {
-            saveCurrentProductsHandler(tProductsValue);
+            saveProductsHandler(tProductsValue);
             setEdited(!isOK);
         }
         setCartEdited();
     };
 
     const addProductHandler = () => {
-        const idc = useUniqueId();
+        const idc = maxIdc + 1;
         let newProduct = {
-            idc: idc,                        
+            idc: idc,
             codeS: "",
             title: "Продукт",
             qtu: 0,
@@ -126,14 +136,22 @@ export default function TCardProducts({
         } as TCardProductItem;
         setTProductsValue([...tProductsValue, newProduct])
         setCartEdited();
+        setMaxIdc(idc);
+
     };
 
-    let tCardProductsReactNodes = tProductsValue.map((elem,index) => {
+    let tCardProductsReactNodes = tProductsValue.map((elem, index) => {
+
+        const regex = /^([A-Z])(\d+)([IO])(\d+)/; // Регулярное выражение для извлечения компонентов
+        const match = elem.codeS.match(regex);
+        const idc = (match) ? parseInt(match[2], 10) : NaN;  // idc операции (цифры)
+        const status = tCardOperations?.find(op => op.idc === idc)?.status;
+
         return (<>
             {edited &&
                 <TCardProductNew
-                    idc={elem.idc}  
-                    prefix={prefix}                  
+                    idc={elem.idc}
+                    prefix={prefix}
                     codeS={elem.codeS}
                     title={elem.title}
                     qtu={elem.qtu}
@@ -144,7 +162,7 @@ export default function TCardProducts({
                 />}
             {!edited &&
                 <TCardProduct
-                    idc={elem.idc}                    
+                    idc={elem.idc}
                     codeS={elem.codeS}
                     title={elem.title}
                     qtu={elem.qtu}
@@ -161,6 +179,8 @@ export default function TCardProducts({
                     handleDrop={handleDrop}
                     prefix={prefix}
                     index={index}
+                    lightProduct={lightProduct}
+                    status={status}
                 />}
         </>
         );
@@ -168,7 +188,7 @@ export default function TCardProducts({
 
     return (
 
-        <div className={styles.container_tCardProduct}
+        <div className={styles.container}
             onDragOver={(e) => dragOverHandler(e)}
             onDrop={(e) => {
                 handleDrop(e, prefix)
@@ -200,7 +220,7 @@ export default function TCardProducts({
                         <Image className={styles.icon_edit_save}
                             src={save}
                             alt="arrow" width={20} height={20}
-                            onClick={() => { saveProductsHandler() }}
+                            onClick={() => { saveProducts() }}
                         />
                         {/* {modified && <div>*</div>} */}
                     </div>

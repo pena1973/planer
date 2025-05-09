@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { TCardTable } from '@/pages/db/models/data/t_cards';
 import { getRepository } from 'typeorm';
+import { getTCards, } from './handlers-get';  // 
+import { StatusEnum } from '@/types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) { 
   try {
@@ -12,21 +14,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardRepository = dbConnection.getRepository(TCardTable);
    
     // Извлекаем параметры userId и teamId из строки запроса
-        const { userId, teamId } = req.query;
+        const { userId, teamId:teamIdget } = req.query;
     
     switch (req.method) {
       case 'GET':    
-        // Строим фильтр для поиска
-        const filter: any = {};       
-        if (teamId) {
-          filter.team_id = teamId;  // Фильтрация по team_id
-        }
+      const statuses=[
+        StatusEnum.defective, 
+        StatusEnum.draft,
+        StatusEnum.performed,
+        StatusEnum.planed,
+        StatusEnum.prepared,
+        StatusEnum.ready]; // статусы для фильтрации
+      
+      const tCards = await getTCards(Number(teamIdget),statuses,tCardRepository)
 
-        // Выполняем запрос с фильтрацией
-        const tCards = await tCardRepository.find({
-          where: filter,  // Применяем фильтр к запросу
-          select: ['id', 'date', 'number', 'coment', 'status'],  // Указываем, какие поля нужно вернуть
-        });
+        // // Строим фильтр для поиска
+        // const filter: any = {};       
+        // if (teamId) {
+        //   filter.team_id = teamId;  // Фильтрация по team_id
+        // }
+
+        // // Выполняем запрос с фильтрацией
+        // const tCards = await tCardRepository.find({
+        //   where: filter,  // Применяем фильтр к запросу
+        //   select: ['id', 'date', 'idc', 'coment', 'status'],  // Указываем, какие поля нужно вернуть
+        // });
 
         
         // Возвращаем результат

@@ -1,3 +1,23 @@
+export enum TypeEnum {
+  P = 'P',
+  W = 'W',
+  M = 'M',
+  I = 'I',
+  O = 'O',
+  A = 'A', // Дейчствие
+}
+
+export enum StatusEnum {
+    draft     = 'draft', // черновик
+    prepared  = 'prepared', // готов к началу планирования
+    planed    = 'planed', // запланирован
+    performed = 'performed',// выполнен юнитом
+    ready     = 'ready', // готов (проверен на брак)
+    defective = 'defective', // бракован
+    cancelled = 'cancelled', // отменен   
+    closed    = 'closed', // выполнена и закрыта   
+}
+
 export interface TCardStageItem {
     id?: number,  // id BD
     idc: number, //  id на клиенте
@@ -17,34 +37,30 @@ export interface TCardOperationItem {
     coment?: string,
 }
 
-export enum StatusEnum {
-    draft     = 'draft', // черновик
-    prepared  = 'prepared', // готов к началу планирования
-    planed    = 'planed', // запланирован
-    performed = 'performed',// выполнен юнитом
-    ready     = 'ready', // готов (проверен на брак)
-    defective = 'defective', // бракован
-    cancelled = 'cancelled', // отменен   
-}
 export interface TCardProductItem {
     id?: number,  // id BD
     idc: number, //  id на клиенте
-    codeS: string, //  код источника
+    codeS: string, //  код источника    
     title: string,
     qtu: number,
     uom: UOMItem,
 }
+
 export interface TCardItem {
-    id: number,
-    date: Date, //  дата 
-    // active?: boolean, // активная карта из списка
-    number: number, // поле для синхронизации с внешними системами
+    id: number, //в базе
+    date: string, //  дата     
+    idc: number, // номер карты на клиенте
     modified: boolean, // указание что модифицирована и не сохранена
     tCardProducts?: TCardProductItem[],
     tCardWastes?: TCardProductItem[],
     tCardOperations?: TCardOperationItem[],
-    tCardMaterials?: TCardProductItem[],
-    maxId: number, // это счетчик id в пределах карты  -  обеспечивает сквозную id в карте
+    tCardMaterials?: TCardProductItem[],   
+    // включаю потому что может быть 
+    // не заполненная операциями стадия на этапе редактирования  
+    tCardStages?: TCardStageItem[], 
+    // это счетчик id для подчиненных сущьностей в пределах карты  
+    // -  обеспечивает сквозную idc в карте иначе получим очень большие номера
+    maxIdc: number, 
     coment?: string,
     status:StatusEnum
 }

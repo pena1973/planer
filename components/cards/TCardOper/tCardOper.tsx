@@ -4,6 +4,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import styles from "./tCardOper.module.scss";
 import { TCardOperationItem, StatusEnum } from '@/types'
 import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/utils'
+import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
 import {
 
 } from '@/store/slices';
@@ -26,7 +27,7 @@ export interface TCardOperProps {
     dragOverHandler: (e: React.DragEvent<HTMLElement>) => void,
     dropHandler: (e: React.DragEvent<HTMLElement>) => void,
     setCurrentDraggingElement: ({ }: string) => void,
-    handleMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void,
+    handleMouseDown: (code: string) => void,
     handleMouseUp: (e: React.MouseEvent<HTMLDivElement>) => void,
     isDragging: boolean,
     currentDraggingElement: string,
@@ -36,7 +37,8 @@ export interface TCardOperProps {
     // index: number
     deleteOperHandler: (id: number) => void,
     editOperHandler: (id: number) => void
-    setOperStatus: (id: number, status: StatusEnum) => void
+    setOperStatus: (id: number, status: StatusEnum) => void,
+    lightProduct: number
 }
 
 export default function TCardOper({
@@ -54,7 +56,8 @@ export default function TCardOper({
     // index,
     deleteOperHandler,
     editOperHandler,
-    setOperStatus
+    setOperStatus,
+    lightProduct
 }: TCardOperProps) {
     const dispatch = useAppDispatch();
 
@@ -67,15 +70,18 @@ export default function TCardOper({
                     onDrop={(e) => dropHandler(e)}
                     draggable={true}
                     onMouseDown={(e) => {
-                        setCurrentDraggingElement("C" + tCardOperation.idc + "O" + index1);
-                        handleMouseDown(e)
+                        e.stopPropagation(); // Останавливаем распространение события на родительский элемент
+                        setCurrentDraggingElement("A" + tCardOperation.idc + "O" + index1);
+                        handleMouseDown("A" + tCardOperation.idc + "O" + index1)
                     }}
                     onMouseLeave={handleMouseUp}
+                    onMouseUp={handleMouseUp}
                     style={{
 
-                        left: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index1) ? positionX : 0,
-                        top: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index1) ? positionY : 0,
-                        cursor: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index1) ? 'grabbing' : 'grab'
+                        left: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? positionX : 0,
+                        top: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? positionY : 0,
+                        cursor: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? 'grabbing' : 'grab',
+                        color: (lightProduct === elem2.idc) ? 'rgb(209, 29, 29)' : '',
                     }}>
                     <div className={styles.in_out_item_code}>{elem2.codeS}</div>
                     <div className={styles.in_out_item_title}>{elem2.title}</div>
@@ -93,16 +99,19 @@ export default function TCardOper({
                     onDragOver={(e) => dragOverHandler(e)}
                     onDrop={(e) => dropHandler(e)}
                     draggable={true}
-                    onMouseDown={(e) => {
-                        setCurrentDraggingElement("C" + tCardOperation.idc + "I" + index2);
-                        handleMouseDown(e)
+                    onMouseDown={(e) => {   
+                        e.stopPropagation(); // Останавливаем распространение события на родительский элемент                     
+                        setCurrentDraggingElement("A" + tCardOperation.idc + "I" + index2);
+                        handleMouseDown("A" + tCardOperation.idc + "I" + index2)
                     }}
                     onMouseLeave={handleMouseUp}
+                    onMouseUp={handleMouseUp}
                     style={{
 
-                        left: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index2) ? positionX : 0,
-                        top: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index2) ? positionY : 0,
-                        cursor: isDragging && (currentDraggingElement === tCardOperation.idc + "-" + index2) ? 'grabbing' : 'grab'
+                        left: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? positionX : 0,
+                        top: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? positionY : 0,
+                        cursor: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? 'grabbing' : 'grab',
+                        color: (lightProduct === elem3.idc) ? 'rgb(209, 29, 29)' : '',
                     }}
                 >
                     <div className={styles.in_out_item_code}>{elem3.codeS}</div>
@@ -117,55 +126,73 @@ export default function TCardOper({
 
     const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(tCardOperation.duration);
     return (
-        <div className={styles.container_tCardOper}>
-            <div className={styles.tCardOper_id}> C{tCardOperation.idc}</div>
-            <div className={styles.container_tCardOper_body}>
-                {/* <div className={styles.container_icon_edit_save}>
-                    <Image className={styles.icon_edit_save}
-                        src={editMode ? save : edit}
-                        alt="arrow" width={20} height={20}
-                        onClick={() => setEditMode(!editMode)}
-                    />
-                    {edited && <div>*</div>}
-                </div> */}
-                <div className={styles.container_tCardOper_out}>
-                    <div className={styles.tCardOper_out_title}>result</div>
-                    <div className={styles.tCardOper_out}
-                        onDrop={(e) => { handleDrop(e, `O${tCardOperation.idc}`) }}
+        <div className={styles.container}
+             onDragOver={(e) => dragOverHandler(e)}
+             onDrop={(e) => dropHandler(e)}
+             draggable={true}
+             onMouseDown={(e) => {
+                 setCurrentDraggingElement("T" + tCardOperation.idc);
+                 handleMouseDown("T" + tCardOperation.idc)
+             }}
+             onMouseLeave={handleMouseUp}
+             onMouseUp={handleMouseUp}
+            style={{
+                left: isDragging && (currentDraggingElement === "T" + tCardOperation.idc) ? positionX : 0,
+                top: isDragging && (currentDraggingElement === "T" + tCardOperation.idc) ? positionY : 0,
+                cursor: isDragging && (currentDraggingElement === "T" + tCardOperation.idc) ? 'grabbing' : 'grab',                
+            }}
+        >
+            <div className={styles.container_header}>
+                <div className={styles.container_status}>
+                    <StatusCircle status={tCardOperation.status} />
+                    &nbsp;
+                    {tCardOperation.status}
+                </div>
+                Action {tCardOperation.idc}
+                <div className={styles.plug}></div>
+            </div>
+            <div className={styles.container_tables}>
+                <div className={styles.container_out}>
+                    <div className={styles.out_title}>result</div>
+                    <div className={styles._out}
+                        onDrop={(e) => { handleDrop(e, `A${tCardOperation.idc}O`) }}
                         onDragOver={(e) => e.preventDefault()} // Обязательно для возможности сброса
                     >
                         {outReactNodes}
                     </div>
                 </div>
-                <div className={styles.container_tCardOper_action}>
-                    <div className={styles.tCardOper_action_title}>action</div>
-                    <div className={styles.tCardOper_action}>
-
-                        <div className={styles.tCardOper_oper_title}>{tCardOperation.action.title}</div>
-                        {/* <div className={styles.tCardOper_oper_qtu}>{tCardOperation.duration} ms</div> */}
-                        <div className={styles.tCardOper_oper_qtu}>{`${hours}h ${minutes}m ${seconds}s ${milliseconds}ms`}</div>
+                <div className={styles.container_action}>
+                    <div className={styles.action_title}>action</div>
+                    <div className={styles._action}>
+                        <div className={styles._oper_title}>{tCardOperation.action.title}</div>
+                        <div className={styles._oper_qtu}>{`${hours}h ${minutes}m ${seconds}s ${milliseconds}ms`}</div>
                     </div>
                 </div>
-                <div className={styles.container_tCardOper_in}>
-                    <div className={styles.tCardOper_in_title}>sourse</div>
-                    <div className={styles.tCardOper_in}
-                        onDrop={(e) => { handleDrop(e, `I${tCardOperation.idc}`) }}
+                <div className={styles.container_in}>
+                    <div className={styles.in_title}>sourse</div>
+                    <div className={styles._in}
+                        onDrop={(e) => { handleDrop(e, `A${tCardOperation.idc}I`) }}
                         onDragOver={(e) => e.preventDefault()} // Обязательно для возможности сброса
                     >
                         {innReactNodes}
                     </div>
                 </div>
             </div>
+            <div className={styles.container_coment}>
+                <div className={styles.coment_title}>comment</div>
+                <div className={styles._coment}>
+                    {tCardOperation.coment}
+                </div>
+            </div>
             <div className={styles.container_buttons_row}>
-                <div>status: {String(tCardOperation.status)}</div>
-
-                <div className={styles.container_icon_edit_save}>
-
+                <div>
                     {(tCardOperation.status === StatusEnum.draft)
                         && <button className={styles.button_status}
                             onClick={() => setOperStatus(tCardOperation.idc, StatusEnum.prepared)}>
-                            готов к планированию
-                        </button>}
+                            на планирование
+                        </button>}</div>
+
+                <div className={styles.container_icon_edit_save}>
                     <Image className={styles.icon_edit_save}
                         src={edit}
                         alt="arrow" width={20} height={20}

@@ -17,6 +17,7 @@ export type CatalogState = {
 }
 export type DataState = {
     tCards: TCardItem[],
+    tCardCurrentId: number,
     tCardCurrent: TCardItem,
     tCardCurrentStages: TCardStageItem[],// для текущей карты
     tCardCurrentProducts: TCardProductItem[], // для текущей карты
@@ -55,6 +56,7 @@ const catalogIntialState: CatalogState = {
 }
 const dataIntialState: DataState = {
     tCards: [] as TCardItem[],
+    tCardCurrentId: NaN,
     tCardCurrent: {} as TCardItem,
     tCardCurrentStages: [] as TCardStageItem[],
     tCardCurrentProducts: [] as TCardProductItem[],
@@ -136,6 +138,9 @@ const dataSlice = createSlice({
         setTCards: (state, action) => {
             state.tCards = action.payload;
         },
+        setTCardCurrentId: (state, action) => {
+            state.tCardCurrentId = action.payload;
+        }, 
         setTCardCurrent: (state, action) => {
             state.tCardCurrent = action.payload;
         },
@@ -203,7 +208,7 @@ const viewSlice = createSlice({
 export default function Foo() { return <></> }  // пустышка для билда
 
 export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule } = catalogSlice.actions;
-export const { setTCards, setTCardCurrent, setTCardCurrentStages, setTCardCurrentMaterials, setTCardCurrentOperations, setTCardCurrentProducts, settCardCurrentWastes, setTCardCurrentMaxIdc } = dataSlice.actions;
+export const { setTCards,setTCardCurrentId, setTCardCurrent, setTCardCurrentStages, setTCardCurrentMaterials, setTCardCurrentOperations, setTCardCurrentProducts, settCardCurrentWastes, setTCardCurrentMaxIdc } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
 export const { setMonitorPoint, setResourcePoint } = viewSlice.actions;

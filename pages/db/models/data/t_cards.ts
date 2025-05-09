@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, OneToMany, } from 'typeorm';
 import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UserTable } from '@/pages/db/models/catalogs/users'
-import { StatusEnum } from '@/pages/db/models/enums';
+import { StatusEnum } from '@/types';
 
 @Entity('t_cards')
 export class TCardTable {
@@ -11,8 +11,8 @@ export class TCardTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  date!: Date;
+  @Column('date')
+  date!: Date; // дата карты
 
   @ManyToOne(() => UserTable, { eager: true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
@@ -27,10 +27,10 @@ export class TCardTable {
   team_id!: number;
 
   @Column()
-  number!: number;  // Номер для синхронизации с внешними системами
+  idc!: number;  // Номер для синхронизации с внешними системами
 
   @Column({ default: 0 })
-  max_idc!: number;  // Счетчик ID
+  max_idc!: number;  // Счетчик IDс внутри сущьностей карты
 
   @Column({ type: 'text', default: "" })
   coment?: string; 

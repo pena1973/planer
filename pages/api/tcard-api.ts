@@ -8,8 +8,10 @@ import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { TeamTable } from '@/pages/db/models/catalogs/teams'
 
-import { TypeEnum } from '@/pages/db/models/enums';
-import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem } from '@/types';
+// import { TypeEnum } from '@/types';
+
+import { TypeEnum,TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem } from '@/types';
+
 
 interface RequestBody {
   tCard: TCardItem;
@@ -70,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tCardItemg_ = {
           id: tCardtab.id,
           date: tCardtab.date,
-          number: tCardtab.number || "1",  // Если number не заполнен, возвращаем "1"
+          number: tCardtab.idc || "1",  // Если number не заполнен, возвращаем "1"
           modified: true,  // Например, помечаем, что карта изменена
           maxId: tCardtab.max_idc,
           coment: tCardtab.coment,
@@ -330,7 +332,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           id: savedTCard.id,
           date: savedTCard.date,
           active: true,
-          number: savedTCard.number,
+          idc: savedTCard.idc,
           modified: false, // Например, установка true, так как мы только что сохранили
           maxId: savedTCard.max_idc,
           coment: savedTCard.coment,
@@ -374,9 +376,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 
-// получаю максимальный номер карты
+
 // КАРТА
 // получаю максимальный номер карты
+// не беру id потому что он в пределах таблицы
 async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>) {
 
   const result = await tCardRepository
@@ -395,15 +398,16 @@ async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>)
   return newNumber;
 }
 
+
 // ТКАРТА
 async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardItem, userId: number, teamId: number, tCardMaxIdc: number) {
   let savedTCard = null;
   let error = "";
 
   // генерим пользовательский номер карты
-  let newCardNumber = Number(tCard.number);
+  let newCardNumber = Number(tCard.idc);
 
-  if (tCard.number === 0) {
+  if (tCard.idc === 0) {
     newCardNumber = await generateNewNumberForTeam(tCardRepository);
     if (!newCardNumber) {
       error = `Ошибка при генерации номера карты`;
@@ -432,7 +436,7 @@ async function updateCard(tCardRepository: Repository<TCardTable>, tCard: TCardI
       user_id: Number(userId),
       date: tCard.date,
       team_id: Number(teamId),
-      number: newCardNumber,
+      idc: newCardNumber,
       max_idc: tCardMaxIdc,
       coment: tCard.coment,
       status: tCard.status,
@@ -628,13 +632,13 @@ async function updateOperations(
     const savedStage = savedTCardStages.find((stage) => stage.idc === operation.stage.idc);
 
     if (!savedStage) {
-      error = `Ошибка при поиске стадии для операции С${operation.idc}`;
+      error = `Ошибка при поиске стадии для операции ${operation.idc}`;
       console.log(error);
       break;  // Прерываем цикл
     }
 
     if (!operation.action.id) {
-      error = `Ошибка, не заполнено действие в операции С${operation.idc}`;
+      error = `Ошибка, не заполнено действие в операции ${operation.idc}`;
       console.log(error);
       break;  // Прерываем цикл
     }
@@ -676,13 +680,13 @@ async function updateOperations(
 
     const savedStage = savedTCardStages.find((stage) => stage.idc === operation.stage.idc);
     if (!savedStage || !savedStage.id) {
-      error = `Ошибка при поиске стадии для операции С${operation.idc}`;
+      error = `Ошибка при поиске стадии для операции ${operation.idc}`;
       console.log(error);
       break;  // Прерываем цикл
     }
 
     if (!operation.action.id) {
-      error = `Ошибка, не заполнено действие в операции С${operation.idc}`;
+      error = `Ошибка, не заполнено действие в операции ${operation.idc}`;
       console.log(error);
       break;  // Прерываем цикл
     }

@@ -1,0 +1,58 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+
+
+// Цвет для лоадов
+.load_cancelled {
+    background-color: $load_cancelled
+}
+
+;
+
+.load_performed {
+    background-color: $load_performed
+}
+
+;
+
+.load_ready {
+    background-color: $load_ready
+}
+
+;
+
+.load_planed {
+    background-color: $load_planed
+}
+
+;
+
+.load_prepared {
+    background-color: $load_prepared
+}
+
+;
+
+.load_defected {
+    background-color: $load_defected
+}
+
+;
+
+.load_draft {
+    background-color: $load_draft
+}
+
+;
+
+.circle {
+    width: 18px;
+    height: 18px;
+    border: $border;
+    border-radius: 50%;    
+    display: flex;
+    align-items: center;
+    border: $border;
+}

@@ -3,8 +3,8 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import styles from "./tCardOperNew.module.scss";
 import { TCardOperationItem, TCardProductItem, ActionItem, UOMItem } from '@/types'
-
-import { convertMillisecondsToTime,convertTimeToMilliseconds } from '@/utils'
+import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
+import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/utils'
 
 import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM'; // Путь к вашему компоненту
 import DropdownSelectOper from '@/components/DropdownSelectOper/dropdownSelectOper'; // Путь к вашему компоненту
@@ -29,39 +29,50 @@ _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 
 export interface TCardOperNewProps {
-    idc: number,
-    inn: TCardProductItem[],
-    out: TCardProductItem[],
-    action: ActionItem | null,
-    duration: number,
+    tCardOperation: TCardOperationItem;
+    // idc: number,
+    // inn: TCardProductItem[],
+    // out: TCardProductItem[],
+    // action: ActionItem | null,
+    // duration: number,
     deleteOperHandler: (id: number) => void,
     saveOperHandler: (
         id: number,
         inn: TCardProductItem[],
         out: TCardProductItem[],
         action: ActionItem | null,
+        coment:string,
         duration: number) => void,
-    cancelOperHandler: (id: number) => void,
-    useUniqueId: () => number
+     cancelOperHandler: (id: number) => void,
+    updateIdc: (currentId: number) => void,
     setCartEdited: () => void,
+    maxIdc: number
 }
 
 export default function TCardOperNew({
-    idc,
-    inn,
-    out,
-    action,
-    duration,
+    tCardOperation,
+    // idc,
+    // inn,
+    // out,
+    // action,
+    // duration,
     deleteOperHandler,
     saveOperHandler,
-    cancelOperHandler,
-    useUniqueId,
-    setCartEdited
+     cancelOperHandler,
+    updateIdc,
+    setCartEdited,
+    maxIdc
 }: TCardOperNewProps) {
     const { push, back } = useRouter();
     const pathname = usePathname();
     const dispatch = useAppDispatch();
 
+    const idc = tCardOperation.idc;
+    const inn = tCardOperation.inn;
+    const out = tCardOperation.out;
+    const action = tCardOperation.action;
+    const duration = tCardOperation.duration;
+    const coment = (tCardOperation.coment)?tCardOperation.coment:"";
 
     const [edited, setEdited] = useState(false);
     const [message, setMessage] = useState("");
@@ -74,6 +85,7 @@ export default function TCardOperNew({
     const [minutValue, setMinutValue] = useState(0);
     const [secundValue, setSecundValue] = useState(0);
     const [msValue, setMSValue] = useState(0);
+    const [comentValue, setComentValue] = useState("");
 
 
     //  проверим есть ли что в сессионном храилище
@@ -89,6 +101,7 @@ export default function TCardOperNew({
         setInnValue(inn);
         setOutValue(out);
         setActionValue(action);
+        setComentValue(coment);
         const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(duration);
 
         // setDurationValue(duration)
@@ -101,18 +114,19 @@ export default function TCardOperNew({
     }, []);
 
     const cancelHandler = () => {
-        const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(duration);
+        // const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(duration);
 
-        setInnValue(inn);
-        setOutValue(out);
-        setActionValue(action);
-        // setDurationValue(duration)
-        setHourValue(hours)
-        setMinutValue(minutes)
-        setSecundValue(seconds)
-        setMSValue(milliseconds)
+        // setInnValue(inn);
+        // setOutValue(out);
+        // setActionValue(action);
+        // setActionValue(action);
+        // // setDurationValue(duration)
+        // setHourValue(hours)
+        // setMinutValue(minutes)
+        // setSecundValue(seconds)
+        // setMSValue(milliseconds)
 
-        cancelOperHandler(idc);
+         cancelOperHandler(idc);
     };
 
 
@@ -127,16 +141,24 @@ export default function TCardOperNew({
     };
 
     const addRowHandler = (mode: string) => {
-        const idinn = useUniqueId();
+
+        let currentId = maxIdc + 1;
+
         setEdited(true);
         setCartEdited();
         if (mode === "I") {
-            setInnValue([...innValue, { idc: useUniqueId(), codeS: "" } as TCardProductItem]);
+            setInnValue([...innValue, { idc: currentId, codeS: "" } as TCardProductItem]);
         }
+        currentId = currentId + 1;
+        let idinn = currentId + 1;
         if (mode === "O") {
-            setOutValue([...outValue, { idc: useUniqueId(), codeS: `C${idc}O` + idinn } as TCardProductItem]);
+            setOutValue([...outValue, { idc: currentId, codeS: `A${idc}O` + idinn } as TCardProductItem]);
         }
+        updateIdc(idinn);
+        // согласование
+        
     }
+
     const delRowHandler = (mode: string, indexToRemove: number) => {
         setEdited(true)
         setCartEdited();
@@ -189,7 +211,7 @@ export default function TCardOperNew({
         }
     }
 
-    const handleUOMSelectOut = (idc: number, uom: { id: number, title: string } | null) => {
+    const handleUOMSelectOut = (idc: number, uom: { id: number, title: string, code: string } | null) => {
         if (!uom) return;
         const outUpdated = outValue.map(product =>
             (product.idc === idc) ? { ...product, uom: uom } : product
@@ -199,7 +221,7 @@ export default function TCardOperNew({
         setCartEdited();
     };
 
-    const handleUOMSelectInn = (idc: number, uom: { id: number, title: string } | null) => {
+    const handleUOMSelectInn = (idc: number, uom: { id: number, title: string, code: string } | null) => {
         if (!uom) return;
         const innUpdated = innValue.map(product =>
             (product.idc === idc) ? { ...product, uom: uom } : product
@@ -216,6 +238,36 @@ export default function TCardOperNew({
         setCartEdited();
         setActionValue((!foundOper) ? null : foundOper);
     };
+
+
+    // Функция для автоматической подгонки высоты
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Функция для автоматической подгонки высоты
+    const adjustHeight = () => {
+        if (textareaRef.current) {
+          // Сбрасываем высоту до авто, чтобы она подстраивалась под содержимое
+          textareaRef.current.style.height = 'auto'; 
+      
+          // Если высота содержимого меньше или равна 100px, подстраиваем высоту
+          if (textareaRef.current.scrollHeight <= 100) {
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;  // Устанавливаем высоту в зависимости от содержимого
+            textareaRef.current.style.overflowY = 'hidden';  // Убираем прокрутку, когда высота меньше 100px
+          } else {
+            // Когда содержимое превышает 100px, фиксируем высоту на 100px и включаем прокрутку
+            textareaRef.current.style.height = '100px';
+            textareaRef.current.style.overflowY = 'auto';  // Включаем вертикальную прокрутку
+          }
+        }
+      };
+      
+      
+
+    // Подстраиваем высоту после рендера или изменения содержимого
+    useEffect(() => {
+        adjustHeight();
+    }, [comentValue]); // Каждый раз, когда изменяется содержимое, высота будет пересчитана
+
 
     let resultReactNodes = outValue.map((elem2, index) => {
         return (
@@ -261,13 +313,13 @@ export default function TCardOperNew({
                     onClick={() => delRowHandler("I", index)}
                 />
                 {/* код источника */}
-                <input className={styles.in_out_item_codeS}
+                {/* <input className={styles.in_out_item_codeS}
                     id={"in-title-" + elem3.idc} autoComplete="off"
                     value={elem3.codeS} type="text"
                     onChange={e => { setInOutHandler(e.target.value, index, "codeS", "I") }}
-                    onKeyDown={e => onKeyDown(e, elem3.idc, "in-codeS")} />
+                    onKeyDown={e => onKeyDown(e, elem3.idc, "in-codeS")} /> */}
 
-                {/* <div className={styles.tCardProduct_code}>{elem3.codeS}</div>  */}
+                <div className={styles.in_out_item_code_out}>{elem3.codeS}</div> 
 
                 <input className={styles.in_out_item_title}
                     id={"in-title-" + elem3.idc} autoComplete="off"
@@ -292,16 +344,26 @@ export default function TCardOperNew({
     })
 
     return (
-        <div key={0} className={styles.container_tCardOper}>
-            <div className={styles.tCardOper_id}> C{idc}</div>
+        <div key={0} className={styles.container}>
+            <div className={styles.container_header}>
+                <div className={styles.container_status}>
+                    <StatusCircle status={tCardOperation.status} />
+                    &nbsp;
+                    {tCardOperation.status}
+                </div>
+                Action {tCardOperation.idc}
+                <div className={styles.plug}></div>
+            </div>
+
+            {/* <div className={styles.tCardOper_id}> C{idc}</div> */}
             <Image className={styles.icon_cancel}
                 src={cancel}
                 alt="arrow" width={24} height={24}
                 onClick={() => { cancelHandler() }}
             />
-            <div className={styles.container_tCardOper_out}>
-                <div className={styles.tCardOper_out_title}>result</div>
-                <div className={styles.tCardOper_out}>
+            <div className={styles.container_out}>
+                <div className={styles.out_title}>result</div>
+                <div className={styles._out}>
                     {resultReactNodes}
                     <div className={styles.tCardOper_buttons_container} >
                         <button onClick={() => addRowHandler("O")}>добавить</button>
@@ -311,9 +373,9 @@ export default function TCardOperNew({
 
             </div>
 
-            <div className={styles.container_tCardOper_action}>
-                <div className={styles.tCardOper_action_title}>action</div>
-                <div className={styles.tCardOper_action}>
+            <div className={styles.container_action}>
+                <div className={styles.action_title}>action</div>
+                <div className={styles._action}>
                     <DropdownSelectOper
                         options={actions}
                         onSelect={handleSelectOper}
@@ -343,7 +405,7 @@ export default function TCardOperNew({
                         onChange={e => {
                             const value = e.target.value;
                             if (/^\d*$/.test(value)) {
-                                setEdited(true);                                
+                                setEdited(true);
                                 setMinutValue(Number(e.target.value))
                             }
                         }}
@@ -383,13 +445,26 @@ export default function TCardOperNew({
                 </div>
             </div>
 
-            <div className={styles.container_tCardOper_in}>
-                <div className={styles.tCardOper_in_title}>sourse</div>
-                <div className={styles.tCardOper_in}>
+            <div className={styles.container_in}>
+                <div className={styles.in_title}>sourse</div>
+                <div className={styles._in}>
                     {sourceReactNodes}
                     <div className={styles.tCardOper_buttons_container} >
                         <button onClick={() => addRowHandler("I")}>добавить</button>
                     </div>
+                </div>
+            </div>
+            <div className={styles.container_coment}>
+                <div className={styles.coment_title}>comment</div>
+                <div className={styles._coment}>
+                    <textarea
+                        ref={textareaRef}  // Привязываем ссылку
+                        className={styles.coment_input}
+                        id={"coment-" + tCardOperation.idc}
+                        autoComplete="off"
+                        value={comentValue}
+                        onChange={e => { setComentValue(e.target.value) }}
+                    />
                 </div>
             </div>
             <div className={styles.container_buttons_row}>
@@ -406,7 +481,8 @@ export default function TCardOperNew({
                                     innValue,
                                     outValue,
                                     actionValue,
-                                    convertTimeToMilliseconds(hourValue,minutValue,secundValue,msValue),)
+                                    comentValue,
+                                    convertTimeToMilliseconds(hourValue, minutValue, secundValue, msValue),)
                             } else setMessage("Заполните единицу измерения!")
                         }}
                     />

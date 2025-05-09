@@ -8,7 +8,9 @@ import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TypeEnum } from '@/pages/db/models/enums';
+import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
+
+import { TypeEnum } from '@/types';
 import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
@@ -21,7 +23,7 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 
 
 // types
-import { UserItem, UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
+import { StatusEnum, UserItem, UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
 import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem } from '@/types';
 
 
@@ -192,6 +194,51 @@ export async function getUnitLoads(
   return unitLoadItems;
 }
 
+// КАРТы СПИСОК! только шапка
+export async function getTCards(
+  teamId: number,
+  statuses: StatusEnum[],  // все кроме этих, что в списке
+  tCardRepository: Repository<TCardTable>
+): Promise<TCardItem[]> {
+
+  // Строим фильтр для поиска
+  const filter: any = {};
+  if (teamId) {
+    filter.team_id = teamId;  // Фильтрация по team_id
+  }
+
+
+  if (statuses && statuses.length > 0) {
+    // статус **не** в списке statuses
+    filter.status = In(statuses);
+  }
+
+  // Выполняем запрос с фильтрацией
+  const tCards = await tCardRepository.find({
+    where: filter,  // Применяем фильтр к запросу
+    // Указываем, какие поля нужно вернуть
+    select: ['id', 'date', 'idc', 'coment', 'status', 'max_idc'],
+  });
+
+  // Проверяем, что карта существует
+  if (!tCards) return [] as TCardItem[];
+
+  // Преобразуем результат в TCardItem[]
+  const tCards_ = tCards.map(tCardtab => {
+    return {
+      id: tCardtab.id,
+      date:new Date(tCardtab.date).toLocaleDateString("en-CA"),
+      idc: tCardtab.idc || 1,  // Если number не заполнен, возвращаем "1"
+      modified: false,
+      maxIdc: tCardtab.max_idc,
+      coment: tCardtab.coment,
+      status: tCardtab.status
+    } as TCardItem
+  })
+
+  return tCards_;
+}
+
 // КАРТА! только шапка
 export async function getTCard(
   tcardId: number,
@@ -216,10 +263,10 @@ export async function getTCard(
   // Преобразуем карты    
   return {
     id: tCardtab.id,
-    date: tCardtab.date,
-    number: tCardtab.number || 1,  // Если number не заполнен, возвращаем "1"
+    date: tCardtab.date.toLocaleDateString("en-CA"),
+    idc: tCardtab.idc || 1,  // Если number не заполнен, возвращаем "1"
     modified: true,  // Например, помечаем, что карта изменена
-    maxId: tCardtab.max_idc,
+    maxIdc: tCardtab.max_idc,
     coment: tCardtab.coment,
     status: tCardtab.status
   };
@@ -230,7 +277,8 @@ export async function getTCardFull(
   tcardId: number,
   tCardRepository: Repository<TCardTable>,
   tCardOperationRepository: Repository<TCardOperationTable>,
-  tCardProductRepository: Repository<TCardProductTable>
+  tCardProductRepository: Repository<TCardProductTable>,
+  tCardStageRepository: Repository<TCardStageTable>
 ): Promise<TCardItem | undefined> {
 
   // Строим фильтр для поиска по id карты
@@ -247,6 +295,21 @@ export async function getTCardFull(
 
   // Проверяем, что карта существует
   if (!tCardtab) return undefined;
+
+  // СТАДИИ
+  const tCardStagestab = await tCardStageRepository.find({ where: { tcard_id: tcardId } });
+  
+
+  // Преобразуем стадии
+  const tCardStages_ = tCardStagestab
+    .map(stage => {
+      return {
+        id: stage.id,
+        idc: stage.idc,
+        code: stage.code,
+      } as TCardStageItem;
+    });
+
 
   // ПРОДУКТЫ, МАТЕРИАЛЫ, ОТХОДЫ
   const tCardProductstab = await tCardProductRepository.find({ where: { tcard_id: tcardId } });
@@ -345,7 +408,7 @@ export async function getTCardFull(
       return {
         id: oper.id,
         idc: oper.idc,
-        stage: {} as TCardStageItem, //  Это чисто для визуала и для расчетов не нужно
+        stage: { id: oper.stage.id, idc: oper.stage.idc, code: oper.stage.code, } as TCardStageItem,
         out: out,
         inn: inn,
         action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible } as ActionItem,
@@ -357,15 +420,18 @@ export async function getTCardFull(
 
   const tCard = {
     id: tCardtab.id,
-    date: tCardtab.date, //  дата       
-    number: tCardtab.number,
+    date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
+    idc: tCardtab.idc,
     tCardProducts: tCardProducts_,
     tCardWastes: tCardWastes_,
-    tCardOperations: tCardOperations_,
+    tCardOperations: tCardOperations_,    
     tCardMaterials: tCardMaterials_,
-    maxId: tCardtab.max_idc,
+    tCardStages: tCardStages_,
+    maxIdc: tCardtab.max_idc,
     coment: tCardtab.coment,
     status: tCardtab.status,
+    modified: false,
+
   } as TCardItem
 
   return tCard
@@ -617,15 +683,16 @@ export async function getTCardsOpers(
     }
     tCardTerms.push({
       id: card.id,
-      date: card.date,
-      number: card.number,
+      date: card.date.toLocaleDateString("en-CA"),
+      idc: card.idc,
       modified: false,
       tCardOperations: tCardOperations as TCardOperationTermsItem[],
-      maxId: card.max_idc,
+      maxIdc: card.max_idc,
       coment: card.coment,
       status: card.status,
       readyTerm: cardTerm,
       expand: false,
+
     } as TCardTermsItem)
   }
 
@@ -919,7 +986,7 @@ export async function getUsersUnits(
 
   try {
     // Шаг 1: Получаем всех пользователей команды
-    const activeUsers = await usersRepository.find({ where: { team_id: teamId, isAdmin: false, active: true } });    
+    const activeUsers = await usersRepository.find({ where: { team_id: teamId, isAdmin: false, active: true } });
     // Если активные пользователи не найдены
     if (activeUsers.length === 0) {
       return {
