@@ -411,7 +411,7 @@ export async function getTCardFull(
         stage: { id: oper.stage.id, idc: oper.stage.idc, code: oper.stage.code, } as TCardStageItem,
         out: out,
         inn: inn,
-        action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible } as ActionItem,
+        action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible, code: oper.action.code } as ActionItem,
         duration: oper.duration, // в милисекундах   
         status: oper.status,
         coment: oper.coment
@@ -561,7 +561,7 @@ export async function getTCardFull(
 //   //       stage: {} as TCardStageItem, //  Это чисто для визуала и для расчетов не нужно
 //   //       out: out,
 //   //       inn: inn,
-//   //       action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible } as ActionItem,
+//   //       action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible,code: oper.action.code } as ActionItem,
 //   //       duration: oper.duration, // в милисекундах   
 //   //       status: oper.status,  
 //   //       coment: oper.coment 
@@ -670,6 +670,7 @@ export async function getTCardsOpers(
         id: oper.id,
         idc: oper.idc,
         stage: oper.stage,
+        order: oper.order,
         out: [] as TCardProductItem[],
         inn: [] as TCardProductItem[],
         action: oper.action as ActionItem,
@@ -928,6 +929,7 @@ export async function getTCardOperation(
     id: tCardOpertab.id,
     idc: tCardOpertab.idc,
     stage: tCardOpertab.stage,
+    order: tCardOpertab.order,
     out: [],
     inn: [],
     action: tCardOpertab.action,
@@ -961,6 +963,7 @@ export async function getTCardOperations(
       id: tCardOpertab.id,
       idc: tCardOpertab.idc,
       stage: tCardOpertab.stage,
+      order: tCardOpertab.order,
       out: [],
       inn: [],
       action: {

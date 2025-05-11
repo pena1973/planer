@@ -127,8 +127,9 @@ export default function TCardOper({
     const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(tCardOperation.duration);
     return (
         <div className={styles.container}
-             onDragOver={(e) => dragOverHandler(e)}
-             onDrop={(e) => dropHandler(e)}
+             onDragOver={(e) => dragOverHandler(e)}        
+             onDrop={(e) => { handleDrop(e, `S${tCardOperation.stage.idc}T${tCardOperation.idc}`) }}
+
              draggable={true}
              onMouseDown={(e) => {
                  setCurrentDraggingElement("T" + tCardOperation.idc);

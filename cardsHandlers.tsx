@@ -153,8 +153,10 @@ export const checkReconcilation = (
     ...item, qtu: Math.abs(item.qtu)
   }));
 
+  let tCardProducts_ = tCardProducts.sort((a, b) => a.idc - b.idc);
+
   // Преобразуем qtu всех элементов в положительное значение
-  return { tCardWastesUpdated: tCardWastes, tCardMaterialsUpdated: tCardMaterials, tCardProductsUpdated: tCardProducts, tCardOperationsUpdated: tCardOperations };
+  return { tCardWastesUpdated: tCardWastes, tCardMaterialsUpdated: tCardMaterials, tCardProductsUpdated: tCardProducts_, tCardOperationsUpdated: tCardOperations };
 }
 
 export const groupAndSumByCodeAndUom = (arr: TCardProductItem[], koef: number) => {

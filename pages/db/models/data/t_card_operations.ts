@@ -22,6 +22,9 @@ export class TCardOperationTable {
   @Column()
   stage_id!: number;
 
+  @Column({ type: 'int', default: 0 })
+  order!: number;  //  порядок визуализации операций на стадиях
+
   @ManyToOne(() => ActionTable, { eager: true }) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'action_id' }) // Указываем колонку, которая является внешним ключом
   action!: ActionTable;  // Действие

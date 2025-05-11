@@ -27,19 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         StatusEnum.ready]; // статусы для фильтрации
       
       const tCards = await getTCards(Number(teamIdget),statuses,tCardRepository)
-
-        // // Строим фильтр для поиска
-        // const filter: any = {};       
-        // if (teamId) {
-        //   filter.team_id = teamId;  // Фильтрация по team_id
-        // }
-
-        // // Выполняем запрос с фильтрацией
-        // const tCards = await tCardRepository.find({
-        //   where: filter,  // Применяем фильтр к запросу
-        //   select: ['id', 'date', 'idc', 'coment', 'status'],  // Указываем, какие поля нужно вернуть
-        // });
-
         
         // Возвращаем результат
         res.status(200).json({ success: true,tCards:tCards});

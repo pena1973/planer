@@ -58,7 +58,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     // Запрос на сервер
 
     try {
-      const res = await fetch(`api/tcard-api1?userId=${1}&teamId=${1}&tCardId=${id_tCard}`,
+      const res = await fetch(`api/tcard-api?userId=${1}&teamId=${1}&tCardId=${id_tCard}`,
         {
           method: 'get',
           headers: new Headers({
@@ -182,7 +182,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     let titleCard = "";
     const tCard = tCards.find(tCard => tCard.id === load.id_tCard); // ищем карточку          
     if (tCard)
-      titleCard = `${padNumberToFourDigits(tCard.number)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+      titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
 
     return <LoadMonitorControl
       loadHeight={40}

@@ -28,6 +28,7 @@ export interface TCardOperationItem {
     id?: number,  // id BD
     idc: number, //  id на клиенте
     stage: TCardStageItem,
+    order: number, //  порядок сортировки внутри стадии для визуализиции
     out: TCardProductItem[],
     inn: TCardProductItem[],
     action: ActionItem,
@@ -64,18 +65,6 @@ export interface TCardItem {
     coment?: string,
     status:StatusEnum
 }
-// расширение интерфейса
-export interface TCardTermsItem extends TCardItem {
-    readyTerm: { date: string, time: number }, // срок готовности
-    expand: boolean, //  состояние развернутости и свернутости
-    tCardOperations: TCardOperationTermsItem[],
-  }
-// расширение интерфейса
-export interface TCardOperationTermsItem extends TCardOperationItem {
-    readyTerm: { date: string, time: number }, // срок готовности
-    expand: boolean, //  состояние развернутости и свернутости
-  }
-
 
 export interface UOMItem {
     id: number,
@@ -90,6 +79,21 @@ export interface ActionItem {
     modified?: boolean, // указание что модифицирована и не сохранена
     interruptible:boolean, // можно ли прервать операцию с окончанием смены а потом продолжитть на след день
 }
+
+// расширение интерфейса
+export interface TCardTermsItem extends TCardItem {
+    readyTerm: { date: string, time: number }, // срок готовности
+    expand: boolean, //  состояние развернутости и свернутости
+    tCardOperations: TCardOperationTermsItem[],
+  }
+// расширение интерфейса
+export interface TCardOperationTermsItem extends TCardOperationItem {
+    readyTerm: { date: string, time: number }, // срок готовности
+    expand: boolean, //  состояние развернутости и свернутости
+  }
+
+
+
 export interface UnitItem {
     id?: number,
     idc: number,

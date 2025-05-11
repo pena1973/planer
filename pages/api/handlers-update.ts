@@ -747,12 +747,12 @@ async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>)
 
 // ТКАРТА
 export async function updateCard(
-  tCardRepository: Repository<TCardTable>, 
-  tCard: TCardItem, 
-  userId: number, 
+  tCardRepository: Repository<TCardTable>,
+  tCard: TCardItem,
+  userId: number,
   teamId: number) {
   let savedTCard = null;
-  let error = "";  
+  let error = "";
   // генерим пользовательский номер карты
   let newCardNumber = Number(tCard.idc);
 
@@ -768,7 +768,7 @@ export async function updateCard(
   // Если id карты положительный, то обновляем, если нет - создаем новую
   if (tCard.id && tCard.id > 0) {
     // Обновляем существующую карту
-  
+
     savedTCard = await tCardRepository.save({
       ...tCard,  // сохраняем все поля карты, включая id
       user_id: Number(userId),
@@ -894,7 +894,7 @@ export async function updateStages(
 
   // Все стадии сохранены, проверка
   const savedTCardStages = [...savedNewStages, ...savedUpdatedStages]
-  .sort((a, b) => a.code - b.code)  as TCardStageTable[];
+    .sort((a, b) => a.code - b.code) as TCardStageTable[];
 
   if (tCardStages.length > 0) {
     // Проверка, что массив не пуст и все объекты имеют сгенерированный id
@@ -996,6 +996,7 @@ export async function updateOperations(
       tCardOperationsRepository.create({
         idc: operation.idc,
         stage_id: savedStage.id,
+        order: operation.order,
         action_id: operation.action.id,
         action: operation.action,
         duration: operation.duration,
@@ -1040,14 +1041,17 @@ export async function updateOperations(
       console.log(error);
       break;  // Прерываем цикл
     }
+    const operationToUpdate = {
+      id: existingOperation.id,
+      stage_id: savedStage.id,
+      action_id: operation.action.id,
+      order: operation.order,
+      duration: operation.duration,
+      status: operation.status,
+      coment: operation.coment
+    } as TCardOperationTable;
 
-    // Обновляем нужные поля
-    existingOperation.stage_id = savedStage.id;
-    existingOperation.action_id = operation.action.id;
-    //  existingOperation.action = operation.action; // не буду обновлять поскольку это пристегнутый клаччификатор
-    existingOperation.duration = operation.duration;
-    existingOperation.status = operation.status;    
-    updatedOperations.push(existingOperation);
+    updatedOperations.push(operationToUpdate);
   }
 
   if (error) {
@@ -1058,6 +1062,13 @@ export async function updateOperations(
   if (updatedOperations.length > 0) {
     savedUpdatedOperations = await tCardOperationsRepository.save(updatedOperations); // сохраняем обновленные записи
   }
+
+  // Извлекаем обновленные операции с их связанными таблицами (stage, tCard, action)
+  const operIds = updatedOperations.map(op => op.id);
+  savedUpdatedOperations = await tCardOperationsRepository.find({
+    where: { id: In(operIds) },
+    relations: ['stage', 'action', 'tcard']
+  });
 
   // Все операции сохранены, проверка
   const savedTCardOperations = [...savedNewOperations, ...savedUpdatedOperations] as TCardOperationTable[];

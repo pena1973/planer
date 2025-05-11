@@ -26,8 +26,8 @@ import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 import reset from "@/public/cancel.png";
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
+const URL1 = process.env.NEXT_PUBLIC_URL;
+let _url = String(URL1);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 
@@ -59,6 +59,13 @@ export default function Cards({ }: CardsProps) {
 
   const tCards = useSelector((state: RootState) => {
     return state.dataSlice.tCards;
+  })
+
+  const uoms = useSelector((state: RootState) => {
+    return state.catalogSlice.uoms;
+  })
+  const actions = useSelector((state: RootState) => {
+    return state.catalogSlice.actions;
   })
 
   // Начальный загруз
@@ -113,7 +120,7 @@ export default function Cards({ }: CardsProps) {
     // копируем элемент и его уэже тащим
     setIsDragging(true);
 
-    // тащим операцию
+    // игнорируем выделение красным если тащим операцию в другую стадию
     if (code.includes("T")) {
       return;
     }
@@ -174,7 +181,7 @@ export default function Cards({ }: CardsProps) {
   // console.log() выводит в консоль информацию о том, на какой элемент был сброшен объект.
   // ПЕРЕТАСКИВАНИЕ КАРТЫ НА ПОЛЕ
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, target: string) => {
-
+    e.stopPropagation()
     e.preventDefault(); // Предотвращаем стандартное поведение
     // currentDraggingElement 
     //  Используем индекс поскольку id мохет быть много      
@@ -182,13 +189,59 @@ export default function Cards({ }: CardsProps) {
     // или A + опер.idc + O + индекс в списке
     // или A + опер.idc + I + индекс в списке
 
+
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
     const tCardProducts = tCards[tCardIndex].tCardProducts ? tCards[tCardIndex].tCardProducts : [] as TCardProductItem[];
     const tCardWastes = tCards[tCardIndex].tCardWastes ? tCards[tCardIndex].tCardWastes : [] as TCardProductItem[];
+    const tStages = tCards[tCardIndex].tCardStages ? tCards[tCardIndex].tCardStages : [] as TCardStageItem[];
 
     let updatedProducts = [...tCardProducts];
     let updatedOperations = [...tCardOperations];
     let updatedWastes = [...tCardWastes];
+
+    // T-Это idc операции     S - это idc стадии
+    // Это перетаскитвание операции в стадию (в конец)
+    if (currentDraggingElement.includes("T") && target.includes("S") && !target.includes("T")) {
+      const operIdc = Number(currentDraggingElement.replace("T", ""));
+      const stageIdc = Number(target.replace("S", ""));
+      const operIndex = updatedOperations.findIndex(op => op.idc === operIdc);
+      const stageTarget = tStages.find(st => st.idc === stageIdc);
+
+      if (operIndex < 0 || !stageTarget) return
+      updatedOperations.splice(operIndex, 1, { ...updatedOperations[operIndex], stage: stageTarget })
+    }
+
+    // Это перетаскитвание операции в стадию перед определенной картой
+    if (currentDraggingElement.includes("T") && target.includes("S") && target.includes("T")) {
+
+      // операция что тащим
+      const operIdc = Number(currentDraggingElement.replace("T", ""));
+      const operDraging = updatedOperations.find(op => op.idc === operIdc);
+      // формируем массив без нашей таскаемой операции
+      let updatedOperationsWithoutDraging = updatedOperations
+        .filter(op => op.idc !== operIdc)
+        .sort((a, b) => a.order - b.order); // по возрастанию порядка
+
+      // Ищем куда тащим
+      const regexto = /^([S])(\d+)([T])(\d+)$/;
+      const matchFrom = target.match(regexto);
+      const idcStageTo = (matchFrom) ? parseInt(matchFrom[2], 10) : NaN;
+      const idcOperTo = (matchFrom) ? parseInt(matchFrom[4], 10) : NaN; // после этой операции
+      // и куда потом вставляем
+      const stageTarget = tStages.find(st => st.idc === idcStageTo);
+      const targetOperIndex = updatedOperationsWithoutDraging.findIndex(op => op.idc === idcOperTo);
+
+      // Если целевая стадия и операция после которой не найдена или операция которую тащим не найдена, прерываем
+      if (!stageTarget || !operDraging || targetOperIndex < 0) return;
+
+      // Вставляем перетаскиваемую операцию перед целевой операцией в новой стадии
+      updatedOperationsWithoutDraging.splice(targetOperIndex, 0, { ...operDraging, stage: stageTarget })
+
+      // Пересчитываем порядок в соответствике с сортировкой
+      updatedOperations = updatedOperationsWithoutDraging.map((op, index) => { return { ...op, order: index + 1 } })
+
+    }
+
 
     if (currentDraggingElement.includes("P") && target === "W") {
       const indexProduct = Number(currentDraggingElement.replace("P", ""));
@@ -500,13 +553,14 @@ export default function Cards({ }: CardsProps) {
   const deleteCardHandler = async (idToRemove: number) => {
     // setModified(true);
     try {
-      // запрос получение текста из БД вместе со словами     textId: number, userId:number
-      const res = await fetch(`api/tcard-api?userId=${1}&teamId=${1}&tcardId=${idToRemove}`,
+      // запрос получение текста из БД вместе со словами     textId: number, userId:number      
+      const res = await fetch(`api/tcard-api?tCardId=${idToRemove}`,
         {
           method: 'delete',
           headers: new Headers({
             // 'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+
           }),
         }
       );
@@ -541,14 +595,14 @@ export default function Cards({ }: CardsProps) {
 
     const tCardsUpdated = tCards.filter(tCard => tCard.id !== idToRemove);
     dispatch(setTCards(tCardsUpdated))
-    // удаляем содержание карты
-    dispatch(setTCardCurrent({} as TCardItem));
-    dispatch(setTCardCurrentMaxIdc(0));
-    dispatch(setTCardCurrentStages([] as TCardStageItem[]));
-    dispatch(setTCardCurrentMaterials([] as TCardProductItem[]));
-    dispatch(setTCardCurrentProducts([] as TCardProductItem[]));
-    dispatch(settCardCurrentWastes([] as TCardProductItem[]));
-    dispatch(setTCardCurrentOperations([] as TCardOperationItem[]));
+    // // удаляем содержание карты
+    // dispatch(setTCardCurrent({} as TCardItem));
+    // dispatch(setTCardCurrentMaxIdc(0));
+    // dispatch(setTCardCurrentStages([] as TCardStageItem[]));
+    // dispatch(setTCardCurrentMaterials([] as TCardProductItem[]));
+    // dispatch(setTCardCurrentProducts([] as TCardProductItem[]));
+    // dispatch(settCardCurrentWastes([] as TCardProductItem[]));
+    // dispatch(setTCardCurrentOperations([] as TCardOperationItem[]));
 
   };
   //!!
@@ -562,7 +616,7 @@ export default function Cards({ }: CardsProps) {
 
     try {
       // запрос получение текста из БД вместе со словами     textId: number, userId:number
-      const res = await fetch(`api/tcard-api1`,
+      const res = await fetch(`api/tcard-api`,
         {
           method: 'post',
           headers: new Headers({
@@ -638,7 +692,7 @@ export default function Cards({ }: CardsProps) {
     const tCard = tCards[indexCardToSave]
 
     try {
-      const res = await fetch(`api/tcard-api1?tCardId=${tCard.id}`,
+      const res = await fetch(`api/tcard-api?tCardId=${tCard.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -692,7 +746,7 @@ export default function Cards({ }: CardsProps) {
     setResetLoaderCard(selectedTCard.id)
     // а если карта не была ранее подгружена, то вытаскиваем из базы
     try {
-      const res = await fetch(`api/tcard-api1?tCardId=${selectedTCard.id}`,
+      const res = await fetch(`api/tcard-api?tCardId=${selectedTCard.id}`,
         {
           method: 'get',
           headers: new Headers({
@@ -770,9 +824,106 @@ export default function Cards({ }: CardsProps) {
 
   ///////////////ЗАГРУЗКА КАРТЫ ИЗ ФАЙЛА
   const onCardUpload = (tCard: TCardItem) => {
-    dispatch(setTCards([...tCards, tCard]));
-    // setTCardIndex(tCards.length - 1); 
+
+    // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
+    const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(
+      tCard.tCardProducts ? tCard.tCardProducts : [] as TCardProductItem[],
+      tCard.tCardOperations ? tCard.tCardOperations : [] as TCardOperationItem[]);
+
+    const tCard_ =
+    {
+      ...tCard,
+      modified: true,
+      tCardProducts: tCardProductsUpdated,  // Обновляем массивы
+      tCardOperations: tCardOperationsUpdated,  // Обновляем массивы
+      tCardWastes: tCardWastesUpdated,  // Обновляем массивы
+      tCardMaterials: tCardMaterialsUpdated,  // Обновляем массивы
+      status: StatusEnum.draft,
+    }
+
+    dispatch(setTCards([...tCards, tCard_]));
+
   }
+  ///////////////ВЫГРУЗКА КАРТЫ В ФАЙЛ
+  const upLoadtCard = (tCard: TCardItem) => {
+    const fileName = `${tCard.idc.toString().padStart(4, '0')}-${tCard.date}.json`; // Formatting the filename
+
+    // Prepare data to export
+    const exportData = {
+      date: tCard.date,
+      idc: tCard.idc,
+      tCardProducts: tCard.tCardProducts?.map(product => ({
+        idc: product.idc,
+        codeS: product.codeS,
+        title: product.title,
+        qtu: product.qtu,
+        uom: {
+          title: product.uom.title,
+          code: product.uom.code
+        }
+      })) || [],
+      tCardWastes: tCard.tCardWastes?.map(waste => ({
+        idc: waste.idc,
+        codeS: waste.codeS,
+        title: waste.title,
+        qtu: waste.qtu,
+        uom: {
+          title: waste.uom.title,
+          code: waste.uom.code
+        }
+      })) || [],
+      tCardOperations: tCard.tCardOperations?.map(operation => ({
+        idc: operation.idc,
+        stage: operation.stage ? {
+          idc: operation.stage.idc,
+          code: operation.stage.code
+        } : undefined,
+        out: operation.out?.map(outItem => ({
+          idc: outItem.idc,
+          codeS: outItem.codeS,
+          title: outItem.title,
+          qtu: outItem.qtu,
+          uom: {
+            title: outItem.uom.title,
+            code: outItem.uom.code
+          }
+        })) || [],
+        inn: operation.inn?.map(innItem => ({
+          idc: innItem.idc,
+          codeS: innItem.codeS,
+          title: innItem.title,
+          qtu: innItem.qtu,
+          uom: {
+            title: innItem.uom.title,
+            code: innItem.uom.code
+          }
+        })) || [],
+        action: operation.action ? {
+          code: operation.action.code,
+          title: operation.action.title
+        } : undefined,
+        duration: operation.duration,
+        status: operation.status,
+        coment: operation.coment
+      })) || [],
+      tCardStages: tCard.tCardStages?.map(stage => ({
+        idc: stage.idc,
+        code: stage.code
+      })) || [],
+      maxIdc: tCard.maxIdc,
+      coment: tCard.coment,
+      status: tCard.status
+    };
+
+    // Convert data to JSON
+    const jsonBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+
+    // Also, you can save it to the system default download folder by triggering the download process
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(jsonBlob);
+    link.download = fileName;
+    link.click();
+  };
 
   ////////////////// ПРОДУКЦИЯ
   // !!
@@ -780,6 +931,7 @@ export default function Cards({ }: CardsProps) {
 
   const saveProductsHandler = (tProductsValue: TCardProductItem[]) => {
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
+
     // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
     const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(tProductsValue, tCardOperations);
 
@@ -1028,6 +1180,7 @@ export default function Cards({ }: CardsProps) {
   let tCardStagesReactNodes = tCardStages.map((tStage) => {
     //  получили операции стадии
     let operations = tCardOperations.filter(tOper => (tOper.stage.idc === tStage.idc))
+      .sort((a, b) => a.order - b.order);
 
     let operationsReactNodes = operations.map((tCardOperation, index1) => {
 
@@ -1073,7 +1226,7 @@ export default function Cards({ }: CardsProps) {
     return (
       <div key={tStage.idc} className="container_stage"
         onDragOver={(e) => dragOverHandler(e)}
-        onDrop={(e) => dropHandler(e)}
+        onDrop={(e) => { handleDrop(e, `S${tStage.idc}`) }}
       >
         <div className="container_stage_title">
           Stage {tStage.code}
@@ -1139,9 +1292,6 @@ export default function Cards({ }: CardsProps) {
     );
   })
 
-
-
-
   return (
     <Layout>
       <div className="container_global" >
@@ -1159,20 +1309,37 @@ export default function Cards({ }: CardsProps) {
 
             </div>
           </div>
-          <FileUploadButton onCardUpload={onCardUpload} />
+          <FileUploadButton
+            onCardUpload={onCardUpload}
+            uoms={uoms}
+            actions={actions}
+          />
 
         </div>
         {(tCards[tCardIndex]?.id) && <div className="container_global_right card_container_right">
 
-          <div className={`container_status`}>
-
-            status: {tCards[tCardIndex].status} &nbsp;&nbsp;<StatusCircle status={tCards[tCardIndex].status} />
-            {(tCards[tCardIndex].status === StatusEnum.draft)
-              && <button
+          <div className={`container_card_menu`}>
+            <div className={`container_status`}>
+              status: {tCards[tCardIndex].status} &nbsp;&nbsp;<StatusCircle status={tCards[tCardIndex].status} />
+              {(tCards[tCardIndex].status === StatusEnum.draft)
+                && <button
+                  className={`button_prepared`}
+                  onClick={setCartPrepared}>
+                  отправить на планирование
+                </button>}
+            </div>
+            <div className={`container_card_download`}>
+              <button
                 className={`button_prepared`}
-                onClick={setCartPrepared}>
-                отправить на планирование
-              </button>}
+                onClick={() => upLoadtCard(tCards[tCardIndex])}>
+                сохранить как шаблон
+              </button>
+              <button
+                className={`button_prepared`}
+                onClick={() => upLoadtCard(tCards[tCardIndex])}>
+                выгрузить карту
+              </button>
+            </div>
           </div>
 
           <div className="container_right_inner">
