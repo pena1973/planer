@@ -15,6 +15,7 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { AgreementTable } from '@/pages/db/models/catalogs/agreements'
 import { UserAgreeTable } from '@/pages/db/models/catalogs/user_agree'
+import { TemplateTable} from '@/pages/db/models/catalogs/templates'
 
 import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule'
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
@@ -22,7 +23,6 @@ import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads'
 import { SettingsTable} from '@/pages/db/models/plan/settings'
 
 
-import { TypeEnum } from '@/pages/db/models/enums';
 
 const host = String(process.env.NEXT_PUBLIC_DB_HOST);
 const username = String(process.env.NEXT_PUBLIC_DB_USERNAME);
@@ -45,7 +45,7 @@ const config: ConnectionOptions = {
     TCardStageTable,
     UOMsTable,ActionTable,TeamTable,UnitTable,UserTable,UnitActionTable,
     TeamScheduleTable,UnitExceptionTable,UnitLoadTable,SettingsTable,
-    AgreementTable,UserAgreeTable,UserUnitTable
+    AgreementTable,UserAgreeTable,UserUnitTable,TemplateTable
     ],
   migrations: ["/pages/db/migrations/**/*.ts"],  // Путь к миграциям
   subscribers: [],

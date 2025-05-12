@@ -1,3 +1,8 @@
+export interface TemplateItem{
+    id: number,
+    name: string,
+    fileContent: string, 
+}
 export enum TypeEnum {
   P = 'P',
   W = 'W',

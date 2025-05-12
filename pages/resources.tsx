@@ -2,6 +2,7 @@ import Layout from "@/components/Layout/layout";
 
 import UOMSCatalog from "@/components/catalogs/UOMSCatalog/uomsCatalog";
 import ActionsCatalog from "@/components/catalogs/ActionsCatalog/аctionsCatalog";
+import TemplatesCatalog from "@/components/catalogs/TemplatesCatalog/templatesCatalog";
 import TeamSchedule from "@/components/catalogs/TeamSchedule/teamSchedule";
 import Settings from "@/components/catalogs/Settings/settings";
 import SystemSettings from "@/components/catalogs/SystemSettings/systemSettings";
@@ -58,7 +59,7 @@ export default function Resources({ }: ResourcesProps) {
   }, []);
 
 
- 
+
 
   return (
     <Layout>
@@ -71,6 +72,7 @@ export default function Resources({ }: ResourcesProps) {
             <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(4))}>Единицы измерения</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(5))}>Юниты</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(6))}>Настройки</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(7))}>Шаблоны</div>
 
 
           </div>
@@ -81,16 +83,16 @@ export default function Resources({ }: ResourcesProps) {
         <div className="container_global_right">
           {/* компания */}
           {resourcePoint === 1 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Команда</div>          
+            <div className="catalog_title"> Команда</div>
             <Team
               user={user}
               team={team}
-              setMessage={setMessage}              
+              setMessage={setMessage}
             />
-            <pre/>
+            <pre />
             <UsersCatalog
-            user={user}
-              team={team}              
+              user={user}
+              team={team}
               setMessage={setMessage}
 
             />
@@ -123,6 +125,11 @@ export default function Resources({ }: ResourcesProps) {
             <div className="catalog_title"> Настройки учета</div>
             <SystemSettings setMessage={setMessage} />
           </div>}
+          {resourcePoint === 7 &&
+            <div className="contaitainer_catalog">
+              <div className="catalog_title"> Шаблоны карт</div>
+              <TemplatesCatalog setMessage={setMessage} />
+            </div>}
         </div>
 
       </div>

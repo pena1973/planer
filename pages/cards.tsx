@@ -16,19 +16,19 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 
 import { } from '@/store/slices';
-import { UOMItem, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum } from "@/types";
+import { UOMItem, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum,TemplateItem } from "@/types";
 import { checkReconcilation, deepCloneTCardItem } from "@/cardsHandlers";
 
-import { setTCards, setTCardCurrentId, setTCardCurrent, setTCardCurrentMaterials, setTCardCurrentOperations, setTCardCurrentProducts, settCardCurrentWastes, setTCardCurrentStages, setTCardCurrentMaxIdc } from '@/store/slices'
+import { setTCards, setTCardCurrentId, setTemplates } from '@/store/slices'
 
 import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 import reset from "@/public/cancel.png";
 
-const URL1 = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL1);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+// const URL1 = process.env.NEXT_PUBLIC_URL;
+// let _url = String(URL1);
+// _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 
 interface CardsProps { }
@@ -48,6 +48,7 @@ export default function Cards({ }: CardsProps) {
   const [saveLoaderCard, setSaveLoaderCard] = useState(NaN); // состояние это id категории  
   const [resetLoaderCard, setResetLoaderCard] = useState(NaN); // состояние это id категории   
   const [lightProduct, setLightProduct] = useState(NaN); // idc  продукта который мы выделяем   
+  const [saveTemplateLoaderCard, setSaveTemplateLoaderCard] = useState(false); // состояние сохранения шаблона
 
 
   const team = useSelector((state: RootState) => {
@@ -68,6 +69,9 @@ export default function Cards({ }: CardsProps) {
     return state.catalogSlice.actions;
   })
 
+  const templates = useSelector((state: RootState) => {
+    return state.dataSlice.templates;
+  })
   // Начальный загруз
   useEffect(() => {
     if (tCards?.length > 0) selectTCardHandler(tCards[tCardIndex]);
@@ -575,15 +579,6 @@ export default function Cards({ }: CardsProps) {
         // console.log("receivedData", receivedData)
         // setMessage(receivedData.error);
         if (receivedData.success) {
-          //   Обновим текущую карту
-
-          dispatch(setTCardCurrent({} as TCardItem));
-          dispatch(setTCardCurrentMaxIdc(0))
-          dispatch(setTCardCurrentStages([] as TCardStageItem[]));
-          dispatch(setTCardCurrentMaterials([] as TCardProductItem[]));
-          dispatch(setTCardCurrentProducts([] as TCardProductItem[]));
-          dispatch(settCardCurrentWastes([] as TCardProductItem[]));
-          dispatch(setTCardCurrentOperations([] as TCardOperationItem[]));
 
           setMessage("Карта успешно удалена");
         }
@@ -595,14 +590,7 @@ export default function Cards({ }: CardsProps) {
 
     const tCardsUpdated = tCards.filter(tCard => tCard.id !== idToRemove);
     dispatch(setTCards(tCardsUpdated))
-    // // удаляем содержание карты
-    // dispatch(setTCardCurrent({} as TCardItem));
-    // dispatch(setTCardCurrentMaxIdc(0));
-    // dispatch(setTCardCurrentStages([] as TCardStageItem[]));
-    // dispatch(setTCardCurrentMaterials([] as TCardProductItem[]));
-    // dispatch(setTCardCurrentProducts([] as TCardProductItem[]));
-    // dispatch(settCardCurrentWastes([] as TCardProductItem[]));
-    // dispatch(setTCardCurrentOperations([] as TCardOperationItem[]));
+
 
   };
   //!!
@@ -925,6 +913,55 @@ export default function Cards({ }: CardsProps) {
     link.click();
   };
 
+  const saveTemplate = async () => {
+    setSaveTemplateLoaderCard(true);
+    const tCard = tCards[tCardIndex]
+
+    try {
+      // запрос получение текста из БД вместе со словами     textId: number, userId:number
+      const res = await fetch(`api/template-api`,
+        {
+          method: 'post',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({
+            teamId: team.id,
+            userId: user.id,
+            tCard: tCard,
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)
+        // setMessage(receivedData.error);
+        if (receivedData.success) {
+          //   Обновим текущую карту
+          let template = receivedData.template as TemplateItem
+           let updatedTemplate = [...templates,template];
+          
+           dispatch(setTemplates(updatedTemplate));
+          setMessage("Шаблон удочно записан");          
+        }
+      }
+
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+    setSaveTemplateLoaderCard(false);
+  };
+
+  const useTemplate = (fileContent: string) => {
+    // загружаем карту из шаблона
+  }
   ////////////////// ПРОДУКЦИЯ
   // !!
 
@@ -1176,7 +1213,7 @@ export default function Cards({ }: CardsProps) {
   const tCardWastes = (tCards[tCardIndex] && tCards[tCardIndex].tCardWastes) ? tCards[tCardIndex].tCardWastes : [] as TCardProductItem[];
   const tCardMaterials = (tCards[tCardIndex] && tCards[tCardIndex].tCardMaterials) ? tCards[tCardIndex].tCardMaterials : [] as TCardProductItem[];
 
-
+  // Стадии
   let tCardStagesReactNodes = tCardStages.map((tStage) => {
     //  получили операции стадии
     let operations = tCardOperations.filter(tOper => (tOper.stage.idc === tStage.idc))
@@ -1292,6 +1329,20 @@ export default function Cards({ }: CardsProps) {
     );
   })
 
+  // Шаблоны
+  let templatesReactNodes = templates.map((elem, index4) => {
+    return (
+
+      <button
+        className={`button_prepared`}
+        onClick={() => useTemplate(elem.fileContent)}>
+        {elem.name}
+      </button>
+
+    )
+
+  })
+
   return (
     <Layout>
       <div className="container_global" >
@@ -1327,11 +1378,12 @@ export default function Cards({ }: CardsProps) {
                   onClick={setCartPrepared}>
                   отправить на планирование
                 </button>}
+              {templatesReactNodes}
             </div>
             <div className={`container_card_download`}>
               <button
                 className={`button_prepared`}
-                onClick={() => upLoadtCard(tCards[tCardIndex])}>
+                onClick={() => saveTemplate()}>
                 сохранить как шаблон
               </button>
               <button

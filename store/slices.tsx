@@ -1,8 +1,8 @@
 import {
     UOMItem, ActionItem, UnitItem, SettingsItem,
-    TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, UnitLoadItem, ScheduleItem,
+    TCardItem,  UnitLoadItem, ScheduleItem,
     UnitExceptionItem, UnitActionItem, UserItem,
-    TeamItem
+    TeamItem,TemplateItem
 } from '@/types';
 import { createSlice } from '@reduxjs/toolkit';
 
@@ -18,13 +18,7 @@ export type CatalogState = {
 export type DataState = {
     tCards: TCardItem[],
     tCardCurrentId: number,
-    tCardCurrent: TCardItem,
-    tCardCurrentStages: TCardStageItem[],// для текущей карты
-    tCardCurrentProducts: TCardProductItem[], // для текущей карты
-    tCardCurrentWastes: TCardProductItem[],   // для текущей карты
-    tCardCurrentOperations: TCardOperationItem[], // для текущей карты
-    tCardCurrentMaterials: TCardProductItem[], // для текущей карты
-    tCardCurrentMaxIdc: number, //  счетчик id для текущей карты
+    templates:TemplateItem[],    
 }
 export type AuthState = {
     token: string,
@@ -57,13 +51,7 @@ const catalogIntialState: CatalogState = {
 const dataIntialState: DataState = {
     tCards: [] as TCardItem[],
     tCardCurrentId: NaN,
-    tCardCurrent: {} as TCardItem,
-    tCardCurrentStages: [] as TCardStageItem[],
-    tCardCurrentProducts: [] as TCardProductItem[],
-    tCardCurrentWastes: [] as TCardProductItem[],
-    tCardCurrentOperations: [] as TCardOperationItem[],
-    tCardCurrentMaterials: [] as TCardProductItem[],
-    tCardCurrentMaxIdc: 0,
+    templates:[] as TemplateItem[],    
 }
 const authIntialState: AuthState = {
     token: "",
@@ -141,27 +129,9 @@ const dataSlice = createSlice({
         setTCardCurrentId: (state, action) => {
             state.tCardCurrentId = action.payload;
         }, 
-        setTCardCurrent: (state, action) => {
-            state.tCardCurrent = action.payload;
-        },
-        setTCardCurrentStages: (state, action) => {
-            state.tCardCurrentStages = action.payload;
-        },
-        setTCardCurrentProducts: (state, action) => {
-            state.tCardCurrentProducts = action.payload;
-        },
-        settCardCurrentWastes: (state, action) => {
-            state.tCardCurrentWastes = action.payload;
-        },
-        setTCardCurrentOperations: (state, action) => {
-            state.tCardCurrentOperations = action.payload;
-        },
-        setTCardCurrentMaterials: (state, action) => {
-            state.tCardCurrentMaterials = action.payload;
-        },
-        setTCardCurrentMaxIdc: (state, action) => {
-            state.tCardCurrentMaxIdc = action.payload;
-        },
+        setTemplates: (state, action) => {
+            state.templates = action.payload;
+        }, 
 
     },
 
@@ -208,7 +178,7 @@ const viewSlice = createSlice({
 export default function Foo() { return <></> }  // пустышка для билда
 
 export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule } = catalogSlice.actions;
-export const { setTCards,setTCardCurrentId, setTCardCurrent, setTCardCurrentStages, setTCardCurrentMaterials, setTCardCurrentOperations, setTCardCurrentProducts, settCardCurrentWastes, setTCardCurrentMaxIdc } = dataSlice.actions;
+export const { setTCards,setTCardCurrentId, setTemplates } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
 export const { setMonitorPoint, setResourcePoint } = viewSlice.actions;

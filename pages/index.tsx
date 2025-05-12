@@ -13,7 +13,8 @@ import {
   UnitActionItem,
   UnitExceptionItem,
   UnitLoadItem,
-  TeamItem
+  TeamItem,
+  TemplateItem,
 
 } from "@/types";
 
@@ -33,7 +34,8 @@ import {
   setActions,
   setUOMs, setUnits, setTCards,
   setSettings, setSchedule,
-  setUnitLoads, setSignedAgreement
+  setUnitLoads, setSignedAgreement,
+  setTemplates,
 } from '@/store/slices'
 
 import words from "@/public/add.jpg";
@@ -348,7 +350,6 @@ export default function Index({ }: IndexProps) {
       // setMessage(t('service.noConnection') + e.message)            
     }
   }
-
   const downloadActions = async () => {
     // Загружаем классификатор действий
     try {
@@ -382,6 +383,40 @@ export default function Index({ }: IndexProps) {
     }
 
   }
+  const downloadTemplates = async () => {
+    // Загружаем классификатор действий
+    try {
+      const res = await fetch(`api/templates-api?userId=${user.id}&teamId=${team.id}`,
+        {
+          method: 'get',
+          headers: new Headers({
+            // 'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
+          }),
+        }
+      );
+      if (res.status !== 200) {
+        const receivedData = await res.json();
+        let error = receivedData.error;
+        setMessage(error);
+        //  console.log(t('service.serverUnavailable') + res.status);
+        // setMessage(t('service.serverUnavailable') + res.status);
+
+      } else {
+        const receivedData = await res.json();
+        if (receivedData.success) {
+          let templates_ = receivedData.templates as TemplateItem[]
+          dispatch(setTemplates(templates_));
+          setMessage("Загружены шаблоны")          
+        }
+        else setMessage(receivedData.error);
+      }
+    } catch (e: any) {
+      // setMessage(t('service.noConnection') + e.message)            
+    }
+
+  }
+
   const downloadUnits = async () => {
     // Загружаем классификатор действий
     try {
@@ -638,6 +673,7 @@ export default function Index({ }: IndexProps) {
         // setShowLoader(true);
         await downloadUoms();
         await downloadActions();
+        await downloadTemplates();
         await downloadUnits();
         await downloadUnutsActions();
         await downloadUnutsExceptions();
