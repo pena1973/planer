@@ -45,22 +45,16 @@ export interface TCardOperNewProps {
         duration: number) => void,
      cancelOperHandler: (id: number) => void,
     updateIdc: (currentId: number) => void,
-    setCartEdited: () => void,
+    // setCartEdited: () => void,
     maxIdc: number
 }
 
 export default function TCardOperNew({
     tCardOperation,
-    // idc,
-    // inn,
-    // out,
-    // action,
-    // duration,
     deleteOperHandler,
     saveOperHandler,
-     cancelOperHandler,
-    updateIdc,
-    setCartEdited,
+    cancelOperHandler,
+    updateIdc,  
     maxIdc
 }: TCardOperNewProps) {
     const { push, back } = useRouter();
@@ -145,7 +139,7 @@ export default function TCardOperNew({
         let currentId = maxIdc + 1;
 
         setEdited(true);
-        setCartEdited();
+        // setCartEdited();
         if (mode === "I") {
             setInnValue([...innValue, { idc: currentId, codeS: "" } as TCardProductItem]);
         }
@@ -161,7 +155,7 @@ export default function TCardOperNew({
 
     const delRowHandler = (mode: string, indexToRemove: number) => {
         setEdited(true)
-        setCartEdited();
+        // setCartEdited();
         if (mode === "I") {
             const updatedInnValue = [...innValue];
             updatedInnValue.splice(indexToRemove, 1);
@@ -189,7 +183,7 @@ export default function TCardOperNew({
         let value1 = (fieldName === "qtu") ? Number(value) : value
 
         setEdited(true);
-        setCartEdited();
+        // setCartEdited();
         if (in_out === "I") {
             let innValueUpdated = innValue.map((product, index1) => {
                 if (index1 === index) {
@@ -218,7 +212,7 @@ export default function TCardOperNew({
         )
         setOutValue(outUpdated);
         setEdited(true);
-        setCartEdited();
+        // setCartEdited();
     };
 
     const handleUOMSelectInn = (idc: number, uom: { id: number, title: string, code: string } | null) => {
@@ -228,14 +222,14 @@ export default function TCardOperNew({
         )
         setInnValue(innUpdated);
         setEdited(true);
-        setCartEdited();
+        // setCartEdited();
 
     };
     const handleSelectOper = (oper: { id: number, title: string } | null) => {
 
         let foundOper = actions.find(elem => { return elem.id === oper?.id })
         setEdited(true);
-        setCartEdited();
+        // setCartEdited();
         setActionValue((!foundOper) ? null : foundOper);
     };
 

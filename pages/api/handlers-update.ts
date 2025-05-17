@@ -24,6 +24,7 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 
 
 
+
 // types
 import { UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
 import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem,TemplateItem } from '@/types';
@@ -71,93 +72,93 @@ export async function updateSettings(
 
 // ШАБЛОНЫ
 export async function updateTemplates(
-  uomsRepository: Repository<TemplateTable>,
+  templatesRepository: Repository<TemplateTable>,
   templates: TemplateItem[],
   teamId: number
 ) {
 
   // // СПИСОК ДЕЙСТВИЙ в базе
-  // const existingUOMS = await uomsRepository.find({ where: { team_id: teamId } });
+   const existingTemplates = await templatesRepository.find({ where: { team_id: teamId } });
 
-  // // 1. Найдём удалённые единицы измерения
-  // const uomsToDelete = existingUOMS.filter(uom =>
-  //   !uoms.some(newUOM => newUOM.id === uom.id) // Сравниваем id существующих стадий с переданными
-  // );
+  // 1. Найдём удалённые шаблоны
+   const templatesToDelete = existingTemplates.filter(template =>
+     !templates.some(newTemplate => newTemplate.id === template.id) // Сравниваем id существующих стадий с переданными
+   );
 
-  // // 2. Найдём новые единицы измерения, которых нет в базе
-  // const uomsToAdd = uoms.filter(uom =>
-  //   !existingUOMS.some(existingUOMS => existingUOMS.id === uom.id) // Сравниваем id переданных стадий с существующими
-  // );
+  // 2. Найдём новые единицы измерения, которых нет в базе
+   const templatesToAdd = templates.filter(template =>
+     !existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id переданных стадий с существующими
+   );
 
-  // // 3. Найдём существующие единицы измерения для обновления
-  // const uomsToUpdate = uoms.filter(uom =>
-  //   existingUOMS.some(existingUOMS => existingUOMS.id === uom.id) // Сравниваем id для существующих стадий
-  // );
+   // 3. Найдём существующие единицы измерения для обновления
+   const templatesToUpdate = templates.filter(template =>
+     existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id для существующих стадий
+   );
 
-  // // Удаляем старые единицы измерения
-  // if (uomsToDelete.length > 0) {
-  //   await uomsRepository.remove(uomsToDelete);
-  // }
+   // Удаляем старые единицы измерения
+   if (templatesToDelete.length > 0) {
+     await templatesRepository.remove(templatesToDelete);
+   }
 
-  // // Добавляем новые единицы измерения
-  // const newUOMS = uomsToAdd.map(uom => {
-  //   return uomsRepository.create({
-  //     code: uom.code,
-  //     title: uom.title,
-  //     team_id: teamId,
-  //   });
-  // });
-  // let savedNewUOMS = [] as UOMsTable[]
-  // if (newUOMS.length > 0) savedNewUOMS = await uomsRepository.save(newUOMS);
-  // if (!savedNewUOMS) return { success: false, message: "Не удалось сохранить действие" }
+   // Добавляем новые единицы измерения
+   const newTemplates = templatesToAdd.map(template => {
+     return templatesRepository.create({
+      fileContent: template.fileContent,
+      name:template.name,       
+       team_id: teamId,
+     });
+   });
+   let savedNewTemplates = [] as TemplateTable[]
+   if (newTemplates.length > 0) savedNewTemplates = await templatesRepository.save(newTemplates);
+   if (!savedNewTemplates) return { success: false, message: "Не удалось сохранить действие" }
 
 
   // // Обновляем существующие единицы измерения
-  // const updatedUOMS = uomsToUpdate.map(uom => {
-  //   const existingUOM = existingUOMS.find(existingUOM => existingUOM.id === uom.id);
-  //   if (existingUOM) {
-  //     existingUOM.title = uom.title;
-  //     existingUOM.code = uom.code;
-  //     return uomsRepository.create(existingUOM);
-  //   }
-  //   return null;
-  // }).filter(unitAction => unitAction !== null);
+   const updatedTemplates = templatesToUpdate.map(template => {
+     const existingTemplate = existingTemplates.find(existingTemplate => existingTemplate.id === template.id);
+     if (existingTemplate) {
+       existingTemplate.name = template.name;
+       existingTemplate.fileContent = template.fileContent;
+       return templatesRepository.create(existingTemplate);
+     }
+     return null;
+   }).filter(template => template !== null);
 
-  // let savedUpdatedUOMS = [] as UOMsTable[]
-  // if (updatedUOMS.length > 0) savedUpdatedUOMS = await uomsRepository.save(updatedUOMS);
-  // if (!savedUpdatedUOMS) return { success: false, message: "Не удалось сохранить единицы измерения " }
+   let savedUpdatedTemplates = [] as TemplateTable[]
+   if (updatedTemplates.length > 0) savedUpdatedTemplates = await templatesRepository.save(updatedTemplates);
+   if (!savedUpdatedTemplates) return { success: false, message: "Не удалось сохранить шаблоны " }
 
-  // // Все единицы измерения сохранены, проверка
-  // let error = ""
-  // const savedUOMS = [...savedNewUOMS, ...savedUpdatedUOMS] as UOMsTable[]
+  // Все единицы измерения сохранены, проверка
+   let error = ""
+   const savedTemplates = [...savedNewTemplates, ...savedUpdatedTemplates] as TemplateTable[]
 
-  // // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
-  // if (savedUOMS.length > 0 && uoms.length !== savedUOMS.length) {
-  //   error = `Не удалось сохранить единицы измерения`;
-  //   console.log(error);
-  //   return { success: false, message: error }
-  // }
+  // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
+   if (savedTemplates.length > 0 && templates.length !== savedTemplates.length) {
+     error = `Не удалось сохранить шаблоны`;
+    //  console.log(error);
+     return { success: false, message: error }
+   }
 
-  // // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-  // if (savedUOMS.length > 0 && uoms.length > 0) {
-  //   if (savedUOMS.length > 0) {
+   // Проверка, что массив не пуст и все объекты имеют сгенерированный id
+   if (savedTemplates.length > 0 && templates.length > 0) {
+     if (savedTemplates.length > 0) {
 
-  //     savedUOMS.forEach((uom, index) => {
-  //       if (uom.id) {
-  //         console.log(`Единица измерения успешно сохранена с id: ${uom.id}`);
-  //       } else {
-  //         error = `Ошибка при сохранении единицы измерения ${index + 1}`;
-  //         console.log(error);
-  //         return { success: false, message: error }
-  //       }
-  //     });
-  //   } else {
-  //     error = `Не удалось сохранить единицы измерени`;
-  //     console.log(error);
-  //     return { success: false, message: error }
-  //   }
-  // }
-  return { success: true, savedTemplates: templates,message:""}
+       savedTemplates.forEach((template, index) => {
+         if (template.id) {
+           console.log(`Шаблон успешно сохранен с id: ${template.id}`);
+         } else {
+           error = `Ошибка при сохранении шаблона ${index + 1}`;
+           console.log(error);
+           return { success: false, message: error }
+         }
+       });
+     } else {
+       error = `Не удалось сохранить шаблон`;
+      console.log(error);
+       return { success: false, message: error }
+     }
+   }
+  return { success: true, savedTemplates: savedTemplates,message:""}
 }
 
 

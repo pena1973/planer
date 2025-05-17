@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { setTemplates } from '@/store/slices'
 
+import { validateFileContent } from "@/utils"
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
@@ -70,16 +71,23 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
 
     const saveTemplatesHandler = async () => {
         setMessage("");
+        let todoReturn = false;
+        let message ="";
         templatesValue.forEach((elem, index) => {
             if (!elem.name) {
-                setMessage(`Заполните название шаблона строка ${index + 1}!`);
-                return;
+                message = message.concat(`Заполните название шаблона строка ${index + 1}! `);
+                todoReturn = true;
             }
             if (!elem.fileContent) {
-                setMessage(`Загрузите шаблон строка ${index + 1}!`);
-                return;
+                message = message.concat(`Загрузите шаблон строка ${index + 1}!` );
+                todoReturn = true;
             }
         })
+
+        if (todoReturn) {
+             setMessage(message); 
+             return;}
+
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
@@ -135,8 +143,11 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
     };
 
     const downloadTemplateHandler = (indexTo: number) => {
-        const fileName = `${templates[indexTo].name}.json`;
-        const exportData = templates[indexTo].fileContent;
+        const fileName = `${templatesValue[indexTo].name}.json`;
+        const exportData = templatesValue[indexTo].fileContent;
+        // если ничего нет
+        if ((!exportData)) 
+            return;
 
         // Convert data to JSON
         const jsonBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
@@ -148,7 +159,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
         link.click();
     }
     const uploadTemplateHandler = (indexTo: number) => {
-        let templatesValue_ = [ ...templatesValue ];
+        let templatesValue_ = [...templatesValue];
         // Создаем элемент input для загрузки файла
         const input = document.createElement('input');
         input.type = 'file';
@@ -164,24 +175,41 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
 
                 // Чтение содержимого файла
                 reader.onload = (e) => {
-                     try {
+                    try {
                         // Парсим содержимое файла как JSON
                         const jsonData = JSON.parse(e.target?.result as string);
+                        // валидация
+                        // Проверяем содержание файла на наличие отсутствующих или некорректных полей
+                        const { missingFields, invalidFields } = validateFileContent(jsonData);
 
-                        // Обновляем данные шаблона для выбранного индекса
-                        const template_ = { ...templatesValue_[indexTo], fileContent: jsonData };
+                        if (missingFields.length > 0 || invalidFields.length > 0) {
+                            let errorMessage = '';
 
-                        templatesValue_.splice(indexTo, 1, template_)
-                        setTemplatesValue(templatesValue_);
-                        // Можно обновить интерфейс или отправить данные на сервер
-                        console.log('Загруженный шаблон:', jsonData);
+                            if (missingFields.length > 0) {
+                                errorMessage += `Отсутствуют обязательные поля: ${missingFields.join(', ')}. 
+                                Загрузка сделана не будет!`;
+                            }
+                            if (invalidFields.length > 0) {
+                                errorMessage += `Некорректные значения в полях: ${invalidFields.join(', ')}.
+                                Загрузка сделана не будет!`;
+                            }
 
+                            alert(errorMessage);
+                        } else {
+                            // Обновляем данные шаблона для выбранного индекса
+                            const template_ = { ...templatesValue_[indexTo], fileContent: jsonData };
+
+                            templatesValue_.splice(indexTo, 1, template_)
+                            setTemplatesValue(templatesValue_);
+                            // Можно обновить интерфейс или отправить данные на сервер
+                            console.log('Загруженный шаблон:', jsonData);
+                        }
                         // Дополнительная логика, например, отправка на сервер или обновление состояния
                         // Возможно, нужно отправить jsonData в API для сохранения в базе данных
-                     } catch (err) {
-                         console.error('Ошибка при парсинге файла:', err);
-                         alert('Ошибка при загрузке шаблона. Файл поврежден или некорректный.');
-                     }
+                    } catch (err) {
+                        console.error('Ошибка при парсинге файла:', err);
+                        alert('Ошибка при загрузке шаблона. Файл поврежден или некорректный.');
+                    }
                 };
 
                 // Чтение содержимого файла как строки
@@ -197,7 +225,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
 
 
 
-    let uomsValueReactNodes = templatesValue.map((template, index) => (
+    let templatesValueReactNodes = templatesValue.map((template, index) => (
 
         <tr key={index}>
             <td>
@@ -239,7 +267,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                 </button>
             </td>
             <td>
-                {template.fileContent.trim().length !== 0 ? "загружен" : ""}
+                {(!template.fileContent) ?"": "загружен" }
             </td>
 
         </tr>
@@ -264,7 +292,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                     </tr>
                 </thead>
                 <tbody>
-                    {uomsValueReactNodes}
+                    {templatesValueReactNodes}
                 </tbody>
             </table>
             <div className={styles.container_buttons_row_table}>

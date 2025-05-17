@@ -1,8 +1,8 @@
 // Файл загрузка
 import React, { useState, } from "react";
 import styles from './fileUploadButton.module.scss';
-import { generateUniqueId } from "@/utils"
-import { TCardItem, TCardProductItem, TCardOperationItem, StatusEnum, ActionItem, UOMItem } from "@/types"; // Импортируем нужные типы
+import { generateUniqueId,calculateMaxIdc,validateFileContent } from "@/utils"
+import { TCardItem, TCardContent,ProductContent,OperationContent, TCardOperationItem, StatusEnum, ActionItem, UOMItem } from "@/types"; // Импортируем нужные типы
 
 export interface FileUploadButtonProps<T> {
   onCardUpload: (tCard: TCardItem) => void,
@@ -52,131 +52,66 @@ const FileUploadButton = <T extends {}>({
     fileInput.click();
   };
 
+ 
   ///////////////////////
   // Функция для проверки содержимого файла на наличие отсутствующих или некорректных полей
-  const validateFileContent = (content: any) => {
-    const missingFields: string[] = [];
-    const invalidFields: string[] = [];
 
-    // Проверяем обязательные поля
-    if (!content.date) missingFields.push("date");
-    if (!content.idc) missingFields.push("idc");
-    if (!Array.isArray(content.tCardProducts)) missingFields.push("tCardProducts");
-    if (!Array.isArray(content.tCardOperations)) missingFields.push("tCardOperations");
-
-    // Проверка на корректность значений
-    if (content.tCardProducts) {
-      content.tCardProducts.forEach((product: any, index: number) => {
-        if (!product.codeS) invalidFields.push(`tCardProducts[${index}].codeS`);
-        if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);
-        if (typeof product.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);
-        if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);
-      });
-    }
-
-    if (content.tCardOperations) {
-      content.tCardOperations.forEach((operation: any, index: number) => {
-        if (!operation.idc) invalidFields.push(`tCardOperations[${index}].idc`);
-        if (!operation.stage || !operation.stage.idc || !operation.stage.code) invalidFields.push(`tCardOperations[${index}].stage`);
-        if (!Array.isArray(operation.out)) invalidFields.push(`tCardOperations[${index}].out`);
-        if (!Array.isArray(operation.inn)) invalidFields.push(`tCardOperations[${index}].inn`);
-      });
-    }
-
-    return { missingFields, invalidFields };
-  };
-
-  // Функция для преобразования данных из файла в формат TCardItem
-  const transformToTCard = (content: any): TCardItem => {
+  const transformToTCard = (content: TCardContent): TCardItem => {
     const tempId = generateUniqueId();
+    const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
     const tCard: TCardItem = {
-      id: -tempId,
-      date: content.date,
-      idc: content.idc,
-      tCardProducts: content.tCardProducts.map((product: any) => {
-
-        const uom = uoms.find(uom => uom.code === product.uom.code);
-
-        return (
-          {
-            idc: product.idc,
-            codeS: product.codeS,
-            title: product.title,
-            qtu: product.qtu,
+      id: -tempId,      
+      date: currentDate,
+      idc: 0,
+      tCardProducts: content.tCardProducts.map((product) => ({
+        ...product,
+        uom: {
+          id: uoms.find(uom => uom.code === product.uom.code)?.id ?? -1,
+          code: product.uom.code,
+          title: product.uom.title,
+        }
+      })),
+      tCardWastes: content.tCardWastes ? content.tCardWastes.map((waste) => ({
+        ...waste,
+        uom: {
+          id: uoms.find(uom => uom.code === waste.uom.code)?.id ?? -1,
+          code: waste.uom.code,
+          title: waste.uom.title,
+        }
+      })) : [],
+      tCardOperations: content.tCardOperations.map((operation, index) => {
+        let action = actions.find(act => act.code === operation.action.code);
+        action = (action) ? action : { id: NaN, code: "", title: "", interruptible: false }
+        return {
+          ...operation,
+          order: index + 1,
+          action: action,
+          status:StatusEnum.draft,
+          out: operation.out.map((outItem) => ({
+            ...outItem,
             uom: {
-              id: uom?.id,
-              code: uom?.code,
-              title: uom?.title
+              id: uoms.find(uom => uom.code === outItem.uom.code)?.id ?? -1,
+              code: outItem.uom.code,
+              title: outItem.uom.title,
             }
-          })
+          })),
+          inn: operation.inn.map((innItem) => ({
+            ...innItem,
+            uom: {
+              id: uoms.find(uom => uom.code === innItem.uom.code)?.id ?? -1,
+              code: innItem.uom.code,
+              title: innItem.uom.title,
+            }
+          }))
+        };
       }),
-      tCardWastes: content.tCardWastes ? content.tCardWastes.map((waste: any) => {
-        const uom = uoms.find(uom => uom.code === waste.uom.code);
-        return ({
-          idc: waste.idc,
-          codeS: waste.codeS,
-          title: waste.title,
-          qtu: waste.qtu,
-          uom: {
-            id: uom?.id,
-            code: uom?.code,
-            title: uom?.title
-          }
-        })
-      }) : [],
-      tCardOperations: content.tCardOperations.map((operation: any) => {
-        const action = actions.find(act => act.code === operation.action.code);
-        return ({
-          idc: operation.idc,
-          stage: {
-            idc: operation.stage.idc,
-            code: operation.stage.code
-          },
-          out: operation.out.map((outItem: any) => {
-            const uom = uoms.find(uom => uom.code === outItem.uom.code);
-            return ({
-              idc: outItem.idc,
-              codeS: outItem.codeS,
-              title: outItem.title,
-              qtu: outItem.qtu,
-              uom: {
-                id: uom?.id,
-                code: uom?.code,
-                title: uom?.title
-              }
-            })
-          }),
-          inn: operation.inn.map((innItem: any) => {
-            const uom = uoms.find(uom => uom.code === innItem.uom.code);
-            return ({
-              idc: innItem.idc,
-              codeS: innItem.codeS,
-              title: innItem.title,
-              qtu: innItem.qtu,
-              uom: {
-                id: uom?.id,
-                code: uom?.code,
-                title: uom?.title
-              }
-            })
-          }),
-          action: {
-            id: action?.id,
-            code: action?.code,
-            title: action?.title
-          },
-          duration: operation.duration,
-          status: operation.status,
-          coment: operation.coment
-        })
-      }),
-      tCardStages: content.tCardStages.map((stage: any) => ({
-        idc: stage.idc,
+      tCardStages: content.tCardStages.map((stage) => ({
+        idc: Number(stage.idc),
         code: stage.code
       })),
-      maxIdc: content.maxIdc, // Может быть вычислено отдельно, если нужно
-      coment: content.coment,
-      status: content.status as StatusEnum,
+      maxIdc: calculateMaxIdc(content),
+      coment: content.coment ?? '',
+      status: StatusEnum.draft,
       modified: true // Так как карта новая, она считается измененной
     };
     return tCard;
@@ -214,7 +149,6 @@ const FileUploadButton = <T extends {}>({
     };
     reader.readAsText(file);
   };
-
 
   return (<div
     className={`${styles.container_card_load} ${isDragging ? 'dragover' : ''}`}

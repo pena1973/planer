@@ -14,7 +14,7 @@ import {
     setTeam, setToken, setUser,
     setUnitExceptions, setActions,
     setUOMs, setUnits, setTCards,
-    setSettings, setSchedule, setUnitLoads
+    setSettings, setSchedule, setUnitLoads, setTCardIndex
 } from '@/store/slices'
 
 import Head from "next/head";
@@ -63,9 +63,11 @@ export default function Layout({ children }: PropsWithChildren) {
         dispatch(setUOMs([] as UOMItem[]));
         dispatch(setUnits([] as UnitItem[]));
         dispatch(setTCards([] as TCardItem[]));
+        dispatch(setTCardIndex(0 as number));
         dispatch(setSettings( {} as SettingsItem));
         dispatch(setSchedule({} as ScheduleItem));
         dispatch(setUnitLoads([] as UnitLoadItem[]));
+        
         push("/");
     };
 

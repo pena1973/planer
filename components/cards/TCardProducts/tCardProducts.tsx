@@ -36,7 +36,7 @@ export interface TCardProductProps {
     possibleEdit: boolean,
     prefix: string,
     updateIdc: (currentId: number) => void,
-    setCartEdited: () => void,
+    // setCartEdited: () => void,
     maxIdc: number,
     setMaxIdc: (maxIdc: number) => void,
     lightProduct: number,  // idc  продукта который нужно выделить цветом  
@@ -59,7 +59,7 @@ export default function TCardProducts({
     possibleEdit,
     prefix,
     updateIdc,
-    setCartEdited,
+    // setCartEdited,
     maxIdc,
     setMaxIdc,
     lightProduct
@@ -79,7 +79,7 @@ export default function TCardProducts({
         let tProductsValueUpdated = [...tProductsValue]
         tProductsValueUpdated.splice(indexToRemove, 1)
         setTProductsValue(tProductsValueUpdated)
-        setCartEdited();
+        // setCartEdited();
     };
 
     const changeProductHandler = (indexToChange: number, id: number, title: string, qtu: number, uom: UOMItem | null) => {
@@ -88,7 +88,7 @@ export default function TCardProducts({
         let tProductsValueUpdated = [...tProductsValue]
         tProductsValueUpdated.splice(indexToChange, 1, updatedProduct)
         setTProductsValue(tProductsValueUpdated)
-        setCartEdited();
+        // setCartEdited();
     };
 
     const checkUOMFilled = (uom: UOMItem | null): boolean => {
@@ -120,8 +120,7 @@ export default function TCardProducts({
         if (isOK) {
             saveProductsHandler(tProductsValue);
             setEdited(!isOK);
-        }
-        setCartEdited();
+        }        
     };
 
     const addProductHandler = () => {
@@ -134,8 +133,7 @@ export default function TCardProducts({
             uom: {} as UOMItem,
             mode: true,
         } as TCardProductItem;
-        setTProductsValue([...tProductsValue, newProduct])
-        setCartEdited();
+        setTProductsValue([...tProductsValue, newProduct])        
         setMaxIdc(idc);
 
     };
@@ -221,8 +219,7 @@ export default function TCardProducts({
                             src={save}
                             alt="arrow" width={20} height={20}
                             onClick={() => { saveProducts() }}
-                        />
-                        {/* {modified && <div>*</div>} */}
+                        />                       
                     </div>
                 </div>}
             </>}

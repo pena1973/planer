@@ -62,6 +62,7 @@ export default function TCardOper({
     const dispatch = useAppDispatch();
 
     let outReactNodes;
+    
     if (tCardOperation.out) {
         outReactNodes = tCardOperation.out.map((elem2, index1) => {
             return (

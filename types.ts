@@ -322,3 +322,39 @@ export enum TimeZoneEnum {
     "Asia/Karaganda" = "Asia/Karaganda, UTC+6", // Караганда
   }
   
+
+  // Для чтения данных из файла урезанный интерфейс
+
+   //// Интерфейсы для чтения карты из файла
+  
+   export  interface ProductContent {
+    idc: number;
+    codeS: string;
+    title: string;
+    qtu: number;
+    uom: { code: string; title: string };
+  }
+
+  export  interface OperationContent {
+    order: number,
+    idc: number;
+    stage: {idc: number, code: number};
+    out: ProductContent[];
+    inn: ProductContent[];
+    action: { code: string; title: string };
+    duration: number;
+   
+    coment?: string;
+  }
+
+  export interface TCardContent {
+    date: string;
+    idc: number;
+    tCardProducts: ProductContent[];
+    tCardOperations: OperationContent[];
+    tCardWastes?: ProductContent[];
+    tCardStages: {idc: number, code: number}[];
+    coment?: string;
+  
+  }
+

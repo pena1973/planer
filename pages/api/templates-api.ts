@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         // отправляем ответ
                         res.status(200).json({
                           success: true,
-                          uoms: templates__,
+                          templates: templates__,
                         });
                         break;
                default:

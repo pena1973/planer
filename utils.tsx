@@ -1,5 +1,5 @@
 
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
+import { CalendarItem, TCardContent,   ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
 
 export const fillGaps = (dataStart: number, loading: { name: string, start: number, finish: number }[]) => {
   let timeLScale = [] as { loaded: boolean, name: string, start: number, finish: number }[]
@@ -257,3 +257,80 @@ export const generateCalendarItem = (day: string|Date, schedule: ScheduleItem): 
   };
   return calendarItem;  // Возвращаем один элемент календаря
 };
+
+//  ЧТЕНИЕ КАРТЫ ИЗ ФАЙЛА
+export const calculateMaxIdc = (content: TCardContent): number => {
+  let maxIdc = 0;
+
+  // Проверяем tCardProducts
+  if (content.tCardProducts) {
+    content.tCardProducts.forEach((product) => {
+      if (product.idc && product.idc > maxIdc) {
+        maxIdc = product.idc;
+      }
+    });
+  }
+
+  // Проверяем tCardOperations
+  if (content.tCardOperations) {
+    content.tCardOperations.forEach((operation) => {
+      if (operation.idc && operation.idc > maxIdc) {
+        maxIdc = operation.idc;
+      }
+    });
+  }
+
+  // Проверяем tCardWastes
+  if (content.tCardWastes) {
+    content.tCardWastes.forEach((waste) => {
+      if (waste.idc && waste.idc > maxIdc) {
+        maxIdc = waste.idc;
+      }
+    });
+  }
+
+  // Проверяем tCardStages
+  if (content.tCardStages) {
+    content.tCardStages.forEach((stage) => {
+      if (stage.idc && stage.idc > maxIdc) {
+        maxIdc = stage.idc;
+      }
+    });
+  }
+
+  // Возвращаем максимальное значение
+  return maxIdc;
+};
+
+export const validateFileContent = (content: TCardContent) => {
+    const missingFields: string[] = [];
+    const invalidFields: string[] = [];
+
+    // Проверяем обязательные поля
+    if (!content.date) missingFields.push("date");
+    if (!content.idc) missingFields.push("idc");
+    if (!Array.isArray(content.tCardProducts)) missingFields.push("tCardProducts");
+    if (!Array.isArray(content.tCardOperations)) missingFields.push("tCardOperations");
+    if (!Array.isArray(content.tCardStages)) missingFields.push("tCardStages");
+
+    // Проверка на корректность значений
+    if (content.tCardProducts) {
+      content.tCardProducts.forEach((product, index) => {
+        if (!product.codeS) invalidFields.push(`tCardProducts[${index}].codeS`);
+        if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);
+        if (typeof product.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);
+        if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);
+      });
+    }
+
+    if (content.tCardOperations) {
+      content.tCardOperations.forEach((operation, index) => {
+        if (!operation.idc) invalidFields.push(`tCardOperations[${index}].idc`);
+        if (!operation.stage || !operation.stage.idc || !operation.stage.code) invalidFields.push(`tCardOperations[${index}].stage`);
+        if (!Array.isArray(operation.out)) invalidFields.push(`tCardOperations[${index}].out`);
+        if (!Array.isArray(operation.inn)) invalidFields.push(`tCardOperations[${index}].inn`);
+      });
+    }
+
+    return { missingFields, invalidFields };
+  };
