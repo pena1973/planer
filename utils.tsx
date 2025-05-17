@@ -316,7 +316,7 @@ export const validateFileContent = (content: TCardContent) => {
     // Проверка на корректность значений
     if (content.tCardProducts) {
       content.tCardProducts.forEach((product, index) => {
-        if (!product.codeS) invalidFields.push(`tCardProducts[${index}].codeS`);
+        if (!product.code) invalidFields.push(`tCardProducts[${index}].code`);
         if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);
         if (typeof product.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);
         if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);

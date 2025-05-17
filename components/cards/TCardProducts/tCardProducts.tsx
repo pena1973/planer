@@ -127,7 +127,7 @@ export default function TCardProducts({
         const idc = maxIdc + 1;
         let newProduct = {
             idc: idc,
-            codeS: "",
+            code: "",
             title: "Продукт",
             qtu: 0,
             uom: {} as UOMItem,
@@ -141,7 +141,7 @@ export default function TCardProducts({
     let tCardProductsReactNodes = tProductsValue.map((elem, index) => {
 
         const regex = /^([A-Z])(\d+)([IO])(\d+)/; // Регулярное выражение для извлечения компонентов
-        const match = elem.codeS.match(regex);
+        const match = elem.code.match(regex);
         const idc = (match) ? parseInt(match[2], 10) : NaN;  // idc операции (цифры)
         const status = tCardOperations?.find(op => op.idc === idc)?.status;
 
@@ -150,7 +150,7 @@ export default function TCardProducts({
                 <TCardProductNew
                     idc={elem.idc}
                     prefix={prefix}
-                    codeS={elem.codeS}
+                    code={elem.code}
                     title={elem.title}
                     qtu={elem.qtu}
                     uom={elem.uom}
@@ -161,7 +161,7 @@ export default function TCardProducts({
             {!edited &&
                 <TCardProduct
                     idc={elem.idc}
-                    codeS={elem.codeS}
+                    code={elem.code}
                     title={elem.title}
                     qtu={elem.qtu}
                     uom={elem.uom}

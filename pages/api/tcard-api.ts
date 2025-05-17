@@ -147,7 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return {
               id: product.id,
               idc: product.idc,
-              codeS: product.code_s,  // Используем code_s вместо codeS
+              code: product.code,  
               title: product.title,
               qtu: product.qtu,
               uom: product.uom,  // Преобразуем UOMsTable в UOMItem
@@ -160,7 +160,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return {
               id: product.id,
               idc: product.idc,
-              codeS: product.code_s,  // Используем code_s вместо codeS
+              code: product.code,  
               title: product.title,
               qtu: product.qtu,
               uom: product.uom,  // Преобразуем UOMsTable в UOMItem
@@ -173,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return {
               id: product.id,
               idc: product.idc,
-              codeS: product.code_s,  // Используем code_s вместо codeS
+              code: product.code,
               title: product.title,
               qtu: product.qtu,
               uom: product.uom,  // Преобразуем UOMsTable в UOMItem
@@ -191,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return {
                   id: product.id,
                   idc: product.idc,
-                  codeS: product.code_s,
+                  code: product.code,
                   title: product.title,
                   qtu: product.qtu,
                   uom: product.uom as UOMItem,  // Преобразуем UOMsTable в UOMItem
@@ -204,7 +204,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return {
                   id: product.id,
                   idc: product.idc,
-                  codeS: product.code_s,
+                  code: product.code,
                   title: product.title,
                   qtu: product.qtu,
                   uom: product.uom as UOMItem,  // Преобразуем UOMsTable в UOMItem
@@ -214,6 +214,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return {
               id: oper.id,
               idc: oper.idc,
+              order:oper.order,
               stage: stage,
               out: out,
               inn: inn,

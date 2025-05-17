@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     idc: tCard.idc,
                     tCardProducts: tCard.tCardProducts?.map(product => ({
                         idc: product.idc,
-                        codeS: product.codeS,
+                        code: product.code,
                         title: product.title,
                         qtu: product.qtu,
                         uom: {
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     })) || [],
                     tCardWastes: tCard.tCardWastes?.map(waste => ({
                         idc: waste.idc,
-                        codeS: waste.codeS,
+                        code: waste.code,
                         title: waste.title,
                         qtu: waste.qtu,
                         uom: {
@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         } : undefined,
                         out: operation.out?.map(outItem => ({
                             idc: outItem.idc,
-                            codeS: outItem.codeS,
+                            code: outItem.code,
                             title: outItem.title,
                             qtu: outItem.qtu,
                             uom: {
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         })) || [],
                         inn: operation.inn?.map(innItem => ({
                             idc: innItem.idc,
-                            codeS: innItem.codeS,
+                            code: innItem.code,
                             title: innItem.title,
                             qtu: innItem.qtu,
                             uom: {

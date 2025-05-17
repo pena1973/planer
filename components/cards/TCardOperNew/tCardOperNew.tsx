@@ -141,12 +141,12 @@ export default function TCardOperNew({
         setEdited(true);
         // setCartEdited();
         if (mode === "I") {
-            setInnValue([...innValue, { idc: currentId, codeS: "" } as TCardProductItem]);
+            setInnValue([...innValue, { idc: currentId, code: "" } as TCardProductItem]);
         }
         currentId = currentId + 1;
         let idinn = currentId + 1;
         if (mode === "O") {
-            setOutValue([...outValue, { idc: currentId, codeS: `A${idc}O` + idinn } as TCardProductItem]);
+            setOutValue([...outValue, { idc: currentId, code: `A${idc}O` + idinn } as TCardProductItem]);
         }
         updateIdc(idinn);
         // согласование
@@ -272,7 +272,7 @@ export default function TCardOperNew({
                     onClick={() => delRowHandler("O", index)}
                 />
                 {/* код результата операции */}
-                <div className={styles.in_out_item_code_out}>{elem2.codeS}</div>
+                <div className={styles.in_out_item_code_out}>{elem2.code}</div>
 
                 <input className={styles.in_out_item_title}
                     id={"O-title-" + elem2.idc} autoComplete="off"
@@ -307,13 +307,13 @@ export default function TCardOperNew({
                     onClick={() => delRowHandler("I", index)}
                 />
                 {/* код источника */}
-                {/* <input className={styles.in_out_item_codeS}
+                {/* <input className={styles.in_out_item_code}
                     id={"in-title-" + elem3.idc} autoComplete="off"
-                    value={elem3.codeS} type="text"
-                    onChange={e => { setInOutHandler(e.target.value, index, "codeS", "I") }}
-                    onKeyDown={e => onKeyDown(e, elem3.idc, "in-codeS")} /> */}
+                    value={elem3.code} type="text"
+                    onChange={e => { setInOutHandler(e.target.value, index, "code", "I") }}
+                    onKeyDown={e => onKeyDown(e, elem3.idc, "in-code")} /> */}
 
-                <div className={styles.in_out_item_code_out}>{elem3.codeS}</div> 
+                <div className={styles.in_out_item_code_out}>{elem3.code}</div> 
 
                 <input className={styles.in_out_item_title}
                     id={"in-title-" + elem3.idc} autoComplete="off"

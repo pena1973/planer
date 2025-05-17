@@ -1250,7 +1250,7 @@ export async function updateProducts(
     !tCardAllProducts.some(newProduct => {
       return (
         newProduct.id === product.id
-        && newProduct.codeS === product.code_s
+        && newProduct.code === product.code
         && newProduct.idc === product.idc
         && newProduct.type === product.type
         && newProduct.qtu === product.qtu
@@ -1263,7 +1263,7 @@ export async function updateProducts(
     !existingTCardProducts.some(existingProduct => {
       return (
         existingProduct.id === product.id
-        && existingProduct.code_s === product.codeS
+        && existingProduct.code === product.code
         && existingProduct.type === product.type
         && existingProduct.idc === product.idc
         && existingProduct.qtu === product.qtu
@@ -1276,7 +1276,7 @@ export async function updateProducts(
     existingTCardProducts.some(existingProduct => {
       return (
         existingProduct.id === product.id
-        && existingProduct.code_s === product.codeS
+        && existingProduct.code === product.code
         && existingProduct.type === product.type
         && existingProduct.idc === product.idc
         && existingProduct.qtu === product.qtu
@@ -1293,7 +1293,7 @@ export async function updateProducts(
     const opertab = savedTCardOperations.find(opertab => opertab.idc === product.operationId);
     return tCardProductRepository.create({
       idc: product.idc,
-      code_s: product.codeS,
+      code: product.code,
       type: product.type,
       title: product.title,
       qtu: product.qtu,
@@ -1316,7 +1316,7 @@ export async function updateProducts(
   const updatedProducts = productsToUpdate.map(product => {
     const existingProduct = existingTCardProducts.find(existingProduct => existingProduct.id === product.id);
     if (existingProduct) {
-      existingProduct.code_s = product.codeS; // Обновляем нужные поля
+      existingProduct.code = product.code; // Обновляем нужные поля
       existingProduct.title = product.title;
       existingProduct.qtu = product.qtu;
       existingProduct.uom_id = product.uom.id;

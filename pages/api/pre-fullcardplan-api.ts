@@ -2,8 +2,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
-import {  getAllPreparedOperationsIds, planTCardFromOperINC } from './handlers-plan';  // планирование карты
-import { getTCard,  getTeamShedule, getExceptions, getTCardFull } from './handlers-get';  // 
+import { getAllPreparedOperationsIds, planTCardFromOperINC } from './handlers-plan';  // планирование карты
+import { getTCard, getTeamShedule, getExceptions, getTCardFull,getUnitActions } from './handlers-get';  // 
 
 import { Repository, In } from 'typeorm';
 
@@ -17,9 +17,10 @@ import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
+import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 
 
-import {UnitLoadItem,StatusEnum} from "@/types";
+import { UnitLoadItem, StatusEnum } from "@/types";
 
 // interface RequestBody {
 //   unitLoads: UnitLoadItem[];  // переобозвать и сделать плоскую таблицу
@@ -39,6 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
+    const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
 
 
     // userId, teamId в любом случае
@@ -47,11 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
       // ПРЕДВАРИТЕЛЬНОЕ ПЛАНИРОВАНИЕ/допланирование недостающих операций карты
       case 'GET':
-        
-      let tCardLoads=[] as UnitLoadItem[];
-    
+
+        let tCardLoads = [] as UnitLoadItem[];
+
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(Number(tCardId), tCardRepository, tCardOperationsRepository, tCardProductRepository)
+        const tCard = await getTCardFull(Number(tCardId), tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStageRepository)
         if (!tCard) {
           res.status(200).json({
             success: false,
@@ -60,11 +62,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
           return
         }
-   
+
         let allPreparedOperationsIds = getAllPreparedOperationsIds(tCard);
-               
+
         // запросим юниты
-        const units_ = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
+        const units_ = await getUnits(Number(teamId), unitRepository)
+
+        // запросим действия юнитов
+        const unitActions_ = await getUnitActions(Number(teamId),  unitActionsRepository)
 
         // запросим расписание компании
         const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
@@ -76,10 +81,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //  уберем из нее лоады нашей карты
         let unitLoadItemsFull = unitLoadItemsBD.filter(lo => tCardId !== lo.id)
         // в этих лоадах нет операций в статусе prepared
-     
+
 
         // Планируем карту все операции статуса prepared
-        let resultPlaningNextOper = planTCardFromOperINC(allPreparedOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, String(today))
+        let resultPlaningNextOper = planTCardFromOperINC(allPreparedOperationsIds, tCard, units_,unitActions_, shedule_, unitLoadItemsFull, exceptionItems, String(today))
         //  Если не удалось запланировать
         if (!resultPlaningNextOper.success) {
           res.status(200).json({
@@ -116,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 //   // СПИСОК ЗАГРУЗОК в базе по этой компании
 //   const existingLoads = await unitLoadRepository.find({ where: { team_id: team_id } });
-//   // удаленных загрузок здесь не будет потому что это может быть только при удалении операции 
+//   // удаленных загрузок здесь не будет потому что это может быть только при удалении операции
 //   // (потом надо дописать при удалении в процессе редактуры тех карты)
 //   //  может быть только добавление новой и редактирование существующей загрузки
 
@@ -136,8 +141,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 //   const newLoads = loadsToAdd.map(load => {
 //     return unitLoadRepository.create({
 
-//       date: load.date, // дата операции   
-//       idc_oper: load.idc_oper, // Идентификатор операции  
+//       date: load.date, // дата операции
+//       idc_oper: load.idc_oper, // Идентификатор операции
 //       id_tCard: load.id_tCard, // Идентификатор тех карты
 //       timeStart: load.timeStart, // Время начала в минутах
 //       timeFinish: load.timeFinish, // Время окончания в минутах
@@ -222,7 +227,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 //   return { success: true, savedUnitLoads: savedUnitLoads, message: "" }
 // }
 // // ТКАРТА ОБНОВЛЯЮ СТАТУС
-// // 
+// //
 // async function updateStatusCard(
 //   tCardRepository: Repository<TCardTable>,
 //   tCard: TCardItem,

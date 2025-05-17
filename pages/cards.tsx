@@ -262,7 +262,7 @@ export default function Cards({ }: CardsProps) {
       let product = tCardProducts[indexProduct]
       // продукт перемещаем только как результат операции
       let code = `A${idOper}O${product.idc}`;
-      let productToUpdate = { ...product, codeS: code } as TCardProductItem;
+      let productToUpdate = { ...product, code: code } as TCardProductItem;
 
       // ищем операцию и вставляем в выход
       updatedOperations = tCardOperations.map((oper) => {
@@ -294,8 +294,8 @@ export default function Cards({ }: CardsProps) {
       if (!product) return;
 
       let code = `A${idcOperTo}O${product.idc}`;
-      // let productToUpdate = { ...product, codeS: code, qtu: 0 } as TCardProductItem;
-      let productToUpdate = { ...product, codeS: code } as TCardProductItem;
+      
+      let productToUpdate = { ...product, code: code } as TCardProductItem;
 
       // обновляем операции
       updatedOperations = tCardOperations.map((oper) => {
@@ -308,7 +308,7 @@ export default function Cards({ }: CardsProps) {
         }
         // вход
         if (oper.idc === idcOperFrom) {
-          // заменим codeS предмета на входе
+          // заменим code предмета на входе
           let innUpdated = [...oper.inn];
           innUpdated.splice(indexProductFrom, 1, productToUpdate)
           return { ...oper, inn: innUpdated };
@@ -336,7 +336,7 @@ export default function Cards({ }: CardsProps) {
       if (!product) return;
 
       let code = `A${idcOperFrom}O${product.idc}`;
-      let productToUpdate = { ...product, codeS: code, qtu: 0 } as TCardProductItem;
+      let productToUpdate = { ...product, code: code, qtu: 0 } as TCardProductItem;
 
       // // обновляем операции
       updatedOperations = tCardOperations.map((oper) => {
@@ -609,9 +609,9 @@ export default function Cards({ }: CardsProps) {
         // setMessage(receivedData.error);
         if (receivedData.success) {
           //   Обновим текущую карту
-          let tCard = receivedData.tCard as TCardItem
+          let tCard1 = receivedData.tCard as TCardItem
           let updatedTCards = [...tCards];
-          updatedTCards.splice(indexCardToSave, 1, tCard)
+          updatedTCards.splice(indexCardToSave, 1, tCard1)
           dispatch(setTCards(updatedTCards));
           setMessage("Карта успешно записана");
           // setModified(false);
@@ -803,7 +803,7 @@ export default function Cards({ }: CardsProps) {
       idc: tCard.idc,
       tCardProducts: tCard.tCardProducts?.map(product => ({
         idc: product.idc,
-        codeS: product.codeS,
+        code: product.code,
         title: product.title,
         qtu: product.qtu,
         uom: {
@@ -813,7 +813,7 @@ export default function Cards({ }: CardsProps) {
       })) || [],
       tCardWastes: tCard.tCardWastes?.map(waste => ({
         idc: waste.idc,
-        codeS: waste.codeS,
+        code: waste.code,
         title: waste.title,
         qtu: waste.qtu,
         uom: {
@@ -829,7 +829,7 @@ export default function Cards({ }: CardsProps) {
         } : undefined,
         out: operation.out?.map(outItem => ({
           idc: outItem.idc,
-          codeS: outItem.codeS,
+          code: outItem.code,
           title: outItem.title,
           qtu: outItem.qtu,
           uom: {
@@ -839,7 +839,7 @@ export default function Cards({ }: CardsProps) {
         })) || [],
         inn: operation.inn?.map(innItem => ({
           idc: innItem.idc,
-          codeS: innItem.codeS,
+          code: innItem.code,
           title: innItem.title,
           qtu: innItem.qtu,
           uom: {
@@ -873,7 +873,7 @@ export default function Cards({ }: CardsProps) {
     link.download = fileName;
     link.click();
   };
-
+  ///////////////Шаблоны
   const saveTemplate = async () => {
     setSaveTemplateLoaderCard(true);
     const tCard = tCards[tCardIndex]
@@ -1039,7 +1039,7 @@ export default function Cards({ }: CardsProps) {
     let newIdc = card.maxIdc;
 
     editedProducts.forEach(editedProduct => {      
-      const existingProduct = tCardProducts.find(product => product.codeS === editedProduct.codeS);
+      const existingProduct = tCardProducts.find(product => product.code === editedProduct.code);
 
       if (existingProduct) {
         // Проверяем, изменился ли title или uom
@@ -1047,9 +1047,9 @@ export default function Cards({ }: CardsProps) {
           // Увеличиваем idc для нового продукта
           newIdc = newIdc + 1;
 
-          // Присваиваем новый idc и обновляем codeS
+          // Присваиваем новый idc и обновляем code
           editedProduct.idc = newIdc;
-          editedProduct.codeS = existingProduct.codeS.replace(/P(\d+)/, `P${newIdc}`);
+          editedProduct.code = existingProduct.code.replace(/P(\d+)/, `P${newIdc}`);
         }
       }
     });
@@ -1170,26 +1170,26 @@ export default function Cards({ }: CardsProps) {
 
     // Обрабатываем выходные продукты из редактируемой операции
     editedOperation.out.forEach(outProduct => {
-      let oldProduct = oldOUT.find(p => p.codeS === outProduct.codeS);
+      let oldProduct = oldOUT.find(p => p.code === outProduct.code);
       oldProduct = (oldProduct) ? oldProduct : outProduct;
       // Проверяем, изменился ли какой-либо атрибут, кроме количества
       if (outProduct.title !== oldProduct.title || outProduct.uom.code !== oldProduct.uom.code) {
         newIdc = newIdc + 1;
-        // Присваиваем новый idc и обновляем codeS
+        // Присваиваем новый idc и обновляем code
         outProduct.idc = newIdc;
-        outProduct.codeS = outProduct.codeS.replace(/O(\d+)/, `O${newIdc}`);
+        outProduct.code = outProduct.code.replace(/O(\d+)/, `O${newIdc}`);
       }
     });
     // Обрабатываем источники продукты из редактируемой операции
     editedOperation.inn.forEach(innProduct => {
-      let oldProduct = oldINN.find(p => p.codeS === innProduct.codeS);
+      let oldProduct = oldINN.find(p => p.code === innProduct.code);
       oldProduct = (oldProduct) ? oldProduct : innProduct;
       // Проверяем, изменился ли какой-либо атрибут, кроме количества
       if (innProduct.title !== oldProduct.title || innProduct.uom.code !== oldProduct.uom.code) {
         newIdc = newIdc + 1;
-        // Присваиваем новый idc и обновляем codeS
+        // Присваиваем новый idc и обновляем code
         innProduct.idc = newIdc;
-        innProduct.codeS = innProduct.codeS.replace(/O(\d+)/, `O${newIdc}`);
+        innProduct.code = innProduct.code.replace(/O(\d+)/, `O${newIdc}`);
       }
     });
 

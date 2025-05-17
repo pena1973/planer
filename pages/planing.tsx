@@ -39,6 +39,14 @@ export default function Planing() {
 
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
 
+  
+  const team = useSelector((state: RootState) => {
+    return state.catalogSlice.team;
+  })
+  const user = useSelector((state: RootState) => {
+    return state.authSlice.user;
+  })
+
   const tCards = useSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
@@ -401,7 +409,7 @@ export default function Planing() {
     let tCardLoadsWithout = unitLoads_.filter(lo => lo.id_tCard !== tCard_.id)
 
     try {
-      const res = await fetch(`/api/pre-fullcardplan-api?userId=${1}&teamId=${1}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
+      const res = await fetch(`/api/pre-fullcardplan-api?userId=${user.id}&teamId=${team.id}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
         {
           method: 'get',
           headers: new Headers({
@@ -438,7 +446,7 @@ export default function Planing() {
 
   /// ВИЗУАЛИЗАЦИЯ СПИСКА КАРТ
   // временно уберу фильтр  нужен признак по которому я пойму какая карта запланирована а какая нет
-  let tCardsToPlan = tCards.filter(tCard => (tCard.status === StatusEnum.prepared)) // подготовлен
+  let tCardsToPlan = tCards.filter(tCard => (tCard.status === StatusEnum.prepared && !tCard.modified)) // подготовлен
 
   let tCardsPlaned = tCards.filter(tCard => (tCard.status === StatusEnum.planed)) // запланирован
   // Карты
@@ -458,7 +466,7 @@ export default function Planing() {
               : <Image className="icon_edit_save" src={light} alt="light"
                 width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
           }
-          <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.number)} -  {date}</div>
+          <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.idc)} -  {date}</div>
         </div>
 
         <div className="container_icon_edit_save">
@@ -495,7 +503,7 @@ export default function Planing() {
             onMouseDown={handleMouseDownTCard} // Добавляем обработчик нажатия мыши при перетаскивании        
             draggable
             onDragStart={(e) => handleDragStartTCard(e, elem.id)}
-          >{padNumberToFourDigits(elem.number)} -  {date}</div>
+          >{padNumberToFourDigits(elem.idc)} -  {date}</div>
         </div>
 
         <div className="container_icon_edit_save">

@@ -1,8 +1,9 @@
 // Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions } from './handlers-get';  // 
-import {planTCardFromOperINC, planOperOnUnit,
+import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './handlers-get';  // 
+import {
+  planTCardFromOperINC, planOperOnUnit,
   getDependentOperationsIds, getOperationReadyMoment
 } from './handlers-plan';  // 
 
@@ -16,11 +17,13 @@ import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import {StatusEnum} from '@/types'
+import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
+import { StatusEnum } from '@/types'
 
 import {
-  UnitItem,UnitLoadItem,
-  UnitBelongEnum,} from "@/types";
+  UnitItem, UnitLoadItem,
+  UnitBelongEnum,
+} from "@/types";
 
 interface RequestBody {
   pinnedLoad: UnitLoadItem,
@@ -45,6 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
+    const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
     // userId, teamId в любом случае
 
     const { userId, teamId } = req.query;
@@ -67,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(pinnedLoad.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository)
+        const tCard = await getTCardFull(pinnedLoad.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStageRepository)
         if (!tCard) {
           res.status(200).json({
             success: false,
@@ -83,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           res.status(200).json({
             success: false,
             tCardLoads: tCardLoads,
-            message: `Операция ${pinnedLoad.idc_oper} по карте С-${tCard.number} не найдена `,
+            message: `Операция ${pinnedLoad.idc_oper} по карте С-${tCard.idc} не найдена `,
           });
           return
 
@@ -92,13 +96,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //  получаем список операций которые зависимы от нашей  -  их будем перепланировать
         let dependentOperationsIds = getDependentOperationsIds(tCard, oper);
         // Формируем массив по карте без лоадов этой операции и зависимых от нее
-        let cardLoadsWithoutOperEndDep = tCardLoads.filter(load => 
+        let cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
           !(load.id_oper === oper.id || dependentOperationsIds.includes(load.id_oper as number))
         );
-        
+
         // также для сохранения истории мы по этой операции и зависимым операциям должны оставить все отмененные бракованные и готовые
-        let cardLoadsOperEndDepHistory = tCardLoads.filter(load => 
-          !(load.status===StatusEnum.prepared || load.status===StatusEnum.planed) 
+        let cardLoadsOperEndDepHistory = tCardLoads.filter(load =>
+          !(load.status === StatusEnum.prepared || load.status === StatusEnum.planed)
           && (load.id_oper === oper.id || dependentOperationsIds.includes(load.id_oper as number))
         );
 
@@ -107,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           a.date.localeCompare(b.date) || a.timeStart - b.timeStart
         );
 
-        let planedCardLoads = [...cardLoadsWithoutOperEndDep,...cardLoadsOperEndDepHistory];
+        let planedCardLoads = [...cardLoadsWithoutOperEndDep, ...cardLoadsOperEndDepHistory];
 
         // получаем момент готовности входящих запчастей и не раньше сегодня  и не раньше входящего старта
         let readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperEndDep, date, timeStart, today)
@@ -116,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           res.status(200).json({
             success: false,
             tCardLoads: tCardLoads,
-            message: " На момент выполнения операции не готовы входящие источники С-" + tCard.number,
+            message: " На момент выполнения операции не готовы входящие источники С-" + tCard.idc,
           });
           return
         }
@@ -169,7 +173,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             //
             // перепланируем зависимые лоады
             // запросим юниты
-            const units_ = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
+            const units_ = await getUnits(Number(teamId), unitRepository)
+
+            // запросим действия юнитов
+            const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository)
 
             // запросим расписание компании
             const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
@@ -186,7 +193,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
             // Планируем зависимые операции
-            let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
+            let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
             //  Если не удалось запланировать
             if (!resultPlaningNextOper.success) {
               res.status(200).json({
@@ -197,7 +204,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               break;
             }
             planedCardLoads = [...planedCardLoads, ...resultPlaningNextOper.planedCardLoads]
-            
+
           }
 
           // 2. перетаскиваем с внешнего на внешний и если корректируемый лоад уже стартовый 
@@ -209,7 +216,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               res.status(200).json({
                 success: false,
                 tCardLoads: tCardLoads,
-                message: "Не найден лоад окончания операции С-" + tCard.number,
+                message: "Не найден лоад окончания операции С-" + tCard.idc,
               });
               return
             }
@@ -218,7 +225,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               res.status(200).json({
                 success: false,
                 tCardLoads: tCardLoads,
-                message: "Нельзя начало операции сделать позже окончания операции С-" + tCard.number,
+                message: "Нельзя начало операции сделать позже окончания операции С-" + tCard.idc,
               });
               return
             }
@@ -272,7 +279,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               res.status(200).json({
                 success: false,
                 tCardLoads: tCardLoads,
-                message: "Не найден лоад начала операции С-" + tCard.number,
+                message: "Не найден лоад начала операции С-" + tCard.idc,
               });
               return
             }
@@ -281,7 +288,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               res.status(200).json({
                 success: false,
                 tCardLoads: tCardLoads,
-                message: "Нельзя начало операции сделать позже окончания операции С-" + tCard.number,
+                message: "Нельзя начало операции сделать позже окончания операции С-" + tCard.idc,
               });
               return
             }
@@ -305,7 +312,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // Далее перепланируем начиная с последующих операций
 
             // запросим юниты
-            const units_ = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
+            const units_ = await getUnits(Number(teamId), unitRepository)
+
+            // запросим действия юнитов
+            const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository)
 
             // запросим расписание компании
             const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
@@ -320,7 +330,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
             // Планируем карту начиная с нашей операции исключая ее саму
-            let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
+            let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
             //  Если не удалось запланировать
             if (!resultPlaningNextOper.success) {
               res.status(200).json({
@@ -330,13 +340,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               });
               break;
             }
-            planedCardLoads = [...planedCardLoads,...resultPlaningNextOper.planedCardLoads]          
+            planedCardLoads = [...planedCardLoads, ...resultPlaningNextOper.planedCardLoads]
           }
         }
         // внутренний
         else {
+          // запросим действия юнитов
+          const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository)
+          
           // проверяем выполняет ли выбранный юнит эту операцию
-          const foundAction = unit.actions.find(ac => ac.action.id === oper.action.id)
+          const actions = unitActions_.filter(ac => ac.unitId === unit.id)
+          const foundAction = actions.find(ac => ac.action.id === oper.action.id)
           if (!foundAction) {
             res.status(200).json({
               success: false,
@@ -345,9 +359,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
             return
           }
-        
+
           // запросим юниты
-          const units_ = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
+          const units_ = await getUnits(Number(teamId), unitRepository)
 
           // запросим расписание компании
           const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
@@ -362,7 +376,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           unitLoadItemsFull = [...unitLoadItemsFull, ...planedCardLoads];
 
           // Планируем нашу операцию на юните
-          let resultPlaningOper = planOperOnUnit(oper, tCard, unit, shedule_, unitLoadItemsFull, exceptionItems, today, readySourceMoment.date, readySourceMoment.time)
+          let resultPlaningOper = planOperOnUnit(oper, tCard, unit,unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today, readySourceMoment.date, readySourceMoment.time)
           //  Если не удалось запланировать
           if (!resultPlaningOper.success) {
             res.status(200).json({
@@ -374,12 +388,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
 
           // если операция спланировалась добавим ее лоады и  планируем все последующие операции
-          unitLoadItemsFull = [...unitLoadItemsFull, ... resultPlaningOper.operLoads];
-          planedCardLoads = [...planedCardLoads, ... resultPlaningOper.operLoads];
+          unitLoadItemsFull = [...unitLoadItemsFull, ...resultPlaningOper.operLoads];
+          planedCardLoads = [...planedCardLoads, ...resultPlaningOper.operLoads];
           // планируем все последующие операции  исключая пришпиленные
-        
+
           // Планируем карту начиная с нашей операции (есключая ее саму)
-          let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
+          let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_,unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
           //  Если не удалось запланировать
           if (!resultPlaningNextOper.success) {
             res.status(200).json({
@@ -389,7 +403,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
             break;
           }
-          planedCardLoads = [...planedCardLoads,...resultPlaningNextOper.planedCardLoads]   
+          planedCardLoads = [...planedCardLoads, ...resultPlaningNextOper.planedCardLoads]
 
         }
 
@@ -413,17 +427,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
 
-function getLastLoadFinish(operloads: UnitLoadItem[]): { date: string; time: number } | undefined {
-  if (operloads.length === 0) return undefined;
-  // Инициализируем первый элемент как "наиболее поздний"
-  let lastLoad = operloads[0];
-  for (const load of operloads) {
-    // Сравниваем даты, так как формат "YYYY-MM-DD" корректно сравнивается лексикографически
-    if (load.date > lastLoad.date) {
-      lastLoad = load;
-    } else if (load.date === lastLoad.date && load.timeFinish > lastLoad.timeFinish) {
-      lastLoad = load;
-    }
-  }
-  return { date: lastLoad.date, time: lastLoad.timeFinish };
-}
+// function getLastLoadFinish(operloads: UnitLoadItem[]): { date: string; time: number } | undefined {
+//   if (operloads.length === 0) return undefined;
+//   // Инициализируем первый элемент как "наиболее поздний"
+//   let lastLoad = operloads[0];
+//   for (const load of operloads) {
+//     // Сравниваем даты, так как формат "YYYY-MM-DD" корректно сравнивается лексикографически
+//     if (load.date > lastLoad.date) {
+//       lastLoad = load;
+//     } else if (load.date === lastLoad.date && load.timeFinish > lastLoad.timeFinish) {
+//       lastLoad = load;
+//     }
+//   }
+//   return { date: lastLoad.date, time: lastLoad.timeFinish };
+// }

@@ -14,7 +14,7 @@ _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 export interface TCardProductProps {
     idc: number,
-    codeS: string,
+    code: string,
     title: string,
     qtu: number,
     uom: UOMItem,
@@ -36,7 +36,7 @@ export interface TCardProductProps {
 
 export default function TCardProduct({
     idc,
-    codeS,
+    code,
     title,
     qtu,
     uom,
@@ -56,7 +56,7 @@ export default function TCardProduct({
 
 }: TCardProductProps) {
 
-    const code = (prefix === "M") ? codeS : `${prefix + idc} | ${codeS}`
+    const code1 = (prefix === "M") ? code : `${prefix + idc} | ${code}`
     const codeWidth = (prefix === "M") ? 50 : 100
     const titleWidth = (prefix === "M") ? 140 : 80
     return (
@@ -82,7 +82,7 @@ export default function TCardProduct({
             <div className={styles.tCardProduct_status} >
                 {(status) && <StatusCircle status={status} />}
             </div>
-            <div className={styles.tCardProduct_code} style={{ width: codeWidth }}>{code}</div>
+            <div className={styles.tCardProduct_code} style={{ width: codeWidth }}>{code1}</div>
             <div className={styles.tCardProduct_title} style={{ width: titleWidth }}>{title}</div>
             <div className={styles.tCardProduct_qtu}>{qtu}</div>
             

@@ -19,7 +19,7 @@ import del from "@/public/del2.png";
 export interface TCardProductNewProps {
     idc: number,   
     prefix:string, 
-    codeS: string,
+    code: string,
     title: string,
     qtu: number,
     uom: UOMItem | null,
@@ -31,7 +31,7 @@ export interface TCardProductNewProps {
 export default function TCardProductNew({
     idc,   
     prefix, 
-    codeS,
+    code,
     title,
     qtu,
     uom,
@@ -74,7 +74,7 @@ export default function TCardProductNew({
                 src={del} alt="del" width={20} height={20}
                 onClick={() => deleteProductHandler(index)}
             />
-            <div className={styles.tCardProduct_code}>{"P"+idc}|{codeS}</div>
+            <div className={styles.tCardProduct_code}>{"P"+idc}|{code}</div>
             <input className={styles.tCardProduct_title}
                 id={"title" + idc} autoComplete="off"
                 value={titleValue} type="text"

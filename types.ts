@@ -46,7 +46,7 @@ export interface TCardOperationItem {
 export interface TCardProductItem {
     id?: number,  // id BD
     idc: number, //  id на клиенте
-    codeS: string, //  код источника    
+    code: string, //  код источника    
     title: string,
     qtu: number,
     uom: UOMItem,
@@ -329,7 +329,7 @@ export enum TimeZoneEnum {
   
    export  interface ProductContent {
     idc: number;
-    codeS: string;
+    code: string;
     title: string;
     qtu: number;
     uom: { code: string; title: string };

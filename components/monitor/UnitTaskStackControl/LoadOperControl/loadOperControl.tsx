@@ -47,7 +47,7 @@ export default function LoadOperControl({
             return (
                 <div className={styles.inn_line}>
                     <div className={styles.oper_title}>{elem.title} {elem.qtu} {elem.uom.title}</div>
-                    <div className={styles.oper_title}> code:  {elem.codeS} </div>
+                    <div className={styles.oper_title}> code:  {elem.code} </div>
                 </div>
             )
         })
@@ -58,12 +58,12 @@ export default function LoadOperControl({
             return (
                 <div className={styles.inn_line}>
                     <div className={styles.oper_title}>{elem.title} {elem.qtu} {elem.uom.title}</div>
-                    <div className={styles.oper_title}> code:  {elem.codeS} </div>
+                    <div className={styles.oper_title}> code:  {elem.code} </div>
                 </div>
             )
         })
     }
-    const titleCard = `${padNumberToFourDigits(tCard.number)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+    const titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
 
     return (
 

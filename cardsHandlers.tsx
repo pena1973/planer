@@ -2,7 +2,7 @@ import { TCardProductItem, TCardOperationItem,TCardItem } from "@/types";
 
 //  проверка наличия материальных активов
 // алгоритм такой
-//  есть операции у них есть вход и выход у них есть id и источник codeS
+//  есть операции у них есть вход и выход у них есть id и источник code
 //  есть список продуктов заказа у них мы знаем ид
 //   все что вышло из операций (сворачиваем +- и промежуточные продукты схлопываются, остается только выход и вход общие)
 // все что вход - материалы
@@ -25,7 +25,7 @@ export const checkReconcilation = (
     outArr1 = [...outArr1, ...toper.out];
   });
 
-  // проверяю все операции на ВХОД in->out (codeS)
+  // проверяю все операции на ВХОД in->out (code)
   // чтобы все что было на вход соответствовало out или со склада 
   // если не соответствует беру со склада
   tCardOperations = tCardOperationsArg.map(oper => {
@@ -37,19 +37,19 @@ export const checkReconcilation = (
 
       // если источник указан ищем его в out по всем операциям      
       // если источник не указан -  укажем что это материал
-      if (!iteminn.codeS) {
-        updatedInn.push({ ...iteminn, codeS: `M${iteminn.idc}` })
+      if (!iteminn.code) {
+        updatedInn.push({ ...iteminn, code: `M${iteminn.idc}` })
       }// количество 0 и источник указан  просто оставляем  -  это новая строка
       else if (qtuinn === 0) {
         updatedInn.push({ ...iteminn })
       }// количество больше 0 и источник указан  распределяем
       else {
         while (qtuinn > 0) {
-          let itemoutIndex = outArr1.findIndex(itemout => { return (itemout.codeS === iteminn.codeS && itemout.idc === iteminn.idc && itemout.qtu > 0) })
+          let itemoutIndex = outArr1.findIndex(itemout => { return (itemout.code === iteminn.code && itemout.idc === iteminn.idc && itemout.qtu > 0) })
 
           // если не нашли - берем со склада
           if (itemoutIndex === -1) {
-            updatedInn.push({ ...iteminn, qtu: qtuinn, codeS: `M${iteminn.idc}` })
+            updatedInn.push({ ...iteminn, qtu: qtuinn, code: `M${iteminn.idc}` })
             qtuinn = 0;
             continue;
           }
@@ -87,7 +87,7 @@ export const checkReconcilation = (
   let resultArr = [...outArr, ...innArr];
   resultArr = groupAndSumByCodeAndUom(resultArr, 1);
 
-  //  плюс на минус схлопываются остается сальдо в разрезе id codeS uom
+  //  плюс на минус схлопываются остается сальдо в разрезе id code uom
   //  остатки +  это результат   остатки- - это материалы
   // Разделяем результат на два массива: положительные и отрицательные остатки
   let positiveArr = resultArr.filter(item => item.qtu > 0); //  то что на выходе
@@ -95,7 +95,7 @@ export const checkReconcilation = (
 
   // проставим источник в материалах
   tCardMaterials = tCardMaterials.map(item => {
-    return { ...item, codeS: `M${item.idc}` }
+    return { ...item, code: `M${item.idc}` }
   })
 
   // а дальше перебираем  продукты (по id) и ищем их на выходе из операций и прописываем номер операции в источник
@@ -121,7 +121,7 @@ export const checkReconcilation = (
       let thisQtu = Math.min(qtu, item2.qtu)
 
       if (thisQtu > 0) {
-        tCardProducts.push({ ...item, qtu: thisQtu, codeS: item2.codeS })
+        tCardProducts.push({ ...item, qtu: thisQtu, code: item2.code })
       }
       //// вычли то что уже распределили из заказанных продуктов
       qtu = qtu - thisQtu;
@@ -131,15 +131,15 @@ export const checkReconcilation = (
 
       // остаток произведенного но не попавшего в продукты если есть -  в отходы    
       if (qtuOut > 0) {
-        tCardWastes.push({ ...item, qtu: qtuOut, codeS: item2.codeS })
+        tCardWastes.push({ ...item, qtu: qtuOut, code: item2.code })
       }
     })
 
     // если после того как проверили произведенное получили остаток указываем его источник со склада
     //  и добавляем позицию в список материалов
     if (qtu > 0) {
-      tCardProducts.push({ ...item, qtu: qtu, codeS: `M${item.idc}` })
-      tCardMaterials.push({ ...item, qtu: qtu, codeS: `M${item.idc}` })
+      tCardProducts.push({ ...item, qtu: qtu, code: `M${item.idc}` })
+      tCardMaterials.push({ ...item, qtu: qtu, code: `M${item.idc}` })
     }
 
     // далее убираем этот id+uom из позитива чтобы не обработать его дважды
@@ -164,8 +164,8 @@ export const groupAndSumByCodeAndUom = (arr: TCardProductItem[], koef: number) =
   const groupedResult: { [key: string]: TCardProductItem } = {};
 
   arr.forEach(item => {
-    // Создаем уникальный ключ для сочетания id, codeS, и uom
-    const key = `${item.idc}_${item.codeS}_${item.uom.id}`;
+    // Создаем уникальный ключ для сочетания id, code, и uom
+    const key = `${item.idc}_${item.code}_${item.uom.id}`;
 
     if (!groupedResult[key]) {
       // Если ключ еще не существует, создаем новый элемент
@@ -187,12 +187,12 @@ export const groupAndSumByIDAndUom = (arr: TCardProductItem[]) => {
   const groupedResult: { [key: string]: TCardProductItem } = {};
 
   arr.forEach(item => {
-    // Создаем уникальный ключ для сочетания id, codeS, и uom
+    // Создаем уникальный ключ для сочетания id, code, и uom
     const key = `${item.idc}_${item.uom.id}`;
 
     if (!groupedResult[key]) {
       // Если ключ еще не существует, создаем новый элемент
-      groupedResult[key] = { ...item, qtu: item.qtu, codeS: "" };
+      groupedResult[key] = { ...item, qtu: item.qtu, code: "" };
     } else {
       // Если ключ уже существует, суммируем qtu
       groupedResult[key].qtu += item.qtu;

@@ -18,7 +18,7 @@ export class TCardProductTable {
   idc!: number; // id на клиенте
 
   @Column()
-  code_s!: string;
+  code!: string;
 
   @Column({
     type: 'enum',

@@ -227,7 +227,7 @@ export async function getTCards(
   const tCards_ = tCards.map(tCardtab => {
     return {
       id: tCardtab.id,
-      date:new Date(tCardtab.date).toLocaleDateString("en-CA"),
+      date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
       idc: tCardtab.idc || 1,  // Если number не заполнен, возвращаем "1"
       modified: false,
       maxIdc: tCardtab.max_idc,
@@ -298,7 +298,7 @@ export async function getTCardFull(
 
   // СТАДИИ
   const tCardStagestab = await tCardStageRepository.find({ where: { tcard_id: tcardId } });
-  
+
 
   // Преобразуем стадии
   const tCardStages_ = tCardStagestab
@@ -321,7 +321,7 @@ export async function getTCardFull(
       return {
         id: product.id,
         idc: product.idc,
-        codeS: product.code_s,  // Используем code_s вместо codeS
+        code: product.code,
         title: product.title,
         qtu: product.qtu,
         uom: {
@@ -338,7 +338,7 @@ export async function getTCardFull(
       return {
         id: product.id,
         idc: product.idc,
-        codeS: product.code_s,  // Используем code_s вместо codeS
+        code: product.code,
         title: product.title,
         qtu: product.qtu,
         uom: {
@@ -355,7 +355,7 @@ export async function getTCardFull(
       return {
         id: product.id,
         idc: product.idc,
-        codeS: product.code_s,  // Используем code_s вместо codeS
+        code: product.code,
         title: product.title,
         qtu: product.qtu,
         uom: {
@@ -377,7 +377,7 @@ export async function getTCardFull(
           return {
             id: product.id,
             idc: product.idc,
-            codeS: product.code_s,
+            code: product.code,
             title: product.title,
             qtu: product.qtu,
             uom: {
@@ -394,7 +394,7 @@ export async function getTCardFull(
           return {
             id: product.id,
             idc: product.idc,
-            codeS: product.code_s,
+            code: product.code,
             title: product.title,
             qtu: product.qtu,
             uom: {
@@ -424,7 +424,7 @@ export async function getTCardFull(
     idc: tCardtab.idc,
     tCardProducts: tCardProducts_,
     tCardWastes: tCardWastes_,
-    tCardOperations: tCardOperations_,    
+    tCardOperations: tCardOperations_,
     tCardMaterials: tCardMaterials_,
     tCardStages: tCardStages_,
     maxIdc: tCardtab.max_idc,
@@ -436,154 +436,6 @@ export async function getTCardFull(
 
   return tCard
 }
-
-// // КАРТЫ! Список карт вместе с операциями и сроками готовности
-// export async function getTCardsOpers(
-//   tCardRepository:Repository<TCardTable>, 
-//   tCardOperationRepository: Repository<TCardOperationTable>,
-//   tCardProductRepository: Repository<TCardProductTable>,
-//   unitLoadRepository: Repository<UnitLoadTable>,
-
-// ): Promise<TCardTermsItem []> {
-
-//   // // Строим фильтр для поиска по id карты
-//   // const filter: { status?: StatusEnum.cancelled; } = {};
-//   // if (tcardId) {
-//   //   filter.id = tcardId;
-//   // }
-
-//   // // Получаем карту по id
-//   // const tCardtab = await tCardRepository.findOne({
-//   //   where: filter,  // Применяем фильтр к запросу
-//   //   relations: ['team', 'user'],  // Указываем связанные таблицы
-//   // });
-
-//   // // Проверяем, что карта существует
-//   // if (!tCardtab) return undefined;
-
-//   // // ПРОДУКТЫ, МАТЕРИАЛЫ, ОТХОДЫ
-//   // const tCardProductstab = await tCardProductRepository.find({ where: { tcard_id: tcardId } });
-
-//   // // Преобразуем материалы
-//   // const tCardMaterials_ = tCardProductstab
-//   //   .filter(product => product.type === TypeEnum.M)
-//   //   .map(product => {
-//   //     return {
-//   //       id: product.id,
-//   //       idc: product.idc,
-//   //       codeS: product.code_s,  // Используем code_s вместо codeS
-//   //       title: product.title,
-//   //       qtu: product.qtu,
-//   //       uom: {
-//   //         id: product.uom.id,
-//   //         title: product.uom.title,
-//   //         code: product.uom.code,
-//   //       } as UOMItem
-//   //     } as TCardProductItem;
-//   //   });
-//   // // Преобразуем продукты
-//   // const tCardProducts_ = tCardProductstab
-//   //   .filter(product => product.type === TypeEnum.P)
-//   //   .map(product => {
-//   //     return {
-//   //       id: product.id,
-//   //       idc: product.idc,
-//   //       codeS: product.code_s,  // Используем code_s вместо codeS
-//   //       title: product.title,
-//   //       qtu: product.qtu,
-//   //       uom: {
-//   //         id: product.uom.id,
-//   //         title: product.uom.title,
-//   //         code: product.uom.code,
-//   //       } as UOMItem
-//   //     } as TCardProductItem;
-//   //   });
-//   // // Преобразуем отходы
-//   // const tCardWastes_ = tCardProductstab
-//   //   .filter(product => product.type === TypeEnum.W)
-//   //   .map(product => {
-//   //     return {
-//   //       id: product.id,
-//   //       idc: product.idc,
-//   //       codeS: product.code_s,  // Используем code_s вместо codeS
-//   //       title: product.title,
-//   //       qtu: product.qtu,
-//   //       uom: {
-//   //         id: product.uom.id,
-//   //         title: product.uom.title,
-//   //         code: product.uom.code,
-//   //       } as UOMItem
-//   //     } as TCardProductItem;
-//   //   });
-
-//   // // ОПЕРАЦИИ
-//   // const tCardOperationstab = await tCardOperationRepository.find({ where: { tcard_id: tcardId } });
-//   // // Преобразуем операции
-//   // const tCardOperations_ = tCardOperationstab
-//   //   .map(oper => {
-//   //     const inn = tCardProductstab
-//   //       .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
-//   //       .map(product => {
-//   //         return {
-//   //           id: product.id,
-//   //           idc: product.idc,
-//   //           codeS: product.code_s,
-//   //           title: product.title,
-//   //           qtu: product.qtu,
-//   //           uom: {
-//   //             id: product.uom.id,
-//   //             title: product.uom.title,
-//   //             code: product.uom.code,
-//   //           } as UOMItem
-//   //         } as TCardProductItem;
-//   //       });
-
-//   //     const out = tCardProductstab
-//   //       .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
-//   //       .map(product => {
-//   //         return {
-//   //           id: product.id,
-//   //           idc: product.idc,
-//   //           codeS: product.code_s,
-//   //           title: product.title,
-//   //           qtu: product.qtu,
-//   //           uom: {
-//   //             id: product.uom.id,
-//   //             title: product.uom.title,
-//   //             code: product.uom.code,
-//   //           } as UOMItem
-//   //         } as TCardProductItem;
-//   //       });
-
-//   //     return {
-//   //       id: oper.id,
-//   //       idc: oper.idc,
-//   //       stage: {} as TCardStageItem, //  Это чисто для визуала и для расчетов не нужно
-//   //       out: out,
-//   //       inn: inn,
-//   //       action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible,code: oper.action.code } as ActionItem,
-//   //       duration: oper.duration, // в милисекундах   
-//   //       status: oper.status,  
-//   //       coment: oper.coment 
-//   //     };
-//   //   });
-
-//   // const tCard = {
-//   //   id: tCardtab.id,
-//   //   date: tCardtab.date, //  дата       
-//   //   number: tCardtab.number,
-//   //   tCardProducts: tCardProducts_,
-//   //   tCardWastes: tCardWastes_,
-//   //   tCardOperations: tCardOperations_,
-//   //   tCardMaterials: tCardMaterials_,
-//   //   maxId: tCardtab.max_idc,
-//   //   coment: tCardtab.coment,
-//   //   status: tCardtab.status,
-//   // } as TCardItem
-
-//   // return tCard
-//   return [] as TCardTermsItem[]; // Вернуть пустой массив или обработать ошибку
-// }
 
 export async function getTCardsOpers(
   teamId: number,
@@ -700,75 +552,7 @@ export async function getTCardsOpers(
   return tCardTerms;
 }
 
-// export async function getTCardMatOper(
-//   tcardId: number,
-//   tCardOperationsRepository: Repository<TCardOperationTable>,
-//   tCardProductRepository: Repository<TCardProductTable>,
-// ): Promise<{ tCardMaterials: TCardProductItem[], tCardOperations: TCardOperationItem[] }> {
 
-//   // Получаем связанные данные: стадию, операции, продукты, отходы и материалы
-//   const tCardOperationstab = await tCardOperationsRepository.find({ where: { tcard_id: tcardId } });
-//   const tCardProductstab = await tCardProductRepository.find({ where: { tcard_id: tcardId } });
-
-//   // Преобразуем материалы
-//   const tCardMaterialsg_ = tCardProductstab
-//     .filter(product => product.type === TypeEnum.M)
-//     .map(product => {
-//       return {
-//         id: product.id,
-//         idc: product.idc,
-//         codeS: product.code_s,  // Используем code_s вместо codeS
-//         title: product.title,
-//         qtu: product.qtu,
-//         uom: product.uom,  // Преобразуем UOMsTable в UOMItem
-//       };
-//     });
-
-
-//   // Преобразуем операции
-//   const tCardOperationsg_ = tCardOperationstab
-//     .map(oper => {
-//       const inn = tCardProductstab
-//         .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
-//         .map(product => {
-//           return {
-//             id: product.id,
-//             idc: product.idc,
-//             codeS: product.code_s,
-//             title: product.title,
-//             qtu: product.qtu,
-//             uom: product.uom,
-//           };
-//         });
-
-//       const out = tCardProductstab
-//         .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
-//         .map(product => {
-//           return {
-//             id: product.id,
-//             idc: product.idc,
-//             codeS: product.code_s,
-//             title: product.title,
-//             qtu: product.qtu,
-//             uom: product.uom,  // Преобразуем UOMsTable в UOMItem
-//           };
-//         });
-
-//       return {
-//         id: oper.id,
-//         idc: oper.idc,
-//         stage: {} as TCardStageItem, //  Это чисто для визуала и для расчетов не нужно
-//         out: out,
-//         inn: inn,
-//         action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible },
-//         duration: oper.duration, // в милисекундах   
-//         status: oper.status,
-//       };
-//     });
-
-
-//   return { tCardMaterials: tCardMaterialsg_, tCardOperations: tCardOperationsg_ }
-// }
 
 export async function getExceptions(
   teamId: number,
@@ -821,9 +605,16 @@ export async function getUnitActions(
 
   const unitActions = receivedUnitActions
     .map(ac => {
+      const action = {
+        id: ac.action.id,
+        title: ac.action.title,
+        code: ac.action.code,
+        modified: false,
+        interruptible: ac.action.interruptible,
+      } as ActionItem
       return {
         id: ac.id,
-        action: ac.action as ActionItem,
+        action: action,
         koef: ac.koef,
         unitId: ac.unit_id,
         unitIdc: ac.unit.idc,

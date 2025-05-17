@@ -84,7 +84,7 @@ export default function TCardOper({
                         cursor: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? 'grabbing' : 'grab',
                         color: (lightProduct === elem2.idc) ? 'rgb(209, 29, 29)' : '',
                     }}>
-                    <div className={styles.in_out_item_code}>{elem2.codeS}</div>
+                    <div className={styles.in_out_item_code}>{elem2.code}</div>
                     <div className={styles.in_out_item_title}>{elem2.title}</div>
                     <div className={styles.in_out_item_qty}>{elem2.qtu}</div>
                     <div className={styles.in_out_item_uom}>{elem2.uom.title}</div>
@@ -115,7 +115,7 @@ export default function TCardOper({
                         color: (lightProduct === elem3.idc) ? 'rgb(209, 29, 29)' : '',
                     }}
                 >
-                    <div className={styles.in_out_item_code}>{elem3.codeS}</div>
+                    <div className={styles.in_out_item_code}>{elem3.code}</div>
                     <div className={styles.in_out_item_title}>{elem3.title}</div>
                     <div className={styles.in_out_item_qty}>{elem3.qtu}</div>
                     <div className={styles.in_out_item_uom}>{elem3.uom.title}</div>
