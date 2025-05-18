@@ -4,10 +4,12 @@ import styles from "./loadInner.module.scss";
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
 
-import pinon from "@/public/pin_on-rem.png";
+// import pinon from "@/public/pin_on-rem.png";
+import pinon from "@/public/point-rem.png";
 import pinof from "@/public/pin_of-rem.png";
 import ContextMenuInner from "./ContextMenuInner/contextMenuInner";
-
+import { relative } from "path";
+import {padNumberToFourDigits} from "@/utils"
 
 export interface LoadProps {
     dayWidth: number,
@@ -58,6 +60,7 @@ export default function LoadInner({
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
 
+
     switch (load.status) {
         case StatusEnum.draft:
             intervalClass = `${styles.interval} ${styles.draft}`; // Если статус "draft"
@@ -84,6 +87,9 @@ export default function LoadInner({
             intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию для остальных статусов
             break;
     }
+    // если операция не прерываемая
+    if (!load.loadInfo?.interruptible) intervalClass = `${intervalClass} ${styles.strip}`
+
     intervalClass = load.isRetool ? `${intervalClass} ${styles.retool}` : intervalClass;
 
     // Выделяем операции текущей карты
@@ -105,7 +111,20 @@ export default function LoadInner({
                     cursor: (draggingLoad === load) ? "grabbing" : "grab"
                 }
                 }
-                onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`C${load.idc_oper}`}
+                onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>
+
+                {!load.isRetool && <div style={{ 'position': 'relative','width':'100%', maxWidth:'7px',height: '17px', marginTop: '-5px'}}>
+                    {load.status === StatusEnum.prepared && (load.isPinned ?
+
+                        <Image className={styles.icon_pinon} src={pinon} alt="pinon"
+                            width={15} height={15} onClick={() => { if (load.status === StatusEnum.prepared) unPinLoadHandler(load.id_oper, load.id_tCard) }} />
+                        : <Image className={styles.icon_pinof} src={pinof} alt="pinof"
+                            width={15} height={15} onClick={() => { if (load.status === StatusEnum.prepared) pinLoadHandler(load.id_oper) }}
+                        />
+                    )}
+                </div>}
+                {(!load.isRetool &&width>=120)?`${padNumberToFourDigits(tCard.idc)} - ${tCard.date} / A${load.idc_oper}`:""}
+                {(!load.isRetool && width<120 && width>20)?`A${load.idc_oper}`:""}
             </div>
 
             {contectMenuShow === load.idc &&
@@ -119,14 +138,7 @@ export default function LoadInner({
                     blocked={blocked}
                 />}
 
-            {load.status === StatusEnum.prepared && (load.isPinned ?
 
-                <Image className={styles.icon_pinon} src={pinon} alt="pinon"
-                    width={15} height={15} onClick={() => { if (load.status === StatusEnum.prepared) unPinLoadHandler(load.id_oper, load.id_tCard) }} />
-                : <Image className={styles.icon_pinof} src={pinof} alt="pinof"
-                    width={15} height={15} onClick={() => { if (load.status === StatusEnum.prepared) pinLoadHandler(load.id_oper) }}
-                />
-            )}
         </>
     )
 }

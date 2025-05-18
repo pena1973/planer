@@ -24,7 +24,9 @@ import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum} from "@/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[];  // запланированные лоады в статусе prepared  по данной карте
-  tCard: TCardItem & { status: StatusEnum }
+  tCard: TCardItem & { status: StatusEnum },
+  teamId:number,
+  userId:number
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -42,13 +44,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
 
-    // userId, teamId в любом случае
-    const { userId, teamId, tcardId, today } = req.query;
+    
+    
 
     switch (req.method) {
       // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
       case 'POST':
-        const { tCardLoads, tCard } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const { tCardLoads, tCard,teamId,userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
 
         // tCardLoads- приходит только в статусе prepared, нужно считать остальное
         // СПИСОК Загрузок 
@@ -116,8 +118,8 @@ async function saveLoads(
       id_oper: load.id_oper,
       idc_oper: load.idc_oper, // Идентификатор операции  
       id_tCard: load.id_tCard, // Идентификатор тех карты
-      timeStart: load.timeStart, // Время начала в минутах
-      timeFinish: load.timeFinish, // Время окончания в минутах
+      timeStart: Math.ceil(load.timeStart), // Время начала в минутах окр в большую сторону
+      timeFinish: Math.ceil(load.timeFinish), // Время окончания в минутах окр в большую сторону
       team_id: teamId,
       unit_id: load.unit.id,
       status: StatusEnum.planed,
@@ -126,6 +128,7 @@ async function saveLoads(
       isPinned: load.isPinned,
       isOuterStart: load.isOuterStart,
       isOuterFinish: load.isOuterFinish,
+      version:load.version,
     });
   });
   let savedNewLoads = [] as UnitLoadTable[]
@@ -179,6 +182,7 @@ async function saveLoads(
       isPinned: loadT.isPinned,//  перенесен вручшую на шкале
       isOuterStart: loadT.isOuterStart,//  это старт оутсортера
       isOuterFinish: loadT.isOuterFinish,
+      version:loadT.version,
     } as UnitLoadItem
   })
   return { success: true, savedUnitLoads: savedUnitLoads, message: "" }
@@ -234,23 +238,4 @@ export async function updateStatusOperations(
   }
 }
 
-
-
-// async function updateStatusOperations(
-//   tCardOperationsRepository: Repository<TCardOperationTable>,
-//   opersIds: number[],
-//   status: StatusEnum
-// ): Promise<{ success: boolean, message?: string }> {
-//   const updateResult = await tCardOperationsRepository.update(tCard.id, { status });
-
-//   // Проверяем, что обновление затронуло хотя бы одну запись
-//   if (updateResult.affected && updateResult.affected > 0) {
-//     console.log('Карта успешно обновлена с id:', tCard.id);
-//     return { success: true };
-//   } else {
-//     const error = `Ошибка при обновлении карты ${JSON.stringify(tCard)}`;
-//     console.error(error);
-//     return { success: false, message: error };
-//   }
-// }
 

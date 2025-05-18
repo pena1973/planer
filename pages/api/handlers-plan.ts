@@ -6,7 +6,19 @@ import {
   UnitActionItem
 } from "@/types";
 
+// функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
+const getLoadIdc = (
+  tCard: TCardItem,
+  operation: TCardOperationItem,
+  seg: { 
+    date: string, 
+    start: number; 
+    finish: number, 
+    isRetool: boolean }): number => {
+  return Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`)
+}
 
+import { generateUniqueIdc } from '@/utils'
 // генерация привычной нам даты - ее использую как id дня
 const idDay = (date: Date): string => {
   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
@@ -23,9 +35,9 @@ const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.team)
-  return schedule.workdays.some(workday =>
-    new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-  ); else return false
+    return schedule.workdays.some(workday =>
+      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+    ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
 const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
@@ -68,9 +80,9 @@ const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
 
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.team)
-  return schedule.holidays.some(holiday =>
-    new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-  ); else return false
+    return schedule.holidays.some(holiday =>
+      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+    ); else return false
 }
 // генерация одного дня на шкале
 const generateCalendarItemOnServer = (day: Date, schedule: ScheduleItem): CalendarItem => {
@@ -146,7 +158,7 @@ export const getDependentOperationsIds = (
     return op.inn.some(inp => outCode.has(inp.code));
   });
 
-  const preparedOps = dependentOps.filter(op =>  op.status === StatusEnum.prepared );
+  const preparedOps = dependentOps.filter(op => op.status === StatusEnum.prepared);
 
   // Возвращаем массив id (предполагается, что op.id всегда определён)
   return preparedOps.map(op => op.id!).filter(id => id !== undefined);
@@ -159,7 +171,7 @@ export const getDependentOperationsIds = (
 function findAvailableTimeForOperation(
   tCard: TCardItem,
   compatibleuUnits: UnitItem[], // массив юнитов, которые могут выполнить операцию
-  unitActions:UnitActionItem[], //  массив операций юнитов
+  unitActions: UnitActionItem[], //  массив операций юнитов
   unitLoadItems: UnitLoadItem[], // массив загрузок юнитов
   operation: TCardOperationItem, // операция (с длительностью в мс)
   startDate: string,            // дата для старта выполнения операции (YYYY-MM-DD)
@@ -171,6 +183,7 @@ function findAvailableTimeForOperation(
 ): { success: boolean, planedUnitLoads: UnitLoadItem[], dateReady: string, timeReady: number, message: string } {
 
   // tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, isPinned
+  const version = generateUniqueIdc();
 
   const targetDate = new Date(startDate);
   targetDate.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
@@ -200,7 +213,7 @@ function findAvailableTimeForOperation(
 
   // Перебираем каждый совместимый юнит
   for (let unit of compatibleuUnits) {
-    const actions = unitActions.filter(ac=>ac.unitId===unit.id)
+    const actions = unitActions.filter(ac => ac.unitId === unit.id)
     // Определяем время переналадки и длительность выполнения операции
     const retoolTime = unit.retool; // время переналадки (в минутах)
     let action = actions.find(a => a.action.id === operation.action.id);
@@ -253,7 +266,7 @@ function findAvailableTimeForOperation(
     // Формируем итоговый массив загрузок (UnitLoadItem) для победившего юнита
     let updatedUnitLoads: UnitLoadItem[] = [];
     bestCandidate.opSegments.forEach(seg => {
-      const actions_ = unitActions.filter(ac=>ac.unitId===bestCandidate.unit.id)
+      const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id)
       // let action = bestCandidate.unit.actions.find(act => act.id = operation.action.id);
       let action = actions_.find(act => act.id = operation.action.id);
       let koef = (action) ? action.koef : 1;
@@ -267,14 +280,15 @@ function findAvailableTimeForOperation(
         timeFinish: seg.finish,
         status: StatusEnum.prepared,
         id_oper: Number(operation.id),
-        idc: Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`),
+        // idc: Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`),
+        idc: getLoadIdc(tCard,operation,seg),        
         isActive: true,
         isRetool: seg.isRetool,
         loadInfo: { title: operation.action.title, duration: Math.round(operation.duration / 60000), interruptible: operation.action.interruptible, koef: koef },
         isPinned: isPinned,
         isOuterStart: false,//  это старт оутсортера, здесь не применяется
         isOuterFinish: false,//  это финиш оутсортера        
-        version: Number(operation.id) + 1 // НАДО СГЕНЕРИТЬ УНИКАЛЬНОЕ версия планирования для связи цепочки лоадов
+        version: version,
       });
     });
     const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
@@ -705,7 +719,7 @@ export const planTCardFromOperINC = (
   operationsToPlanIds: number[],
   tCard: TCardItem,
   units: UnitItem[],
-  unitActions:UnitActionItem[],
+  unitActions: UnitActionItem[],
   shedule_: ScheduleItem,
   unitLoads: UnitLoadItem[], //  вся загрузка которую надо учесть
   exceptionItems: UnitExceptionItem[],
@@ -713,8 +727,8 @@ export const planTCardFromOperINC = (
   // вернем то что запланировали
 ): { success: boolean, planedCardLoads: UnitLoadItem[], message: string } => {
 
-  if (operationsToPlanIds.length===0) return { success: true, planedCardLoads: [] as UnitLoadItem[], message: "" };
-  
+  if (operationsToPlanIds.length === 0) return { success: true, planedCardLoads: [] as UnitLoadItem[], message: "" };
+
   let updatedUnitLoads = [...unitLoads];
   let planedCardLoads: UnitLoadItem[] = [];
   let today = new Date(today_);
@@ -849,7 +863,7 @@ export const planTCardFromOperINC = (
         // Находим все юниты, которые могут выполнить это действие 
         const compatibleuUnits = units.filter(unit => {
           if (unit.belong !== UnitBelongEnum.inner) return false
-          const actions = unitActions.filter(ac=>ac.unitId===unit.id)
+          const actions = unitActions.filter(ac => ac.unitId === unit.id)
           return actions.some(unitAction => unitAction.action.id === action.id);
         });
 
@@ -931,7 +945,7 @@ export const planOperOnUnit = (
   operation: TCardOperationItem,
   tCard: TCardItem,
   unit: UnitItem,
-  unitActions:UnitActionItem[],
+  unitActions: UnitActionItem[],
   shedule_: ScheduleItem,
   unitLoads: UnitLoadItem[],
   exceptionItems: UnitExceptionItem[],
@@ -961,13 +975,13 @@ export const planOperOnUnit = (
 
 
 
-  if (maxDateSource < today_ ) {
+  if (maxDateSource < today_) {
     maxDateSource = today_;
     maxTimeSource = 0
   }
 
   // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-  let resultPlaning = findAvailableTimeForOperation(tCard, [unit], unitActions, updatedUnitLoads,  operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, true);
+  let resultPlaning = findAvailableTimeForOperation(tCard, [unit], unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, true);
 
   // если не удалось запланировать то прерываем расчет
   if (!resultPlaning.success) {
@@ -1086,146 +1100,6 @@ function getMaxDate(
 
 }
 
-// // удаляет операцию (лоады операции) и все последующие зависимые операции (лоады операций)
-// // delOper - удаляемая операция, 
-// // tCard - карта операции, 
-// // loads - лоады карты
-// export const delNextloads = (delOper: TCardOperationItem, tCard: TCardItem, loads: UnitLoadItem[]): UnitLoadItem[] => {
-
-//   let today = new Date();
-//   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-//   let delOperIds = [] as number[];
-
-//   const filterLoads = (delOperIds: number[], loads: UnitLoadItem[]): UnitLoadItem[] => {
-//     return loads.filter(load => delOperIds.includes(load.idc_oper))
-//   }
-
-//   // массив готовых продуктов и дата время готовности каждого продукта
-//   // стартуем с продуктов которые  берутся со склада  
-//   let readyProducts: {
-//     id?: number,
-//     idc: number,
-//     code: string,
-//     title: string,
-//     qtu: number,
-//     uom: UOMItem,
-//     reserved: number,
-//     reservedTo: number
-//   }[] = [];
-
-//   if (tCard.tCardMaterials)
-//     readyProducts = tCard.tCardMaterials.map(material => {
-//       return {
-//         id: material.id,
-//         idc: material.idc,
-//         code: material.code,
-//         title: material.title,
-//         qtu: material.qtu,
-//         uom: material.uom,
-
-//         reserved: 0,
-//         reservedTo: NaN
-//       }
-//     });
-
-//   // Массив всех операций, которые должны быть просчитаны (все кроме драфт и отменен)
-//   let tCardOperations: TCardOperationItem[] = [];
-//   if (tCard.tCardOperations)
-//     tCardOperations = tCard.tCardOperations.filter(elem => (elem.status !== StatusEnum.draft && elem.status !== StatusEnum.cancelled))
-
-//   // Массив отобранных операций  
-//   // (они готовы для планирования или уже запланированы или выполнены с учетом последовательности))
-//   let selectedOperations: TCardOperationItem[] = [];
-
-//   // здесь стартуем цикл планирования с сегодняшней даты пока операций для планирования в tCardOperations не останется
-//   let stoploop = false;
-
-//   while (tCardOperations.length > 0 && !stoploop) {
-//     //  ищем операции исходники для которых готовы на данной итерации
-//     // и убираем эти исходники из списка как израсходованные (резервируем на операцию)
-//     // и получаем список операций ко торые можно делать
-//     tCardOperations.forEach((operation) => {
-//       let hasAllMatchingProducts = operation.inn.every(innProduct => {
-//         // Ищем продукт в tCardReady с таким же code и uom
-//         const matchingReadyProduct = readyProducts.find(elem =>
-//           elem.code === innProduct.code && elem.uom.id === innProduct.uom.id
-//         );
-//         // Если соответствующий продукт найден, проверяем количество
-//         if (matchingReadyProduct) {
-//           // Если количество в tCardReady недостаточно для операции, пропускаем операцию
-//           if (matchingReadyProduct.qtu < innProduct.qtu) {
-//             return false;
-//           }
-//           // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
-//           matchingReadyProduct.qtu -= innProduct.qtu;
-//           // И заводим строку резервирования материала под операцию
-//           readyProducts.push(
-//             {
-//               id: innProduct.id,
-//               idc: innProduct.idc,
-//               code: innProduct.code,
-//               title: innProduct.title,
-//               qtu: 0,
-//               uom: innProduct.uom,
-
-//               reserved: innProduct.qtu,
-//               reservedTo: operation.idc
-//             })
-//           return true;
-//         }
-//         return false; // Если продукта нет или не совпадает по uom
-//       });
-
-//       // Если все продукты прошли проверку, добавляем операцию в selectedOperations
-//       if (hasAllMatchingProducts) {
-//         selectedOperations.push(operation);
-//       }
-//     });
-
-//     if (selectedOperations.length === 0) return filterLoads(delOperIds, loads);
-
-//     // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
-//     //  и операции с пустыми резервами
-//     readyProducts = readyProducts.filter(elem => elem.qtu > 0 || elem.reserved > 0);
-
-//     // Перебираем все операции которые уже готовы к выполнению по наличию исходников для них 
-//     // натыкаемся на свою операцию и не выполняем ее - тоесть не появился результат операции и все последующие тоже не выполнятся потому ято нет исходников
-//     for (let operation of selectedOperations) {
-//       // массив idc операций которые остались     
-//       // добавляем результат операции и убираем резерв         
-//       if (operation.idc !== delOper.idc) {
-//         delOperIds.push(operation.idc as number)
-
-//         let readyProductsOut = operation.out.map(elem => {
-//           return {
-//             id: elem.id,
-//             idc: elem.idc,
-//             code: elem.code,
-//             title: elem.title,
-//             qtu: elem.qtu,
-//             uom: elem.uom,
-//             reserved: 0,
-//             reservedTo: NaN
-//           }
-//         });
-//         readyProducts = [...readyProducts, ...readyProductsOut]
-//         //  удаляем исходники которые были под операцию зарезервированы          
-//         readyProducts = readyProducts.filter(elem => elem.reservedTo !== operation.idc);
-//       }
-//       tCardOperations = tCardOperations.filter(oper => oper.id !== operation.id)
-//     }
-
-//     selectedOperations = [] as TCardOperationItem[];
-//   }
-//   return filterLoads(delOperIds, loads);
-// }
-
-
-
-
-// Функция получает на выходе массив idc предыдущих операций по карте (определяет по входящим источникам)
-// oper - текущая операция, получаем орерации результаты которых на входе этой 
-// tCard - карта которую анализируем 
 export const getPreviousOpers = (
   oper: TCardOperationItem,
   tCard: TCardItem
@@ -1418,6 +1292,6 @@ export function getEarliestStart(loads: UnitLoadItem[]): { date: string; timeSta
       return min;
     }
   }, loads[0]);
-  
+
   return { date: earliest.date, timeStart: earliest.timeStart };
 }

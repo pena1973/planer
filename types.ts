@@ -232,7 +232,7 @@ export interface UnitCalendarItem extends CalendarItem {
 // Описание операции (отрезка времени) на временной шкале юнита
 export interface UnitLoadItem {
     id?:number,
-    idc: number, //  id на клиенте
+    idc: number, //  уникальный id лоада до записи в базу    idc: Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`),
     unit:UnitItem,  
     date:string, //  дата в строковом формате // формат: YYYY-MM-DD
     idc_oper: number,// Для визуализации на шкале

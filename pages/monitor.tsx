@@ -102,6 +102,14 @@ export default function Monitor({ }: MonitorProps) {
     return date;
   });
 
+  
+  const team = useSelector((state: RootState) => {
+    return state.catalogSlice.team;
+  })
+  const user = useSelector((state: RootState) => {
+    return state.authSlice.user;
+  })
+
   const monitorPoint = useSelector((state: RootState) => {
     return state.viewSlice.monitorPoint;
   })
@@ -154,6 +162,7 @@ export default function Monitor({ }: MonitorProps) {
       && elem.status === load.status //  потом можно будет убрать  связь будет по version
       && !elem.isRetool
       && elem.version === load.version
+   
     ) // все лоады операции
 
     if (loads.length === 0) return { start: { date: "", time: 0 }, finish: { date: "", time: 0 } };
@@ -180,9 +189,12 @@ export default function Monitor({ }: MonitorProps) {
   let unitsValueReactNodes = units
     .filter((elem) => elem.belong === UnitBelongEnum.inner)
     .map((unit, index) => {
-      // фильтрую по юниту
+      // фильтрую по юниту 
       const unitLoads_ = unitLoads.filter((load) => {
-        return (load.unit.id === unit.id && load.date === day.toLocaleDateString("en-CA"))
+        return (
+          load.unit.id === unit.id 
+          && load.date === day.toLocaleDateString("en-CA")
+          && load.status !==StatusEnum.prepared)
       });
       const unitExceptions_ = unitExceptions.filter((ex) => {
         return (ex.unitId === unit.id && ex.date === day.toLocaleDateString("en-CA"))
@@ -201,6 +213,8 @@ export default function Monitor({ }: MonitorProps) {
           setMessage={setMessage}
           getStartFinishOper={getStartFinishOper}
           setStatusLoadsHandler={setStatusLoadsHandler}
+          teamId={team.id}
+          userId={user.id}
         />
       }
 
@@ -218,6 +232,8 @@ export default function Monitor({ }: MonitorProps) {
           getStartFinishOper={getStartFinishOper}
           setStatusLoadsHandler={setStatusLoadsHandler}
           isQualControl={settings.isQualControl}
+          teamId={team.id}
+          userId={user.id}
         />
 
       }
@@ -284,7 +300,10 @@ export default function Monitor({ }: MonitorProps) {
               tCards={tCards}
               setMessage={setMessage}
               getStartFinishOper={getStartFinishOper}
-              setStatusLoadsHandler={setStatusLoadsHandler} />
+              setStatusLoadsHandler={setStatusLoadsHandler} 
+              teamId={team.id}
+              userId={user.id}
+              />
           </div>}
           {/* Готовность карт */}
           {monitorPoint === 3 && <div className="container_monitor">
@@ -293,7 +312,10 @@ export default function Monitor({ }: MonitorProps) {
           </div>}
           {monitorPoint === 4 && <div className="container_monitor">
             <div className="catalog_title"> KPI рабочих юнитов</div>
-            <ReportUnitsKPI setMessage={setMessage} />
+            <ReportUnitsKPI 
+            setMessage={setMessage}
+            teamId={team.id}
+            userId={user.id} />
           </div>}
         </div>
 

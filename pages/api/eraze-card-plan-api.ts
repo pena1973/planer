@@ -19,12 +19,16 @@ import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { getTCard, getTCardFull } from './handlers-get';  // 
 
+import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
+
 import { TCardOperationItem, UnitLoadItem, } from "@/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
   tCardId: number,
   today: string,
+  teamId:number,
+  userId:number
 }
 export enum StatusEnum {
   draft = 'draft', // черновик
@@ -47,13 +51,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const TeamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
+    const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
 
+    
 
-    //  const unitCalendarRepository = dbConnection.getRepository(UnitCalendarTable);
+    
 
-    // userId, teamId в любом случае
-
-    const { userId, teamId } = req.query;
+    
 
 
     switch (req.method) {
@@ -61,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Стираем планирование всех плановых и отменяем все что в истории кроме выполненных
 
       case 'POST':
-        const { tCardLoads, tCardId, today } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const { tCardLoads, tCardId, today ,teamId,userId} = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
 
         //tCardLoads //Это все лоады покарте
 
@@ -76,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository)
+        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository,tCardStagesRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

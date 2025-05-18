@@ -8,6 +8,7 @@ import { getTCard, getTCardFull } from './handlers-get';  //
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
+import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 
 import { TCardProductItem, TCardOperationItem, UnitLoadItem, StatusEnum, } from "@/types";
@@ -18,6 +19,8 @@ interface RequestBody {
   tCardLoads: UnitLoadItem[],
   erazload: UnitLoadItem,
   today: string,
+  teamId:number,
+  userId:number
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -27,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardRepository = dbConnection.getRepository(TCardTable);
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
+    const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
 
     const { userId, teamId } = req.query;
@@ -34,12 +38,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
       case 'POST':
 
-        const { tCardLoads, erazload, today } = req.body as RequestBody;
+        const { tCardLoads, erazload, today,teamId,userId } = req.body as RequestBody;
 
         let tCardLoadsUpdated = [...tCardLoads];
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository)
+        const tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository,tCardStagesRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

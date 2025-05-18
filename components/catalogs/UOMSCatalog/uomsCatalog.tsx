@@ -43,37 +43,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [uomsValue, setUomsValue] = useState([] as UOMItem[]);
 
-    // const downloadUoms = async () => {
-    //     try {
-    //         const res = await fetch(`api/uoms-api?userId=${1}&teamId=${1}`,
-    //             {
-    //                 method: 'get',
-    //                 headers: new Headers({
-    //                     // 'Authorization': 'Basic ' + token,
-    //                     'Content-Type': 'application/json'
-    //                 }),
-    //             }
-    //         );
-    //         if (res.status !== 200) {
-    //             const receivedData = await res.json();
-    //             let error = receivedData.error;
-    //             setMessage(error);
-    //             //  console.log(t('service.serverUnavailable') + res.status);
-    //             // setMessage(t('service.serverUnavailable') + res.status);
-
-    //         } else {
-    //             const receivedData = await res.json();
-    //             if (receivedData.success) {
-    //                 let uoms_ = receivedData.uoms as UOMItem[]
-    //                 setUomsValue(uoms_);
-    //                 dispatch(setUOMs(uoms_));
-    //             }
-    //             else setMessage(receivedData.error);
-    //         }
-    //     } catch (e: any) {
-    //         // setMessage(t('service.noConnection') + e.message)            
-    //     }
-    // }
+   
 
     useEffect(() => {
         setUomsValue(uoms);

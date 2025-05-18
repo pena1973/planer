@@ -9,10 +9,13 @@ import { padNumberToFourDigits, convertMinutesToTime1 } from "@/utils"
 
 interface ReportUnitsKPIProps {
   setMessage: (message: string) => void,
+  teamId:number,
+  userId:number,
 }
 
 interface ExpandKey {
-  unitId: number, month: number | undefined
+  unitId: number, month: number | undefined,
+  
 }
 const monthNames = [
   "January",   // 0
@@ -31,7 +34,11 @@ const monthNames = [
 
 const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   setMessage,
+  teamId,
+  userId,
 }) => {
+  
+
 
   const [expandKeyValue, setExpandKeyValue] = useState([] as ExpandKey[]); // ключ expand
   const [unitsKPIValue, setUnitsKPIValue] = useState([] as UnitKPIItem[]); // массив kpi по дням
@@ -43,7 +50,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   const getTCardsTerms = async () => {
     setShowLoader(true);
     try {
-      const res = await fetch(`api/units-kpi-api?userId=${1}&teamId=${1}&today=${today.toLocaleDateString('en-CA')}`,
+      const res = await fetch(`api/units-kpi-api?userId=${userId}&teamId=${teamId}&today=${today.toLocaleDateString('en-CA')}`,
         {
           method: 'get',
           headers: new Headers({

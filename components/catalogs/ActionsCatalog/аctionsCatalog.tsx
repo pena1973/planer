@@ -45,39 +45,7 @@ export default function UOMSCatalog({
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [actionsValue, setActionsValue] = useState([] as ActionItem[]);
 
-    // const downloadActions = async () => {
-    //     // Загружаем классификатор действий
-    //     try {
-    //         const res = await fetch(`api/actions-api?userId=${1}&teamId=${1}`,
-    //             {
-    //                 method: 'get',
-    //                 headers: new Headers({
-    //                     // 'Authorization': 'Basic ' + token,
-    //                     'Content-Type': 'application/json'
-    //                 }),
-    //             }
-    //         );
-    //         if (res.status !== 200) {
-    //             const receivedData = await res.json();
-    //             let error = receivedData.error;
-    //             setMessage(error);
-    //             //  console.log(t('service.serverUnavailable') + res.status);
-    //             // setMessage(t('service.serverUnavailable') + res.status);
-
-    //         } else {
-    //             const receivedData = await res.json();
-    //             if (receivedData.success) {
-    //                 let actions_ = receivedData.actions as ActionItem[]
-    //                 setActionsValue(actions_);
-    //                 dispatch(setActions(actions_));
-    //             }
-    //             else setMessage(receivedData.error);
-    //         }
-    //     } catch (e: any) {
-    //         // setMessage(t('service.noConnection') + e.message)            
-    //     }
-
-    // }
+   
     useEffect(() => {
         setActionsValue(actions);
         // downloadActions()

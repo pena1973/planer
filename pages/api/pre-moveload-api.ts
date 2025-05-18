@@ -32,7 +32,9 @@ interface RequestBody {
   date: string,    // Дата куда перемещаем
   timeStart: number //  время куда перемещаем  
   timeFinish: number //  время окончания в случае если это внешний юнит
-  today: string // дата раздела 
+  today: string // дата раздела,
+  userId: number,
+  teamId: number, 
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -51,13 +53,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
     // userId, teamId в любом случае
 
-    const { userId, teamId } = req.query;
+    // const { userId, teamId } = req.query;
 
     switch (req.method) {
 
       // ПЕРЕПЛАНИРОВАНИЕ по перемещению лоада
       case 'POST':
-        const { pinnedLoad, tCardLoads, unit, date, timeStart, timeFinish, today } = req.body as RequestBody;
+        const { pinnedLoad, tCardLoads, unit, date, timeStart, timeFinish, today, userId, teamId } = req.body as RequestBody;
         // tCardLoads-Это все загрузки по карте которую тащим 
         if (tCardLoads.length === 0) {
           // должно быть хотябы один лоад при перемешении
@@ -230,27 +232,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               return
             }
 
-            // // ищем дату время с которой операция может стартовать операция исходя из готовности запчастей  
-            // let previousOpersIdcs = getPreviousOpers(oper, tCard);
-            // if (!previousOpersIdcs) {
-            //   res.status(200).json({
-            //     success: false,
-            //     unitsLoads: loads,
-            //     message: "Источник и результат карты не согласован С-" + tCard.number,
-            //   });
-            //   return
-            // }
-            // const timeRes = getFinishOperations(previousOpersIdcs, loads, date);
-            // if (!timeRes) {
-            //   res.status(200).json({
-            //     success: false,
-            //     unitsLoads: loads,
-            //     message: "Источник и результат карты не согласован С-" + tCard.number,
-            //   });
-            //   return
-            // }
-            // //  момент возможного выполнения операции (закончены все предыдущие)         
-            // const correctRes = getLaterDateTime(timeRes, { date: date, time: timeStart });
+            
 
             // Формируем стартовый лоад 
             planedCardLoads.push(
@@ -427,17 +409,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
 
-// function getLastLoadFinish(operloads: UnitLoadItem[]): { date: string; time: number } | undefined {
-//   if (operloads.length === 0) return undefined;
-//   // Инициализируем первый элемент как "наиболее поздний"
-//   let lastLoad = operloads[0];
-//   for (const load of operloads) {
-//     // Сравниваем даты, так как формат "YYYY-MM-DD" корректно сравнивается лексикографически
-//     if (load.date > lastLoad.date) {
-//       lastLoad = load;
-//     } else if (load.date === lastLoad.date && load.timeFinish > lastLoad.timeFinish) {
-//       lastLoad = load;
-//     }
-//   }
-//   return { date: lastLoad.date, time: lastLoad.timeFinish };
-// }

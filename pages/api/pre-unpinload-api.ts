@@ -1,11 +1,8 @@
 // Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getTCardOperation } from './handlers-get';  // 
-import {
-  getPreviousOpers, getFinishOperations, getLaterDateTime, 
-  planTCardFromOperINC, planOperOnUnit, getDependentOperationsIds
-} from './handlers-plan';  // 
+import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './handlers-get';  // 
+import { planTCardFromOperINC,  getDependentOperationsIds} from './handlers-plan';  // 
 
 
 import { Repository, In } from 'typeorm';
@@ -20,11 +17,13 @@ import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-
+import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 
 import {UnitLoadItem,} from "@/types";
 
 interface RequestBody {
+  userId:number,
+  teamId:number,
   tCardId: number,
   operId: number, //  операция которую нужно открепить и перепланировать
   tCardLoads: UnitLoadItem[], // лоады по карте  
@@ -44,9 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-    // userId, teamId в любом случае
-
-    const { userId, teamId } = req.query;
+    const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
+    
 
     switch (req.method) {
 
@@ -54,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       //  нужно перепланировать все операции начиная с этой
       case 'POST':
 
-        const { tCardId, operId, tCardLoads, today } = req.body as RequestBody;
+        const { tCardId, operId, tCardLoads, today,userId,teamId } = req.body as RequestBody;
 
         // loads-Это все загрузки по карте которую перепланируем
         if (tCardLoads.length === 0) {
@@ -69,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository)
+        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository,tCardStageRepository)
         if (!tCard) {
           res.status(200).json({
             success: false,
@@ -85,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           res.status(200).json({
             success: false,
             tCardLoads: tCardLoads,
-            message: `Операция ${operId} по карте С-${tCard.number} не найдена `,
+            message: `Операция ${operId} по карте С-${tCard.idc} не найдена `,
           });
           return
         }
@@ -105,7 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let planedCardLoads = [...cardLoadsWithoutOperEndDep];
 
         // запросим юниты
-        const units_ = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
+        const units_ = await getUnits(Number(teamId), unitRepository)
+     
+        // запросим действия юнитов
+        const unitActions_ = await getUnitActions(Number(teamId),  unitActionsRepository)
 
         // запросим расписание компании
         const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
@@ -124,7 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let operationsToPlanIds= [...dependentOperationsIds,Number(oper.id)]
         
         // Планируем карту начиная с нашей операции (есключая ее саму)
-        let resultPlaningNextOper = planTCardFromOperINC(operationsToPlanIds, tCard, units_, shedule_, unitLoadItemsFull, exceptionItems, today)
+        let resultPlaningNextOper = planTCardFromOperINC(operationsToPlanIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
         //  Если не удалось запланировать
         if (!resultPlaningNextOper.success) {
           res.status(200).json({
@@ -154,19 +155,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-
-
-// function getLastLoadFinish(operloads: UnitLoadItem[]): { date: string; time: number } | undefined {
-//   if (operloads.length === 0) return undefined;
-//   // Инициализируем первый элемент как "наиболее поздний"
-//   let lastLoad = operloads[0];
-//   for (const load of operloads) {
-//     // Сравниваем даты, так как формат "YYYY-MM-DD" корректно сравнивается лексикографически
-//     if (load.date > lastLoad.date) {
-//       lastLoad = load;
-//     } else if (load.date === lastLoad.date && load.timeFinish > lastLoad.timeFinish) {
-//       lastLoad = load;
-//     }
-//   }
-//   return { date: lastLoad.date, time: lastLoad.timeFinish };
-// }

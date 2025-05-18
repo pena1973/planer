@@ -78,11 +78,11 @@ export default function ContexMenuOuter({
 
 
             <div className={styles.coment}>
-                <span className={styles.title}>card</span> {`: C ${padNumberToFourDigits(tCard.number)} - ${new Date(tCard.date).toLocaleDateString("en-CA")}`}
+                <span className={styles.title}>card</span> {`: ${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")}`}
             </div>
 
             <div className={styles.coment}>
-                <span className={styles.title}>operation</span> {`: C${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
+                <span className={styles.title}>operation</span> {`: A${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
             </div>
             <div className={styles.coment}>
                 <span className={styles.title}>duration</span> {`: ${dur} min (${time.hours} h, ${time.minutes} m)`}

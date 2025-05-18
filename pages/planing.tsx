@@ -13,7 +13,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
-import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum } from "@/types";
+import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum, TCardOperationItem } from "@/types";
 import { setUnitLoads, setUnitExceptions, setUnits, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
 import { } from '@/store/slices';
 
@@ -39,7 +39,7 @@ export default function Planing() {
 
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
 
-  
+
   const team = useSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
@@ -93,7 +93,7 @@ export default function Planing() {
     let tCardLoadsWithoutPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status !== StatusEnum.prepared) })
     let unitLoadsWithoutCard = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id) })
     try {
-      const res = await fetch(`/api/save-card-loads-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`/api/save-card-loads-api`,
         {
           method: 'post',
           headers: new Headers({
@@ -102,7 +102,9 @@ export default function Planing() {
           }),
           body: JSON.stringify({
             tCard: tCardPrepared,
-            tCardLoads: tCardLoadsPrepared
+            tCardLoads: tCardLoadsPrepared,
+            teamId: team.id,
+            userId: user.id,
           }),
         }
       );
@@ -121,10 +123,22 @@ export default function Planing() {
           let updatedLoads = [...unitLoadsWithoutCard, ...tCardLoadsWithoutPrepared, ...savedUnitLoads]
           dispatch(setUnitLoads(updatedLoads))
 
-
           //  поменяем статус карты  и после этого она перерисуется в запланированные
+          //  и статус операций
+
           let index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
-          let updatedTCard = { ...tCards[index], status: StatusEnum.planed }
+
+          // idc операций в которых меняем статус
+          const operIdc = [...new Set(savedUnitLoads.map(load => load.idc_oper))];
+
+          const tCardOperations = tCards[index].tCardOperations?.map(operation => {
+            if (operIdc.includes(operation.idc)) {
+              return { ...operation, status: StatusEnum.planed };
+            }
+            return operation;
+          });
+
+          let updatedTCard = { ...tCards[index], status: StatusEnum.planed, tCardOperations: tCardOperations }
           let _tCards = [...tCards]
           _tCards.splice(index, 1, updatedTCard);
           dispatch(setTCardLighted(updatedTCard))
@@ -144,7 +158,7 @@ export default function Planing() {
     let tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
     let unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
     try {
-      const res = await fetch(`/api/eraze-card-plan-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`/api/eraze-card-plan-api`,
         {
           method: 'post',
           headers: new Headers({
@@ -155,6 +169,8 @@ export default function Planing() {
             tCardLoads: tCardLoads,
             tCardId: tCardId,
             today: today.toLocaleDateString("en-CA"),
+            teamId: team.id,
+            userId: user.id,
           }),
         }
       );
@@ -200,7 +216,7 @@ export default function Planing() {
     if (erazload) {
 
       try {
-        const res = await fetch(`/api/eraze-load-plan-api?userId=${1}&teamId=${1}`,
+        const res = await fetch(`/api/eraze-load-plan-api`,
           {
             method: 'post',
             headers: new Headers({
@@ -211,6 +227,8 @@ export default function Planing() {
               erazload: erazload,
               tCardLoads: tCardLoads,
               today: new Date().toLocaleDateString("en-CA"),
+              teamId: team.id,
+              userId: user.id,
             }),
           }
         );
@@ -255,7 +273,7 @@ export default function Planing() {
         // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
         // проверяем согласованность предыдущих и перепланируем последующие
         try {
-          const res = await fetch(`/api/pre-moveload-api?userId=${1}&teamId=${1}`,
+          const res = await fetch(`/api/pre-moveload-api`,
             {
               method: 'post',
               headers: new Headers({
@@ -269,7 +287,9 @@ export default function Planing() {
                 date: date,
                 timeStart: timeStart,
                 timeFinish: timeFinish,
-                today: today.toLocaleDateString("en-CA")
+                today: today.toLocaleDateString("en-CA"),
+                userId: user.id,
+                teamId: team.id,
               }),
             }
           );
@@ -319,7 +339,7 @@ export default function Planing() {
     // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
     // проверяем согласованность предыдущих и перепланируем последующие
     try {
-      const res = await fetch(`/api/pre-unpinload-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`/api/pre-unpinload-api`,
         {
           method: 'post',
           headers: new Headers({
@@ -327,6 +347,8 @@ export default function Planing() {
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({
+            userId: user.id,
+            teamId: team.id,
             tCardId: tCardId,
             operId: operId,
             tCardLoads: tCardLoads,
@@ -503,7 +525,7 @@ export default function Planing() {
             onMouseDown={handleMouseDownTCard} // Добавляем обработчик нажатия мыши при перетаскивании        
             draggable
             onDragStart={(e) => handleDragStartTCard(e, elem.id)}
-          >{padNumberToFourDigits(elem.idc)} -  {date}</div>
+          >{padNumberToFourDigits(elem.idc)} - {date}</div>
         </div>
 
         <div className="container_icon_edit_save">

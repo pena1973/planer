@@ -24,7 +24,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   const getTCardsTerms = async () => {
     setShowLoader(true);
     try {
-      const res = await fetch(`api/tcards-opers-terms-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/tcards-opers-terms-api?`,
         {
           method: 'get',
           headers: new Headers({
@@ -91,7 +91,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
         </tr>
       )
     })
-    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.number)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
+    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
     const cardStatusStyle = tCard.status === StatusEnum.ready ? styles.ready : tCard.status === StatusEnum.defective ? styles.defective : styles.planed;
 
     if (commonDuration === 0) commonDuration = 1; // чтобы не делить на ноль

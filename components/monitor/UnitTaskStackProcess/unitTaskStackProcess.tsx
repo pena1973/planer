@@ -148,7 +148,9 @@ interface UnitTaskStackProcessProps {
     start: { date: string, time: number },
     finish: { date: string, time: number }
   },
-  setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void
+  setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void,
+  teamId:number,
+  userId:number,
 }
 
 const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
@@ -163,7 +165,9 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   isQualControl = false,
   setMessage,
   getStartFinishOper,
-  setStatusLoadsHandler
+  setStatusLoadsHandler,
+  teamId,
+  userId,
 }) => {
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
   const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
@@ -218,7 +222,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     // Запрос на сервер
 
     try {
-      const res = await fetch(`api/tcard-api?userId=${1}&teamId=${1}&tCardId=${id_tCard}`,
+      const res = await fetch(`api/tcard-api?userId=${userId}&teamId=${teamId}&tCardId=${id_tCard}`,
         {
           method: 'get',
           headers: new Headers({
@@ -269,7 +273,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       .map(load => load.id as number); //  все лоады операции
 
     try {
-      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/tcard-oper-status-api`,
         {
           method: 'post',
           headers: new Headers({
@@ -279,7 +283,9 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
           body: JSON.stringify({
             operId: currentOper.id,
             loadsIds: operloadsIds,
-            status: status
+            status: status,
+            teamId:teamId,
+            userId:userId,
           }),
         }
       );

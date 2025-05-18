@@ -6,8 +6,6 @@ $body: rgba(200, 200, 200, 1);
 $border_card: rgb(204, 204, 204);
 $background_card: rgb(240, 240, 240);
 $background_card_content: rgb(255, 255, 255);
-
-
 $header_background: rgb(230, 230, 230); // Светло-серый фон для header
 $header_text: rgb(60, 60, 60); // Тёмно-серый текст для header
 
@@ -29,6 +27,7 @@ $button_active: rgb(209, 209, 209);
 $button_text: rgb(51, 51, 51); // 
 
 
+
 // .Чистое.........................
 
 // Основной фон страницы – для общей области
@@ -48,7 +47,7 @@ $box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 
 $border-radius: 6px;
 
-
+$border-color: rgb(100, 100, 100);  
 
 
 // Цвет для типов времени

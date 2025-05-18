@@ -16,7 +16,9 @@ interface UnitTaskStackOutsourceProps {
     start: { date: string, time: number },
     finish: { date: string, time: number }
   },
-  setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void
+  setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void,
+  teamId:number,
+  userId:number,
 }
 
 const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
@@ -25,7 +27,9 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
   // day,  
   setMessage,
   getStartFinishOper,
-  setStatusLoadsHandler
+  setStatusLoadsHandler,
+  teamId,
+  userId,
 }) => {
 
 
@@ -38,7 +42,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
       .map(load => load.id as number); //  все лоады операции
 
     try {
-      const res = await fetch(`api/tcard-oper-status-api?userId=${1}&teamId=${1}`,
+      const res = await fetch(`api/tcard-oper-status-api`,
         {
           method: 'post',
           headers: new Headers({
@@ -48,7 +52,9 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
           body: JSON.stringify({
             operId: currentLoad.id_oper,
             loadsIds: operloadsIds,
-            status: status
+            status: status,
+            teamId:teamId,
+            userId:userId,
           }),
         }
       );
@@ -109,7 +115,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
     const tCard = tCards.find(tCard => tCard.id === lo.id_tCard); // ищем карточку
     const terms = getStartFinishOper(lo);
 
-    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.number)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
+    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
     const statusStyle = lo.status === StatusEnum.ready ? styles.ready : lo.status === StatusEnum.defective ? styles.defective : styles.planed;
     return (<tr key={index}>
 
