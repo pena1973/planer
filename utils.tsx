@@ -1,5 +1,5 @@
 
-import { CalendarItem, TCardContent,   ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
+import { CalendarItem, TCardContent, StatusEnum,  ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
 
 export const fillGaps = (dataStart: number, loading: { name: string, start: number, finish: number }[]) => {
   let timeLScale = [] as { loaded: boolean, name: string, start: number, finish: number }[]
@@ -257,6 +257,23 @@ export const generateCalendarItem = (day: string|Date, schedule: ScheduleItem): 
   };
   return calendarItem;  // Возвращаем один элемент календаря
 };
+
+
+    // Функция для получения числового приоритета статуса
+export  const getStatusPriority = (status: StatusEnum): number => {
+      switch (status) {
+        case StatusEnum.draft: return 100;
+        case StatusEnum.prepared: return 2;
+        case StatusEnum.planed: return 3;
+        case StatusEnum.defective: return 4;
+        case StatusEnum.performed: return 5;
+        case StatusEnum.ready: return 5;
+        case StatusEnum.cancelled: return 100;
+        case StatusEnum.closed: return 100;
+        default: return 100;
+      }
+    };
+
 
 //  ЧТЕНИЕ КАРТЫ ИЗ ФАЙЛА
 export const calculateMaxIdc = (content: TCardContent): number => {

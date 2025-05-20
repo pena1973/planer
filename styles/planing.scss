@@ -35,6 +35,14 @@
     overflow: auto;
     // background-color: aliceblue;
 }
+.container_plan_defective_card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100% - 700px);
+    overflow: auto;
+    // background-color: aliceblue;
+}
 
 .container_plan_card_prepared {
     display: flex;

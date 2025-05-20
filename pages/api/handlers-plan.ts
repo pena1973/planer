@@ -265,9 +265,10 @@ function findAvailableTimeForOperation(
 
     // Формируем итоговый массив загрузок (UnitLoadItem) для победившего юнита
     let updatedUnitLoads: UnitLoadItem[] = [];
+    
+    let isFirst = true;    
     bestCandidate.opSegments.forEach(seg => {
-      const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id)
-      // let action = bestCandidate.unit.actions.find(act => act.id = operation.action.id);
+      const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id)      
       let action = actions_.find(act => act.id = operation.action.id);
       let koef = (action) ? action.koef : 1;
 
@@ -279,8 +280,7 @@ function findAvailableTimeForOperation(
         timeStart: seg.start,
         timeFinish: seg.finish,
         status: StatusEnum.prepared,
-        id_oper: Number(operation.id),
-        // idc: Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`),
+        id_oper: Number(operation.id),        
         idc: getLoadIdc(tCard,operation,seg),        
         isActive: true,
         isRetool: seg.isRetool,
@@ -289,7 +289,10 @@ function findAvailableTimeForOperation(
         isOuterStart: false,//  это старт оутсортера, здесь не применяется
         isOuterFinish: false,//  это финиш оутсортера        
         version: version,
+        isFirst:seg.isRetool?false:isFirst
       });
+
+      isFirst=seg.isRetool?isFirst:false;
     });
     const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
 
@@ -822,7 +825,7 @@ export const planTCardFromOperINC = (
       }
     });
 
-    if (selectedOperations.length === 0) return { success: false, planedCardLoads: planedCardLoads, message: "Не все операции готовы к выполнению" };
+    if (selectedOperations.length === 0) return { success: false, planedCardLoads: planedCardLoads, message: "Не все операции готовы к планированию" };
 
     // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
     //  и операции с пустыми резервами

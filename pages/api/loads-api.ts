@@ -1,12 +1,12 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnits, getUnitLoads, getTCardOperations } from './handlers-get';  // расчеты
+import { getUnits, getUnitLoads, getTCardOperations, getActions, getUnitActions } from './handlers-get';  // расчеты
 
 import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 
 import { UnitTable } from '@/pages/db/models/catalogs/units'
-
+import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 
@@ -31,7 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
       case 'GET':
         // запросим юниты
-        const units = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
+        const units = await getUnits(Number(teamId), unitRepository)
+        // Используем репозиторий для работы с сущностью TCardTable
+        const actionsRepository = dbConnection.getRepository(ActionTable);
+
+
+        // запросим действия юнитов
+        const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository)
 
         //  получим юниты с загрузкой  до планирования новой карты         
         const unitsLoads = await getUnitLoads(units, unitLoadRepository)
@@ -42,7 +48,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const unitsLoads_ = unitsLoads.map(lo => {
           const oper = opers.find(op => op.id === lo.id_oper);
-          const unitAction = lo.unit.actions.find(ac => ac.id === oper?.action.id);
+
+          const unitAction = unitActions_.find(ac => ac.id === oper?.action.id && ac.unitId === lo.unit.id);
+
+          // const unitAction = lo.unit.actions.find(ac => ac.id === oper?.action.id && ac.);
 
           if (!oper) return { ...lo }
 
@@ -51,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               ...lo,
               loadInfo: {
                 title: oper.action.title,
-                duration: Math.round(oper.duration/60000), // инфо показываем в минутах
+                duration: Math.round(oper.duration / 60000), // инфо показываем в минутах
                 interruptible: oper.action.interruptible,
                 koef: (unitAction) ? unitAction.koef : 1
               },
@@ -67,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
 
       case 'POST':
-        
+
         break;
       default:
         res.status(405).end(); // Метод не поддерживается

@@ -71,4 +71,8 @@ export class UnitLoadTable {
       
       @Column('boolean', {default:false} )
       isOuterFinish!: boolean; // Это признак того что установлен вручную (пришпилен)  
+    
+      @Column('boolean', {default:false} )
+      isFirst!: boolean; // Это  признак что лоад первый в цепочке с одинаковой версией
+    
 }

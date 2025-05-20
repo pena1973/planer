@@ -19,7 +19,7 @@ export interface LoadOperProcessProps {
         start: { date: string, time: number },
         finish: { date: string, time: number }
     },
-    setOperStatusHandler: (status:StatusEnum) => void,    
+    setOperStatusHandler: (status: StatusEnum,operId:number,tCardId:number) => void,    
     closeOperHandler: () => void,
 
 }
@@ -102,12 +102,10 @@ export default function LoadOperProcess({
             </div>
 
             <div className={styles.button_container}>
-                {isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_perfotmed_top} onClick={() => setOperStatusHandler(StatusEnum.performed)}>Выполнен</button>}
-                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(StatusEnum.ready)}>Готов</button>}
-                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_defected_top}onClick={() => setOperStatusHandler(StatusEnum.defective)}>Брак</button>}
-                {/* {oper.status !== StatusEnum.planed
-                    && <button onClick={() => closeOperHandler(oper.id as number)}>Закрыть</button>} */}
-            </div>
+                {isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_perfotmed_top} onClick={() => setOperStatusHandler(StatusEnum.performed,Number(oper.id),tCard.id)}>Выполнен</button>}
+                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(StatusEnum.ready,Number(oper.id),tCard.id)}>Готов</button>}
+                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_defected_top}onClick={() => setOperStatusHandler(StatusEnum.defective,Number(oper.id),tCard.id)}>Брак</button>}
+                 </div>
         </div>
 
     )

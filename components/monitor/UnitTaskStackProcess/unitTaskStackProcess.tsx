@@ -5,124 +5,11 @@ import { CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, 
 import LoadMonitorProcess from "./LoadMonitorProcess/loadMonitorProcess";
 import LoadOperProcess from "./LoadOperProcess/loadOperProcess";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import { generateCalendarItem, isWeekend,isHoliday,isAdditionalTime,idDay } from "@/utils";
+import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/utils";
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
-// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
-// const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
-
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.team)
-//     return schedule.workdays.some(workday =>
-//       new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-//     ); else return false
-// }
-// //  функция определяемт входит ли  дата в список выходных расписания
-// const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
-//   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
-
-//   let dayString = DaysOfWeek.SUNDAY;
-
-//   switch (dayOfWeek) {
-//     case 1:
-//       dayString = DaysOfWeek.MONDAY;
-//       break;
-//     case 2:
-//       dayString = DaysOfWeek.TUESDAY;
-//       break;
-//     case 3:
-//       dayString = DaysOfWeek.WEDNESDAY;
-//       break;
-//     case 4:
-//       dayString = DaysOfWeek.THURSDAY;
-//       break;
-//     case 5:
-//       dayString = DaysOfWeek.FRIDAY;
-//       break;
-//     case 6:
-//       dayString = DaysOfWeek.SATURDAY;
-//       break;
-//     default:
-//       dayString = DaysOfWeek.SUNDAY;
-//       break;
-//   }
-
-//   // Проверяем, является ли день выходным
-
-//   if (schedule.team) return schedule.weekends.includes(dayString);
-//   else return false
-// }
-
-// //  функция определяемт входит ли  дата в список праздниклв расписания
-// const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.team)
-//     return schedule.holidays.some(holiday =>
-//       new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-//     );
-//   else return false;
-// }
-
-// // генерация привычной нам даты - ее использую как id дня
-// const idDay = (date: Date): string => {
-//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-//   const year = date.getFullYear();  // Год
-
-//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-// };
-// // генерация одного дня на шкале
-// const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
-
-//   const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-//   currentDate.setHours(0, 0, 0, 0);
-
-//   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
-//   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
-//   const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
-
-//   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
-//   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-//   let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
-
-//   if (_isAdditionalTime) {
-//     const workday = schedule.workdays.find(
-//       workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
-//     // если дата есть, то нужно просто взять дополнительное время из workday  
-//     if (workday) {
-//       if (_isWeekend || _isHoliday) {
-//         timeStartWork = workday.timeStart;
-//         timeFinishWork = workday.timeFinish;
-//       } else {
-//         timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
-//         timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
-//       }
-//       //  проверим перерывы и если попадают в рабочий период вставим
-//       breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
-//     }
-//   }
-
-//   // Создаем объект CalendarItem
-//   const calendarItem: CalendarItem = {
-//     idDay: idDay(currentDate),
-//     date: new Date(currentDate),  // Текущая дата
-//     mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
-//     day: true,  // Указываем, что это день
-//     timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
-//     timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
-//     breaks: breaks,
-//   };
-//   return calendarItem;  // Возвращаем один элемент календаря
-// };
-
-
 // Функция определяет что интервал в 5 минут является началом часа
+
 function isStartOfHour(intervTime: number): boolean {
   return intervTime % 60 === 0;
 }
@@ -148,9 +35,9 @@ interface UnitTaskStackProcessProps {
     start: { date: string, time: number },
     finish: { date: string, time: number }
   },
-  setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void,
-  teamId:number,
-  userId:number,
+  setStatusLoadsHandler: (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => void,
+  teamId: number,
+  userId: number,
 }
 
 const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
@@ -214,7 +101,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     setCurrentLoad({} as UnitLoadItem);
   }, [day, schedule])
 
-  // Открываем операцию по нажатию кенопки юнитом 
+  // Открываем операцию по нажатию кнопки юнитом 
   const openOperHandler = async (load: UnitLoadItem, id_oper: number, id_tCard: number) => {
     setOperView(true);
 
@@ -265,12 +152,16 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     setCurrentLoad({} as UnitLoadItem);
 
   }
-  // Меняем статус операции по нажатию кенопки юнитом 
-  const setOperStatusHandler = async (status: StatusEnum) => {
-    setOperView(false);
-    const operloadsIds = unitLoads
-      .filter(lo => lo.id_oper === currentOper.id && lo.version === currentLoad.version && lo.status === StatusEnum.planed)
-      .map(load => load.id as number); //  все лоады операции
+
+  // 
+
+  // Меняем статус операции по нажатию кнопки юнитом 
+  const setOperStatusHandler = async (status: StatusEnum, operId: number, tCardId: number) => {
+
+    // const operloadsIds = unitLoads
+    //   .filter(lo => lo.id_oper === currentOper.id && lo.version === currentLoad.version)
+    //     //  && lo.status === StatusEnum.planed)
+    //   .map(load => load.id as number); //  все лоады операции
 
     try {
       const res = await fetch(`api/tcard-oper-status-api`,
@@ -281,11 +172,13 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({
-            operId: currentOper.id,
-            loadsIds: operloadsIds,
+            tCardId: tCardId,
+            operId: operId,
+            version:currentLoad.version,
+            // loadsIds: operloadsIds,
             status: status,
-            teamId:teamId,
-            userId:userId,
+            teamId: teamId,
+            userId: userId,
           }),
         }
       );
@@ -297,11 +190,16 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
+
+
         setMessage(receivedData.message);
         if (receivedData.success) {
+          // проверили и вернули общий статус карты
+          const tCardStatus = receivedData.tCardStatus as StatusEnum
+          const operLoadsIds = receivedData.operLoadsIds as number[]
           //   Обновим статус лоадов
-          setStatusLoadsHandler(status, operloadsIds);
+          setStatusLoadsHandler(tCardStatus, status, operLoadsIds, operId, tCardId);
+
           setMessage(receivedData.message);
         }
       }
@@ -313,6 +211,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     setCurrentOper({} as TCardOperationItem);
     setCurrentTCard({} as TCardItem);
     setCurrentLoad({} as UnitLoadItem);
+    // закроем детали операции
+    setOperView(false);
   }
 
   // Функция для генерации шкалы времени  и загруза юнитов для одного дня

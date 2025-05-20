@@ -21,9 +21,9 @@ interface UnitTaskStackProcessProps {
     start: { date: string, time: number },
     finish: { date: string, time: number }
   },
-  setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void,
-  teamId:number,
-  userId:number,
+  setStatusLoadsHandler: (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => void,
+  teamId: number,
+  userId: number,
 }
 
 const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
@@ -124,8 +124,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
             operId: currentOper.id,
             loadsIds: operloadsIds,
             status: status,
-            teamId:teamId,
-            userId:userId,
+            teamId: teamId,
+            userId: userId,
           }),
         }
       );
@@ -140,8 +140,11 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
         // console.log("receivedData", receivedData)
         setMessage(receivedData.message);
         if (receivedData.success) {
+          // проверили и вернули общий статус карты
+          const tCardStatus = receivedData.tCardStatus as StatusEnum
           //   Обновим статус лоадов
-          setStatusLoadsHandler(status, operloadsIds);
+          setStatusLoadsHandler(tCardStatus, status, operloadsIds, Number(currentOper.id), currentTCard.id);
+
           setMessage(receivedData.message);
         }
       }

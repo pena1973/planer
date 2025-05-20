@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { Repository } from 'typeorm';
 
-import { getTCardsOpers, getUnits, getUnitLoads, getTeamShedule, getExceptions } from './handlers-get';  // 
+import { getUnits, getUnitLoads, getTeamShedule, getExceptions } from './handlers-get';  // 
 import { getUnitsSchedule } from './handlers-schedule';  // 
 
 import { TCardTable } from '@/pages/db/models/data/t_cards'
@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'GET':
 
         // запросим юниты
-        const units = await getUnits(Number(teamId), unitRepository, unitActionsRepository)
+        const units = await getUnits(Number(teamId), unitRepository )
 
         // запросим лоады
         const unitLoads = await getUnitLoads(units, unitLoadRepository)

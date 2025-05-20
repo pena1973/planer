@@ -163,13 +163,6 @@ export interface UserUnitItem {
     active:boolean //  пригнак того что юзер инрает роль юнита
 }
 
-// export enum UserRoleEnum {
-//     OPERATOR = "оператор",
-//     PLANNER = "планер",
-//     UNIT = "юнит",
-//     CONTROL = "контролер",
-// }
-
 // хранить обрабатывать
 export enum UnitTypeEnum {
     keep = 'keep',
@@ -248,6 +241,7 @@ export interface UnitLoadItem {
     isOuterStart:boolean,//  это старт оутсортера
     isOuterFinish:boolean,//  это финиш оутсортера
     version:number // версия планирования для связи цепочки лоадов
+    isFirst:boolean, // стартовый интервал в цепочке интервалов (но не ретул)
 }
 // 
 // описание дня работы юнита

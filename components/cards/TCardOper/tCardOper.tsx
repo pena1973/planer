@@ -62,7 +62,7 @@ export default function TCardOper({
     const dispatch = useAppDispatch();
 
     let outReactNodes;
-    
+
     if (tCardOperation.out) {
         outReactNodes = tCardOperation.out.map((elem2, index1) => {
             return (
@@ -100,7 +100,7 @@ export default function TCardOper({
                     onDragOver={(e) => dragOverHandler(e)}
                     onDrop={(e) => dropHandler(e)}
                     draggable={true}
-                    onMouseDown={(e) => {   
+                    onMouseDown={(e) => {
                         e.stopPropagation(); // Останавливаем распространение события на родительский элемент                     
                         setCurrentDraggingElement("A" + tCardOperation.idc + "I" + index2);
                         handleMouseDown("A" + tCardOperation.idc + "I" + index2)
@@ -128,20 +128,20 @@ export default function TCardOper({
     const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(tCardOperation.duration);
     return (
         <div className={styles.container}
-             onDragOver={(e) => dragOverHandler(e)}        
-             onDrop={(e) => { handleDrop(e, `S${tCardOperation.stage.idc}T${tCardOperation.idc}`) }}
+            onDragOver={(e) => dragOverHandler(e)}
+            onDrop={(e) => { handleDrop(e, `S${tCardOperation.stage.idc}T${tCardOperation.idc}`) }}
 
-             draggable={true}
-             onMouseDown={(e) => {
-                 setCurrentDraggingElement("T" + tCardOperation.idc);
-                 handleMouseDown("T" + tCardOperation.idc)
-             }}
-             onMouseLeave={handleMouseUp}
-             onMouseUp={handleMouseUp}
+            draggable={true}
+            onMouseDown={(e) => {
+                setCurrentDraggingElement("T" + tCardOperation.idc);
+                handleMouseDown("T" + tCardOperation.idc)
+            }}
+            onMouseLeave={handleMouseUp}
+            onMouseUp={handleMouseUp}
             style={{
                 left: isDragging && (currentDraggingElement === "T" + tCardOperation.idc) ? positionX : 0,
                 top: isDragging && (currentDraggingElement === "T" + tCardOperation.idc) ? positionY : 0,
-                cursor: isDragging && (currentDraggingElement === "T" + tCardOperation.idc) ? 'grabbing' : 'grab',                
+                cursor: isDragging && (currentDraggingElement === "T" + tCardOperation.idc) ? 'grabbing' : 'grab',
             }}
         >
             <div className={styles.container_header}>
@@ -192,22 +192,27 @@ export default function TCardOper({
                         && <button className={styles.button_status}
                             onClick={() => setOperStatus(tCardOperation.idc, StatusEnum.prepared)}>
                             на планирование
-                        </button>}</div>
-
-                <div className={styles.container_icon_edit_save}>
-                    <Image className={styles.icon_edit_save}
-                        src={edit}
-                        alt="arrow" width={20} height={20}
-                        onClick={() => { editOperHandler(tCardOperation.idc) }}
-                    />
-                    <Image className={styles.icon_del}
-                        src={del} alt="del" width={20} height={20}
-                        onClick={() => deleteOperHandler(tCardOperation.idc)}
-                    />
-                </div>
-
+                        </button>}
+                        
+                {(tCardOperation.status === StatusEnum.defective)
+                    && <button className={styles.button_status}
+                        onClick={() => { }}>
+                        повторить
+                    </button>}</div>
+            <div className={styles.container_icon_edit_save}>
+                <Image className={styles.icon_edit_save}
+                    src={edit}
+                    alt="arrow" width={20} height={20}
+                    onClick={() => { editOperHandler(tCardOperation.idc) }}
+                />
+                <Image className={styles.icon_del}
+                    src={del} alt="del" width={20} height={20}
+                    onClick={() => deleteOperHandler(tCardOperation.idc)}
+                />
             </div>
 
         </div>
+
+        </div >
     )
 }

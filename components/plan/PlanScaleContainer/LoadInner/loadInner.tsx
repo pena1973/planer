@@ -123,8 +123,9 @@ export default function LoadInner({
                         />
                     )}
                 </div>}
-                {(!load.isRetool &&width>=120)?`${padNumberToFourDigits(tCard.idc)} - ${tCard.date} / A${load.idc_oper}`:""}
-                {(!load.isRetool && width<120 && width>20)?`A${load.idc_oper}`:""}
+                {!load.isRetool && load.isFirst && <div className={styles.first}></div>}
+                {(!load.isRetool &&width>=140)?`${padNumberToFourDigits(tCard.idc)} - ${tCard.date} / A${load.idc_oper}`:""}
+                {(!load.isRetool && width<140 && width>20)?`A${load.idc_oper}`:""}
             </div>
 
             {contectMenuShow === load.idc &&

@@ -27,7 +27,7 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 
 // types
 import { UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem,TemplateItem } from '@/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem,TemplateItem,StatusEnum } from '@/types';
 
 
 // НАСТРОЙКИ
@@ -817,7 +817,6 @@ export async function updateUsers(
   return { success: true, savedUsers: savedUpdatedUsers }
 }
 
-
 ///////////////////// КАРТА ТЕХНОЛОГИЧЕСКИХ ОПЕРАЦИЙ//////////////////
 
 // получаю максимальный номер карты
@@ -1356,4 +1355,83 @@ export async function updateProducts(
   }
 
   return { success: true, savedTCardProducts: savedTCardProducts };
+}
+
+///////////////////// СТАТУСЫ//////////////////
+
+
+export async function updateStatusOperation(
+  tCardOperationsRepository: Repository<TCardOperationTable>,
+  tCardId: number,
+  status: StatusEnum
+): Promise<{ success: boolean, message: string }> {
+  try {    
+    const result = await tCardOperationsRepository.update(tCardId, { status });
+    if (result.affected && result.affected > 0) {
+      return { success: true, message: "Операция успешно обновлена" };
+    } else {
+      return { success: false, message: "Операция не обновлена" };
+    }
+  } catch (error: any) {
+    console.error("Ошибка обновления операции:", error);
+    return { success: false, message: error.message || "Ошибка обновления операции" };
+  }
+}
+
+// Функция для обновления статусов загрузок
+export async function updateStatusLoads(
+  unitLoadRepository: Repository<UnitLoadTable>,
+  loadsIds: number[],
+  status: StatusEnum
+): Promise<{ success: boolean, message: string }> {
+  try {
+   
+    if (loadsIds.length === 0) {
+      return { success: false, message: "Нет загрузок для обновления" };
+    }
+
+      const result = await unitLoadRepository
+      .createQueryBuilder()
+      .update(UnitLoadTable)
+      .set({ status })
+      .where("id IN (:...loadsIds)", { loadsIds })
+      .execute();
+
+
+
+    if (result.affected && result.affected > 0) {
+      return { success: true, message: `Обновлено ${result.affected} загрузок` };
+    } else {
+      return { success: false, message: "Ни одна загрузка не обновлена" };
+    }
+  } catch (error: any) {
+    console.error("Ошибка обновления статусов загрузок:", error);
+    return { success: false, message: error.message || "Ошибка обновления статусов загрузок" };
+  }
+}
+
+// Функция для обновления статуса карты
+export async function updateStatusTCard(
+  tCardRepository: Repository<TCardTable>,
+  tCardId: number, // Один id карты
+  status: StatusEnum
+): Promise<{ success: boolean, message: string }> {
+  try {
+    // Обновление статуса карты с заданным tCardId
+    const result = await tCardRepository
+      .createQueryBuilder()
+      .update(TCardTable)
+      .set({ status }) // Устанавливаем новый статус
+      .where("id = :tCardId", { tCardId }) // Используем правильный синтаксис для одного id
+      .execute();
+
+    if (result.affected && result.affected > 0) {
+      return { success: true, message: `Обновлена карта с id: ${tCardId}` };
+    } else {
+      return { success: false, message: "Не удалось обновить карту" };
+    }
+  } catch (error: any) {
+    console.error("Ошибка обновления статуса карты:", error);
+    return { success: false, message: error.message || "Ошибка обновления статуса карты" };
+  }
 }

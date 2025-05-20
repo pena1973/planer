@@ -6,11 +6,12 @@ import ReportTCardState from "@/components/monitor/ReportTCardState/reportTCardS
 import ReportUnitsKPI from "@/components/monitor/ReportUnitsKPI/reportUnitsKPI";
 
 import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/arrowButton";
+import { getStatusPriority } from "@/utils"
 
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
-import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum, UnitTypeEnum } from '@/types'
+import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types'
 
 import Image from 'next/image';
 
@@ -19,9 +20,10 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 
-import { setUnitLoads, setMonitorPoint } from '@/store/slices';
+import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
 import { Index } from "typeorm";
 import { get } from "http";
+import { TCardOperationTable } from "./db/models/data/t_card_operations";
 
 
 const URL = process.env.NEXT_PUBLIC_URL;
@@ -102,7 +104,7 @@ export default function Monitor({ }: MonitorProps) {
     return date;
   });
 
-  
+
   const team = useSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
@@ -144,10 +146,33 @@ export default function Monitor({ }: MonitorProps) {
     setDay(day_)
   }, []);
 
-  //  меняем статус операции и лоадов
-  const setStatusLoadsHandler = async (status: StatusEnum, operloadsIds: number[]) => {
-    const unitLoads_ = unitLoads.map(lo => operloadsIds.includes(lo.id as number) ? { ...lo, status: status } : lo);
+  //  меняем статус карты (если нужно) и операции и лоадов по событию
+  const setStatusLoadsHandler = (tCardStatus: StatusEnum,tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => {
+
+    const cardIndex = tCards.findIndex(card => card.id === tCardId);
+    if (cardIndex < 0) return
+    
+    // обновили лоады
+    const unitLoads_ = unitLoads.map(lo => operloadsIds.includes(lo.id as number) ? { ...lo, status: tOperStatus } : lo);
     dispatch(setUnitLoads(unitLoads_));
+  
+    // Обновляем статус операции если он загружен
+    const tCardOperations = tCards[cardIndex].tCardOperations?.map(operation => {
+      if (operation.id === operId) {
+        return { ...operation, status: tOperStatus };
+      }
+      return operation;
+    }) as TCardOperationItem[];
+  
+
+   let updatedTCard =  { ...tCards[cardIndex], status: tCardStatus, tCardOperations: tCardOperations }
+
+    let _tCards = [...tCards]
+    _tCards.splice(cardIndex, 1, updatedTCard);
+
+    dispatch(setTCards(_tCards));
+
+
   }
 
 
@@ -162,7 +187,7 @@ export default function Monitor({ }: MonitorProps) {
       && elem.status === load.status //  потом можно будет убрать  связь будет по version
       && !elem.isRetool
       && elem.version === load.version
-   
+
     ) // все лоады операции
 
     if (loads.length === 0) return { start: { date: "", time: 0 }, finish: { date: "", time: 0 } };
@@ -188,13 +213,13 @@ export default function Monitor({ }: MonitorProps) {
 
   let unitsValueReactNodes = units
     .filter((elem) => elem.belong === UnitBelongEnum.inner)
-    .map((unit, index) => {
+    .map((unit) => {
       // фильтрую по юниту 
       const unitLoads_ = unitLoads.filter((load) => {
         return (
-          load.unit.id === unit.id 
+          load.unit.id === unit.id
           && load.date === day.toLocaleDateString("en-CA")
-          && load.status !==StatusEnum.prepared)
+          && load.status !== StatusEnum.prepared)
       });
       const unitExceptions_ = unitExceptions.filter((ex) => {
         return (ex.unitId === unit.id && ex.date === day.toLocaleDateString("en-CA"))
@@ -300,10 +325,10 @@ export default function Monitor({ }: MonitorProps) {
               tCards={tCards}
               setMessage={setMessage}
               getStartFinishOper={getStartFinishOper}
-              setStatusLoadsHandler={setStatusLoadsHandler} 
+              setStatusLoadsHandler={setStatusLoadsHandler}
               teamId={team.id}
               userId={user.id}
-              />
+            />
           </div>}
           {/* Готовность карт */}
           {monitorPoint === 3 && <div className="container_monitor">
@@ -312,10 +337,10 @@ export default function Monitor({ }: MonitorProps) {
           </div>}
           {monitorPoint === 4 && <div className="container_monitor">
             <div className="catalog_title"> KPI рабочих юнитов</div>
-            <ReportUnitsKPI 
-            setMessage={setMessage}
-            teamId={team.id}
-            userId={user.id} />
+            <ReportUnitsKPI
+              setMessage={setMessage}
+              teamId={team.id}
+              userId={user.id} />
           </div>}
         </div>
 

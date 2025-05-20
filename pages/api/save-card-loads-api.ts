@@ -129,6 +129,7 @@ async function saveLoads(
       isOuterStart: load.isOuterStart,
       isOuterFinish: load.isOuterFinish,
       version:load.version,
+      isFirst:load.isFirst,
     });
   });
   let savedNewLoads = [] as UnitLoadTable[]
@@ -183,6 +184,7 @@ async function saveLoads(
       isOuterStart: loadT.isOuterStart,//  это старт оутсортера
       isOuterFinish: loadT.isOuterFinish,
       version:loadT.version,
+      isFirst:loadT.isFirst,
     } as UnitLoadItem
   })
   return { success: true, savedUnitLoads: savedUnitLoads, message: "" }

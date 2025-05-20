@@ -70,9 +70,9 @@ export default function LoadMonitorProcess({
             }}
         >
             {showTitle && <div className={titleClass}>
-                <div >Card: {titleCard}</div>
-                <div > Oper: C{load.idc_oper},{load.loadInfo?.title},
-                    {load.status},{load.loadInfo?.duration} мин</div>
+                {load.isFirst && <div >Card: {titleCard}</div>}
+                {load.isFirst && <div > Oper: A{load.idc_oper}, {load.loadInfo?.title}, {load.status}, {load.loadInfo?.duration} мин</div>}
+                {!load.isFirst &&  <div >Continuation: A{load.idc_oper}</div>}
             </div>}
         </div>
 

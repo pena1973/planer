@@ -422,6 +422,7 @@ export default function Planing() {
     dispatch(setTCardPrepared(tCard_));
 
     setIsDragging(false); // Завершаем перетаскивание     
+    setLoaderCard(Number(itemId))
     //!!!!!!!!!! отправляем на сервер  карту  и там планируем
     //  в базу пока не пишем это предварительный расчет
     // чистим все лоады в статусе prepared (предыдущее несохраненное планирование)
@@ -461,7 +462,7 @@ export default function Planing() {
       // setMessage(t('service.noConnection') + e.message)            
     }
 
-
+    setLoaderCard(NaN)
   };
   ///////////////////////////
 
@@ -471,6 +472,7 @@ export default function Planing() {
   let tCardsToPlan = tCards.filter(tCard => (tCard.status === StatusEnum.prepared && !tCard.modified)) // подготовлен
 
   let tCardsPlaned = tCards.filter(tCard => (tCard.status === StatusEnum.planed)) // запланирован
+  let tCardsDefective = tCards.filter(tCard => (tCard.status === StatusEnum.defective)) // запланирован
   // Карты
   let tCardsPlanedReactNodes = tCardsPlaned.map((elem, index4) => {
     let date = "";
@@ -543,7 +545,37 @@ export default function Planing() {
       </div>
     );
   })
+// Карты
+let tCardsDefectiveReactNodes = tCardsDefective.map((elem, index4) => {
+  let date = "";
+  if (elem.date)
+    date = formatDate(new Date(elem.date));
 
+  return (
+    <div key={index4} className="container_plan_card_planed">
+      <div className="container_plan_card_icon_light">
+        {loaderCard === elem.id && <ButtonLoader />}
+        {loaderCard !== elem.id &&
+          (elem.id === tCardLighted.id ?
+            <Image className="icon_edit_save" src={lighton} alt="lighton"
+              width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
+            : <Image className="icon_edit_save" src={light} alt="light"
+              width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
+        }
+        <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.idc)} -  {date}</div>
+      </div>
+
+      <div className="container_icon_edit_save">
+        <Image className="icon_edit_save"
+          src={eraz}
+          alt="eraz" width={20} height={20}
+          onClick={() => erazCardHandler(elem.id)}
+        />
+        {tCardLighted?.id === elem.id}
+      </div>
+    </div>
+  );
+})
   return (
     <Layout>
       <div className="container_global" >
@@ -555,6 +587,10 @@ export default function Planing() {
           <div className="container_plan_title_no"> не запланированы</div>
           <div className="container_plan_prepared_card">
             {tCardsToPlanReactNodes}
+          </div>
+          <div className="container_plan_title_no"> исправлять брак</div>
+          <div className="container_plan_defective_card">
+            {tCardsDefectiveReactNodes}
           </div>
           <div className="container_plan_title">Пояснение</div>
           <div className="container_global_message">{message}</div>

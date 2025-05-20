@@ -16,7 +16,7 @@ interface UnitTaskStackOutsourceProps {
     start: { date: string, time: number },
     finish: { date: string, time: number }
   },
-  setStatusLoadsHandler: (status: StatusEnum, operloadsIds: number[]) => void,
+  setStatusLoadsHandler: (tCardStatus: StatusEnum,tOperStatus: StatusEnum, operloadsIds: number[],operId: number, tCardId: number) => void,
   teamId:number,
   userId:number,
 }
@@ -68,11 +68,15 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)
         setMessage(receivedData.message);
+
         if (receivedData.success) {
-          //   Обновим статус лоадов
-          setStatusLoadsHandler(status, operloadsIds);
-          setMessage(receivedData.message);
-        }
+                  // проверили и вернули общий статус карты
+                  const tCardStatus = receivedData.tCardStatus as StatusEnum
+                  //   Обновим статус лоадов
+                  setStatusLoadsHandler(tCardStatus, status, operloadsIds,currentLoad.id_oper,currentLoad.id_tCard);
+        
+                  setMessage(receivedData.message);
+                }        
       }
 
     } catch (e: any) {

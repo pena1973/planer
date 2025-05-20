@@ -189,10 +189,32 @@ export async function getUnitLoads(
       isPinned: unitLoad.isPinned,
       isOuterFinish: unitLoad.isOuterFinish,
       isOuterStart: unitLoad.isOuterStart,
+      isFirst:unitLoad.isFirst
     };
   });
   return unitLoadItems;
 }
+
+
+export async function getTCardOperationLoads(
+  tCardId: number, // ID карты для фильтрации
+  operId: number, // ID операции для фильтрации
+  version: number, // Версия для фильтрации
+  unitLoadRepository: Repository<UnitLoadTable>,
+): Promise<number[]> {
+
+
+  // Получаем операции с фильтрацией по tCardId, operId и version
+  const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
+    .where('unitLoad.id_tCard = :tCardId', { tCardId })
+    .andWhere('unitLoad.id_oper = :operId', { operId })
+    .andWhere('unitLoad.version = :version', { version })
+    .getMany();
+
+  const loadsIds = unitLoads.map(lo => lo.id)
+  return loadsIds;
+}
+
 
 // КАРТы СПИСОК! только шапка
 export async function getTCards(
@@ -263,7 +285,7 @@ export async function getTCard(
   // Преобразуем карты    
   return {
     id: tCardtab.id,
-    date: tCardtab.date.toLocaleDateString("en-CA"),
+    date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
     idc: tCardtab.idc || 1,  // Если number не заполнен, возвращаем "1"
     modified: true,  // Например, помечаем, что карта изменена
     maxIdc: tCardtab.max_idc,
@@ -436,7 +458,7 @@ export async function getTCardFull(
 
   return tCard
 }
-
+// Для ЧЕГО?  KPI ?
 export async function getTCardsOpers(
   teamId: number,
   tCardRepository: Repository<TCardTable>,
@@ -551,8 +573,6 @@ export async function getTCardsOpers(
 
   return tCardTerms;
 }
-
-
 
 export async function getExceptions(
   teamId: number,
@@ -745,6 +765,39 @@ export async function getTCardOperations(
 
   const tCardOperstab = await tCardOperationsRepository.find({
     where: { id: In(operIds) }, // Фильтруем по полю unit_id для всех заданных юнитов
+    relations: ['stage', 'action', 'tcard'],
+  });
+
+  const tCardOpers = tCardOperstab.map(tCardOpertab => {
+
+    return {
+      id: tCardOpertab.id,
+      idc: tCardOpertab.idc,
+      stage: tCardOpertab.stage,
+      order: tCardOpertab.order,
+      out: [],
+      inn: [],
+      action: {
+        id: tCardOpertab.action.id,
+        title: tCardOpertab.action.title,
+        code: tCardOpertab.action.code,
+        interruptible: tCardOpertab.action.interruptible,
+      } as ActionItem,
+      duration: tCardOpertab.duration,
+      status: tCardOpertab.status,
+    }
+  });
+
+  return tCardOpers;
+}
+export async function getTCardOperationsByCardId(
+
+  tCardId: number,
+  tCardOperationsRepository: Repository<TCardOperationTable>
+): Promise<TCardOperationItem[]> {
+
+  const tCardOperstab = await tCardOperationsRepository.find({
+    where: { tcard_id: tCardId }, // Фильтруем по полю tcard_id все операции
     relations: ['stage', 'action', 'tcard'],
   });
 

@@ -665,6 +665,7 @@ export default function Index({ }: IndexProps) {
     // setMessage(`Элемент с id: ${itemId} был перемещен`);
   };
 
+
   useEffect(() => {
     const loadDataAndRedirect = async () => {
       // Если юзер залогинен и получен токен

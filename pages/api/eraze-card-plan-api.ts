@@ -21,7 +21,7 @@ import { getTCard, getTCardFull } from './handlers-get';  //
 
 import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 
-import { TCardOperationItem, UnitLoadItem, } from "@/types";
+import { TCardOperationItem, UnitLoadItem, StatusEnum} from "@/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
@@ -30,15 +30,15 @@ interface RequestBody {
   teamId:number,
   userId:number
 }
-export enum StatusEnum {
-  draft = 'draft', // черновик
-  prepared = 'prepared', // готов к началу планирования
-  planed = 'planed', // запланирован
-  performed = 'performed',// выполнен юнитом
-  ready = 'ready', // готов (проверен на брак)
-  defective = 'defective', // бракован
-  cancelled = 'cancelled', // отменен   
-}
+// export enum StatusEnum {
+//   draft = 'draft', // черновик
+//   prepared = 'prepared', // готов к началу планирования
+//   planed = 'planed', // запланирован
+//   performed = 'performed',// выполнен юнитом
+//   ready = 'ready', // готов (проверен на брак)
+//   defective = 'defective', // бракован
+//   cancelled = 'cancelled', // отменен   
+// }
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
