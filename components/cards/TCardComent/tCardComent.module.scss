@@ -1,0 +1,47 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+.container {
+
+    // display: flex;
+    // flex-direction: column;
+    // align-items: center;
+    width: 310px;
+    
+    margin: 5px;
+    background-color: $main_container_background_color;
+    border-radius: $border-radius;
+    border: $border;
+    box-shadow: $box-shadow;
+    transition: box-shadow 0.3s ease;
+    padding: 5px;
+    // position: relative;
+    color: $second_text_color;
+    font-size: $header4_font_size;
+
+    flex: 1;
+    // padding: 1px 1px;
+    // background-color: $second_container_background_color;
+    // border: $border;
+    // border-radius: $border-radius;
+    height: auto;
+
+}
+
+.coment_input {
+    flex: 1;
+    margin: 3px;
+    padding: 1px 1px;
+    background-color: $second_container_background_color;
+    border: $border;
+    border-radius: $border-radius;
+    height: auto;
+    width: calc(100% - 5px);
+    min-height: 40px;
+    /* минимальная высота */
+    // max-height: 100px;
+    resize: none;
+    /* отключаем изменение размера пользователем */
+    // overflow-y: auto;  /* прокрутка по вертикали */
+}

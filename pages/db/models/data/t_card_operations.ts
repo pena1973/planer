@@ -51,6 +51,10 @@ export class TCardOperationTable {
   @Column({ type: 'text', default: "" })
   coment!: string;
 
+ 
+  @Column({ type: 'int', default: 0 })
+  fix_oper_idc!: number;
+
   // @OneToMany(() => TCardProductTable, (product) => product.operation, { cascade: true })
   // products!: TCardProductTable[];
 }

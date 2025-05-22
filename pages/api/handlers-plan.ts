@@ -10,11 +10,12 @@ import {
 const getLoadIdc = (
   tCard: TCardItem,
   operation: TCardOperationItem,
-  seg: { 
-    date: string, 
-    start: number; 
-    finish: number, 
-    isRetool: boolean }): number => {
+  seg: {
+    date: string,
+    start: number;
+    finish: number,
+    isRetool: boolean
+  }): number => {
   return Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`)
 }
 
@@ -265,10 +266,10 @@ function findAvailableTimeForOperation(
 
     // Формируем итоговый массив загрузок (UnitLoadItem) для победившего юнита
     let updatedUnitLoads: UnitLoadItem[] = [];
-    
-    let isFirst = true;    
+
+    let isFirst = true;
     bestCandidate.opSegments.forEach(seg => {
-      const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id)      
+      const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id)
       let action = actions_.find(act => act.id = operation.action.id);
       let koef = (action) ? action.koef : 1;
 
@@ -280,8 +281,8 @@ function findAvailableTimeForOperation(
         timeStart: seg.start,
         timeFinish: seg.finish,
         status: StatusEnum.prepared,
-        id_oper: Number(operation.id),        
-        idc: getLoadIdc(tCard,operation,seg),        
+        id_oper: Number(operation.id),
+        idc: getLoadIdc(tCard, operation, seg),
         isActive: true,
         isRetool: seg.isRetool,
         loadInfo: { title: operation.action.title, duration: Math.round(operation.duration / 60000), interruptible: operation.action.interruptible, koef: koef },
@@ -289,10 +290,10 @@ function findAvailableTimeForOperation(
         isOuterStart: false,//  это старт оутсортера, здесь не применяется
         isOuterFinish: false,//  это финиш оутсортера        
         version: version,
-        isFirst:seg.isRetool?false:isFirst
+        isFirst: seg.isRetool ? false : isFirst
       });
 
-      isFirst=seg.isRetool?isFirst:false;
+      isFirst = seg.isRetool ? isFirst : false;
     });
     const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
 
@@ -785,6 +786,7 @@ export const planTCardFromOperINC = (
     // 2 . ищем операции исходники для которых готовы на данной итерации
     // и убираем эти исходники из списка как израсходованные (резервируем на операцию)
     // и получаем список операций ко торые можно делать selectedOperations
+    let message="";
 
     tCardOperations.forEach((operation) => {
       let hasAllMatchingProducts = operation.inn.every(innProduct => {
@@ -796,6 +798,7 @@ export const planTCardFromOperINC = (
         if (matchingReadyProduct) {
           // Если количество в tCardReady недостаточно для операции, пропускаем операцию
           if (matchingReadyProduct.qtu < innProduct.qtu) {
+            message =  message.concat(`Не хватает продукта ${innProduct.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu-matchingReadyProduct.qtu} единиц.\n`);
             return false;
           }
           // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
@@ -816,6 +819,8 @@ export const planTCardFromOperINC = (
             })
           return true;
         }
+        message =  message.concat(`Не хватает продукта ${innProduct.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu} единиц.\n`);
+
         return false; // Если продукта нет или не совпадает по uom
       });
 
@@ -824,8 +829,9 @@ export const planTCardFromOperINC = (
         selectedOperations.push(operation);
       }
     });
-
-    if (selectedOperations.length === 0) return { success: false, planedCardLoads: planedCardLoads, message: "Не все операции готовы к планированию" };
+   
+    if (selectedOperations.length === 0) 
+      return { success: false, planedCardLoads: planedCardLoads, message: `Не все операции готовы к планированию или карта несогласована\n${message}` };
 
     // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
     //  и операции с пустыми резервами

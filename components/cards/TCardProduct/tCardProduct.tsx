@@ -76,7 +76,7 @@ export default function TCardProduct({
                 left: isDragging && (currentDraggingElement === prefix + index) ? positionX : 0,
                 top: isDragging && (currentDraggingElement === prefix + index) ? positionY : 0,
                 cursor: isDragging && (currentDraggingElement === prefix + index) ? 'grabbing' : 'grab',
-                color: (lightProduct === idc) ? 'rgb(209, 29, 29)' : '',
+                color: (lightProduct === idc) ? 'rgb(25, 130, 25)' : '',
             }}>
 
             <div className={styles.tCardProduct_status} >

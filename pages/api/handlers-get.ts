@@ -436,7 +436,8 @@ export async function getTCardFull(
         action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible, code: oper.action.code } as ActionItem,
         duration: oper.duration, // в милисекундах   
         status: oper.status,
-        coment: oper.coment
+        coment: oper.coment,
+        fixOperIdc:oper.fix_oper_idc,
       };
     });
 
@@ -458,7 +459,7 @@ export async function getTCardFull(
 
   return tCard
 }
-// Для ЧЕГО?  KPI ?
+// Для отчета о состоянии готовности карт
 export async function getTCardsOpers(
   teamId: number,
   tCardRepository: Repository<TCardTable>,
@@ -558,7 +559,7 @@ export async function getTCardsOpers(
     }
     tCardTerms.push({
       id: card.id,
-      date: card.date.toLocaleDateString("en-CA"),
+      date: new Date(card.date).toLocaleDateString("en-CA"),
       idc: card.idc,
       modified: false,
       tCardOperations: tCardOperations as TCardOperationTermsItem[],
@@ -745,8 +746,8 @@ export async function getTCardOperation(
     inn: [],
     action: tCardOpertab.action,
     duration: tCardOpertab.duration,
-
     status: tCardOpertab.status,
+    coment:tCardOpertab.coment
   };
 
 }
@@ -785,6 +786,7 @@ export async function getTCardOperations(
       } as ActionItem,
       duration: tCardOpertab.duration,
       status: tCardOpertab.status,
+      coment:tCardOpertab.coment,
     }
   });
 
@@ -818,6 +820,7 @@ export async function getTCardOperationsByCardId(
       } as ActionItem,
       duration: tCardOpertab.duration,
       status: tCardOpertab.status,
+      coment: tCardOpertab.coment,
     }
   });
 

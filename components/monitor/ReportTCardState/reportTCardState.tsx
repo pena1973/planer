@@ -9,11 +9,15 @@ import { padNumberToFourDigits, convertMinutesToTime } from "@/utils"
 
 interface ReportTCardStateProps {
   setMessage: (message: string) => void,
+  teamId:number,
+  userId:number,
 }
 
 
 const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   setMessage,
+  teamId,
+  userId,
 }) => {
 
 
@@ -24,7 +28,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   const getTCardsTerms = async () => {
     setShowLoader(true);
     try {
-      const res = await fetch(`api/tcards-opers-terms-api?`,
+      const res = await fetch(`api/tcards-opers-terms-api?userId=${userId}&teamId=${teamId}`,
         {
           method: 'get',
           headers: new Headers({
@@ -67,6 +71,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     let readyDuration = 0;
     const tCardOperationsReactNodes = tCard.tCardOperations.map((oper, index) => {
       commonDuration += oper.duration;
+      // getStatusPriority
       const operStatusStyle = oper.status === StatusEnum.ready ? styles.ready : oper.status === StatusEnum.defective ? styles.defective : styles.planed;
       let operReady = 0;
       if (oper.status === StatusEnum.ready) {
@@ -80,7 +85,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
       return (
         <tr key={`${tCard.id}-${index}`}>
           <td></td>
-          <td className={styles.operation_title}> {oper.action.title}</td>
+          <td className={styles.operation_title}> A{oper.idc}, {oper.action.title}</td>
           <td className={styles.operation_row}> <div className={styles.status_row}>
             <div className={operStatusStyle} />
             {oper.status}

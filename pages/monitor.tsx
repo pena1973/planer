@@ -276,6 +276,7 @@ export default function Monitor({ }: MonitorProps) {
             <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(2))}>Операции на стороне</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(3))}>Готовность карт</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(4))}>KPI рабочих юнитов</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(5))}>История планирования</div>
 
           </div>
           <div className="container_cards_title">Пояснение</div>
@@ -333,7 +334,10 @@ export default function Monitor({ }: MonitorProps) {
           {/* Готовность карт */}
           {monitorPoint === 3 && <div className="container_monitor">
             <div className="catalog_title"> Готовность карт</div>
-            <ReportTCardState setMessage={setMessage} />
+            <ReportTCardState setMessage={setMessage} 
+             teamId={team.id}
+             userId={user.id}
+             />
           </div>}
           {monitorPoint === 4 && <div className="container_monitor">
             <div className="catalog_title"> KPI рабочих юнитов</div>
@@ -342,6 +346,11 @@ export default function Monitor({ }: MonitorProps) {
               teamId={team.id}
               userId={user.id} />
           </div>}
+          {monitorPoint === 5 && <div className="container_monitor">
+            <div className="catalog_title"> История планирования операций карт</div>
+          
+          </div>
+          }
         </div>
 
       </div>

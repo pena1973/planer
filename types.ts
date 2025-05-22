@@ -41,6 +41,7 @@ export interface TCardOperationItem {
     mode?: boolean // для целей редактирования на форме
     status:StatusEnum,
     coment?: string,
+    fixOperIdc?:number, // ссылка на операцию которую исправляли
 }
 
 export interface TCardProductItem {

@@ -1,4 +1,4 @@
-import { TCardProductItem, TCardOperationItem,TCardItem } from "@/types";
+import { TCardProductItem, TCardOperationItem, TCardItem, StatusEnum } from "@/types";
 
 //  проверка наличия материальных активов
 // алгоритм такой
@@ -19,10 +19,14 @@ export const checkReconcilation = (
   let tCardWastes = [] as TCardProductItem[];
   let tCardMaterials = [] as TCardProductItem[];
 
-  // собираю все произведенные (out) МА в операциях
+  // собираю все произведенные (out) МА в операциях исключая брак - он сразу в отходы
   let outArr1 = [] as TCardProductItem[];
   tCardOperationsArg.forEach(toper => {
-    outArr1 = [...outArr1, ...toper.out];
+    if (toper.status === StatusEnum.defective) { // сразу в отход
+      tCardWastes = [...tCardWastes, ...toper.out]
+    } else {
+      outArr1 = [...outArr1, ...toper.out];
+    }
   });
 
   // проверяю все операции на ВХОД in->out (code)
@@ -77,11 +81,12 @@ export const checkReconcilation = (
   let innArr = [] as TCardProductItem[];
   // собираю все добавленные и все истраченные МА в операциях заново после проверки  на согласованность
   tCardOperations.forEach(toper => {
-    outArr = [...outArr, ...toper.out];
+    if (toper.status !== StatusEnum.defective)  outArr = [...outArr, ...toper.out];
+
     innArr = [...innArr, ...toper.inn];
   });
 
-  // схлопываю по ID+кодуS и единице uom
+  // схлопываю по ID+code и единице uom
   outArr = groupAndSumByCodeAndUom(outArr, 1);
   innArr = groupAndSumByCodeAndUom(innArr, -1);
   let resultArr = [...outArr, ...innArr];
@@ -103,7 +108,7 @@ export const checkReconcilation = (
 
   // все что с -  =-  в материалы
 
-  // проходим по продуктам и сворачиваем по id 
+  // проходим по продуктам и сворачиваем по idс
   let tCardProductsByID = groupAndSumByIDAndUom(tCardProductsArg);
 
   // а потом прописываем источник  распределяя на несколько разных если он разбит
@@ -187,9 +192,9 @@ export const groupAndSumByIDAndUom = (arr: TCardProductItem[]) => {
   const groupedResult: { [key: string]: TCardProductItem } = {};
 
   arr.forEach(item => {
-    // Создаем уникальный ключ для сочетания id, code, и uom
-    const key = `${item.idc}_${item.uom.id}`;
-
+    // Создаем уникальный ключ для сочетания idc, code, и uom
+    // const key = `${item.idc}_${item.code}_${item.uom.id}`; //  так не работает дальше
+    const key = `${item.idc}_${item.uom.id}`; // здесь аналог строки продукта
     if (!groupedResult[key]) {
       // Если ключ еще не существует, создаем новый элемент
       groupedResult[key] = { ...item, qtu: item.qtu, code: "" };
@@ -207,32 +212,32 @@ export const groupAndSumByIDAndUom = (arr: TCardProductItem[]) => {
 // Функция глубокого копирования для TCardItem
 export function deepCloneTCardItem(tCard: TCardItem): TCardItem {
   return {
-      id: tCard.id,
-      date: tCard.date,
-      idc: tCard.idc,
-      modified: tCard.modified,
-      tCardProducts: tCard.tCardProducts ? tCard.tCardProducts.map(product => ({
-          ...product, 
-          uom: { ...product.uom } // Если UOM является объектом, его тоже нужно клонировать
-      })) : [],
-      tCardWastes: tCard.tCardWastes ? tCard.tCardWastes.map(waste => ({
-          ...waste, 
-          uom: { ...waste.uom }
-      })) : [],
-      tCardOperations: tCard.tCardOperations ? tCard.tCardOperations.map(operation => ({
-          ...operation,
-          stage: { ...operation.stage }, // Клонируем стадию
-          out: operation.out.map(product => ({ ...product })), // Клонируем продукты
-          inn: operation.inn.map(product => ({ ...product })), // Клонируем продукты
-          action: { ...operation.action }, // Клонируем действия
-      })) : [],
-      tCardMaterials: tCard.tCardMaterials ? tCard.tCardMaterials.map(material => ({
-          ...material,
-          uom: { ...material.uom }
-      })) : [],
-      tCardStages: tCard.tCardStages ? tCard.tCardStages.map(stage => ({ ...stage })) : [],
-      maxIdc: tCard.maxIdc,
-      coment: tCard.coment,
-      status: tCard.status,
+    id: tCard.id,
+    date: tCard.date,
+    idc: tCard.idc,
+    modified: tCard.modified,
+    tCardProducts: tCard.tCardProducts ? tCard.tCardProducts.map(product => ({
+      ...product,
+      uom: { ...product.uom } // Если UOM является объектом, его тоже нужно клонировать
+    })) : [],
+    tCardWastes: tCard.tCardWastes ? tCard.tCardWastes.map(waste => ({
+      ...waste,
+      uom: { ...waste.uom }
+    })) : [],
+    tCardOperations: tCard.tCardOperations ? tCard.tCardOperations.map(operation => ({
+      ...operation,
+      stage: { ...operation.stage }, // Клонируем стадию
+      out: operation.out.map(product => ({ ...product })), // Клонируем продукты
+      inn: operation.inn.map(product => ({ ...product })), // Клонируем продукты
+      action: { ...operation.action }, // Клонируем действия
+    })) : [],
+    tCardMaterials: tCard.tCardMaterials ? tCard.tCardMaterials.map(material => ({
+      ...material,
+      uom: { ...material.uom }
+    })) : [],
+    tCardStages: tCard.tCardStages ? tCard.tCardStages.map(stage => ({ ...stage })) : [],
+    maxIdc: tCard.maxIdc,
+    coment: tCard.coment,
+    status: tCard.status,
   };
 }

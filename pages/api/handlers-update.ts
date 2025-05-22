@@ -1096,6 +1096,8 @@ export async function updateOperations(
         duration: operation.duration,
         tcard_id: savedTCard.id,
         status: operation.status,
+        coment:operation.coment,
+        fix_oper_idc:operation.fixOperIdc,
       }));
   }
 
@@ -1142,7 +1144,8 @@ export async function updateOperations(
       order: operation.order,
       duration: operation.duration,
       status: operation.status,
-      coment: operation.coment
+      coment: operation.coment,
+      fix_oper_idc:operation.fixOperIdc,
     } as TCardOperationTable;
 
     updatedOperations.push(operationToUpdate);

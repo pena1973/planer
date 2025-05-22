@@ -22,10 +22,6 @@ import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 
 import { UnitLoadItem, StatusEnum } from "@/types";
 
-// interface RequestBody {
-//   unitLoads: UnitLoadItem[];  // переобозвать и сделать плоскую таблицу
-//   tCard: TCardItem & { status: StatusEnum }
-// }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

@@ -37,8 +37,11 @@ export interface TCardOperProps {
     // index: number
     deleteOperHandler: (id: number) => void,
     editOperHandler: (id: number) => void
-    setOperStatus: (id: number, status: StatusEnum) => void,
-    lightProduct: number
+    setOperStatus: (idc: number, status: StatusEnum) => void,
+    fixDefect: (idc: number) => void,
+    lightProduct: number,
+    fixed:boolean,
+
 }
 
 export default function TCardOper({
@@ -57,7 +60,9 @@ export default function TCardOper({
     deleteOperHandler,
     editOperHandler,
     setOperStatus,
-    lightProduct
+    fixDefect,
+    lightProduct,
+    fixed,
 }: TCardOperProps) {
     const dispatch = useAppDispatch();
 
@@ -82,7 +87,7 @@ export default function TCardOper({
                         left: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? positionX : 0,
                         top: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? positionY : 0,
                         cursor: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? 'grabbing' : 'grab',
-                        color: (lightProduct === elem2.idc) ? 'rgb(209, 29, 29)' : '',
+                        color: (lightProduct === elem2.idc) ? 'rgb(25, 130, 25)' : '',
                     }}>
                     <div className={styles.in_out_item_code}>{elem2.code}</div>
                     <div className={styles.in_out_item_title}>{elem2.title}</div>
@@ -112,7 +117,7 @@ export default function TCardOper({
                         left: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? positionX : 0,
                         top: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? positionY : 0,
                         cursor: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? 'grabbing' : 'grab',
-                        color: (lightProduct === elem3.idc) ? 'rgb(209, 29, 29)' : '',
+                        color: (lightProduct === elem3.idc) ? 'rgb(25, 130, 25)' : '',
                     }}
                 >
                     <div className={styles.in_out_item_code}>{elem3.code}</div>
@@ -151,7 +156,7 @@ export default function TCardOper({
                     {tCardOperation.status}
                 </div>
                 Action {tCardOperation.idc}
-                <div className={styles.plug}></div>
+                <div className={styles.plug}> {(tCardOperation.fixOperIdc)?`fixing A${tCardOperation.fixOperIdc}`:``}</div>
             </div>
             <div className={styles.container_tables}>
                 <div className={styles.container_out}>
@@ -193,25 +198,28 @@ export default function TCardOper({
                             onClick={() => setOperStatus(tCardOperation.idc, StatusEnum.prepared)}>
                             на планирование
                         </button>}
-                        
-                {(tCardOperation.status === StatusEnum.defective)
-                    && <button className={styles.button_status}
-                        onClick={() => { }}>
-                        повторить
-                    </button>}</div>
-            <div className={styles.container_icon_edit_save}>
-                <Image className={styles.icon_edit_save}
-                    src={edit}
-                    alt="arrow" width={20} height={20}
-                    onClick={() => { editOperHandler(tCardOperation.idc) }}
-                />
-                <Image className={styles.icon_del}
-                    src={del} alt="del" width={20} height={20}
-                    onClick={() => deleteOperHandler(tCardOperation.idc)}
-                />
-            </div>
 
-        </div>
+                    {(tCardOperation.status === StatusEnum.defective) && !fixed
+                        && <button className={styles.button_status}
+                            onClick={() => { fixDefect(tCardOperation.idc) }}>
+                            повторить
+                        </button>}
+                </div>
+                {
+                    (tCardOperation.status === StatusEnum.draft || tCardOperation.status === StatusEnum.prepared)
+                    && <div className={styles.container_icon_edit_save}>
+                        <Image className={styles.icon_edit_save}
+                            src={edit}
+                            alt="arrow" width={20} height={20}
+                            onClick={() => { editOperHandler(tCardOperation.idc) }}
+                        />
+                        <Image className={styles.icon_del}
+                            src={del} alt="del" width={20} height={20}
+                            onClick={() => deleteOperHandler(tCardOperation.idc)}
+                        />
+                    </div>}
+
+            </div>
 
         </div >
     )

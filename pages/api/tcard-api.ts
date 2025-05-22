@@ -221,6 +221,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               action: { id: oper.action.id, title: oper.action.title, code: oper.action.code } as ActionItem,
               duration: oper.duration, // в милисекундах   
               status: oper.status,
+              coment:oper.coment,
+              fixOperIdc:oper.fix_oper_idc,
             } as TCardOperationItem; // Приводим к типу TCardOperationItem
           });
 
@@ -243,8 +245,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // отправляем ответ
         res.status(200).json({
           success: true,
-          tCard: tCardItem_,
-          // tCardStages: tCardStages_,
+          tCard: tCardItem_,        
         });
         break;
 
