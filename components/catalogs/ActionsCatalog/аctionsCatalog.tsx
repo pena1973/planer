@@ -19,13 +19,13 @@ import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
-export interface UOMSCatalogProps {
+export interface ActionsCatalogProps {
     setMessage: (message: string) => void
 }
 
-export default function UOMSCatalog({
+export default function ActionsCatalog({
     setMessage
-}: UOMSCatalogProps) {
+}: ActionsCatalogProps) {
     const dispatch = useAppDispatch();
 
     const actions = useSelector((state: RootState) => {

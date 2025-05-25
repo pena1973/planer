@@ -34,14 +34,14 @@ export default function UsersCatalog({
     team,
     setMessage
 }: usersCatalogProps) {
-   
+
     const [users_units, setUsersUnits] = useState([] as UserUnitItem[]);
     const users_units_old = useRef(users_units); // для восстановления по cancel    
 
     const [modified, setModified] = useState(false);
     const [showLoader, setShowLoader] = useState(false);
     const [buttonLoader, setButtonLoader] = useState(false);
-   
+
     const units = useSelector((state: RootState) => {
         return state.catalogSlice.units;
     })
@@ -249,14 +249,16 @@ export default function UsersCatalog({
 
                 <div className={styles.container_buttons_row}>
 
-                    <div className={styles.container_icon_edit_save}>
+                    <div className={styles.container_icon_edit_save}>                    
+                    {buttonLoader && <ButtonLoader />}
+                    {!buttonLoader &&
                         <Image className={styles.icon_edit_save}
                             src={save}
                             alt="arrow" width={20} height={20}
                             onClick={() => {
                                 saveUsersUnitsHandler()
                             }}
-                        />
+                        />}
                         {modified && <div>*</div>}
                     </div>
 

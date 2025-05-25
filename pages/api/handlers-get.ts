@@ -1,5 +1,5 @@
 
-import { Repository, In, Any } from 'typeorm';
+import { Repository, In, Any, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 // tables
 import { UnitTable } from '@/pages/db/models/catalogs/units'
 import { TeamTable } from '@/pages/db/models/catalogs/teams'
@@ -189,7 +189,7 @@ export async function getUnitLoads(
       isPinned: unitLoad.isPinned,
       isOuterFinish: unitLoad.isOuterFinish,
       isOuterStart: unitLoad.isOuterStart,
-      isFirst:unitLoad.isFirst
+      isFirst: unitLoad.isFirst
     };
   });
   return unitLoadItems;
@@ -437,7 +437,7 @@ export async function getTCardFull(
         duration: oper.duration, // в милисекундах   
         status: oper.status,
         coment: oper.coment,
-        fixOperIdc:oper.fix_oper_idc,
+        fixOperIdc: oper.fix_oper_idc,
       };
     });
 
@@ -459,37 +459,99 @@ export async function getTCardFull(
 
   return tCard
 }
-// Для отчета о состоянии готовности карт
-export async function getTCardsOpers(
+// Для отчета о состоянии готовности карты + операции + лоады
+export async function getTCardsTerms(
   teamId: number,
+  tCardIdc: number | undefined,
+  tCardDateFrom: string | undefined,
+  tCardDateTo: string | undefined,
+  tCardStatus: StatusEnum | undefined,
   tCardRepository: Repository<TCardTable>,
   tCardOperationRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
   unitLoadRepository: Repository<UnitLoadTable>
-): Promise<TCardTermsItem[]> {
+): Promise<{ terms: TCardTermsItem[], loads: UnitLoadItem[] }> {
 
-  // Получаем все карты для заданной компании
-  const tCards = await tCardRepository.find({
+  // Создаем объект фильтра для карты
+  const tCardFilter: any = {
     where: { team_id: teamId },
-    relations: ['team', 'user']
-  });
+    relations: ['team', 'user'],
+  };
+
+  // Фильтрация по tCardIdc, если он задан
+  if (tCardIdc) {
+    tCardFilter.where.idc = tCardIdc;
+  }
+
+  // Фильтрация по дате
+  const dateFrom = tCardDateFrom ? new Date(tCardDateFrom) : undefined;
+  const dateTo = tCardDateTo ? new Date(tCardDateTo) : undefined;
+  if (dateFrom) {
+    dateFrom.setHours(0, 0, 0, 0);  // Устанавливаем начало дня (00:00:00)
+  }
+  if (dateTo) {
+    dateTo.setHours(23, 59, 59, 999);  // Устанавливаем конец дня (23:59:59)
+  }
+
+  // Фильтрация по дате
+  if (dateFrom && dateTo) {
+    tCardFilter.where.date = Between(dateFrom, dateTo);  // Если указаны обе даты
+  } else if (dateFrom) {
+    tCardFilter.where.date = MoreThanOrEqual(dateFrom);  // Фильтрация по дате с начала
+  } else if (dateTo) {
+    tCardFilter.where.date = LessThanOrEqual(dateTo);  // Фильтрация по дате до указанной
+  }
+  // Фильтрация по статусу, если он задан
+  if (tCardStatus) {
+    tCardFilter.where.status = tCardStatus;
+  }
+
+  // Получаем все карты для заданной компании с фильтрацией
+  const tCards = await tCardRepository.find(tCardFilter);
+
 
   const tCardTerms: TCardTermsItem[] = []; // массив на выход
 
-  // Загружаем операции для карт
+  // Загружаем операции для всех карт
   const tCardsIds = tCards.map(card => card.id);
   const operationsData = await tCardOperationRepository.find({
     where: { tcard_id: In(tCardsIds) },
     relations: ['stage', 'action']
   });
 
-  // Загружаем лоады для операций
+
+  // Загружаем лоады для всех операций
   const operationsIds = operationsData.map(oper => oper.id);
+
   const loadsData = await unitLoadRepository.find({
-    where: { id_oper: In(operationsIds) }
+    where: { id_oper: In(operationsIds) },
+    relations: ['unit']
   });
 
-  //  получаем самый поздний фишиш у лоадов
+  // лоады
+  const loads = loadsData.map(lo => {
+    return {
+      id: lo.id,
+      idc: lo.idc,
+      unit: lo.unit as UnitItem,
+      date: new Date(lo.date).toLocaleDateString('en-CA'),
+      idc_oper: lo.idc_oper,
+      id_oper: lo.id_oper,
+      id_tCard: lo.id_tCard,
+      timeStart: lo.timeStart, // здесь в минутах
+      timeFinish: lo.timeFinish,
+      status: lo.status,
+      isActive: lo.isActive,
+      isRetool: lo.isRetool,
+      isPinned: lo.isPinned,
+      isOuterStart: lo.isOuterStart,
+      isOuterFinish: lo.isOuterFinish,
+      version: lo.version,
+      isFirst: lo.isFirst
+    }
+  })
+
+  // функции вычисления сроков 
   interface ReadyTerm {
     date: string; // Формат: "YYYY-MM-DD"
     time: number; // Время в минутах от начала дня
@@ -515,20 +577,18 @@ export async function getTCardsOpers(
       return dt2;
     } else {
       // Если даты совпадают, сравниваем время (в минутах от начала дня)
-      return dt1.time >= dt2.time ? dt1 : dt2;
+      return Number(dt1.time) >= Number(dt2.time) ? dt1 : dt2;
     }
   }
 
-
-  // Срок готовности карты
-  let cardTerm = {
-    date: '0001-01-01',
-    time: 0
-  } as ReadyTerm
-
-
   // выбираем операции по картам и формируем ответ Item
   for (const card of tCards) {
+    // Срок готовности карты
+    let cardTerm = {
+      date: '0001-01-01',
+      time: 0
+    } as ReadyTerm
+
     const cardOperationsData = operationsData.filter(oper => oper.tcard_id === card.id);
     let tCardOperations = [] as TCardOperationTermsItem[];
     // формируем массив операций по карте
@@ -555,8 +615,11 @@ export async function getTCardsOpers(
         coment: oper.coment,
         readyTerm: latestTerm,
         expand: false,
+        fixOperIdc:oper.fix_oper_idc,
       } as TCardOperationTermsItem);
     }
+
+
     tCardTerms.push({
       id: card.id,
       date: new Date(card.date).toLocaleDateString("en-CA"),
@@ -572,7 +635,7 @@ export async function getTCardsOpers(
     } as TCardTermsItem)
   }
 
-  return tCardTerms;
+  return { terms: tCardTerms, loads: loads };
 }
 
 export async function getExceptions(
@@ -747,7 +810,7 @@ export async function getTCardOperation(
     action: tCardOpertab.action,
     duration: tCardOpertab.duration,
     status: tCardOpertab.status,
-    coment:tCardOpertab.coment
+    coment: tCardOpertab.coment
   };
 
 }
@@ -786,7 +849,7 @@ export async function getTCardOperations(
       } as ActionItem,
       duration: tCardOpertab.duration,
       status: tCardOpertab.status,
-      coment:tCardOpertab.coment,
+      coment: tCardOpertab.coment,
     }
   });
 
@@ -821,6 +884,7 @@ export async function getTCardOperationsByCardId(
       duration: tCardOpertab.duration,
       status: tCardOpertab.status,
       coment: tCardOpertab.coment,
+      fixOperIdc: tCardOpertab.fix_oper_idc,
     }
   });
 

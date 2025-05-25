@@ -293,9 +293,11 @@ label {
     font-style: italic;
 }
 
-input, textarea {
-    font-family: 'Roboto', Arial, sans-serif;  // Указываем одинаковый шрифт для обоих элементов
-    font-size: $header4_font_size;  // Устанавливаем одинаковый размер шрифта для обоих элементов
+input,
+textarea
+ {
+    font-family: 'Roboto', Arial, sans-serif; // Указываем одинаковый шрифт для обоих элементов
+    font-size: $header4_font_size; // Устанавливаем одинаковый размер шрифта для обоих элементов
     line-height: 1.5; // Устанавливаем одинаковый межстрочный интервал
 }
 

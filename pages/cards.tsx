@@ -17,7 +17,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 
 import { } from '@/store/slices';
-import { ProductContent,OperationContent,TCardContent, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum, TemplateItem } from "@/types";
+import { ProductContent, OperationContent, TCardContent, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum, TemplateItem } from "@/types";
 import { checkReconcilation } from "@/cardsHandlers";
 
 import { setTCards, setTCardIndex, setTemplates } from '@/store/slices'
@@ -116,7 +116,7 @@ export default function Cards({ }: CardsProps) {
       const match = code.match(regex);
       const prefix = (match) ? match[1] : "";
       const indexProduct = (match) ? parseInt(match[2], 10) : NaN;
-      
+
       // Вычисляю подсветку
       if (prefix === "P" && tCards[tCardIndex].tCardProducts) {
         prodLine = tCards[tCardIndex].tCardProducts[indexProduct];
@@ -193,6 +193,9 @@ export default function Cards({ }: CardsProps) {
 
       if (operIndex < 0 || !stageTarget) return
       updatedOperations.splice(operIndex, 1, { ...updatedOperations[operIndex], stage: stageTarget })
+
+      newStatus = tCards[tCardIndex].status;
+
     }
 
     // Это перетаскитвание операции в стадию перед определенной картой
@@ -500,7 +503,7 @@ export default function Cards({ }: CardsProps) {
         modified: true,
         tCardStages: updatedStages1,  // Обновляем массивы
         tCardOperations: updatedOperations,
-        status: StatusEnum.draft,
+        // status: StatusEnum.draft, //  стадия не влияет на статус
       }
       // setTCardCurrentValue(tCard);
       // Обновляем состояние карты в redux
@@ -561,7 +564,7 @@ export default function Cards({ }: CardsProps) {
         modified: true,
         tCardStages: finalStages,  // Обновляем массивы
         tCardOperations: updatedOperations,
-        status: StatusEnum.draft,
+        // status: StatusEnum.draft,//  стадия не влияет на статус
       }
       // setTCardCurrentValue(tCard);
       // Обновляем состояние карты в redux
@@ -657,7 +660,11 @@ export default function Cards({ }: CardsProps) {
           //   Обновим текущую карту
           let tCard1 = receivedData.tCard as TCardItem
           let updatedTCards = [...tCards];
-          updatedTCards.splice(indexCardToSave, 1, tCard1)
+          if (tCard1.status === StatusEnum.closed) {
+            updatedTCards = tCards.filter(card => !(card.idc === tCard1.idc && card.date === tCard1.date))
+          } else {
+            updatedTCards.splice(indexCardToSave, 1, tCard1)
+          }
           dispatch(setTCards(updatedTCards));
           setMessage("Карта успешно записана");
           // setModified(false);
@@ -815,7 +822,7 @@ export default function Cards({ }: CardsProps) {
     dispatch(setTCards(updatedTCards));
   }
 
-  const setCartPrepared = async () => {
+  const setCardPrepared = async () => {
     const tCard = tCards[tCardIndex]
     let tCardCurrentOperations_ = tCard.tCardOperations?.map(oper => {
       if (oper.status === StatusEnum.draft)
@@ -826,6 +833,16 @@ export default function Cards({ }: CardsProps) {
     // нужно обновить в списке карт     
     let updatedTCards = [...tCards];
     updatedTCards.splice(tCardIndex, 1, { ...tCard, tCardOperations: tCardCurrentOperations_, status: StatusEnum.prepared, modified: true })
+
+    dispatch(setTCards(updatedTCards));
+
+  }
+  const setCardClose = async () => {
+    const tCard = tCards[tCardIndex]
+
+    // нужно обновить в списке карт     
+    let updatedTCards = [...tCards];
+    updatedTCards.splice(tCardIndex, 1, { ...tCard, status: StatusEnum.closed, modified: true })
 
     dispatch(setTCards(updatedTCards));
 
@@ -1041,7 +1058,7 @@ export default function Cards({ }: CardsProps) {
           const action = actions.find(action => action.code === operation.action.code);
           return ({
             ...operation,
-            status:StatusEnum.draft,
+            status: StatusEnum.draft,
             action: action ? action : undefined,
             out: operation.out.map((outItem: any) => {
               const uom = uoms.find(uom => uom.code === outItem.uom.code);
@@ -1442,7 +1459,7 @@ export default function Cards({ }: CardsProps) {
       duration: oper.duration, // в милисекундах   
       status: StatusEnum.draft,
       coment: `Исправление брака A${oper.idc}`,
-      fixOperIdc:oper.idc,
+      fixOperIdc: oper.idc,
     } as TCardOperationItem;
 
     let tCardOperationsUpdated1 = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
@@ -1486,29 +1503,29 @@ export default function Cards({ }: CardsProps) {
       .sort((a, b) => a.order - b.order);
 
     let operationsReactNodes = operations.map((tCardOperation, index1) => {
-       const fixed = (operations.find(op=>op.fixOperIdc===tCardOperation.idc)!==undefined);
+      const fixed = (operations.find(op => op.fixOperIdc === tCardOperation.idc) !== undefined);
       return (<>
-        {!(tCardOperation.mode) && 
-        <TCardOper
-          key={index1}
-          tCardOperation={tCardOperation}
-          dragOverHandler={dragOverHandler}
-          dropHandler={dropHandler}
-          setCurrentDraggingElement={setCurrentDraggingElement}
-          handleMouseDown={handleMouseDown}
-          handleMouseUp={handleMouseUp}
-          isDragging={isDragging}
-          currentDraggingElement={currentDraggingElement}
-          positionX={position.x}
-          positionY={position.y}
-          handleDrop={handleDrop}
-          deleteOperHandler={deleteOperHandler}
-          editOperHandler={editOperHandler}
-          setOperStatus={setOperStatus}
-          fixDefect={fixDefect}
-          lightProduct={lightProduct}
-          fixed={fixed}
-        />}
+        {!(tCardOperation.mode) &&
+          <TCardOper
+            key={index1}
+            tCardOperation={tCardOperation}
+            dragOverHandler={dragOverHandler}
+            dropHandler={dropHandler}
+            setCurrentDraggingElement={setCurrentDraggingElement}
+            handleMouseDown={handleMouseDown}
+            handleMouseUp={handleMouseUp}
+            isDragging={isDragging}
+            currentDraggingElement={currentDraggingElement}
+            positionX={position.x}
+            positionY={position.y}
+            handleDrop={handleDrop}
+            deleteOperHandler={deleteOperHandler}
+            editOperHandler={editOperHandler}
+            setOperStatus={setOperStatus}
+            fixDefect={fixDefect}
+            lightProduct={lightProduct}
+            fixed={fixed}
+          />}
 
         {tCardOperation.mode && <TCardOperNew
           key={index1}
@@ -1635,13 +1652,21 @@ export default function Cards({ }: CardsProps) {
 
           <div className={`container_card_menu`}>
             <div className={`container_status`}>
+
               status: {tCards[tCardIndex].status} &nbsp;&nbsp;<StatusCircle status={tCards[tCardIndex].status} />
+              {(tCards[tCardIndex].status === StatusEnum.ready)
+                && <button
+                  className={`button_prepared`}
+                  onClick={setCardClose}>
+                  закрыть карту
+                </button>}
               {(tCards[tCardIndex].status === StatusEnum.draft)
                 && <button
                   className={`button_prepared`}
-                  onClick={setCartPrepared}>
+                  onClick={setCardPrepared}>
                   отправить на планирование
                 </button>}
+
               {templatesReactNodes}
             </div>
             <div className={`container_card_download`}>

@@ -21,19 +21,19 @@ import cancel from "@/public/cancel.png";
 import save from "@/public/save-rem.png";
 
 
-export interface TeamScheduleProps {
+export interface TeamProps {
     user:UserItem,
     team: TeamItem,
     setMessage: (message: string) => void,
     // saveTeamHandler: (title: string,coment:string) => void
 }
 
-export default function TeamSchedule({
+export default function Team({
     user,
     team,
     setMessage,
     // saveTeamHandler
-}: TeamScheduleProps) {
+}: TeamProps) {
     
     const dispatch = useAppDispatch();
 

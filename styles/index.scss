@@ -5,7 +5,9 @@
     flex-direction: row;
     // width: 80%;
     justify-content: center;
-    align-items: center;
+    // align-items: baseline;
+    height: inherit;
+    padding-top: 40px;
 
     @media screen and (max-width: 650px) {
         flex-direction: column;
@@ -17,7 +19,10 @@
 .container_index_left {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    height: calc(100vh - 400px);
     width: 40%;
+    // background-color: beige;
 
     @media screen and (max-width: 650px) {
         width: 95%;
@@ -27,10 +32,11 @@
 .container_index_right {
     display: flex;
     flex-direction: column;
-    width: 40%;
     justify-content: center;
+    height: calc(100vh - 400px);
+    width: 40%;
+    // background-color: beige;    
     align-items: center;
-
     @media screen and (max-width: 650px) {
         width: 95%;
     }
@@ -150,14 +156,15 @@
     font-style: italic;
     // margin-left: 10px;
     // text-align: center;
-    
+
 }
 
 .login_message {
     font-size: 14px;
     // color: $dark_text;    
 }
-.login_button{
+
+.login_button {
     width: 100px;
 }
 
@@ -228,7 +235,7 @@
 .register_pass_message_container {
     font-size: $header4_font_size;
     color: $text_color_italic;
-    font-style: italic;    
+    font-style: italic;
 }
 
 .register_message_container {
@@ -247,7 +254,7 @@
 
 }
 
-.register_button{
+.register_button {
     width: 100px;
 }
 
@@ -258,6 +265,7 @@
     align-items: center;
     min-height: calc(100vh - 110px);
     flex-direction: column;
+    // background-color: aqua;
 
 }
 

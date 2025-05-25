@@ -86,7 +86,7 @@ export interface ActionItem {
     interruptible:boolean, // можно ли прервать операцию с окончанием смены а потом продолжитть на след день
 }
 
-// расширение интерфейса
+// расширение интерфейса для отчета о состоянеии карт
 export interface TCardTermsItem extends TCardItem {
     readyTerm: { date: string, time: number }, // срок готовности
     expand: boolean, //  состояние развернутости и свернутости

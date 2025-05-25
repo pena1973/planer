@@ -599,10 +599,10 @@ function findAvailableSegmentsDay(
           if (onPlaned === opRequired) break;
 
           // если вклинивается другая операция то сброс и ищем дальше
-
           if (nextPeriod?.type === TimeTypeEnum.busy) {
             onPlaned = 0;
             opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
+            isRetoolSegmentDefined = false;
           };
         }
       }

@@ -256,6 +256,8 @@ export default function PlanScaleContainer({
     // let unitsView = unitLoads.map(elem => { return elem.unit })
     unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.inner);
     unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.outer);
+  
+
     // Стартовый масштаб всегда 100% и в нем помещается один день  
     // реализуем ленивую загрузку   
     // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно    

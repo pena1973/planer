@@ -80,8 +80,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         // Проверка всех операций карты: если все не ниже текущего статуса
         const isAllOperationsNotLowerThanStatus = tCardOperations.every(operation => {
-          return getStatusPriority(operation.status) >= getStatusPriority(status);
+          // Функция для рекурсивной проверки статуса
+          const checkOperationStatus = (op: TCardOperationItem): boolean => {
+            if (op.status === StatusEnum.defective) {
+              const fixOperation = tCardOperations.find(o => o.fixOperIdc === op.idc);
+              if (fixOperation) {
+                // Если исправляющая операция тоже дефектная, продолжаем цепочку
+                return checkOperationStatus(fixOperation);
+              } else {
+                // Если исправляющей операции нет или она не дефектная, возвращаем статус операции
+                return getStatusPriority(op.status) >= getStatusPriority(status);
+              }
+            } else {
+              // Если операция не дефектная, просто возвращаем её статус
+              return getStatusPriority(op.status) >= getStatusPriority(status);
+            }
+          };
+        
+          // Применяем проверку для текущей операции
+          return checkOperationStatus(operation);
         });
+             
+        
 
         let tCardStatus = (isAllOperationsNotLowerThanStatus) ? status : tCard.status
 
@@ -99,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // отправляем ответ
         res.status(200).json({
           success: true,
-          operLoadsIds:operLoadsIds,
+          operLoadsIds: operLoadsIds,
           tCardStatus: tCardStatus,
           message: 'Карта успешно обновлена',
         });

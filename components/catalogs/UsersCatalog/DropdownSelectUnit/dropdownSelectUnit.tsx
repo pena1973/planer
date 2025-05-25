@@ -1,5 +1,6 @@
-import React from 'react';
-import styles from './dropdownSelectUnit.module.scss'; 
+
+import React, { useState } from 'react';
+import styles from './dropdownSelectUnit.module.scss';
 import { UnitItem } from '@/types';  // Путь к типу UnitItem
 
 // Определение типов для пропсов компонента
@@ -11,42 +12,61 @@ interface DropdownSelectUnitProps {
 }
 
 const DropdownSelectUnit: React.FC<DropdownSelectUnitProps> = ({ onSelect, selectedValue, units, selectedUnits }) => {
+    // Состояние для открытия/закрытия выпадающего списка
+    const [isOpen, setIsOpen] = useState(false);
+
     // Фильтруем юниты, исключая те, которые уже выбраны в других строках
-    const availableUnits = units.filter(unit => 
+    const availableUnits = units.filter(unit =>
         !selectedUnits.some(selectedUnit => selectedUnit.id === unit.id) ||
         selectedValue === unit.id // Позволяем выбрать юнит, если он уже выбран в текущей строке
     );
 
+    // Обработчик для открытия/закрытия списка
+    const toggleDropdown = () => setIsOpen(!isOpen);
+
+    // Обработчик для выбора юнита
+    const handleSelect = (id: number | undefined|null) => {
+        onSelect(id ?? null)
+        setIsOpen(false); // Закрыть список после выбора
+    };
+
     return (
         <div className={styles.dropdownContainer}>
-            {/* Выпадающий список для выбора юнита */}
-            <select
-                className={selectedValue !== null ? styles.type_select : styles.type_select_placeholder}
-                value={selectedValue !== null ? selectedValue : ''}
-                onChange={e => {
-                    const selectedId = parseInt(e.target.value); // Получаем id выбранного юнита
-                    onSelect(selectedId); // Вызываем колбэк с выбранным id
-                }}
-            >
-                {/* Плейсхолдер */}
-                <option className={styles.placeholder} value="" disabled>Выберите юнит</option> 
+            {/* Выбранный юнит */}
+            <div className={styles.select} onClick={toggleDropdown}>
+                <div className={styles.selectedItem}>
+                    {selectedValue !== null ?
+                        availableUnits.find(unit => unit.id === selectedValue)?.title || "Выберите юнит"
+                        : "Выберите юнит"}
+                </div>
+                <div className={styles.arrow}>&#9662;</div>
+            </div>
 
-                {availableUnits.map((unit) => {
-                    return (
-                        <option key={unit.id} value={unit.id}>
+            {/* Список доступных юнитов */}
+            {isOpen && (
+                <ul className={styles.dropdownList}>
+                    {/* Пустой вариант для "Все" */}
+                    <li
+                        key=""
+                        className={`${styles.dropdownItem} ${selectedValue === null ? styles.selected : ""}`}
+                        onClick={() => handleSelect(null)}
+                    >
+                        -
+                    </li>
+                    {availableUnits.map((unit) => (
+                        <li
+                            key={unit.id}
+                            className={`${styles.dropdownItem} ${unit.id === selectedValue ? styles.selected : ""}`}
+                            onClick={() => handleSelect(unit.id)}
+                        >
                             {unit.title} - {unit.code} {/* Можно отобразить дополнительные данные */}
-                        </option>
-                    );
-                })}
-            </select> 
-            
-            {/* Кнопка для очистки выбора */}
-            <button onClick={() => onSelect(null)}> х </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 };
 
 export default DropdownSelectUnit;
-
-
 

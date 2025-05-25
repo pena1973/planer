@@ -2,6 +2,7 @@
 import styles from "./unitsCatalog.module.scss";
 import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types';
 import { generateUniqueIdc, generateUniqueId } from '@/utils'
+import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
 import { useEffect, useState, useRef } from "react";
@@ -75,6 +76,8 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
     // const [message, setMessage] = useState("");
     const [focusIndexUnit, setFocusIndexUnit] = useState(NaN); // Юнит на мкотором стоит курсор 
 
+    const [buttonLoader, setButtonLoader] = useState(false); 
+
     useEffect(() => {
         setExceptionsValue(unitExceptions)
         setActionsValue(unitActions)
@@ -121,6 +124,7 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
     };
 
     const saveUnitsHandler = async () => {
+        setButtonLoader(true)
         setMessage("");
         let message = ""
         let exit = false;
@@ -220,8 +224,15 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                 // console.log("receivedData", receivedData)
                 // setMessage(receivedData.error);
                 if (receivedData.success) {
-                    //   Обновим текущую карту
+                    //   Обновим список юнитов
                     let units_ = receivedData.units as UnitItem[]
+                    units_.sort((a, b) => {
+                        // Проверка на undefined
+                        const idA = a.id ?? 0; // Если id a не существует, считаем его 0
+                        const idB = b.id ?? 0; // Если id b не существует, считаем его 0          
+                        return idA - idB; // Сравниваем id
+                      });
+                      
                     let exceptions_ = receivedData.exceptions as UnitExceptionItem[]
                     let actions_ = receivedData.actions as UnitActionItem[]
                     // временное хранилище                  
@@ -243,7 +254,7 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
             // setMessage(t('service.noConnection') + e.message)            
         }
 
-
+        setButtonLoader(false)
     };
     const addUnitHandler = () => {
         let newUnit = {
@@ -286,7 +297,7 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
             if (indexToChange < 0) return
         }
         else {
-            indexToChange = actionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
+            indexToChange = actionsValueUpdated.findIndex(elem => elem.id === idToChange)
             if (indexToChange < 0) return
         }
 
@@ -404,6 +415,7 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                 <Image className={styles.icon_del}
                     src={del} alt="del" width={20} height={20}
                     onClick={() => deleteUnitHandler(index)}
+                    onFocus={() => setFocusIndexUnit(index)}
                 />
             </td>
             <td>
@@ -416,7 +428,9 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                     onChange={e => {
                         changeHandler(index, e.target.value, "code");
                     }}
+                    onFocus={() => setFocusIndexUnit(index)} 
                 />
+                
             </td>
             <td>
                 <input
@@ -453,6 +467,7 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                             changeHandler(index, e.target.value, "retool");
                         }
                     }}
+                    onFocus={() => setFocusIndexUnit(index)}
                 />
             </td>
             <td>
@@ -551,6 +566,12 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
 
         )
 
+    let selectedValues = actionsValue
+    .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
+    .map((elem) => 
+        elem.action?.id)
+        
+    
     // let unitFocusActionValueReactNodes = unitsValue[focusIndexUnit]?.actions.map((elem, index) => (
     let unitFocusActionValueReactNodes = actionsValue
         .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
@@ -558,8 +579,7 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
             (
                 <tr key={"ac" + index}>
                     <td>
-                        <Image
-                            // className={styles.icon_del}
+                        <Image                            
                             src={del} alt="del" width={20} height={20}
                             onClick={() => deleteUnitActionHandler(elem.id, elem.idc)}
                         />
@@ -571,7 +591,7 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                             options={actions}
                             onSelect={(value) => { changeUnitActionHandler(elem.id, elem.idc, value, "action"); }}
                             selectedValue={elem.action?.id || null}
-
+                            selectedValues={selectedValues}  // Передаем массив выбранных Значений
                         />
                     </td>
                     <td>
@@ -634,11 +654,13 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                         />
                     </div>
                     <div className={styles.container_icon_edit_save}>
+                    {buttonLoader && <ButtonLoader />}
+                    {!buttonLoader &&
                         <Image className={styles.icon_edit_save}
                             src={save}
                             alt="arrow" width={20} height={20}
                             onClick={() => { saveUnitsHandler() }}
-                        />
+                        />}
                     </div>
                 </div>
 
@@ -696,6 +718,7 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                             </table>
                             <div className={styles.container_buttons_row}>
                                 <div className={styles.container_icon_edit_save}>
+                               
                                     <Image className={styles.icon_edit_save}
                                         src={add}
                                         alt="arrow" width={20} height={20}

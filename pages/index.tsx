@@ -440,6 +440,14 @@ export default function Index({ }: IndexProps) {
         const receivedData = await res.json();
         if (receivedData.success) {
           let units_ = receivedData.units as UnitItem[]
+          // сортируем          
+          units_.sort((a, b) => {
+            // Проверка на undefined
+            const idA = a.id ?? 0; // Если id a не существует, считаем его 0
+            const idB = b.id ?? 0; // Если id b не существует, считаем его 0          
+            return idA - idB; // Сравниваем id
+          });
+
           dispatch(setUnits(units_));
           setMessage("Загружены юниты")
           // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")

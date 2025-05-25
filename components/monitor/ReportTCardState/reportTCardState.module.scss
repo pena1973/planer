@@ -5,15 +5,16 @@
 /***********
  * Контейнер
  ***********/
- .container {
+.container {
   width: 100%;
-  min-height:  calc(100vh - 110px);
+  min-height: calc(100vh - 115px);
   // background-color: aqua;
 }
+
 .table_container {
   margin: 10px 0;
   padding: 10px;
-  background-color: $main_container_background_color;  
+  background-color: $main_container_background_color;
   border: 1px solid $container_border_color;
   border-radius: 6px;
   width: fit-content;
@@ -26,7 +27,7 @@
 }
 
 ._table thead th:nth-child(2) {
-  width: 150px;
+  width: 320px;
   /* Вторая колонка "Карта, Операция" */
 }
 
@@ -66,29 +67,41 @@
   color: $text_color_italic;
 }
 
-
-.ready {
-  background-color: $load_ready;
+.status {
   border-radius: 5px;
   width: 16px;
   height: 16px;
   margin-right: 5px;
+}
+
+.draft {
+  background-color: $load_draft;
+}
+.prepared {
+  background-color: $load_prepared;
+}
+.planed {
+  background-color: $load_planed;
+}
+
+.ready {
+  background-color: $load_ready;
 }
 
 .defective {
   background-color: $load_defected;
-  border-radius: 5px;
-  width: 16px;
-  height: 16px;
-  margin-right: 5px;
 }
 
-.planed {
-  background-color: $load_planed;
-  border-radius: 5px;
-  width: 16px;
-  height: 16px;
-  margin-right: 5px;
+.performed {
+  background-color: $load_performed;
+}
+
+.cancelled {
+  background-color: $load_cancelled;
+}
+
+.closed {
+  background-color: $load_closed;
 }
 
 .status_row {
@@ -110,7 +123,20 @@
   justify-content: center;
   align-items: center;
   // min-width:  100%;
-  min-height:  calc(100vh - 110px);
+  min-height: calc(100vh - 510px);
   flex-direction: column;
   // background-color: antiquewhite;
 }
+
+.table_filter{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  
+  text-indent: 15px;
+  font-style: normal;
+  color: $third_text_color;
+  margin: 10px;
+}
+
+
