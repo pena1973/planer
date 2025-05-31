@@ -42,10 +42,12 @@
 ;
 
 .load_draft {
-    background-color: $load_draft
+    background-color: $load_draft;
 }
 
-;
+.load_closed {
+    background-color: $load_closed;
+}
 
 .circle {
     width: 18px;

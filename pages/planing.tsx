@@ -213,6 +213,8 @@ export default function Planing() {
     let tCardLoads = unitLoads.filter(load => load.id_tCard === erazload?.id_tCard)
     let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== erazload?.id_tCard)
 
+    let index = tCards.findIndex(tCard => tCard.id === erazload?.id_tCard);
+
     if (erazload) {
 
       try {
@@ -240,13 +242,20 @@ export default function Planing() {
           // setMessage(t('service.serverUnavailable') + res.status);
         } else {
           const receivedData = await res.json();
+
+          let updatedTCard = (receivedData.tCard as TCardItem)
           let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
+          
+          // обновляем лоады
           let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
           dispatch(setUnitLoads(updatedLoads));
-
-          // меняем статус карты
-          const tCards_ = tCards.map(card => (card.id === erazload.id_tCard) ? { ...card, status: StatusEnum.prepared } : card)
-          dispatch(setTCards(tCards_));
+          // меняем карту в списке
+          let _tCards = [...tCards]
+          _tCards.splice(index, 1, updatedTCard);
+          dispatch(setTCards(_tCards));
+          // // меняем статус карты
+          // const tCards_ = tCards.map(card => (card.id === erazload.id_tCard) ? { ...card, status: StatusEnum.prepared } : card)
+          // dispatch(setTCards(tCards_));
 
           if (receivedData.success) {
             setMessage(" Успешно удалено планирование операции и все последующие зависимые планирования");
@@ -379,10 +388,6 @@ export default function Planing() {
   }
 
 
-  // Изменение длительности лоада для сторонних юнитов Контекстное меню
-  const changeDurationLoadHandler = async (idc: number) => {
-
-  }
 
 
   /// ПЕРЕТАСКИВАНИЕ КАРТЫ НА ПОЛЕ ПЛАНИРОВАНИЯ
@@ -471,7 +476,11 @@ export default function Planing() {
   // временно уберу фильтр  нужен признак по которому я пойму какая карта запланирована а какая нет
   let tCardsToPlan = tCards.filter(tCard => (tCard.status === StatusEnum.prepared && !tCard.modified)) // подготовлен
 
-  let tCardsPlaned = tCards.filter(tCard => (tCard.status === StatusEnum.planed)) // запланирован
+  let tCardsPlaned = tCards.filter(tCard => (
+    tCard.status === StatusEnum.planed
+    ||tCard.status === StatusEnum.ready
+    ||tCard.status === StatusEnum.performed)) // запланирован
+
   let tCardsDefective = tCards.filter(tCard => (tCard.status === StatusEnum.defective)) // запланирован
   // Карты
   let tCardsPlanedReactNodes = tCardsPlaned.map((elem, index4) => {
@@ -545,37 +554,37 @@ export default function Planing() {
       </div>
     );
   })
-// Карты
-let tCardsDefectiveReactNodes = tCardsDefective.map((elem, index4) => {
-  let date = "";
-  if (elem.date)
-    date = formatDate(new Date(elem.date));
+  // Карты
+  let tCardsDefectiveReactNodes = tCardsDefective.map((elem, index4) => {
+    let date = "";
+    if (elem.date)
+      date = formatDate(new Date(elem.date));
 
-  return (
-    <div key={index4} className="container_plan_card_planed">
-      <div className="container_plan_card_icon_light">
-        {loaderCard === elem.id && <ButtonLoader />}
-        {loaderCard !== elem.id &&
-          (elem.id === tCardLighted.id ?
-            <Image className="icon_edit_save" src={lighton} alt="lighton"
-              width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
-            : <Image className="icon_edit_save" src={light} alt="light"
-              width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
-        }
-        <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.idc)} -  {date}</div>
-      </div>
+    return (
+      <div key={index4} className="container_plan_card_planed">
+        <div className="container_plan_card_icon_light">
+          {loaderCard === elem.id && <ButtonLoader />}
+          {loaderCard !== elem.id &&
+            (elem.id === tCardLighted.id ?
+              <Image className="icon_edit_save" src={lighton} alt="lighton"
+                width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
+              : <Image className="icon_edit_save" src={light} alt="light"
+                width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
+          }
+          <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.idc)} -  {date}</div>
+        </div>
 
-      <div className="container_icon_edit_save">
-        <Image className="icon_edit_save"
-          src={eraz}
-          alt="eraz" width={20} height={20}
-          onClick={() => erazCardHandler(elem.id)}
-        />
-        {tCardLighted?.id === elem.id}
+        <div className="container_icon_edit_save">
+          <Image className="icon_edit_save"
+            src={eraz}
+            alt="eraz" width={20} height={20}
+            onClick={() => erazCardHandler(elem.id)}
+          />
+          {tCardLighted?.id === elem.id}
+        </div>
       </div>
-    </div>
-  );
-})
+    );
+  })
   return (
     <Layout>
       <div className="container_global" >
@@ -584,11 +593,11 @@ let tCardsDefectiveReactNodes = tCardsDefective.map((elem, index4) => {
           <div className="container_plan_planed_card">
             {tCardsPlanedReactNodes}
           </div>
-          <div className="container_plan_title_no"> не запланированы</div>
+          <div className="container_plan_title_no"> подготовлены</div>
           <div className="container_plan_prepared_card">
             {tCardsToPlanReactNodes}
           </div>
-          <div className="container_plan_title_no"> исправлять брак</div>
+          <div className="container_plan_title_no"> на исправление</div>
           <div className="container_plan_defective_card">
             {tCardsDefectiveReactNodes}
           </div>
@@ -611,7 +620,7 @@ let tCardsDefectiveReactNodes = tCardsDefective.map((elem, index4) => {
             tCardLighted={tCardLighted}
             unitExceptions={unitExceptions}
             erazLoadHandler={erazLoadHandler}
-            changeDurationLoadHandler={changeDurationLoadHandler}
+            // changeDurationLoadHandler={changeDurationLoadHandler}
             moveLoadHandler={moveLoadHandler}
             pinLoadHandler={pinLoadHandler}
             unPinLoadHandler={unPinLoadHandler}

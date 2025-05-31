@@ -9,10 +9,21 @@ import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { TeamTable } from '@/pages/db/models/catalogs/teams'
 
+import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads'
+
 // import { TypeEnum } from '@/pages/db/models/enums';
-import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, UOMItem, ActionItem } from '@/types';
-import { getTCardFull, } from './handlers-get';  // 
-import { updateCard, updateStages, updateOperations, updateProducts } from './handlers-update';  // 
+import {
+  TCardItem, TCardProductItem,
+  TCardOperationItem, TCardStageItem,
+  UOMItem, ActionItem,
+  StatusEnum, UnitItem,
+  UnitLoadItem,
+  UnitTypeEnum,
+  UnitBelongEnum
+} from '@/types';
+import { getTCardFull, getTCardLoads } from './handlers-get';  // 
+import { updateCard, updateStages, updateOperations, updateProducts, updateTCardLoads, updateStatusTCard, updateStatusOperationByTCardId, updateStatusOperationsByOperIds } from './handlers-update';  // 
+
 import { t } from 'i18next';
 import { TypeEnum } from '@/types';
 // Определение перечисления
@@ -32,11 +43,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationRepository = dbConnection.getRepository(TCardOperationTable);
     const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
+    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
+    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
+
     const { tCardId: tCardIdget } = req.query;
 
     switch (req.method) {
       case 'GET':
-        
+
         // получаем полную карту со всеми входящими и исходящими
         const tCard_ = await getTCardFull(
           Number(tCardIdget),
@@ -147,7 +161,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return {
               id: product.id,
               idc: product.idc,
-              code: product.code,  
+              code: product.code,
               title: product.title,
               qtu: product.qtu,
               uom: product.uom,  // Преобразуем UOMsTable в UOMItem
@@ -160,7 +174,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return {
               id: product.id,
               idc: product.idc,
-              code: product.code,  
+              code: product.code,
               title: product.title,
               qtu: product.qtu,
               uom: product.uom,  // Преобразуем UOMsTable в UOMItem
@@ -214,15 +228,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return {
               id: oper.id,
               idc: oper.idc,
-              order:oper.order,
+              order: oper.order,
               stage: stage,
               out: out,
               inn: inn,
               action: { id: oper.action.id, title: oper.action.title, code: oper.action.code } as ActionItem,
               duration: oper.duration, // в милисекундах   
               status: oper.status,
-              coment:oper.coment,
-              fixOperIdc:oper.fix_oper_idc,
+              coment: oper.coment,
+              fixOperIdc: oper.fix_oper_idc,
             } as TCardOperationItem; // Приводим к типу TCardOperationItem
           });
 
@@ -245,23 +259,119 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // отправляем ответ
         res.status(200).json({
           success: true,
-          tCard: tCardItem_,        
+          tCard: tCardItem_,
         });
         break;
 
       case 'DELETE':
         // Извлекаем данные из тела запроса
-        
-        const { tCardId: tCardIddel } = req.query;
-        const id = Number(tCardIddel);
-        await tCardProductRepository.delete({ tcard_id: id });
-        // Удаляем все связанные данные: стадии, операции, продукты
-        await tCardOperationRepository.delete({ tcard_id: id });
-        await tCardStageRepository.delete({ tcard_id: id });
-        // Теперь удаляем саму карту
-        await tCardRepository.delete({ id: id });
+
+        const { tCardId: tCardIddel, teamId: teamIddel } = req.query;
+        const tCardId = Number(tCardIddel);
+        const teamId_ = Number(teamIddel);
+
+        const loads = await getTCardLoads(tCardId, unitLoadRepository)
+        if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
+
+        // фильтруем лоады по сегодняшней дате
+        const today = new Date().toLocaleDateString("en-CA");
+
+        // получаем исторические лоады и те которые еще не выполнены переводим в статус canceled
+        const historyLoads = loads
+          .filter(load => new Date(load.date).toLocaleDateString("en-CA") < today)
+          .map(load => {
+            if (load.status === StatusEnum.planed) {
+              return { ...load, status: StatusEnum.cancelled }; // Возвращаем объект с новым статусом
+            }
+            return load;
+          });
+
+        // получаем лоады которые в статусе уже сделанных и не в истории - они должны остаться
+        // остальные удаляем
+        const planLoads = loads.filter(load => {
+          return new Date(load.date).toLocaleDateString("en-CA") >= today &&
+            (load.status === StatusEnum.performed || load.status === StatusEnum.defective || load.status === StatusEnum.ready);
+        });
+
+        const allLoads = [...historyLoads, ...planLoads];
+
+        const resDel = await updateTCardLoads(teamId_, tCardId, allLoads, unitLoadRepository);
+        if (!resDel.success) { res.status(200).json({ success: false, message: resDel.message }); }
+
+        // Переводим в тип UnitLoadItem[]                
+        const loads_ = resDel.loads.map(lo => {
+         const unit =  lo.unit;
+          return {
+            id: lo.id,
+            idc: lo.idc,
+            unit: {
+              id:unit.id,
+                  idc: unit.idc,
+                  title: unit.title,
+                  code: unit.code,                   
+                  retool: unit.retool,
+                  modified: false,
+                  belong: unit.belong as UnitBelongEnum,
+                  type: unit.type as UnitTypeEnum,
+                  coment: unit.coment,
+                  active: unit.active, 
+              
+              } as UnitItem,
+            date: new Date(lo.date).toLocaleDateString('en-CA'),
+            idc_oper: lo.idc_oper,
+            id_oper: lo.id_oper,
+            id_tCard: lo.id_tCard,
+            timeStart: lo.timeStart, // здесь в минутах
+            timeFinish: lo.timeFinish,
+            status: lo.status,
+            isActive: lo.isActive,
+            isRetool: lo.isRetool,
+            isPinned: lo.isPinned,
+            isOuterStart: lo.isOuterStart,
+            isOuterFinish: lo.isOuterFinish,
+            version: lo.version,
+            isFirst: lo.isFirst
+          } as UnitLoadItem
+        })
+
+        // если они есть удаляем текущие лоады, все что в стадии planed - переводим в canceled  
+        // а саму карту  если остались лоады то канцел а если лоадов нет то удалим
+
+        //если есть лоады (Это те которые остались) то карту переводим в статус canceled вместе с операциями
+        if (loads_.length > 0) {
+
+          // обновим статус операций
+          const resOpers = await updateStatusOperationByTCardId(tCardOperationsRepository, tCardId, StatusEnum.cancelled)
+          if (!resOpers.success) {
+            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
+            break;
+          }
+
+          // обновим статус  карты
+          const resCard = await updateStatusTCard(tCardRepository, tCardId, StatusEnum.cancelled)
+          if (!resCard.success) {
+            res.status(200).json({
+              success: false,
+              message: 'Статус карты не обновлен',
+            });
+            break;
+          }
+          // собираем все что осталось от карты
+          const tCard_ = await getTCardFull(tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository);
+          // Возвращаем успешный ответ
+          res.status(200).json({ success: true, tCard: tCard_, loads: loads_, message: `TCard canceled successfully` });
+
+        } else {
+          // лоадов нет удаляем карту и все связанные с ней данные
+          await tCardProductRepository.delete({ tcard_id: tCardId });
+          // Удаляем все связанные данные: стадии, операции, продукты
+          await tCardOperationRepository.delete({ tcard_id: tCardId });
+          await tCardStageRepository.delete({ tcard_id: tCardId });
+          // Теперь удаляем саму карту
+          await tCardRepository.delete({ id: tCardId });
+        }
         // Возвращаем успешный ответ
-        res.status(200).json({ success: true, message: `TCard with id ${id} deleted successfully` });
+        res.status(200).json({ success: true,loads: [] as UnitLoadItem[], message: `TCard with id ${tCardId} deleted successfully` });
         break;
 
 

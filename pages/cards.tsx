@@ -17,10 +17,10 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
 
 import { } from '@/store/slices';
-import { ProductContent, OperationContent, TCardContent, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum, TemplateItem } from "@/types";
+import { ProductContent, OperationContent, TCardContent, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum, TemplateItem, UnitLoadItem } from "@/types";
 import { checkReconcilation } from "@/cardsHandlers";
 
-import { setTCards, setTCardIndex, setTemplates } from '@/store/slices'
+import { setTCards, setTCardIndex, setTemplates, setUnitLoads } from '@/store/slices'
 
 import delL from "@/public/del222-rem.png";
 import delD from "@/public/del2-rem.png";
@@ -42,6 +42,8 @@ export default function Cards({ }: CardsProps) {
 
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
   const [saveLoaderCard, setSaveLoaderCard] = useState(NaN); // состояние это id категории  
+  const [removeLoaderCard, setRemoveLoaderCard] = useState(NaN); // состояние это id категории  
+
   const [resetLoaderCard, setResetLoaderCard] = useState(NaN); // состояние это id категории   
   const [lightProduct, setLightProduct] = useState(NaN); // idc  продукта который мы выделяем   
   const [saveTemplateLoaderCard, setSaveTemplateLoaderCard] = useState(false); // состояние сохранения шаблона
@@ -67,6 +69,9 @@ export default function Cards({ }: CardsProps) {
 
   const templates = useSelector((state: RootState) => {
     return state.dataSlice.templates;
+  })
+  const unitLoads = useSelector((state: RootState) => {
+    return state.planSlice.unitLoads;
   })
   // Начальный загруз
   useEffect(() => {
@@ -583,7 +588,17 @@ export default function Cards({ }: CardsProps) {
   /////////////////// ТЕХ КАРТЫ
 
   const deleteCardHandler = async (idToRemove: number) => {
-    // setModified(true);
+    setRemoveLoaderCard(idToRemove);
+    const indexCardToRemote = tCards.findIndex(card => card.id === idToRemove);
+    // если новая  - просто удаляем карту без id она не записана в БД
+    if (tCards[tCardIndex]?.idc === 0) {
+      let updatedTCards = [...tCards];
+      updatedTCards.splice(indexCardToRemote, 1)
+      dispatch(setTCards(updatedTCards));
+      setRemoveLoaderCard(NaN);
+      return
+    }
+
     try {
       // запрос получение текста из БД вместе со словами     textId: number, userId:number      
       const res = await fetch(`api/tcard-api?tCardId=${idToRemove}`,
@@ -608,7 +623,22 @@ export default function Cards({ }: CardsProps) {
         // setMessage(receivedData.error);
         if (receivedData.success) {
 
-          setMessage("Карта успешно удалена");
+          const tCard = receivedData.tCard as TCardItem
+          const indexCardToRemote = tCards.findIndex(card => card.id === idToRemove);
+          let updatedTCards = [...tCards];
+          // удаляем карту из списка
+          updatedTCards.splice(indexCardToRemote, 1)
+          dispatch(setTCards(updatedTCards));
+          const unitLoads_ = unitLoads.filter(load => load.id_tCard !== idToRemove);
+
+          // обновляем лоады
+          const loads = receivedData.loads as UnitLoadItem[]
+          const updatedLoads = [...unitLoads_, ...loads]
+          dispatch(setUnitLoads(updatedLoads));
+
+          setMessage(receivedData.message);
+        } else {
+          setMessage(receivedData.message);
         }
       }
 
@@ -616,11 +646,10 @@ export default function Cards({ }: CardsProps) {
       // setMessage(t('service.noConnection') + e.message)            
     }
 
-    const tCardsUpdated = tCards.filter(tCard => tCard.id !== idToRemove);
-    dispatch(setTCards(tCardsUpdated))
-
+    setRemoveLoaderCard(NaN);
 
   };
+
   //!!
   const saveCardHandler = async (idToSave: number) => {
     const indexCardToSave = tCards.findIndex(card => card.id === idToSave);
@@ -1041,16 +1070,16 @@ export default function Cards({ }: CardsProps) {
         });
       }
 
-      // Заполняем tCardWastes
-      if (template.tCardWastes) {
-        newTCard.tCardWastes = template.tCardWastes.map((waste: ProductContent) => {
-          const uom = uoms.find(uom => uom.code === waste.uom.code);
-          return ({
-            ...waste,
-            uom: (uom) ? uom : undefined,
-          })
-        });
-      }
+      // // Заполняем tCardWastes
+      // if (template.tCardWastes) {
+      //   newTCard.tCardWastes = template.tCardWastes.map((waste: ProductContent) => {
+      //     const uom = uoms.find(uom => uom.code === waste.uom.code);
+      //     return ({
+      //       ...waste,
+      //       uom: (uom) ? uom : undefined,
+      //     })
+      //   });
+      // }
 
       // Заполняем tCardOperations
       if (template.tCardOperations) {
@@ -1087,17 +1116,29 @@ export default function Cards({ }: CardsProps) {
         }));
       }
 
-      // Заполняем tCardMaterials, если есть
-      if (template.tCardMaterials) {
-        newTCard.tCardMaterials = template.tCardMaterials.map((material: any) => {
-          const uom = uoms.find(uom => uom.code === material.uom.code);
-          return ({
-            ...material,
-            uom: (uom) ? uom : undefined,
-          })
-        });
-      }
+      // // Заполняем tCardMaterials, если есть
+      // if (template.tCardMaterials) {
+      //   newTCard.tCardMaterials = template.tCardMaterials.map((material: any) => {
+      //     const uom = uoms.find(uom => uom.code === material.uom.code);
+      //     return ({
+      //       ...material,
+      //       uom: (uom) ? uom : undefined,
+      //     })
+      //   });
+      // }
 
+
+
+      // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
+      const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(newTCard.tCardProducts as TCardProductItem[], newTCard.tCardOperations as TCardOperationItem[]);
+
+
+      newTCard.modified = true;
+      newTCard.tCardProducts = tCardProductsUpdated;
+      newTCard.tCardOperations = tCardOperationsUpdated;
+      newTCard.tCardWastes = tCardWastesUpdated;
+      newTCard.tCardMaterials = tCardMaterialsUpdated;
+      newTCard.status = StatusEnum.draft;
       newTCard.maxIdc = calculateMaxIdc(newTCard as TCardContent); //  MaxIdc  после полного заполнения
 
       // Добавляем новую карту в состояние
@@ -1599,10 +1640,12 @@ export default function Cards({ }: CardsProps) {
               onClick={() => { saveCardHandler(elem.id) }}
             />}
           {elem.modified && <div>*</div>}
-          <Image className="icon_del"
-            src={delD} alt="del" width={20} height={20}
-            onClick={() => deleteCardHandler(elem.id)}
-          />
+          {removeLoaderCard === elem.id && <ButtonLoader />}
+          {removeLoaderCard !== elem.id &&
+            <Image className="icon_del"
+              src={delD} alt="del" width={20} height={20}
+              onClick={() => deleteCardHandler(elem.id)}
+            />}
 
         </div>
       </div>

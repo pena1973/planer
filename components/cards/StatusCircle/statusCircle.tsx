@@ -12,7 +12,7 @@ const statusColors: Record<StatusEnum, string> = {
   [StatusEnum.prepared]:  styles.load_prepared,
   [StatusEnum.defective]: styles.load_defected,
   [StatusEnum.draft]:     styles.load_draft,
-  [StatusEnum.closed]:    "",
+  [StatusEnum.closed]:    styles.load_closed,
 };
 
 interface StatusCircleProps {

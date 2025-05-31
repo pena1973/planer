@@ -61,7 +61,7 @@ const DropdownSelectType: React.FC<DropdownSelectTypeProps> = ({ onSelect, selec
         <div className={styles.dropdownContainer}>
             {/* Выбранное значение */}
             <div 
-                className={selectedValue !== null ? styles.select : styles.type_select_placeholder}
+                className={styles.select}
                 onClick={toggleDropdown}
             >
                 {selectedValue ? UnitTypeEnum[selectedValue] : "Выберите"}

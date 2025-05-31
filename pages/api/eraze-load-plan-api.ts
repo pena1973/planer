@@ -137,7 +137,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // меняем статус из нашего пакета отмененные  лоады
         // tCardLoadsUpdated = tCardLoadsUpdated.map(lo => {
         //   return dependentOperationsIdstoCancel.includes(lo.id_oper) ? { ...lo, status: StatusEnum.cancelled } : lo;
-        // })
+        // })        
 
          tCardLoadsUpdated = tCardLoadsUpdated.map(load =>
           tCardLoadsToCancel.some(cancelLoad => cancelLoad.id === load.id)
@@ -145,7 +145,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             : load
         );
 
-        res.status(200).json({ success: true, unitsLoads: tCardLoadsUpdated, message: "" });
+      // Получим карту в ее новом состоянии и тоже передадим      
+        
+      const _tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository,tCardStagesRepository)
+        if (!tCard) {
+          res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
+          return
+        }
+
+        res.status(200).json({ 
+          success: true, 
+          unitsLoads: tCardLoadsUpdated, 
+          tCard: _tCard, 
+          message: "" });
         break;
 
       default:
@@ -219,36 +231,6 @@ const cancelLoads = async (
     return { success: false, message: error.message || "Ошибка при отмене загрузок." };
   }
 };
-
-
-// const deleteLoads = async (
-//   delLoads: UnitLoadItem[],
-//   today: string, // "YYYY-MM-DD"
-//   unitLoadRepository: Repository<UnitLoadTable>
-// ): Promise<{ success: boolean, message: string }> => {
-
-//   if (delOperIds.length === 0) return { success: true, message: `Нет операций для удаления.` };
-
-//   try {
-//     const result = await unitLoadRepository
-//       .createQueryBuilder()
-//       .delete()
-//       .from(UnitLoadTable)
-//       .where("id_oper IN (:...delOperIds)", { delOperIds })
-//       .andWhere("status = :status", { status: StatusEnum.planed })
-//       .andWhere("date >= :today", { today })
-//       .execute();
-
-//     if (result.affected && result.affected > 0) {
-//       return { success: true, message: `Удалено ${result.affected} загрузок.` };
-//     } else {
-//       return { success: false, message: "Нет загрузок для удаления." };
-//     }
-//   } catch (error) {
-//     console.error("Ошибка при удалении загрузок:", error);
-//     return { success: false, message: "Ошибка при удалении загрузок." };
-//   }
-// };
 
 const deleteLoads = async (
   delLoads: UnitLoadItem[],

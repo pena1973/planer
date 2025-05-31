@@ -1,5 +1,7 @@
 
 import styles from "./contextMenuInner.module.scss";
+import { useEffect, useState, useRef } from "react";
+import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
@@ -18,7 +20,7 @@ export interface ContexMenuInnerProps {
     load: UnitLoadItem,
     left: number,
     width: number,
-    erazLoadHandler: (load_idc: number) => void,
+    erazLoadHandler: (load_idc: number) =>void;
     retool: number,
     blocked: boolean
 }
@@ -34,6 +36,8 @@ export default function ContexMenuInner({
 
 
 }: ContexMenuInnerProps) {
+
+    const [buttonLoader, setButtonLoader] = useState(false);
 
     function convertMinutes(totalMinutes: number): { hours: number; minutes: number } {
         const hours = Math.floor(totalMinutes / 60);
@@ -77,11 +81,17 @@ export default function ContexMenuInner({
 
             {/* <button> отменить</button> */}
             {!blocked && <div className={styles.container_icon}>
-                <Image className={styles.icon_edit_save}
-                    src={eraz}
-                    alt="eraz" width={20} height={20}
-                    onClick={() => erazLoadHandler(load.idc)}
-                />
+                {buttonLoader && <ButtonLoader />}
+                {!buttonLoader &&
+                    <Image className={styles.icon_edit_save}
+                        src={eraz}
+                        alt="eraz" width={20} height={20}
+                        onClick={async () => {
+                            setButtonLoader(true); // Показываем индикатор загрузки
+                            erazLoadHandler(load.idc); // Вызываем асинхронную функцию
+                            setButtonLoader(false); // Скрываем индикатор загрузки
+                        }}
+                    />}
             </div>}
         </div>
     )

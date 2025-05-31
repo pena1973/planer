@@ -156,7 +156,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 timeFinish: readySourceMoment.time + 5,
                 isPinned: true,
                 isOuterStart: true,
-                loadInfo: (loadStart.loadInfo) ? { ...loadStart.loadInfo, koef: 1 } : undefined
+                // loadInfo: (loadStart.loadInfo) ? { ...loadStart.loadInfo, koef: 1 } : undefined
+                loadInfo: {...loadStart.loadInfo, koef: 1 }
               })
 
             // Формируем финишный лоад 
@@ -170,7 +171,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 timeFinish: loadFinish.timeFinish,
                 isPinned: true,
                 isOuterFinish: true,
-                loadInfo: (loadFinish.loadInfo) ? { ...loadFinish.loadInfo, koef: 1 } : undefined
+                // loadInfo: (loadFinish.loadInfo) ? { ...loadFinish.loadInfo, koef: 1 } : undefined
+                loadInfo:  { ...loadFinish.loadInfo, koef: 1 }, 
               })
             //
             // перепланируем зависимые лоады
@@ -245,7 +247,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 timeFinish: readySourceMoment.time + 5,
                 isPinned: true,
                 isOuterStart: true,
-                loadInfo: (loadStart.loadInfo) ? { ...loadStart.loadInfo, koef: 1 } : undefined
+                // loadInfo: (loadStart.loadInfo) ? { ...loadStart.loadInfo, koef: 1 } : undefined
+                loadInfo:  { ...loadStart.loadInfo, koef: 1 }
               })
             //  финишный оставляю как есть            
             planedCardLoads.push(loadFinish);
@@ -288,7 +291,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 timeFinish: timeFinish,
                 isPinned: true,
                 isOuterFinish: true,
-                loadInfo: (loadFinish.loadInfo) ? { ...loadFinish.loadInfo, koef: 1 } : undefined
+                loadInfo: { ...loadFinish.loadInfo, koef: 1 }
               })
 
             // Далее перепланируем начиная с последующих операций

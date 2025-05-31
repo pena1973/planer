@@ -285,7 +285,7 @@ function findAvailableTimeForOperation(
         idc: getLoadIdc(tCard, operation, seg),
         isActive: true,
         isRetool: seg.isRetool,
-        loadInfo: { title: operation.action.title, duration: Math.round(operation.duration / 60000), interruptible: operation.action.interruptible, koef: koef },
+        loadInfo: { tCardIdc:tCard.idc,tCardDate:tCard.date,title: operation.action.title, duration: Math.round(operation.duration / 60000), interruptible: operation.action.interruptible, koef: koef },
         isPinned: isPinned,
         isOuterStart: false,//  это старт оутсортера, здесь не применяется
         isOuterFinish: false,//  это финиш оутсортера        
@@ -1191,7 +1191,6 @@ export const getPreviousOpers = (
   }
   return prevOpers;
 };
-
 
 // Функция получает на выходе самую позднюю дату исполнения всех операций которые подаются на вход
 // opers - idc -операций для поиска лоадов,

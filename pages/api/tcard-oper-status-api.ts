@@ -9,7 +9,7 @@ import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 
 import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, UnitLoadItem, StatusEnum } from '@/types';
 
-import { updateStatusOperation, updateStatusLoads, updateStatusTCard } from '@/pages/api/handlers-update';
+import { updateStatusOperationByOperId, updateStatusLoads, updateStatusTCard } from '@/pages/api/handlers-update';
 import { getTCard, getTCardOperationsByCardId, getTCardOperationLoads } from '@/pages/api/handlers-get';
 import { getStatusPriority } from "@/utils"
 
@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { tCardId, operId, version, status, teamId, userId } = req.body as RequestBody;
 
         //Обновляем СТАТУС ОПЕРАЦИИ
-        const resOperation = await updateStatusOperation(tCardOperationsRepository, operId, status)
+        const resOperation = await updateStatusOperationByOperId(tCardOperationsRepository, operId, status)
         if (!resOperation.success) {
           res.status(200).json({
             success: false,
@@ -100,9 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Применяем проверку для текущей операции
           return checkOperationStatus(operation);
         });
-             
-        
-
+       
         let tCardStatus = (isAllOperationsNotLowerThanStatus) ? status : tCard.status
 
         // обновим статус карты если изменился

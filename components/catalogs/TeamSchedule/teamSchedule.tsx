@@ -351,6 +351,9 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
             </tr>
         )
     ))
+
+    let selectedValues: DaysOfWeek[] = weekendsValue.filter(elem => elem !== null) as DaysOfWeek[];
+
     let weekendsValueReactNodes = weekendsValue.map((elem, index) => (
         (
             <tr key={index}>
@@ -368,6 +371,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                             changeRowHandler(index, value, "weekDay");
                         }}
                         selectedValue={elem || null}
+                        selectedValues={selectedValues}
                     />
                 </td>
             </tr>

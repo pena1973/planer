@@ -9,7 +9,7 @@ import pinon from "@/public/point-rem.png";
 import pinof from "@/public/pin_of-rem.png";
 import ContextMenuInner from "./ContextMenuInner/contextMenuInner";
 import { relative } from "path";
-import {padNumberToFourDigits} from "@/utils"
+import { padNumberToFourDigits } from "@/utils"
 
 export interface LoadProps {
     dayWidth: number,
@@ -98,6 +98,8 @@ export default function LoadInner({
     if (!tCard) tCard = {} as TCardItem;
 
     const blocked = !(load.status === StatusEnum.prepared || load.status === StatusEnum.planed); // запрет смены статуса
+    const tCardIdc = (!load.loadInfo) ? 0 : load.loadInfo.tCardIdc;
+    const tCardDate = (!load.loadInfo) ? "" : load.loadInfo.tCardDate;
 
     return (
         <>
@@ -113,7 +115,7 @@ export default function LoadInner({
                 }
                 onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>
 
-                {!load.isRetool && <div style={{ 'position': 'relative','width':'100%', maxWidth:'7px',height: '17px', marginTop: '-5px'}}>
+                {!load.isRetool && <div style={{ 'position': 'relative', 'width': '100%', maxWidth: '7px', height: '17px', marginTop: '-5px' }}>
                     {load.status === StatusEnum.prepared && (load.isPinned ?
 
                         <Image className={styles.icon_pinon} src={pinon} alt="pinon"
@@ -124,8 +126,8 @@ export default function LoadInner({
                     )}
                 </div>}
                 {!load.isRetool && load.isFirst && <div className={styles.first}></div>}
-                {(!load.isRetool &&width>=140)?`${padNumberToFourDigits(tCard.idc)} - ${tCard.date} / A${load.idc_oper}`:""}
-                {(!load.isRetool && width<140 && width>20)?`A${load.idc_oper}`:""}
+                {(!load.isRetool && width >= 140) ? `${padNumberToFourDigits(tCardIdc)} - ${tCardDate} / A${load.idc_oper}` : ""}
+                {(!load.isRetool && width < 140 && width > 20) ? `A${load.idc_oper}` : ""}
             </div>
 
             {contectMenuShow === load.idc &&

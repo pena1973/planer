@@ -182,7 +182,7 @@ export interface PlanScaleContainerProps {
   tCardLighted: TCardItem,
   unitExceptions: UnitExceptionItem[],
   erazLoadHandler: (load_idc: number) => void,
-  changeDurationLoadHandler: (idc: number) => void,
+  // changeDurationLoadHandler: (idc: number) => void,
   moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
   pinLoadHandler: (oper_id: number) => void,
   unPinLoadHandler: (oper_id: number, tCardId: number) => void
@@ -198,7 +198,7 @@ export default function PlanScaleContainer({
   tCardLighted,
   unitExceptions,
   erazLoadHandler,
-  changeDurationLoadHandler,
+  // changeDurationLoadHandler,
   moveLoadHandler,
   pinLoadHandler,
   unPinLoadHandler

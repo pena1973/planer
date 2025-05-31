@@ -5,7 +5,7 @@
 .container_context_menu {
     font-size: 12px;
     position: absolute;    
-    z-index: 10;
+    z-index: 50;
     background-color: rgb(240, 240, 240);
     top: 45px;
     width: 200px;    
@@ -22,6 +22,7 @@
     padding: 3px;
     font-size: 12px;
     cursor: auto;
+
 }
 
 .icon_edit_save {

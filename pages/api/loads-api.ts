@@ -51,14 +51,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           const unitAction = unitActions_.find(ac => ac.id === oper?.action.id && ac.unitId === lo.unit.id);
 
-          // const unitAction = lo.unit.actions.find(ac => ac.id === oper?.action.id && ac.);
-
           if (!oper) return { ...lo }
 
           {
             return {
               ...lo,
               loadInfo: {
+                tCardIdc: lo.loadInfo.tCardIdc,
+                tCardDate: lo.loadInfo.tCardDate,
                 title: oper.action.title,
                 duration: Math.round(oper.duration / 60000), // инфо показываем в минутах
                 interruptible: oper.action.interruptible,

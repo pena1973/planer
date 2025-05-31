@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
 import { } from './handlers-plan';  // планирование карты
-import { getTCard, getTeamShedule, getExceptions } from './handlers-get';  // 
+import { updateStatusOperationsByOperIds } from './handlers-update';  // 
 
 
 import { Repository, In } from 'typeorm';
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Статус Операций  меняем на planed
         const savedOpersIds = Array.from(new Set(savedUnitLoads.map(load => load.id_oper)));
 
-        const resOpers = await updateStatusOperations(tCardOperationsRepository, savedOpersIds, StatusEnum.planed)
+        const resOpers = await updateStatusOperationsByOperIds(tCardOperationsRepository, savedOpersIds, StatusEnum.planed)
         if (!resOpers.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
           return;
@@ -179,7 +179,7 @@ async function saveLoads(
       status: loadT.status,
       isActive: loadT.isActive,
       isRetool: loadT.isRetool,
-      loadInfo: (load) ? load.loadInfo : undefined,
+       loadInfo: (load) ? load.loadInfo : undefined,      
       isPinned: loadT.isPinned,//  перенесен вручшую на шкале
       isOuterStart: loadT.isOuterStart,//  это старт оутсортера
       isOuterFinish: loadT.isOuterFinish,
@@ -210,34 +210,34 @@ async function updateStatusCard(
   }
 }
 
-// Операции ОБНОВЛЯЮ СТАТУС
+// // Операции ОБНОВЛЯЮ СТАТУС
 
-export async function updateStatusOperations(
-  tCardOperationsRepository: Repository<TCardOperationTable>,
-  opersIds: number[],
-  status: StatusEnum
-): Promise<{ success: boolean, message?: string }> {
+// export async function updateStatusOperationsByOperIds(
+//   tCardOperationsRepository: Repository<TCardOperationTable>,
+//   opersIds: number[],
+//   status: StatusEnum
+// ): Promise<{ success: boolean, message?: string }> {
   
-  if (opersIds.length===0) return { success: true };
+//   if (opersIds.length===0) return { success: true };
   
-  try {
-    const updateResult = await tCardOperationsRepository.update(
-      { id: In(opersIds) },
-      { status }
-    );
+//   try {
+//     const updateResult = await tCardOperationsRepository.update(
+//       { id: In(opersIds) },
+//       { status }
+//     );
 
-    if (updateResult.affected && updateResult.affected > 0) {
-      // console.log('Операции успешно обновлены:', opersIds);
-      return { success: true };
-    } else {
-      const error = `Ошибка: операции с id ${JSON.stringify(opersIds)} не найдены или не обновлены.`;
-      // console.error(error);
-      return { success: false, message: error };
-    }
-  } catch (error: any) {
-    // console.error("Ошибка при обновлении операций:", error);
-    return { success: false, message: error.message || "Ошибка при обновлении операций." };
-  }
-}
+//     if (updateResult.affected && updateResult.affected > 0) {
+//       // console.log('Операции успешно обновлены:', opersIds);
+//       return { success: true };
+//     } else {
+//       const error = `Ошибка: операции с id ${JSON.stringify(opersIds)} не найдены или не обновлены.`;
+//       // console.error(error);
+//       return { success: false, message: error };
+//     }
+//   } catch (error: any) {
+//     // console.error("Ошибка при обновлении операций:", error);
+//     return { success: false, message: error.message || "Ошибка при обновлении операций." };
+//   }
+// }
 
 

@@ -8,7 +8,7 @@ import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 
-import { TemplateTable} from '@/pages/db/models/catalogs/templates'
+import { TemplateTable } from '@/pages/db/models/catalogs/templates'
 
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
@@ -27,7 +27,7 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 
 // types
 import { UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem,TemplateItem,StatusEnum } from '@/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem, TemplateItem, StatusEnum } from '@/types';
 
 
 // НАСТРОЙКИ
@@ -78,89 +78,88 @@ export async function updateTemplates(
 ) {
 
   // // СПИСОК ДЕЙСТВИЙ в базе
-   const existingTemplates = await templatesRepository.find({ where: { team_id: teamId } });
+  const existingTemplates = await templatesRepository.find({ where: { team_id: teamId } });
 
   // 1. Найдём удалённые шаблоны
-   const templatesToDelete = existingTemplates.filter(template =>
-     !templates.some(newTemplate => newTemplate.id === template.id) // Сравниваем id существующих стадий с переданными
-   );
+  const templatesToDelete = existingTemplates.filter(template =>
+    !templates.some(newTemplate => newTemplate.id === template.id) // Сравниваем id существующих стадий с переданными
+  );
 
   // 2. Найдём новые единицы измерения, которых нет в базе
-   const templatesToAdd = templates.filter(template =>
-     !existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id переданных стадий с существующими
-   );
+  const templatesToAdd = templates.filter(template =>
+    !existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id переданных стадий с существующими
+  );
 
-   // 3. Найдём существующие единицы измерения для обновления
-   const templatesToUpdate = templates.filter(template =>
-     existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id для существующих стадий
-   );
+  // 3. Найдём существующие единицы измерения для обновления
+  const templatesToUpdate = templates.filter(template =>
+    existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id для существующих стадий
+  );
 
-   // Удаляем старые единицы измерения
-   if (templatesToDelete.length > 0) {
-     await templatesRepository.remove(templatesToDelete);
-   }
+  // Удаляем старые единицы измерения
+  if (templatesToDelete.length > 0) {
+    await templatesRepository.remove(templatesToDelete);
+  }
 
-   // Добавляем новые единицы измерения
-   const newTemplates = templatesToAdd.map(template => {
-     return templatesRepository.create({
+  // Добавляем новые единицы измерения
+  const newTemplates = templatesToAdd.map(template => {
+    return templatesRepository.create({
       fileContent: template.fileContent,
-      name:template.name,       
-       team_id: teamId,
-     });
-   });
-   let savedNewTemplates = [] as TemplateTable[]
-   if (newTemplates.length > 0) savedNewTemplates = await templatesRepository.save(newTemplates);
-   if (!savedNewTemplates) return { success: false, message: "Не удалось сохранить действие" }
+      name: template.name,
+      team_id: teamId,
+    });
+  });
+  let savedNewTemplates = [] as TemplateTable[]
+  if (newTemplates.length > 0) savedNewTemplates = await templatesRepository.save(newTemplates);
+  if (!savedNewTemplates) return { success: false, message: "Не удалось сохранить действие" }
 
 
   // // Обновляем существующие единицы измерения
-   const updatedTemplates = templatesToUpdate.map(template => {
-     const existingTemplate = existingTemplates.find(existingTemplate => existingTemplate.id === template.id);
-     if (existingTemplate) {
-       existingTemplate.name = template.name;
-       existingTemplate.fileContent = template.fileContent;
-       return templatesRepository.create(existingTemplate);
-     }
-     return null;
-   }).filter(template => template !== null);
+  const updatedTemplates = templatesToUpdate.map(template => {
+    const existingTemplate = existingTemplates.find(existingTemplate => existingTemplate.id === template.id);
+    if (existingTemplate) {
+      existingTemplate.name = template.name;
+      existingTemplate.fileContent = template.fileContent;
+      return templatesRepository.create(existingTemplate);
+    }
+    return null;
+  }).filter(template => template !== null);
 
-   let savedUpdatedTemplates = [] as TemplateTable[]
-   if (updatedTemplates.length > 0) savedUpdatedTemplates = await templatesRepository.save(updatedTemplates);
-   if (!savedUpdatedTemplates) return { success: false, message: "Не удалось сохранить шаблоны " }
+  let savedUpdatedTemplates = [] as TemplateTable[]
+  if (updatedTemplates.length > 0) savedUpdatedTemplates = await templatesRepository.save(updatedTemplates);
+  if (!savedUpdatedTemplates) return { success: false, message: "Не удалось сохранить шаблоны " }
 
   // Все единицы измерения сохранены, проверка
-   let error = ""
-   const savedTemplates = [...savedNewTemplates, ...savedUpdatedTemplates] as TemplateTable[]
+  let error = ""
+  const savedTemplates = [...savedNewTemplates, ...savedUpdatedTemplates] as TemplateTable[]
 
   // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
-   if (savedTemplates.length > 0 && templates.length !== savedTemplates.length) {
-     error = `Не удалось сохранить шаблоны`;
+  if (savedTemplates.length > 0 && templates.length !== savedTemplates.length) {
+    error = `Не удалось сохранить шаблоны`;
     //  console.log(error);
-     return { success: false, message: error }
-   }
+    return { success: false, message: error }
+  }
 
-   // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-   if (savedTemplates.length > 0 && templates.length > 0) {
-     if (savedTemplates.length > 0) {
+  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
+  if (savedTemplates.length > 0 && templates.length > 0) {
+    if (savedTemplates.length > 0) {
 
-       savedTemplates.forEach((template, index) => {
-         if (template.id) {
-           console.log(`Шаблон успешно сохранен с id: ${template.id}`);
-         } else {
-           error = `Ошибка при сохранении шаблона ${index + 1}`;
-           console.log(error);
-           return { success: false, message: error }
-         }
-       });
-     } else {
-       error = `Не удалось сохранить шаблон`;
+      savedTemplates.forEach((template, index) => {
+        if (template.id) {
+          console.log(`Шаблон успешно сохранен с id: ${template.id}`);
+        } else {
+          error = `Ошибка при сохранении шаблона ${index + 1}`;
+          console.log(error);
+          return { success: false, message: error }
+        }
+      });
+    } else {
+      error = `Не удалось сохранить шаблон`;
       console.log(error);
-       return { success: false, message: error }
-     }
-   }
-  return { success: true, savedTemplates: savedTemplates,message:""}
+      return { success: false, message: error }
+    }
+  }
+  return { success: true, savedTemplates: savedTemplates, message: "" }
 }
-
 
 // ЕДИНИЦЫ ИЗМЕРЕНИЯ
 export async function updateUOMS(
@@ -640,7 +639,6 @@ export async function updateExceptions(
   return { success: true, savedUnitExceptions: savedUnitExceptions }
 }
 
-
 // НАЗНАЧЕНИЯ ЮНИТА ПОЛЬЗОВАТЕЛЮ
 export async function updateUsersUnits(
   usersUnitsRepository: Repository<UserUnitTable>,
@@ -753,7 +751,6 @@ export async function updateUsersUnits(
   return { success: true, savedUsersUnits: savedUsersUnits };
 }
 
-
 // Пользователи  снимаю отметку активности
 export async function updateUsers(
   usersRepository: Repository<UserTable>,
@@ -816,6 +813,96 @@ export async function updateUsers(
   }
   return { success: true, savedUsers: savedUpdatedUsers }
 }
+
+// Обновление лоадов карты
+export async function updateTCardLoads(
+  teamId: number,
+  tCardId: number,
+  loads: UnitLoadItem[],
+  unitLoadRepository: Repository<UnitLoadTable>
+): Promise<{ success: boolean, loads: UnitLoadTable[], message: string }> {
+
+  // // СПИСОК ДЕЙСТВИЙ в базе
+  const existingLoads = await unitLoadRepository.find({ where: { id_tCard: tCardId } });
+
+  // 1. Найдём удалённые лоады
+  const loadsToDelete = existingLoads.filter(load =>
+    !loads.some(newLoad => newLoad.id === load.id) // Сравниваем id существующих лоадов
+  );
+
+  // 2. Найдём новые лоады, которых нет в базе
+  const loadsToAdd = loads.filter(load =>
+    !existingLoads.some(existingLoads => existingLoads.id === load.id) // Сравниваем id переданных стадий с существующими
+  );
+
+  // 3. Найдём существующие лоады для обновления
+  const loadsToUpdate = loads.filter(load =>
+    existingLoads.some(existingLoads => existingLoads.id === load.id) // Сравниваем id для существующих стадий
+  );
+
+  // Удаляем лоады которые надо удалить
+  if (loadsToDelete.length > 0) {
+    await unitLoadRepository.remove(loadsToDelete);
+  }
+
+  // Добавляем новые единицы лоады  -  операция нереальная! добавлено для совместимости с остальными функциями
+  let savedNewLoads = [] as UnitLoadTable[];
+  if (loadsToAdd.length > 0) {
+  const newLoads = loadsToAdd.map(load => {
+    return unitLoadRepository.create({
+      date: load.date,
+      idc: load.idc,
+      id_oper: load.id_oper,
+      idc_oper: load.idc_oper, // Идентификатор операции  
+      id_tCard: load.id_tCard, // Идентификатор тех карты
+      timeStart: Math.ceil(load.timeStart), // Время начала в минутах окр в большую сторону
+      timeFinish: Math.ceil(load.timeFinish), // Время окончания в минутах окр в большую сторону
+      team_id: teamId,
+      unit_id: load.unit.id,
+      status: load.status,
+      isActive: load.isActive,
+      isRetool: load.isRetool,
+      isPinned: load.isPinned,
+      isOuterStart: load.isOuterStart,
+      isOuterFinish: load.isOuterFinish,
+      version: load.version,
+      isFirst: load.isFirst,
+    });
+  });
+  
+  if (newLoads.length > 0) savedNewLoads = await unitLoadRepository.save(newLoads);
+  if (!savedNewLoads) return { success: false, loads: [] as UnitLoadTable[], message: "Не удалось сохранить интервалы загрузок" }
+  }
+
+  // // Обновляем существующие лоады (только статус)
+  const updatedLoads = loadsToUpdate.map(load => {
+    const existingLoad = existingLoads.find(existingLoad => existingLoad.id === load.id);
+    if (existingLoad) {
+      existingLoad.status = load.status
+      return unitLoadRepository.create(existingLoad);
+    }
+    return null;
+  }).filter(load => load !== null);
+
+  let savedUpdatedLoads = [] as UnitLoadTable[]
+  if (updatedLoads.length > 0) savedUpdatedLoads = await unitLoadRepository.save(updatedLoads);
+  if (!savedUpdatedLoads) return { success: false, loads: [] as UnitLoadTable[], message: "Не удалось сохранить интервалы загрузок" }
+
+  // Все единицы измерения сохранены, проверка
+  let error = ""
+  const savedLoads = [...savedNewLoads, ...savedUpdatedLoads] as UnitLoadTable[]
+
+  // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
+  if (loads.length !== savedLoads.length) {
+    error = `Не удалось сохранить интервалы загрузки`;   
+    return { success: false, loads: [] as UnitLoadTable[], message: error }
+  }
+ 
+
+  return { success: true, loads: savedLoads as UnitLoadTable[], message: "" }
+}
+
+
 
 ///////////////////// КАРТА ТЕХНОЛОГИЧЕСКИХ ОПЕРАЦИЙ//////////////////
 
@@ -1096,8 +1183,8 @@ export async function updateOperations(
         duration: operation.duration,
         tcard_id: savedTCard.id,
         status: operation.status,
-        coment:operation.coment,
-        fix_oper_idc:operation.fixOperIdc,
+        coment: operation.coment,
+        fix_oper_idc: operation.fixOperIdc,
       }));
   }
 
@@ -1145,7 +1232,7 @@ export async function updateOperations(
       duration: operation.duration,
       status: operation.status,
       coment: operation.coment,
-      fix_oper_idc:operation.fixOperIdc,
+      fix_oper_idc: operation.fixOperIdc,
     } as TCardOperationTable;
 
     updatedOperations.push(operationToUpdate);
@@ -1362,14 +1449,37 @@ export async function updateProducts(
 
 ///////////////////// СТАТУСЫ//////////////////
 
-
-export async function updateStatusOperation(
+export async function updateStatusOperationByTCardId(
   tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardId: number,
   status: StatusEnum
 ): Promise<{ success: boolean, message: string }> {
-  try {    
-    const result = await tCardOperationsRepository.update(tCardId, { status });
+  try {
+
+    // Обновляем статус всех операций, где tcard_id совпадает с переданным
+    const updatedOperations = await tCardOperationsRepository.update({ tcard_id: tCardId }, { status });
+
+    // Проверяем, были ли обновлены операции
+    if (updatedOperations.affected && updatedOperations.affected > 0) {
+      return { success: true, message: "Статус операций успешно обновлен" };
+    } else {
+      return { success: false, message: "Операции не были обновлены" };
+    }
+
+  } catch (error: any) {
+    console.error("Ошибка обновления операций:", error);
+    return { success: false, message: error.message || "Ошибка обновления операций" };
+  }
+}
+
+
+export async function updateStatusOperationByOperId(
+  tCardOperationsRepository: Repository<TCardOperationTable>,
+  operId: number,
+  status: StatusEnum
+): Promise<{ success: boolean, message: string }> {
+  try {
+    const result = await tCardOperationsRepository.update(operId, { status });
     if (result.affected && result.affected > 0) {
       return { success: true, message: "Операция успешно обновлена" };
     } else {
@@ -1381,6 +1491,36 @@ export async function updateStatusOperation(
   }
 }
 
+export async function updateStatusOperationsByOperIds(
+  tCardOperationsRepository: Repository<TCardOperationTable>,
+  opersIds: number[],
+  status: StatusEnum
+): Promise<{ success: boolean, message?: string }> {
+
+  if (opersIds.length === 0) return { success: true };
+
+  try {
+    const updateResult = await tCardOperationsRepository.update(
+      { id: In(opersIds) },
+      { status }
+    );
+
+    if (updateResult.affected && updateResult.affected > 0) {
+      // console.log('Операции успешно обновлены:', opersIds);
+      return { success: true };
+    } else {
+      const error = `Ошибка: операции с id ${JSON.stringify(opersIds)} не найдены или не обновлены.`;
+      // console.error(error);
+      return { success: false, message: error };
+    }
+  } catch (error: any) {
+    // console.error("Ошибка при обновлении операций:", error);
+    return { success: false, message: error.message || "Ошибка при обновлении операций." };
+  }
+}
+
+
+
 // Функция для обновления статусов загрузок
 export async function updateStatusLoads(
   unitLoadRepository: Repository<UnitLoadTable>,
@@ -1388,12 +1528,12 @@ export async function updateStatusLoads(
   status: StatusEnum
 ): Promise<{ success: boolean, message: string }> {
   try {
-   
+
     if (loadsIds.length === 0) {
       return { success: false, message: "Нет загрузок для обновления" };
     }
 
-      const result = await unitLoadRepository
+    const result = await unitLoadRepository
       .createQueryBuilder()
       .update(UnitLoadTable)
       .set({ status })

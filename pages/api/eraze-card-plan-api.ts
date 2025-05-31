@@ -53,13 +53,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const TeamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
     const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
 
-    
-
-    
-
-    
-
-
     switch (req.method) {
 
       // Стираем планирование всех плановых и отменяем все что в истории кроме выполненных

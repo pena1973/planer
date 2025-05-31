@@ -26,7 +26,7 @@ import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 import { StatusEnum, UserItem, UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
 import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem } from '@/types';
 
-
+// единицы измерения
 export async function getUOMs(
   teamId: number,
   uomsRepository: Repository<UOMsTable>
@@ -57,7 +57,7 @@ export async function getUOMs(
 
   return uoms__;
 }
-
+// возможные операции команды
 export async function getActions(
   teamId: number,
   actionsRepository: Repository<ActionTable>
@@ -87,7 +87,7 @@ export async function getActions(
 
   return actions__;
 }
-
+// юниты
 export async function getUnits(
   teamId: number,
   unitRepository: Repository<UnitTable>,
@@ -152,6 +152,8 @@ export async function getUnits(
 }
 
 // необходимо потом получить операции покартам и дополнить даннве info
+
+// загрузка юнитов 
 export async function getUnitLoads(
   units: UnitItem[],
   unitLoadRepository: Repository<UnitLoadTable>,
@@ -167,11 +169,13 @@ export async function getUnitLoads(
 
   const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
     .andWhere('unitLoad.unit_id IN (:...unitIds)', { unitIds }) // Фильтруем по unitIds
+    .leftJoinAndSelect('unitLoad.tCard', 'tCard') // Добавляем связь с таблицей tCard
     .getMany();
 
   const unitLoadItems: UnitLoadItem[] = unitLoads.map(unitLoad => {
 
     let unit = units.find(unit => unit.id === unitLoad.unit_id)
+
     return {
       id: unitLoad.id,
       idc: unitLoad.idc,  // добавлено
@@ -189,13 +193,22 @@ export async function getUnitLoads(
       isPinned: unitLoad.isPinned,
       isOuterFinish: unitLoad.isOuterFinish,
       isOuterStart: unitLoad.isOuterStart,
-      isFirst: unitLoad.isFirst
+      isFirst: unitLoad.isFirst,
+      // частично заполняем инфо по карте
+      loadInfo: {
+        tCardIdc: unitLoad.tCard.idc,
+        tCardDate: new Date(unitLoad.tCard.date).toLocaleDateString("en-CA"),
+        title: "",
+        duration: 0,
+        interruptible: false,
+        koef: 1
+      },
     };
   });
   return unitLoadItems;
 }
 
-
+// id лоадов по операции с определенной версией
 export async function getTCardOperationLoads(
   tCardId: number, // ID карты для фильтрации
   operId: number, // ID операции для фильтрации
@@ -214,9 +227,44 @@ export async function getTCardOperationLoads(
   const loadsIds = unitLoads.map(lo => lo.id)
   return loadsIds;
 }
+// ВСЕ лоады по КАРТЕ (ДЛЯ ПРОВЕРКИ удаления карты)
+export async function getTCardLoads(
+  tCardId: number, // ID карты для фильтрации
+  unitLoadRepository: Repository<UnitLoadTable>,
+): Promise<UnitLoadItem[]> {
 
+  // Получаем операции с фильтрацией по tCardId
 
-// КАРТы СПИСОК! только шапка
+  const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
+    .leftJoinAndSelect('unitLoad.unit', 'unit') // Добавляем связь с таблицей units
+    .where('unitLoad.id_tCard = :tCardId', { tCardId })
+    .getMany();
+
+  const loads = unitLoads.map(unitLoad => {
+    return {
+      id: unitLoad.id,
+      idc: unitLoad.idc,  // добавлено
+      unit: unitLoad.unit ? unitLoad.unit : {} as UnitItem, // гарантированно существует
+      date: String(unitLoad.date),
+      id_oper: unitLoad.id_oper,
+      idc_oper: unitLoad.idc_oper,
+      id_tCard: unitLoad.id_tCard,
+      timeStart: unitLoad.timeStart,
+      timeFinish: unitLoad.timeFinish,
+      status: unitLoad.status,
+      version: unitLoad.version,
+      isActive: unitLoad.isActive,
+      isRetool: unitLoad.isRetool,
+      isPinned: unitLoad.isPinned,
+      isOuterFinish: unitLoad.isOuterFinish,
+      isOuterStart: unitLoad.isOuterStart,
+      isFirst: unitLoad.isFirst
+    } as UnitLoadItem
+  });
+
+  return loads;
+}
+// список карт только шапка
 export async function getTCards(
   teamId: number,
   statuses: StatusEnum[],  // все кроме этих, что в списке
@@ -459,7 +507,7 @@ export async function getTCardFull(
 
   return tCard
 }
-// Для отчета о состоянии готовности карты + операции + лоады
+// запрос для отчета о состоянии готовности карты + операции + лоады
 export async function getTCardsTerms(
   teamId: number,
   tCardIdc: number | undefined,
@@ -525,7 +573,7 @@ export async function getTCardsTerms(
 
   const loadsData = await unitLoadRepository.find({
     where: { id_oper: In(operationsIds) },
-    relations: ['unit']
+    relations: ['unit', 'tCard']
   });
 
   // лоады
@@ -547,7 +595,17 @@ export async function getTCardsTerms(
       isOuterStart: lo.isOuterStart,
       isOuterFinish: lo.isOuterFinish,
       version: lo.version,
-      isFirst: lo.isFirst
+      isFirst: lo.isFirst,
+      // частично заполняем инфо по карте
+      loadInfo: {
+        tCardIdc: lo.tCard.idc,
+        tCardDate: new Date(lo.tCard.date).toLocaleDateString("en-CA"),
+        title: "",
+        duration: 0,
+        interruptible: false,
+        koef: 1
+      },
+
     }
   })
 
@@ -615,7 +673,7 @@ export async function getTCardsTerms(
         coment: oper.coment,
         readyTerm: latestTerm,
         expand: false,
-        fixOperIdc:oper.fix_oper_idc,
+        fixOperIdc: oper.fix_oper_idc,
       } as TCardOperationTermsItem);
     }
 
@@ -632,12 +690,13 @@ export async function getTCardsTerms(
       readyTerm: cardTerm,
       expand: false,
 
+
     } as TCardTermsItem)
   }
 
   return { terms: tCardTerms, loads: loads };
 }
-
+// исключения расписания команды
 export async function getExceptions(
   teamId: number,
   unitExceptionsRepository: Repository<UnitExceptionTable>): Promise<UnitExceptionItem[]> {
@@ -670,6 +729,7 @@ export async function getExceptions(
 
   return excertions;
 }
+// возможные операции юнита
 export async function getUnitActions(
   teamId: number,
   unitActionsRepository: Repository<UnitActionTable>): Promise<UnitActionItem[]> {
@@ -707,7 +767,7 @@ export async function getUnitActions(
 
   return unitActions;
 }
-
+// расписание команды
 export async function getTeamShedule(
   teamId: number,
   teamScheduleRepository: Repository<TeamScheduleTable>
@@ -746,7 +806,7 @@ export async function getTeamShedule(
 
   return schedule;
 }
-
+// настройки команды
 export async function getSettings(
   teamId: number,
   settingsRepository: Repository<SettingsTable>
@@ -777,7 +837,8 @@ export async function getSettings(
 
   return settings;
 }
-// 
+
+//  ПОЛУЧЕНИЕ ОПЕРАЦИИ ПО ID
 export async function getTCardOperation(
   operId: number,
   tCardOperationsRepository: Repository<TCardOperationTable>
@@ -815,8 +876,8 @@ export async function getTCardOperation(
 
 }
 
+// получение операций по ID ОПЕРАЦИЙ
 export async function getTCardOperations(
-
   operIds: number[],
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem[]> {
@@ -850,11 +911,12 @@ export async function getTCardOperations(
       duration: tCardOpertab.duration,
       status: tCardOpertab.status,
       coment: tCardOpertab.coment,
-    }
+    } as TCardOperationItem;
   });
 
   return tCardOpers;
 }
+// получение операций по ID карт
 export async function getTCardOperationsByCardId(
 
   tCardId: number,
@@ -890,7 +952,7 @@ export async function getTCardOperationsByCardId(
 
   return tCardOpers;
 }
-
+// получение юнитов пользователей команды
 export async function getUsersUnits(
   teamId: number,
   usersRepository: Repository<UserTable>,
@@ -957,7 +1019,7 @@ export async function getUsersUnits(
     };
   }
 }
-
+// получение пользователей команды
 export async function getUsers(
   teamId: number,
   usersRepository: Repository<UserTable>,
