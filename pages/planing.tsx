@@ -39,6 +39,10 @@ export default function Planing() {
 
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
 
+  const [erazLoaderCard, setErazLoaderCard] = useState(NaN); // состояние это id категории  
+  const [droploaderCard, setDropLoaderCard] = useState(NaN); // состояние это id категории  
+
+  const [saveLoaderCard, setSaveLoaderCard] = useState(NaN); // состояние это id категории  
 
   const team = useSelector((state: RootState) => {
     return state.catalogSlice.team;
@@ -74,7 +78,7 @@ export default function Planing() {
     return state.catalogSlice.schedule;
   })
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-  const [loaderCard, setLoaderCard] = useState(NaN); // состояние это id категории  
+
 
   let today = new Date();
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
@@ -87,11 +91,18 @@ export default function Planing() {
 
   // Запись запланированной карты
   const saveCardHandler = async () => {
-    setLoaderCard(tCardPrepared.id);
+    setSaveLoaderCard(tCardPrepared.id);
     // Фильтруем загрузку по карте  и все что драфт и сохраняем  
     let tCardLoadsPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === StatusEnum.prepared) })
     let tCardLoadsWithoutPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status !== StatusEnum.prepared) })
     let unitLoadsWithoutCard = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id) })
+    
+    if (tCardLoadsPrepared.length === 0) {
+      setMessage("");
+      setSaveLoaderCard(NaN);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/save-card-loads-api`,
         {
@@ -117,6 +128,7 @@ export default function Planing() {
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
+           const tCardStatus = receivedData.tCardStatus;
           // удалим массив загрузок предварительный и добавим массив загрузок запланированный
           // let _loads = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id && load.status !== 'draft') })
           let savedUnitLoads = receivedData.savedUnitLoads as UnitLoadItem[];
@@ -138,7 +150,8 @@ export default function Planing() {
             return operation;
           });
 
-          let updatedTCard = { ...tCards[index], status: StatusEnum.planed, tCardOperations: tCardOperations }
+          // статус карты меняем только тогда когда все операции будут не ниже этого статуса
+          let updatedTCard = { ...tCards[index], status: tCardStatus, tCardOperations: tCardOperations }
           let _tCards = [...tCards]
           _tCards.splice(index, 1, updatedTCard);
           dispatch(setTCardLighted(updatedTCard))
@@ -150,11 +163,12 @@ export default function Planing() {
     } catch (e: any) {
       // setMessage(t('service.noConnection') + e.message)            
     }
-    setLoaderCard(NaN);
+    setSaveLoaderCard(NaN);
   };
 
   // Затираем планирование карты только шкалу вперед  - все что прошло уже необратимо
   const erazCardHandler = async (tCardId: number) => {
+    setErazLoaderCard(tCardId)
     let tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
     let unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
     try {
@@ -184,19 +198,22 @@ export default function Planing() {
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
           // Если успешно меняем статусы карты и операций
+          const tCardStatus = receivedData.tCardStatus;
           const updatedLoads = [...unitLoadsWithoutCard, ...receivedData.tCardLoads]
           dispatch(setUnitLoads(updatedLoads));
 
-          //  поменяем статус карты  и после этого она перерисуется в запланированные
+          //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
           let index = tCards.findIndex(tCard => tCard.id === tCardLighted.id);
-          let updatedTCard = { ...tCards[index], status: StatusEnum.prepared }
-          let _tCards = [...tCards]
-          _tCards.splice(index, 1, updatedTCard);
-          dispatch(setTCardPrepared(updatedTCard))
-          dispatch(setTCardLighted({} as TCardItem));
-          dispatch(setTCards(_tCards));
-
-          //        setMessage("Планировка карты успешно записана");
+          if (tCards[index].status !== tCardStatus) {
+            let updatedTCard = { ...tCards[index], status: tCardStatus }
+            let _tCards = [...tCards]
+            _tCards.splice(index, 1, updatedTCard);
+            dispatch(setTCardPrepared(updatedTCard))
+            dispatch(setTCardLighted({} as TCardItem));
+            dispatch(setTCards(_tCards));
+          } else {
+            setMessage("Карта уже выполнена и нет операций где статус меняется");
+          }
         }
       }
     } catch (e: any) {
@@ -204,7 +221,7 @@ export default function Planing() {
       // }
 
     }
-
+    setErazLoaderCard(NaN)
   };
 
   // удаление лоада из контекстного меню для сторонних юнитов
@@ -245,7 +262,7 @@ export default function Planing() {
 
           let updatedTCard = (receivedData.tCard as TCardItem)
           let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
-          
+
           // обновляем лоады
           let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
           dispatch(setUnitLoads(updatedLoads));
@@ -427,7 +444,7 @@ export default function Planing() {
     dispatch(setTCardPrepared(tCard_));
 
     setIsDragging(false); // Завершаем перетаскивание     
-    setLoaderCard(Number(itemId))
+    setDropLoaderCard(Number(itemId))
     //!!!!!!!!!! отправляем на сервер  карту  и там планируем
     //  в базу пока не пишем это предварительный расчет
     // чистим все лоады в статусе prepared (предыдущее несохраненное планирование)
@@ -467,7 +484,7 @@ export default function Planing() {
       // setMessage(t('service.noConnection') + e.message)            
     }
 
-    setLoaderCard(NaN)
+    setDropLoaderCard(NaN)
   };
   ///////////////////////////
 
@@ -478,8 +495,8 @@ export default function Planing() {
 
   let tCardsPlaned = tCards.filter(tCard => (
     tCard.status === StatusEnum.planed
-    ||tCard.status === StatusEnum.ready
-    ||tCard.status === StatusEnum.performed)) // запланирован
+    || tCard.status === StatusEnum.ready
+    || tCard.status === StatusEnum.performed)) // запланирован
 
   let tCardsDefective = tCards.filter(tCard => (tCard.status === StatusEnum.defective)) // запланирован
   // Карты
@@ -491,8 +508,8 @@ export default function Planing() {
     return (
       <div key={index4} className="container_plan_card_planed">
         <div className="container_plan_card_icon_light">
-          {loaderCard === elem.id && <ButtonLoader />}
-          {loaderCard !== elem.id &&
+          {droploaderCard === elem.id && <ButtonLoader />}
+          {droploaderCard !== elem.id &&
             (elem.id === tCardLighted.id ?
               <Image className="icon_edit_save" src={lighton} alt="lighton"
                 width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
@@ -503,11 +520,13 @@ export default function Planing() {
         </div>
 
         <div className="container_icon_edit_save">
-          <Image className="icon_edit_save"
-            src={eraz}
-            alt="eraz" width={20} height={20}
-            onClick={() => erazCardHandler(elem.id)}
-          />
+          {erazLoaderCard === elem.id && <ButtonLoader />}
+          {erazLoaderCard !== elem.id &&
+            <Image className="icon_edit_save"
+              src={eraz}
+              alt="eraz" width={20} height={20}
+              onClick={() => erazCardHandler(elem.id)}
+            />}
           {tCardLighted?.id === elem.id}
         </div>
       </div>
@@ -523,8 +542,8 @@ export default function Planing() {
         className="container_plan_card_prepared">
 
         <div className={`container_plan_card_icon_light ${elem.id === tCardPrepared?.id ? "container_plan_edit" : ""}`}>
-          {loaderCard === elem.id && <ButtonLoader />}
-          {loaderCard !== elem.id &&
+          {droploaderCard === elem.id && <ButtonLoader />}
+          {droploaderCard !== elem.id &&
             (elem.id === tCardLighted.id ?
               <Image className="icon_edit_save" src={lighton} alt="lighton"
                 width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
@@ -540,16 +559,22 @@ export default function Planing() {
         </div>
 
         <div className="container_icon_edit_save">
-          {tCardPrepared?.id === elem.id && <Image className="icon_edit_save"
-            src={save}
-            alt="arrow" width={20} height={20}
-            onClick={() => saveCardHandler()}
-          />}
-          <Image className="icon_edit_save"
-            src={eraz}
-            alt="eraz" width={20} height={20}
-            onClick={() => erazCardHandler(elem.id)}
-          />
+
+          {tCardPrepared?.id === elem.id && saveLoaderCard === elem.id && <ButtonLoader />}
+          {tCardPrepared?.id === elem.id && saveLoaderCard !== elem.id &&
+            <Image className="icon_edit_save"
+              src={save}
+              alt="arrow" width={20} height={20}
+              onClick={() => saveCardHandler()}
+            />}
+
+          {erazLoaderCard === elem.id && <ButtonLoader />}
+          {erazLoaderCard !== elem.id &&
+            <Image className="icon_edit_save"
+              src={eraz}
+              alt="eraz" width={20} height={20}
+              onClick={() => erazCardHandler(elem.id)}
+            />}
         </div>
       </div>
     );
@@ -563,8 +588,8 @@ export default function Planing() {
     return (
       <div key={index4} className="container_plan_card_planed">
         <div className="container_plan_card_icon_light">
-          {loaderCard === elem.id && <ButtonLoader />}
-          {loaderCard !== elem.id &&
+          {droploaderCard === elem.id && <ButtonLoader />}
+          {droploaderCard !== elem.id &&
             (elem.id === tCardLighted.id ?
               <Image className="icon_edit_save" src={lighton} alt="lighton"
                 width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
@@ -575,11 +600,13 @@ export default function Planing() {
         </div>
 
         <div className="container_icon_edit_save">
-          <Image className="icon_edit_save"
-            src={eraz}
-            alt="eraz" width={20} height={20}
-            onClick={() => erazCardHandler(elem.id)}
-          />
+          {erazLoaderCard === elem.id && <ButtonLoader />}
+          {erazLoaderCard !== elem.id &&
+            <Image className="icon_edit_save"
+              src={eraz}
+              alt="eraz" width={20} height={20}
+              onClick={() => erazCardHandler(elem.id)}
+            />}
           {tCardLighted?.id === elem.id}
         </div>
       </div>

@@ -1594,7 +1594,7 @@ export default function Cards({ }: CardsProps) {
           />
 
           <Image className="icon_add_stage"
-            src={add} alt="del" width={20} height={20}
+            src={add} alt="add" width={20} height={20}
             onClick={() => addStage(tStage.code)}
           />
         </div>

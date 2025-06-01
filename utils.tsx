@@ -264,8 +264,8 @@ export  const getStatusPriority = (status: StatusEnum): number => {
       switch (status) {
         case StatusEnum.draft: return 100;
         case StatusEnum.prepared: return 2;
-        case StatusEnum.planed: return 3;
-        case StatusEnum.defective: return 4;
+        case StatusEnum.planed: return 4;
+        case StatusEnum.defective: return 3;
         case StatusEnum.performed: return 5;
         case StatusEnum.ready: return 5;
         case StatusEnum.cancelled: return 100;

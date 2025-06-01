@@ -7,7 +7,7 @@ import ReportTCardState1 from "@/components/monitor/ReportTCardState/reportTCard
 import ReportUnitsKPI from "@/components/monitor/ReportUnitsKPI/reportUnitsKPI";
 
 import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/arrowButton";
-import { getStatusPriority } from "@/utils"
+
 
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState, useRef } from "react";

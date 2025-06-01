@@ -8,6 +8,7 @@ import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { TeamTable } from '@/pages/db/models/catalogs/teams'
+import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 
 import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads'
 
@@ -21,7 +22,7 @@ import {
   UnitTypeEnum,
   UnitBelongEnum
 } from '@/types';
-import { getTCardFull, getTCardLoads } from './handlers-get';  // 
+import { getTCardFull, getTCardLoads, getUnitActions } from './handlers-get';  // 
 import { updateCard, updateStages, updateOperations, updateProducts, updateTCardLoads, updateStatusTCard, updateStatusOperationByTCardId, updateStatusOperationsByOperIds } from './handlers-update';  // 
 
 import { t } from 'i18next';
@@ -45,6 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
+    const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
+    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
 
     const { tCardId: tCardIdget } = req.query;
 
@@ -270,6 +273,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tCardId = Number(tCardIddel);
         const teamId_ = Number(teamIddel);
 
+
+        // получаем полную карту со всеми входящими и исходящими
+        const tCard__ = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
+        // запросим действия юнитов
+        const unitActions_ = await getUnitActions(teamId_, unitActionsRepository)
+
+        if (!tCard__) {
+          res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
+          return
+        }
+
         const loads = await getTCardLoads(tCardId, unitLoadRepository)
         if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
 
@@ -300,23 +314,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Переводим в тип UnitLoadItem[]                
         const loads_ = resDel.loads.map(lo => {
-         const unit =  lo.unit;
+          const oper = tCard__.tCardOperations?.find(oper => oper.id === lo.id_oper);
+
+          const unit = lo.unit;
+          const unitAction = unitActions_.find(ac => ac.unitId === unit.id && ac.action.id === oper?.action.id);;
+
           return {
             id: lo.id,
             idc: lo.idc,
             unit: {
-              id:unit.id,
-                  idc: unit.idc,
-                  title: unit.title,
-                  code: unit.code,                   
-                  retool: unit.retool,
-                  modified: false,
-                  belong: unit.belong as UnitBelongEnum,
-                  type: unit.type as UnitTypeEnum,
-                  coment: unit.coment,
-                  active: unit.active, 
-              
-              } as UnitItem,
+              id: unit.id,
+              idc: unit.idc,
+              title: unit.title,
+              code: unit.code,
+              retool: unit.retool,
+              modified: false,
+              belong: unit.belong as UnitBelongEnum,
+              type: unit.type as UnitTypeEnum,
+              coment: unit.coment,
+              active: unit.active,
+
+            } as UnitItem,
             date: new Date(lo.date).toLocaleDateString('en-CA'),
             idc_oper: lo.idc_oper,
             id_oper: lo.id_oper,
@@ -326,6 +344,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             status: lo.status,
             isActive: lo.isActive,
             isRetool: lo.isRetool,
+            loadInfo: {
+              tCardIdc: tCard__.idc,
+              tCardDate: tCard__.date,
+              title: oper?.action.title,
+              duration: (!oper) ? 0 : oper.duration/1000,
+              interruptible: oper?.action.interruptible,
+              koef: unitAction?.koef ? unitAction.koef : 1,
+            },
             isPinned: lo.isPinned,
             isOuterStart: lo.isOuterStart,
             isOuterFinish: lo.isOuterFinish,
@@ -360,7 +386,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const tCard_ = await getTCardFull(tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository);
           // Возвращаем успешный ответ
           res.status(200).json({ success: true, tCard: tCard_, loads: loads_, message: `TCard canceled successfully` });
-
+          break
         } else {
           // лоадов нет удаляем карту и все связанные с ней данные
           await tCardProductRepository.delete({ tcard_id: tCardId });
@@ -369,11 +395,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           await tCardStageRepository.delete({ tcard_id: tCardId });
           // Теперь удаляем саму карту
           await tCardRepository.delete({ id: tCardId });
-        }
-        // Возвращаем успешный ответ
-        res.status(200).json({ success: true,loads: [] as UnitLoadItem[], message: `TCard with id ${tCardId} deleted successfully` });
-        break;
 
+          // Возвращаем успешный ответ
+          res.status(200).json({ success: true, loads: [] as UnitLoadItem[], message: `TCard with id ${tCardId} deleted successfully` });
+          break;
+        }
 
       default:
         res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается

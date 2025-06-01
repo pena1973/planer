@@ -1,9 +1,9 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
+import { getTCardOperationsByCardId, getUnitLoads } from './handlers-get';  // расчеты
 import { } from './handlers-plan';  // планирование карты
-import { updateStatusOperationsByOperIds } from './handlers-update';  // 
+import { updateStatusOperationsByOperIds,updateStatusTCard } from './handlers-update';  // 
 
 
 import { Repository, In } from 'typeorm';
@@ -18,9 +18,10 @@ import { TeamTable } from '@/pages/db/models/catalogs/teams'
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
+import {getStatusPriority} from "@/utils"
 
 
-import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum} from "@/types";
+import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "@/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[];  // запланированные лоады в статусе prepared  по данной карте
@@ -76,9 +77,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return;
         }
 
-        // Статус Карты  меняем на planed
+        // проверяем все операции карты и если  статусы не ниже текущего  меняем статус самой карты
+        const tCardOperations = await getTCardOperationsByCardId(tCard.id, tCardOperationsRepository)
 
-        const resCard = await updateStatusCard(tCardRepository, tCard, StatusEnum.planed)
+        /////ПРОВЕРКА каждой операции на предмет статуса//////
+        // получаю все операции и проверяю их статусы
+        // Проверка всех операций карты: если все не ниже текущего статуса
+        const isAllOperationsNotLowerThanStatus = tCardOperations.every(operation => {
+          // Функция для рекурсивной проверки статуса
+          const checkOperationStatus = (op: TCardOperationItem): boolean => {
+            if (op.status === StatusEnum.defective) {
+              const fixOperation = tCardOperations.find(o => o.fixOperIdc === op.idc);
+              if (fixOperation) {
+                // Если исправляющая операция тоже дефектная, продолжаем цепочку
+                return checkOperationStatus(fixOperation);
+              } else {
+                // Если исправляющей операции нет или она не дефектная, возвращаем статус операции
+                return getStatusPriority(op.status) >= getStatusPriority(StatusEnum.planed);
+              }
+            } else {
+              // Если операция не дефектная, просто возвращаем её статус
+              return getStatusPriority(op.status) >= getStatusPriority(StatusEnum.planed);
+            }
+          };
+
+          // Применяем проверку для текущей операции
+          return checkOperationStatus(operation);
+        });
+
+        let tCardStatus = (isAllOperationsNotLowerThanStatus) ? StatusEnum.planed : tCard.status
+        /////////////////////
+        // Статус Карты  меняем на planed если все операции не ниже текущего статуса
+
+        const resCard = await updateStatusTCard(tCardRepository, tCard.id, tCardStatus)
         if (!resCard.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
           return;
@@ -87,6 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // отправляем ответ
         res.status(200).json({
           success: true,
+          tCardStatus: tCardStatus,
           savedUnitLoads: savedUnitLoads,
         });
         break;
@@ -128,8 +160,8 @@ async function saveLoads(
       isPinned: load.isPinned,
       isOuterStart: load.isOuterStart,
       isOuterFinish: load.isOuterFinish,
-      version:load.version,
-      isFirst:load.isFirst,
+      version: load.version,
+      isFirst: load.isFirst,
     });
   });
   let savedNewLoads = [] as UnitLoadTable[]
@@ -179,36 +211,36 @@ async function saveLoads(
       status: loadT.status,
       isActive: loadT.isActive,
       isRetool: loadT.isRetool,
-       loadInfo: (load) ? load.loadInfo : undefined,      
+      loadInfo: (load) ? load.loadInfo : undefined,
       isPinned: loadT.isPinned,//  перенесен вручшую на шкале
       isOuterStart: loadT.isOuterStart,//  это старт оутсортера
       isOuterFinish: loadT.isOuterFinish,
-      version:loadT.version,
-      isFirst:loadT.isFirst,
+      version: loadT.version,
+      isFirst: loadT.isFirst,
     } as UnitLoadItem
   })
   return { success: true, savedUnitLoads: savedUnitLoads, message: "" }
 }
 
-// ТКАРТА ОБНОВЛЯЮ СТАТУС
-// 
-async function updateStatusCard(
-  tCardRepository: Repository<TCardTable>,
-  tCard: TCardItem,
-  status: StatusEnum
-): Promise<{ success: boolean, message?: string }> {
-  const updateResult = await tCardRepository.update(tCard.id, { status });
+// // ТКАРТА ОБНОВЛЯЮ СТАТУС
+// // 
+// async function updateStatusCard(
+//   tCardRepository: Repository<TCardTable>,
+//   tCard: TCardItem,
+//   status: StatusEnum
+// ): Promise<{ success: boolean, message?: string }> {
+//   const updateResult = await tCardRepository.update(tCard.id, { status });
 
-  // Проверяем, что обновление затронуло хотя бы одну запись
-  if (updateResult.affected && updateResult.affected > 0) {
-    // console.log('Карта успешно обновлена с id:', tCard.id);
-    return { success: true };
-  } else {
-    const error = `Ошибка при обновлении карты ${JSON.stringify(tCard)}`;
-    // console.error(error);
-    return { success: false, message: error };
-  }
-}
+//   // Проверяем, что обновление затронуло хотя бы одну запись
+//   if (updateResult.affected && updateResult.affected > 0) {
+//     // console.log('Карта успешно обновлена с id:', tCard.id);
+//     return { success: true };
+//   } else {
+//     const error = `Ошибка при обновлении карты ${JSON.stringify(tCard)}`;
+//     // console.error(error);
+//     return { success: false, message: error };
+//   }
+// }
 
 // // Операции ОБНОВЛЯЮ СТАТУС
 

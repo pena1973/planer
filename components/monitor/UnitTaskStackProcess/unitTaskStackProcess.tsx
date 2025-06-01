@@ -66,19 +66,6 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
 
   let hoursScaleReactNodes = [] as JSX.Element[];
 
-  // // время начала работы
-  // const dayStart = settings.timeStartWork; // 0 - 1440  
-  // // время окончания работы
-  // const dayEnd = (settings.timeFinishWork === 0) ? 1440 : settings.timeFinishWork; // 0 - 1440  
-
-  // // вычислим высоту интервала в 5 мин
-  //  const intervalHeight = containerHeight / ((dayEnd - dayStart) / 5); // x интервалов по 5 минут в дне
-  // let quants = 288;  // 288 5 минуток в дне (24 часа * 60/5 минут)  если показывать полные сутки
-  //let startQuant = 0;
-  //let finishQuant = 288;
-
-  // Если в настройках указано иное
-  // if (settings.timeFinishWork > 0 || settings.timeStartWork > 0) {
   // Округляем время начала работы до целого числа
   const startQuant = Math.floor(settings.timeStartWork / 5);
   // Если время завершения работы равно 0, присваиваем значение 1440
@@ -157,11 +144,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
 
   // Меняем статус операции по нажатию кнопки юнитом 
   const setOperStatusHandler = async (status: StatusEnum, operId: number, tCardId: number) => {
-
-    // const operloadsIds = unitLoads
-    //   .filter(lo => lo.id_oper === currentOper.id && lo.version === currentLoad.version)
-    //     //  && lo.status === StatusEnum.planed)
-    //   .map(load => load.id as number); //  все лоады операции
+ 
 
     try {
       const res = await fetch(`api/tcard-oper-status-api`,

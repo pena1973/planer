@@ -1520,7 +1520,6 @@ export async function updateStatusOperationsByOperIds(
 }
 
 
-
 // Функция для обновления статусов загрузок
 export async function updateStatusLoads(
   unitLoadRepository: Repository<UnitLoadTable>,

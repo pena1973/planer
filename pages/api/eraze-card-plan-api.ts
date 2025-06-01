@@ -13,32 +13,25 @@ import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule';
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 
 import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
+
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { getTCard, getTCardFull } from './handlers-get';  // 
+import { updateStatusTCard } from './handlers-update';  // 
 
 import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 
-import { TCardOperationItem, UnitLoadItem, StatusEnum} from "@/types";
+import { TCardOperationItem, UnitLoadItem, StatusEnum } from "@/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
   tCardId: number,
   today: string,
-  teamId:number,
-  userId:number
+  teamId: number,
+  userId: number
 }
-// export enum StatusEnum {
-//   draft = 'draft', // черновик
-//   prepared = 'prepared', // готов к началу планирования
-//   planed = 'planed', // запланирован
-//   performed = 'performed',// выполнен юнитом
-//   ready = 'ready', // готов (проверен на брак)
-//   defective = 'defective', // бракован
-//   cancelled = 'cancelled', // отменен   
-// }
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
@@ -58,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Стираем планирование всех плановых и отменяем все что в истории кроме выполненных
 
       case 'POST':
-        const { tCardLoads, tCardId, today ,teamId,userId} = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const { tCardLoads, tCardId, today, teamId, userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
 
         //tCardLoads //Это все лоады покарте
 
@@ -73,13 +66,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository,tCardStagesRepository)
+        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
+        let tCardStatus = tCard.status;
 
-        // получаем операции planed с актуальными датами планирования, операции planed еше не выполнены и их можно отменить
+        // получаем операции planed с актуальными датами планирования, операции planed еше не выполнены и их можно отменить(история) 
+        // или вообще удалить (будущее)
         let oper_dateStart = tCard.tCardOperations?.map(op => {
           let opLoads = tCardLoadsPlaned.filter(lo => lo.id_oper === op.id)
           const earliestStart = getEarliestStart(opLoads);
@@ -91,32 +86,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let operToDeleteIds = oper_dateStart.filter(elem => elem.dateStart >= today).map(elem => elem.oper.id) as number[] // в планировании удаляем
 
         // обрабатываем  лоады  в базе      
-        const resCancel = await cancelLoads(operToCancellIds, today, unitLoadRepository);
-        if (!resCancel.success) {
-          res.status(200).json({ success: false, message: "Не удалось отменить историческое планирование операции и зависимых от нее" });
-          return
-        }
-        const resDelete = await deleteLoads(operToDeleteIds, today, unitLoadRepository);
-        if (!resDelete.success) {
-          res.status(200).json({ success: false, message: "Не удалось уалить запланированные лоады" });
-          return
+        if (operToCancellIds.length > 0) {
+          const resCancel = await cancelLoads(operToCancellIds, today, unitLoadRepository);
+          if (!resCancel.success) {
+            res.status(200).json({ success: false, message: "Не удалось отменить историческое планирование операции и зависимых от нее" });
+            return
+          }
         }
 
+        if (operToDeleteIds.length > 0) {
+          const resDelete = await deleteLoads(operToDeleteIds, today, unitLoadRepository);
+          if (!resDelete.success) {
+            res.status(200).json({ success: false, message: "Не удалось уалить запланированные лоады" });
+            return
+          }
+        }
 
-        // обрабатываем  в базе операции при отмене лоадов операция уходит в prepared
-        const resSetOperStatus = await setOperStatus([...operToDeleteIds, ...operToCancellIds], StatusEnum.prepared, tCardOperationsRepository);
-        if (!resSetOperStatus.success) {
-          res.status(200).json({ success: false, message: "Не удалось  поменять статус операций" });
+        const operToMakePreparedIds = [...operToDeleteIds, ...operToCancellIds];
+
+        // обрабатываем  в базе операции при отмене лоадов операция уходит в prepared если они есть
+        if (operToMakePreparedIds.length > 0) {
+          const resSetOperStatus = await setOperStatus(operToMakePreparedIds, StatusEnum.prepared, tCardOperationsRepository);
+          if (!resSetOperStatus.success) {
+            res.status(200).json({ success: false, message: "Не удалось  поменять статус операций" });
+          }
         }
 
 
         // КАРТА
-        // меняем в базе статус карты на Prepared 
+        // меняем в базе статус карты на Prepared  если действительно есть что отменять
+        if (operToMakePreparedIds.length > 0) {
+          const resSetTCardStatus = await updateStatusTCard( tCardRepository,tCardId, StatusEnum.prepared);
 
-        const resSetTCardStatus = await setTCardStatus(tCardId, StatusEnum.prepared, tCardRepository);
-
-        if (!resSetTCardStatus.success) {
-          res.status(200).json({ success: false, message: "Не удалось  поменять статус карты" });
+          if (!resSetTCardStatus.success) {
+            res.status(200).json({ success: false, message: "Не удалось  поменять статус карты" });
+          }
+          tCardStatus = StatusEnum.prepared; // обновляем статус карты в ответе
         }
 
         // собираем все отработанные лоады с измененными статусами
@@ -126,6 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(200).json({
           success: true,
           tCardLoads: tCardLoadsUpdated,
+          tCardStatus:tCardStatus,
           message: ""
         });
         break;
@@ -223,26 +229,26 @@ const setOperStatus = async (
   }
 };
 
-const setTCardStatus = async (
-  tCardId: number,
-  newStatus: StatusEnum,
-  tCardRepository: Repository<TCardTable>
-): Promise<{ success: boolean, message: string }> => {
-  try {
-    const result = await tCardRepository
-      .createQueryBuilder()
-      .update(TCardTable)
-      .set({ status: newStatus })
-      .where("id = :tCardId", { tCardId })
-      .execute();
+// const setTCardStatus = async (
+//   tCardId: number,
+//   newStatus: StatusEnum,
+//   tCardRepository: Repository<TCardTable>
+// ): Promise<{ success: boolean, message: string }> => {
+//   try {
+//     const result = await tCardRepository
+//       .createQueryBuilder()
+//       .update(TCardTable)
+//       .set({ status: newStatus })
+//       .where("id = :tCardId", { tCardId })
+//       .execute();
 
-    if (result.affected && result.affected > 0) {
-      return { success: true, message: `Обновлена карта с id: ${tCardId}` };
-    } else {
-      return { success: false, message: "Карта не обновлена." };
-    }
-  } catch (error: any) {
-    console.error("Ошибка обновления карты:", error);
-    return { success: false, message: error.message || "Ошибка обновления статуса карты." };
-  }
-};
+//     if (result.affected && result.affected > 0) {
+//       return { success: true, message: `Обновлена карта с id: ${tCardId}` };
+//     } else {
+//       return { success: false, message: "Карта не обновлена." };
+//     }
+//   } catch (error: any) {
+//     console.error("Ошибка обновления карты:", error);
+//     return { success: false, message: error.message || "Ошибка обновления статуса карты." };
+//   }
+// };

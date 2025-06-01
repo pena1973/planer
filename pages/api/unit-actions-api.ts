@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // отправляем ответ
         res.status(200).json({
           success: true,
-          exceptions: actions_,
+          actions: actions_,
         });
 
         break;
