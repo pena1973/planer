@@ -1,8 +1,8 @@
-import { PropsWithChildren, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { RootState } from "@/pages/_app";
 import styles from "./tCardOperNew.module.scss";
-import { TCardOperationItem, TCardProductItem, ActionItem, UOMItem } from '@/types'
+import { TCardOperationItem, TCardProductItem, ActionItem,  } from '@/types'
 import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
 import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/utils'
 
@@ -10,18 +10,16 @@ import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM'
 import DropdownSelectOper from '@/components/DropdownSelectOper/dropdownSelectOper'; // Путь к вашему компоненту
 import { } from '@/store/slices';
 
-import Head from "next/head";
+import { useTranslation } from 'react-i18next';
+
+
 import Image from 'next/image';
-import Link from 'next/link';
+
 
 import save from "@/public/save-rem.png";
-import edit from "@/public/edit-rem.png";
 import del from "@/public/del2.png";
-import add from "@/public/add-rem.png";
 import cancel from "@/public/cancel.png";
 
-import { useRouter, usePathname } from 'next/navigation';
-import { mock } from "node:test";
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
@@ -29,12 +27,7 @@ _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 
 export interface TCardOperNewProps {
-    tCardOperation: TCardOperationItem;
-    // idc: number,
-    // inn: TCardProductItem[],
-    // out: TCardProductItem[],
-    // action: ActionItem | null,
-    // duration: number,
+    tCardOperation: TCardOperationItem;   
     deleteOperHandler: (id: number) => void,
     saveOperHandler: (
         id: number,
@@ -44,8 +37,7 @@ export interface TCardOperNewProps {
         coment:string,
         duration: number) => void,
      cancelOperHandler: (id: number) => void,
-    updateIdc: (currentId: number) => void,
-    // setCartEdited: () => void,
+    updateIdc: (currentId: number) => void,    
     maxIdc: number
 }
 
@@ -57,9 +49,8 @@ export default function TCardOperNew({
     updateIdc,  
     maxIdc
 }: TCardOperNewProps) {
-    const { push, back } = useRouter();
-    const pathname = usePathname();
-    const dispatch = useAppDispatch();
+     const { t, i18n } = useTranslation();
+    
 
     const idc = tCardOperation.idc;
     const inn = tCardOperation.inn;
@@ -73,8 +64,7 @@ export default function TCardOperNew({
 
     const [innValue, setInnValue] = useState([] as TCardProductItem[]);
     const [outValue, setOutValue] = useState([] as TCardProductItem[]);
-    const [actionValue, setActionValue] = useState<ActionItem | null>(null);
-    // const [durationValue, setDurationValue] = useState(0);
+    const [actionValue, setActionValue] = useState<ActionItem | null>(null);    
     const [hourValue, setHourValue] = useState(0);
     const [minutValue, setMinutValue] = useState(0);
     const [secundValue, setSecundValue] = useState(0);
@@ -97,9 +87,6 @@ export default function TCardOperNew({
         setActionValue(action);
         setComentValue(coment);
         const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(duration);
-
-        // setDurationValue(duration)
-
         setHourValue(hours)
         setMinutValue(minutes)
         setSecundValue(seconds)
@@ -108,18 +95,6 @@ export default function TCardOperNew({
     }, []);
 
     const cancelHandler = () => {
-        // const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(duration);
-
-        // setInnValue(inn);
-        // setOutValue(out);
-        // setActionValue(action);
-        // setActionValue(action);
-        // // setDurationValue(duration)
-        // setHourValue(hours)
-        // setMinutValue(minutes)
-        // setSecundValue(seconds)
-        // setMSValue(milliseconds)
-
          cancelOperHandler(idc);
     };
 
@@ -212,7 +187,7 @@ export default function TCardOperNew({
         )
         setOutValue(outUpdated);
         setEdited(true);
-        // setCartEdited();
+      
     };
 
     const handleUOMSelectInn = (idc: number, uom: { id: number, title: string, code: string } | null) => {
@@ -222,14 +197,13 @@ export default function TCardOperNew({
         )
         setInnValue(innUpdated);
         setEdited(true);
-        // setCartEdited();
+      
 
     };
     const handleSelectOper = (oper: { id: number, title: string } | null) => {
 
         let foundOper = actions.find(elem => { return elem.id === oper?.id })
-        setEdited(true);
-        // setCartEdited();
+        setEdited(true);      
         setActionValue((!foundOper) ? null : foundOper);
     };
 
@@ -306,12 +280,7 @@ export default function TCardOperNew({
                     alt="arrow" width={20} height={20}
                     onClick={() => delRowHandler("I", index)}
                 />
-                {/* код источника */}
-                {/* <input className={styles.in_out_item_code}
-                    id={"in-title-" + elem3.idc} autoComplete="off"
-                    value={elem3.code} type="text"
-                    onChange={e => { setInOutHandler(e.target.value, index, "code", "I") }}
-                    onKeyDown={e => onKeyDown(e, elem3.idc, "in-code")} /> */}
+              
 
                 <div className={styles.in_out_item_code_out}>{elem3.code}</div> 
 
@@ -345,7 +314,7 @@ export default function TCardOperNew({
                     &nbsp;
                     {tCardOperation.status}
                 </div>
-                Action {tCardOperation.idc}
+                 {t('cardsopernew.action')} {tCardOperation.idc}
                 <div className={styles.plug}></div>
             </div>
 
@@ -356,11 +325,11 @@ export default function TCardOperNew({
                 onClick={() => { cancelHandler() }}
             />
             <div className={styles.container_out}>
-                <div className={styles.out_title}>result</div>
+                <div className={styles.out_title}>{t('cardsopernew.result')}</div>
                 <div className={styles._out}>
                     {resultReactNodes}
                     <div className={styles.tCardOper_buttons_container} >
-                        <button onClick={() => addRowHandler("O")}>добавить</button>
+                        <button onClick={() => addRowHandler("O")}>{t('cardsopernew.add')}</button>
                     </div>
                 </div>
 
@@ -368,7 +337,7 @@ export default function TCardOperNew({
             </div>
 
             <div className={styles.container_action}>
-                <div className={styles.action_title}>action</div>
+                <div className={styles.action_title}>{t('cardsopernew.action')}</div>
                 <div className={styles._action}>
                     <DropdownSelectOper
                         options={actions}
@@ -440,16 +409,16 @@ export default function TCardOperNew({
             </div>
 
             <div className={styles.container_in}>
-                <div className={styles.in_title}>sourse</div>
+                <div className={styles.in_title}> {t('cardsopernew.sourse')}</div>
                 <div className={styles._in}>
                     {sourceReactNodes}
                     <div className={styles.tCardOper_buttons_container} >
-                        <button onClick={() => addRowHandler("I")}>добавить</button>
+                        <button onClick={() => addRowHandler("I")}>  {t('cardsopernew.add')}</button>
                     </div>
                 </div>
             </div>
             <div className={styles.container_coment}>
-                <div className={styles.coment_title}>comment</div>
+                <div className={styles.coment_title}> {t('cardsopernew.comment')}</div>
                 <div className={styles._coment}>
                     <textarea
                         ref={textareaRef}  // Привязываем ссылку
@@ -477,7 +446,7 @@ export default function TCardOperNew({
                                     actionValue,
                                     comentValue,
                                     convertTimeToMilliseconds(hourValue, minutValue, secundValue, msValue),)
-                            } else setMessage("Заполните единицу измерения!")
+                            } else setMessage( t('cardsopernew.fillUOM'))
                         }}
                     />
 

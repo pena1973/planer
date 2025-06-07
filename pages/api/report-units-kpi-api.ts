@@ -24,41 +24,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(TeamTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
+    const teamRepository = dbConnection.getRepository(TeamTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
+
     const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
     // userId, teamId в любом случае
-    const { userId, teamId, tcardId, today } = req.query;
+    const { userId, teamId, today, unitId, dateFrom, dateTo, month } = req.query;
 
     switch (req.method) {
       case 'GET':
 
         // запросим юниты
-        const units = await getUnits(Number(teamId), unitRepository )
+        const units = await getUnits(Number(teamId), unitRepository)
 
-        // запросим лоады
-        const unitLoads = await getUnitLoads(units, unitLoadRepository)
+        // Применяем фильтр  если есть    
+        let filteredUnits = units;
+        if (unitId) filteredUnits = units.filter(unit => unit.id === Number(unitId));
 
-        // запросим расписание
+        // запросим лоады по юнитам
+        const unitLoads = await getUnitLoads(filteredUnits, unitLoadRepository)
+
+        // запросим расписание команды
         const schedule = await getTeamShedule(Number(teamId), teamScheduleRepository)
 
-        // запросим исключения по юнитам
+        // запросим исключения расписания по юнитам
 
         const exceptions = await getExceptions(Number(teamId), unitExceptionsRepository)
 
         // запросим расписание юнитов по дням
-        const unitShedule = getUnitsSchedule(String(today), schedule, exceptions, units)
+        const unitShedule = getUnitsSchedule(String(today), schedule, exceptions, filteredUnits)
 
         // рассчитываем производственное время юнита его загруженность и результат
-        const unitsKPI = getDailyProductionSummary(unitShedule, unitLoads);
-
-
+        const unitsKPI = getDailyProductionSummary(
+          Number(teamId),
+          unitShedule,
+          unitLoads,
+          (dateFrom) ? String(dateFrom) : undefined,
+          (dateTo) ? String(dateTo) : undefined,
+          (month) ? Number(month) : undefined,
+        );
 
         // Отправляем ответ с данными
         res.status(200).json({
@@ -79,14 +85,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 export function getDailyProductionSummary(
+  teamId: number,
   unitSchedule: UnitCalendarItem[],
-  unitLoads: UnitLoadItem[]
+  unitLoads: UnitLoadItem[],
+  dateFrom: string | undefined,
+  dateTo: string | undefined,
+  month: number | undefined
 ): UnitKPIItem[] {
 
   const result: UnitKPIItem[] = [];
 
   // Проходим по каждому элементу расписания для юнита
-  unitSchedule.forEach(dayItem => {
+  for (let i = 0; i < unitSchedule.length; i++) {
+    const dayItem = unitSchedule[i];
+    if (dateFrom && dayItem.date.toLocaleDateString('en-CA') < dateFrom) continue;
+    if (dateTo && dayItem.date.toLocaleDateString('en-CA') > dateTo) continue;
+    if (month && dayItem.date.getMonth() !== month) continue;
+
     // Переводим дату в формат "YYYY-MM-DD"
     const dayStr = dayItem.date.toLocaleDateString("en-CA");
 
@@ -95,7 +110,7 @@ export function getDailyProductionSummary(
     const breakDuration = dayItem.breaks.reduce((sum, br) => sum + (br.timeFinish - br.timeStart), 0);
     const productionTime = (dayItem.timeFinishWork - dayItem.timeStartWork) - breakDuration;
 
-    if (productionTime <= 0) return;
+    if (productionTime <= 0) continue;
 
     // Фильтруем загрузки для данного дня и данного юнита:
     const loadsForDay = unitLoads.filter(load =>
@@ -133,7 +148,7 @@ export function getDailyProductionSummary(
       effectiveTime,
       defectTime
     });
-  });
+  };
 
   result.sort((a, b) => {
     // Сначала сортируем по unit.id, если они заданы, иначе по unit.title

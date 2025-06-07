@@ -524,7 +524,7 @@ export async function updateUnitActions(
 
       savedUnitActions.forEach((unitAction, index) => {
         if (unitAction.id) {
-          console.log(`Действие юнита ${index + 1} успешно сохранено с id: ${unitAction.id}`);
+          // console.log(`Действие юнита ${index + 1} успешно сохранено с id: ${unitAction.id}`);
         } else {
           error = `Ошибка при сохранении стадии ${index + 1}`;
           console.log(error);
@@ -623,7 +623,7 @@ export async function updateExceptions(
 
       savedUnitExceptions.forEach((unitException, index) => {
         if (unitException.id) {
-          console.log(`Отклонение юнита ${index + 1} успешно сохранено с id: ${unitException.id}`);
+          // console.log(`Отклонение юнита ${index + 1} успешно сохранено с id: ${unitException.id}`);
         } else {
           error = `Ошибка при сохранении отклонения ${index + 1}`;
           console.log(error);

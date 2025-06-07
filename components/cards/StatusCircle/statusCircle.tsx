@@ -23,6 +23,7 @@ export const StatusCircle: React.FC<StatusCircleProps> = ({
   status,
   
 }) => {
+
   const color = statusColors[status] || '#000'; // на случай неизвестного статуса
 
   return (

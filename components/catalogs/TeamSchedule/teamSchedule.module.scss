@@ -116,5 +116,14 @@
 /* Задаём индивидуальную ширину колонок */
 ._table thead th:nth-child(1) {
     width: 5px;
-    /* Первая колонка для кнопки расширения */
+  }
+
+  ._table thead th:nth-child(2) {
+    max-width:  50px;
+  }
+  ._table thead th:nth-child(3) {
+    max-width:  50px;
+  }
+  ._table thead th:nth-child(4) {
+    max-width:  50px;
   }

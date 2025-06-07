@@ -7,16 +7,13 @@ import DropdownSelectTimeZone from "./DropdownSelectTimeZone/dropdownSelectTimeZ
 import { DaysOfWeek, TeamItem, ScheduleItem, TimeZoneEnum } from '@/types'
 import Image from 'next/image';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { setSchedule, } from '@/store/slices'
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
@@ -29,6 +26,7 @@ export interface TeamScheduleProps {
 
 export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
 
+    const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
     const schedule = useSelector((state: RootState) => {
@@ -44,8 +42,8 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
 
-    const [teamValue, setTeamValue] = useState("");
-    const [prefixValue, setPrefixValue] = useState("");
+    // const [teamValue, setTeamValue] = useState("");
+    // const [prefixValue, setPrefixValue] = useState("");
     const [timeZoneValue, setTimeZoneValue] = useState("");
     const [timeStartWorkValue, setTimeStartWorkValue] = useState(0);
     const [timeFinishWorkValue, setTimeFinishWorkValue] = useState(0);
@@ -57,8 +55,8 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
     useEffect(() => {
         //    если есть расписание 
         if (schedule.team) {
-            setTeamValue(schedule.team.title);
-            setPrefixValue(schedule.team.prefix)
+            // setTeamValue(schedule.team.title);
+            // setPrefixValue(schedule.team.prefix)
             setTimeStartWorkValue(schedule.timeStartWork);
             setTimeFinishWorkValue(schedule.timeFinishWork);
             setBreaksValue(schedule.breaks);
@@ -87,7 +85,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
         // запрос на сохранение
         try {
             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/schedule-api?userId=${user.id}&teamId=${team.id}`,
+            const res = await fetch(`api/schedule-api`,
                 {
                     method: 'post',
                     headers: new Headers({
@@ -96,15 +94,17 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                     }),
                     body: JSON.stringify({
                         schedule: schedule,
+                        userId: user.id,
+                        teamId: team.id,
                     }),
                 }
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
                 let error = receivedData.error;
-                setMessage(error);
+                // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
@@ -113,8 +113,8 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                     //   Обновим текущую карту
                     let schedule = receivedData.schedule as ScheduleItem
                     dispatch(setSchedule(schedule));
-                    setTeamValue(schedule.team.title);
-                    setPrefixValue(schedule.team.prefix)
+                    // setTeamValue(schedule.team.title);
+                    // setPrefixValue(schedule.team.prefix)
                     setTimeStartWorkValue(schedule.timeStartWork);
                     setTimeFinishWorkValue(schedule.timeFinishWork);
                     setBreaksValue(schedule.breaks);
@@ -123,20 +123,22 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                     setWorkdaysValue(schedule.workdays);
                     setTimeZoneValue(schedule.timeZone);
                     setModified(false);
-                    setMessage("Обновлено расписание");
+                    // setMessage("Обновлено расписание");
+                    setMessage( t('teamSchedule.schedueUpdated'));
+                    
                 } else setMessage(receivedData.error);
             }
 
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+            // setMessage(t('service.serverUnavailable') + e.message)            
         }
 
         setModified(false);
     };
 
     const cancelScheduleHandler = () => {
-        setTeamValue(schedule.team.title);
-        setPrefixValue(schedule.team.prefix)
+        // setTeamValue(schedule.team.title);
+        // setPrefixValue(schedule.team.prefix)
         setTimeStartWorkValue(schedule.timeStartWork);
         setTimeFinishWorkValue(schedule.timeFinishWork);
         setBreaksValue(schedule.breaks);
@@ -151,17 +153,14 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
     const changeHandler = (value: string | number | TimeZoneEnum | null, field: string) => {
 
         switch (field) {
-            case "team":
-                setTeamValue(value as string);
+            
             case "timeStart":
                 setTimeStartWorkValue(value as number);
                 break;
             case "timeFinish":
                 setTimeFinishWorkValue(value as number);
                 break;
-            case "prefix":
-                setPrefixValue(value as string);
-                break;
+            
             case "timeZone":
                 setTimeZoneValue(value as TimeZoneEnum);
                 break;
@@ -478,10 +477,10 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
             />
 
             <div className={styles.field_container}>
-                <div className={styles.title}>Рабочие часы </div>
+                <div className={styles.title}>{t('teamSchedule.workHours')}</div>
                 <div className={styles.time_container} >
                     <div className={styles.input_container}>
-                        <div className={styles.title}>Начало</div>
+                        <div className={styles.title}>{t('teamSchedule.start')}</div>
                         <input
                             className={styles.time_input}
                             id="timeStart"
@@ -499,7 +498,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                         />
                     </div>
                     <div className={styles.input_container}>
-                        <div className={styles.title}>Конец</div>
+                        <div className={styles.title}>{t('teamSchedule.finish')}</div>
                         <input
                             className={styles.time_input}
                             id="timeFinish"
@@ -519,7 +518,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </div>
             </div>
             <div className={styles.field_container}>
-                <div className={styles.title}>Тайм зона</div>
+                <div className={styles.title}>{t('teamSchedule.timeZone')}</div>
                 <div className={styles.time_container} >
                     <DropdownSelectTimeZone
                         onSelect={(value) => {
@@ -530,13 +529,13 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </div>
             </div>
             <div className={styles.field_container}>
-                <div className={styles.title}>Перерывы рабочего дня</div>
+                <div className={styles.title}>{t('teamSchedule.breaks')}</div>
                 <table className={styles._table}>
                     <thead>
                         <tr>
                             <th ></th>
-                            <th >Start</th>
-                            <th >Finish</th>
+                            <th >{t('teamSchedule.start')}</th>
+                            <th >{t('teamSchedule.finish')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -555,12 +554,12 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
             </div>
 
             <div className={styles.field_container}>
-                <div className={styles.title}>Выходные</div>
+                <div className={styles.title}>{t('teamSchedule.weekends')}</div>
                 <table className={styles._table}>
                     <thead>
                         <tr>
                             <th ></th>
-                            <th >Week day</th>
+                            <th >{t('teamSchedule.weekDay')}</th>
 
                         </tr>
                     </thead>
@@ -579,13 +578,13 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </div>
             </div>
             <div className={styles.field_container}>
-                <div className={styles.title}>Праздники (даты)</div>
+                <div className={styles.title}>{t('teamSchedule.holidays')}</div>
 
                 <table className={styles._table}>
                     <thead>
                         <tr>
                             <th ></th>
-                            <th >Date</th>
+                            <th >{t('teamSchedule.date')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -603,14 +602,14 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 </div>
             </div>
             <div className={styles.field_container}>
-                <div className={styles.title}>Дополнительное рабочее время (даты и часы)</div>
+                <div className={styles.title}>{t('teamSchedule.additonalTime')}</div>
                 <table className={styles._table}>
                     <thead>
                         <tr>
                             <th></th>
-                            <th >Date</th>
-                            <th >Start</th>
-                            <th >Finish</th>
+                            <th >{t('teamSchedule.date')}</th>
+                            <th >{t('teamSchedule.start')}</th>
+                            <th >{t('teamSchedule.finish')}</th>
 
                         </tr>
                     </thead>
@@ -628,8 +627,6 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                     </div>
                 </div>
             </div>
-
-
 
             <div className={styles.container_buttons_row}>
                 <div className={styles.container_icon_edit_save}>

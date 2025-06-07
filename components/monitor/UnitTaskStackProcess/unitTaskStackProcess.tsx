@@ -1,15 +1,19 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./unitTaskStackProcess.module.scss";
-import { CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
+
+import { CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem,  
+  TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
+
 import LoadMonitorProcess from "./LoadMonitorProcess/loadMonitorProcess";
 import LoadOperProcess from "./LoadOperProcess/loadOperProcess";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/utils";
-import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
+import { generateCalendarItem  } from "@/utils";
+import {padNumberToFourDigits  } from "@/utils"
+
+import { useTranslation } from 'react-i18next';
 
 // Функция определяет что интервал в 5 минут является началом часа
-
 function isStartOfHour(intervTime: number): boolean {
   return intervTime % 60 === 0;
 }
@@ -56,6 +60,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   teamId,
   userId,
 }) => {
+    const { t, i18n } = useTranslation();
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
   const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
   const [operView, setOperView] = useState(false);
@@ -107,10 +112,9 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        setMessage(receivedData.message);
-
+        // setMessage(receivedData.message);
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + receivedData.message);
       } else {
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)
@@ -128,7 +132,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)            
     }
   }
   // Закрываем операцию без изменения по нажатию кенопки юнитом 
@@ -167,10 +171,10 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        setMessage(receivedData.message);
+        // setMessage(receivedData.message);
 
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + receivedData.message);
       } else {
         const receivedData = await res.json();
 
@@ -188,7 +192,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)            
     }
 
     setCurrentOper({} as TCardOperationItem);
@@ -383,9 +387,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
             start: terms.start,
             finish: terms.finish
           }}
-          setOperStatusHandler={setOperStatusHandler}
-          // readyOperHandler={readyOperHandler}
-          // defectOperHandler={defectOperHandler}
+          setOperStatusHandler={setOperStatusHandler}          
           closeOperHandler={closeOperHandler}
         />}
       {/* Загрузчик пока карта не загрузилась */}
@@ -397,8 +399,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       }
 
       <div className={styles.bottom_container}>
-        <div className={styles.bottom_line}>Загрузка {work}% времени</div>
-        <div className={styles.bottom_line}>результат {result}% : брак {defect}%</div>
+        <div className={styles.bottom_line}>{t('unitTaskStackProcess.loading')} {work}% {t('unitTaskStackProcess.time')}</div>
+        <div className={styles.bottom_line}>{t('unitTaskStackProcess.result')} {result}% : {t('unitTaskStackProcess.defect')} {defect}%</div>
 
       </div>
     </div>

@@ -125,7 +125,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
             }
 
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+            // setMessage(t('service.serverUnavailable') + e.message)            
         }
 
         setModified(false);

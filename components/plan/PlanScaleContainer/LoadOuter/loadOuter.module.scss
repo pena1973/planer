@@ -60,91 +60,93 @@
     box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
   }
   
-  /* Треугольник сверху блока */
-.triangleTop {
-  position: absolute;
-  top: 15px;
-  /* высота треугольника */
-  left: 3px;
-  /* центрирование треугольника по горизонтали */
-  width: 0;
-  height: 0;
-  border-left: 7.5px solid transparent;
-  border-right: 7.5px solid transparent;
-  border-bottom: 7.5px solid rgba(107, 170, 7, 0.753);
-  /* цвет должен совпадать с фоном меню */
-  z-index: 2;
-}
+//   /* Треугольник сверху блока */
+// .triangleTop {
+//   position: absolute;
+//   top: 15px;
+//   /* высота треугольника */
+//   left: 3px;
+//   /* центрирование треугольника по горизонтали */
+//   width: 0;
+//   height: 0;
+//   border-left: 7.5px solid transparent;
+//   border-right: 7.5px solid transparent;
+//   border-bottom: 7.5px solid rgba(107, 170, 7, 0.753);
+//   /* цвет должен совпадать с фоном меню */
+//   z-index: 2;
+// }
 
 /* Треугольник слева (указывает влево) */
 .triangleLeft {
   position: absolute;
   top: 62%; /* можно скорректировать для вертикального центрирования */
-  left: -3px;  /* отступ слева */
+  left: -30px;  /* отступ слева */
   transform: translateY(-50%);
   width: 0;
   height: 0;
   border-top: 7.5px solid transparent;
   border-bottom: 7.5px solid transparent;  
   z-index: 2;
+  border-right: 7.5px solid $border-color;
 }
-.triangleLeftDraft{
-  border-right: 7.5px solid $load_draft;
-}
-.triangleLeftPlaned{
-  border-right: 7.5px solid $load_planed;
-}
-.triangleLeftPrepared{
-  border-right: 7.5px solid $load_prepared;
-}
-.triangleLeftDefected{
-  border-right: 7.5px solid $load_defected;
-}
-.triangleLeftCancelled{
-  border-right: 7.5px solid $load_cancelled;
-}
-.triangleLeftPerformed{
-  border-right: 7.5px solid $load_performed;
-}
-.triangleLeftReady{
-  border-right: 7.5px solid $load_ready;
-}
+// .triangleLeftDraft{
+//   border-right: 7.5px solid $load_draft;
+// }
+// .triangleLeftPlaned{
+//   border-right: 7.5px solid $load_planed;
+// }
+// .triangleLeftPrepared{
+//   border-right: 7.5px solid $load_prepared;  
+// }
+// .triangleLeftDefected{
+//   border-right: 7.5px solid $load_defected;
+// }
+// .triangleLeftCancelled{
+//   border-right: 7.5px solid $load_cancelled;
+// }
+// .triangleLeftPerformed{
+//   border-right: 7.5px solid $load_performed;
+// }
+// .triangleLeftReady{
+//   border-right: 7.5px solid $load_ready;
+// }
 
 
-.triangleRightDraft{
-  border-left: 7.5px solid $load_draft;
-}
-.triangleRightPlaned{
-  border-left: 7.5px solid $load_planed;
-}
-.triangleRightPrepared{
-  border-left: 7.5px solid $load_prepared;
-}
-.triangleRightDefected{
-  border-left: 7.5px solid $load_defected;
-}
+// .triangleRightDraft{
+//   border-left: 7.5px solid $load_draft;
+// }
+// .triangleRightPlaned{
+//   border-left: 7.5px solid $load_planed;
+// }
+// .triangleRightPrepared{
+//   border-left: 7.5px solid $load_prepared;
+// }
+// .triangleRightDefected{
+//   border-left: 7.5px solid $load_defected;
+// }
 
-.triangleRightCancelled{
-  border-left: 7.5px solid $load_cancelled;
-}
+// .triangleRightCancelled{
+//   border-left: 7.5px solid $load_cancelled;
+// }
 
-.triangleRightPerformed{
-  border-left: 7.5px solid $load_performed;
-}
+// .triangleRightPerformed{
+//   border-left: 7.5px solid $load_performed;
+// }
 
-.triangleRightReady{
-  border-left: 7.5px solid $load_ready;
-}
+// .triangleRightReady{
+//   border-left: 7.5px solid $load_ready;
+// }
 
 /* Треугольник справа (указывает вправо) */
 .triangleRight {
   position: absolute;
   top: 62%; /* можно скорректировать для вертикального центрирования */
-  left: 16px;  /* отступ справа */
+  left: 27px;  /* отступ справа */
   transform: translateY(-50%);
   width: 0;
   height: 0;
   border-top: 7.5px solid transparent;
   border-bottom: 7.5px solid transparent;
   z-index: 2;
+   border-left: 7.5px solid $border-color;
 }

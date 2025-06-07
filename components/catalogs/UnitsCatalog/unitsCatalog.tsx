@@ -1,25 +1,22 @@
 
 import styles from "./unitsCatalog.module.scss";
 import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types';
-import { generateUniqueIdc, generateUniqueId } from '@/utils'
+import { generateUniqueIdc} from '@/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 import DropdownSelectBelong from "@/components/catalogs/UnitsCatalog/DropdownSelectBelong/dropdownSelectBelong";
 import DropdownSelectType from "@/components/catalogs/UnitsCatalog/DropdownSelectType/dropdownSelectType";
 import DropdownSelectUnitAction from "@/components/catalogs/UnitsCatalog/DropdownSelectUnitAction/dropdownSelectUnitAction";
 import DropdownSelectTimeType from "@/components/catalogs/UnitsCatalog/DropdownSelectTimeType/dropdownSelectTimeType";
 
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-
 import { setUnits, setUnitExceptions, setUnitActions } from '@/store/slices'
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+
+import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
@@ -43,11 +40,12 @@ function generateUniqueCode(units: UnitItem[]): string {
 }
 
 
-export interface UOMSCatalogProps {
+export interface UnitsCatalogProps {
     setMessage: (message: string) => void
 }
 
-export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
+export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
+    const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
     const team = useSelector((state: RootState) => {
@@ -133,19 +131,23 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
         unitsValue.forEach((unit, index) => {
 
             if (!unit.code) {
-                message = message + `Заполните код производственного центра строка ${index + 1}!\n`;
+                // message = message + `Заполните код юнита строка ${index + 1}!\n`;
+                message = message + `${t('units.fillCode')} ${index + 1}!\n`;                
                 exit = true;
             }
             if (!unit.title) {
-                message = message + `Заполните название действия строка ${index + 1}!\n`;
+                // message = message + `Заполните название юнита строка ${index + 1}!\n`;
+                message = message + `${t('units.fillTitle')} ${index + 1}!\n`;
                 exit = true;
             }
             if (!unit.belong) {
-                message = message + `Заполните признак свой или сторонний юнит строка ${index + 1}!\n`;
+                // message = message + `Заполните признак свой или сторонний юнит строка ${index + 1}!\n`;
+                message = message + `${t('units.fillBelong')} ${index + 1}!\n`;
                 exit = true;
             }
             if (!unit.type) {
-                message = message + `Заполните тип Юнита производство или хранение строка ${index + 1}!\n`;
+                // message = message + `Заполните тип Юнита производство или хранение строка ${index + 1}!\n`;
+                message = message + `${t('units.fillType')} ${index + 1}!\n`;
                 exit = true;
             }
         })
@@ -154,12 +156,14 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
 
             if (!act.action) {
                 let title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
-                message = message + `Заполните операцию в списке действий юнита ${title}!\n`;
+                // message = message + `Заполните действие в списке действий юнита ${title}!\n`;
+                message = message + `${t('units.fillAction')} ${title}!\n`;
                 exit = true;
             }
             if (!act.koef) {
                 let title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
-                message = message + `Заполните коэфициент в списке действий юнита ${title}!\n`;
+                // message = message + `Заполните коэфициент в списке действий юнита ${title}!\n`;
+                message = message + `${t('units.fillKoef')} ${title}!\n`;
                 exit = true;
             }
         })
@@ -169,22 +173,26 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
 
             if (!ex.date) {
                 let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
-                message = message + `Заполните дату в списке действий юнита ${title}!\n`;
+                // message = message + `Заполните дату в списке отклонений расписания юнита ${title}!\n`;
+                message = message + `${t('units.fillDate')} ${title}!\n`;
                 exit = true;
             }
             if (!ex.timeStart) {
                 let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
-                message = message + `Заполните время старта в списке отклонений расписания юнита ${title}!\n`;
+                // message = message + `Заполните время старта в списке отклонений расписания юнита ${title}!\n`;
+                message = message + `${t('units.fillStart')} ${title}!\n`;
                 exit = true;
             }
             if (!ex.timeFinish) {
                 let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
-                message = message + `Заполните время финиша в списке отклонений расписания юнита ${title}!\n`;
+                // message = message + `Заполните время финиша в списке отклонений расписания юнита ${title}!\n`;
+                message = message + `${t('units.fillFihish')} ${title}!\n`;
                 exit = true;
             }
             if (!ex.type) {
                 let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
-                message = message + `Заполните тип времени в списке отклонений расписания юнита ${title}!\n`;
+                // message = message + `Заполните тип времени в списке отклонений расписания юнита ${title}!\n`;
+                message = message + `${t('units.fillTimeType')} ${title}!\n`;
                 exit = true;
             }
         })
@@ -216,9 +224,9 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
             if (res.status !== 200) {
                 const receivedData = await res.json();
                 let error = receivedData.error;
-                setMessage(error);
+                // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
@@ -246,12 +254,13 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                     setActionsValue(actions_)
                     dispatch(setUnitActions(actions_));
                     setMessage(receivedData.error)
-                    setMessage("Обновлен список юнитов, их действий и отклонений расписания");
+                    // setMessage("Обновлен список юнитов, их действий и отклонений расписания");
+                    setMessage(t('units.unitsUpdated'));
                 } else setMessage(receivedData.error);
             }
 
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+            setMessage(t('service.serverUnavailable') + e.message)            
         }
 
         setButtonLoader(false)
@@ -566,14 +575,12 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
 
         )
 
-    let selectedValues = actionsValue
-    .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
+     let selectedValues = (actionsValue || [])
+    .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)    
     .map((elem) => 
         elem.action?.id)
         
-    
-    // let unitFocusActionValueReactNodes = unitsValue[focusIndexUnit]?.actions.map((elem, index) => (
-    let unitFocusActionValueReactNodes = actionsValue
+    let unitFocusActionValueReactNodes = (actionsValue || [])
         .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
         .map((elem, index) => (
             (
@@ -631,12 +638,12 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                     <thead>
                         <tr>
                             <th></th>
-                            <th>Code</th>
-                            <th>Name</th>
-                            <th>Whoos?</th>
-                            <th>Retool (min.)</th>
-                            <th>Type</th>
-                            <th>Coment</th>
+                            <th>{t('units.Code')}</th>
+                            <th>{t('units.Name')}</th>
+                            <th>{t('units.Whoos')}</th>
+                            <th>{t('units.Retool')}</th>
+                            <th>{t('units.Type')}</th>
+                            <th>{t('units.Coment')}</th>
 
                         </tr>
                     </thead>
@@ -670,15 +677,15 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
             {(focusIndexUnit >= 0) &&
                 <div className={styles.contaitainer_catalog_right}>
                     <div>
-                        <div className="catalog_title">Действия юнита: {unitsValue[focusIndexUnit].title}</div>
+                        <div className="catalog_title">{t('units.UnitActions')} {unitsValue[focusIndexUnit].title}</div>
                         {/* <div className={styles.container_unit_actions}> */}
                         <div className={`${styles.container} ${styles._unit_actions}`}>
                             <table className={styles._table_a}>
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th>Действие</th>
-                                        <th>Коэф. времени</th>
+                                        <th>{t('units.ActionTitle')}</th>
+                                        <th>{t('units.ActionKoef')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -699,17 +706,17 @@ export default function UnitsCatalog({ setMessage }: UOMSCatalogProps) {
                     </div>
 
                     <div>
-                        <div className="catalog_title">Отклонения расписания юнита от общего графика</div>
+                        <div className="catalog_title">{t('units.ExTitle')}</div>
                         <div className={`${styles.container} ${styles._unit_exceptions}`}>
                             {/* <div className={styles.container_unit_exceptions}> */}
                             <table className={styles._table_e}>
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th>Дата</th>
-                                        <th>Начало</th>
-                                        <th>Конец</th>
-                                        <th>Тип</th>
+                                        <th>{t('units.ExDate')}</th>
+                                        <th>{t('units.ExStart')}</th>
+                                        <th>{t('units.ExFinish')}</th>
+                                        <th>{t('units.ExTimeType')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

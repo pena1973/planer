@@ -3,24 +3,20 @@ import styles from "./usersCatalog.module.scss";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import DropdownSelectUnit from "./DropdownSelectUnit/dropdownSelectUnit";
 
-import { TeamItem, UserUnitItem, UserItem, UnitItem } from '@/types'
+import { TeamItem, UserUnitItem, UserItem} from '@/types'
 import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";
 
-import { useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
-import { setSchedule, } from '@/store/slices'
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+import { useSelector } from 'react-redux';
+import { RootState } from "@/pages/_app";
+
+import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
-import add from "@/public/add-rem.png";
 
 export interface usersCatalogProps {
     user: UserItem, // my user
@@ -29,12 +25,12 @@ export interface usersCatalogProps {
 }
 
 export default function UsersCatalog({
-
     user,
     team,
     setMessage
 }: usersCatalogProps) {
 
+    const { t, i18n } = useTranslation();    
     const [users_units, setUsersUnits] = useState([] as UserUnitItem[]);
     const users_units_old = useRef(users_units); // для восстановления по cancel    
 
@@ -64,10 +60,9 @@ export default function UsersCatalog({
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                setMessage(receivedData.message);
-
+                // setMessage(receivedData.message);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                 setMessage(t('service.serverUnavailable') + receivedData.message);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
@@ -81,7 +76,7 @@ export default function UsersCatalog({
             }
 
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+            setMessage(t('service.serverUnavailable') + e.message)            
         }
         setShowLoader(false);
     }
@@ -114,7 +109,7 @@ export default function UsersCatalog({
                 let error = receivedData.error;
                 setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
@@ -125,11 +120,12 @@ export default function UsersCatalog({
                     setUsersUnits(users_units_)
                     users_units_old.current = users_units_;
                     setModified(false);
-                    setMessage("Обновлен список пользователей");
+                    // setMessage("Обновлен список пользователей");
+                    setMessage(t('users.usersUpdated'));
                 } else setMessage(receivedData.error);
             }
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+            setMessage(t('service.serverUnavailable') + e.message)            
         }
         setButtonLoader(false);
     };
@@ -237,9 +233,9 @@ export default function UsersCatalog({
                     <thead>
                         <tr>
                             <th> </th>
-                            <th>User</th>
-                            <th>Unit </th>
-                            <th>Active</th>
+                            <th>{t('users.title')}</th>
+                            <th>{t('users.unit')}</th>
+                            <th>{t('users.active')}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -1,21 +1,18 @@
 
 import styles from "./settings.module.scss";
 
-import {SettingsItem } from '@/types'
+import { SettingsItem } from '@/types'
 import Image from 'next/image';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setUOMs, } from '@/store/slices'
+
+
+import { useTranslation } from 'react-i18next';
 
 import { setSettings } from '@/store/slices'
-
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 import cancel from "@/public/cancel.png";
 import save from "@/public/save-rem.png";
@@ -26,11 +23,13 @@ export interface SettingsProps {
 }
 
 export default function Settings({ setMessage }: SettingsProps) {
+    const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
     const settings = useSelector((state: RootState) => {
         return state.catalogSlice.settings;
     })
+
     const team = useSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
@@ -38,7 +37,6 @@ export default function Settings({ setMessage }: SettingsProps) {
     const user = useSelector((state: RootState) => {
         return state.authSlice.user;
     })
-
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [timeStartWorkValue, setTimeStartWorkValue] = useState(0);
@@ -48,11 +46,11 @@ export default function Settings({ setMessage }: SettingsProps) {
 
     useEffect(() => {
         setTimeStartWorkValue(settings.timeStartWork);
-        setTimeFinishWorkValue(settings.timeFinishWork);             
+        setTimeFinishWorkValue(settings.timeFinishWork);
         setShowWeekendValue(settings.showWeekend);
         setShowHolidayValue(settings.showHoliday);
         setModified(false);
-        
+
     }, []);
 
     // колбеки кнопки
@@ -78,8 +76,8 @@ export default function Settings({ setMessage }: SettingsProps) {
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
-                        userId:user.id,
-                        teamId:team.id,
+                        userId: user.id,
+                        teamId: team.id,
                         settings: settings,
                     }),
                 }
@@ -87,9 +85,9 @@ export default function Settings({ setMessage }: SettingsProps) {
             if (res.status !== 200) {
                 const receivedData = await res.json();
                 let error = receivedData.error;
-                setMessage(error);
+                // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
@@ -97,18 +95,18 @@ export default function Settings({ setMessage }: SettingsProps) {
                 if (receivedData.success) {
                     //   Обновим текущую карту
                     let settings = receivedData.settings as SettingsItem
-                    dispatch(setSettings(settings));                  
+                    dispatch(setSettings(settings));
                     setTimeStartWorkValue(settings.timeStartWork);
                     setTimeFinishWorkValue(settings.timeFinishWork);
                     setShowWeekendValue(settings.showWeekend);
                     setShowHolidayValue(settings.showHoliday);
                     setModified(false);
-                    setMessage("Обновлены настройки");
+                    setMessage(t('settings.settingUpdated'));
                 } else setMessage(receivedData.error);
             }
 
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+            setMessage(t('service.serverUnavailable') + e.message)
         }
 
         setModified(false);
@@ -116,10 +114,10 @@ export default function Settings({ setMessage }: SettingsProps) {
 
     const cancelScheduleHandler = () => {
         setTimeStartWorkValue(settings.timeStartWork);
-        setTimeFinishWorkValue(settings.timeFinishWork);             
+        setTimeFinishWorkValue(settings.timeFinishWork);
         setShowWeekendValue(settings.showWeekend);
         setShowHolidayValue(settings.showHoliday);
-        setModified(false);        
+        setModified(false);
         setMessage("");
     };
 
@@ -129,10 +127,10 @@ export default function Settings({ setMessage }: SettingsProps) {
         switch (field) {
 
             case "timeStart":
-                setTimeStartWorkValue((!value)?0:value as number);
+                setTimeStartWorkValue((!value) ? 0 : value as number);
                 break;
             case "timeFinish":
-                setTimeFinishWorkValue((!value)?0:value as number);
+                setTimeFinishWorkValue((!value) ? 0 : value as number);
                 break;
             default:
                 break;
@@ -141,12 +139,12 @@ export default function Settings({ setMessage }: SettingsProps) {
         setModified(true);
         setMessage("");
     };
-   
+
 
 
     return (
         <div className={styles.container}>
-            <Image 
+            <Image
                 className={styles.icon_cancel}
                 src={cancel}
                 alt="arrow" width={24} height={24}
@@ -154,11 +152,11 @@ export default function Settings({ setMessage }: SettingsProps) {
             />
 
             <div className={styles.field_container}>
-                <div className={styles.title}>Показывать время </div>
+                <div className={styles.title}>{t('settings.showTime')}</div>
                 &nbsp;
                 <div className={styles.time_container} >
                     <div className={styles.input_container}>
-                        <div className={styles.title}>Начало</div>
+                        <div className={styles.title}>{t('settings.start')}</div>
                         <input
                             className={styles.time_input}
                             id="timeStart"
@@ -177,7 +175,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                         />
                     </div>
                     <div className={styles.input_container}>
-                        <div className={styles.title}>Конец</div>
+                        <div className={styles.title}>{t('settings.end')}</div>
                         <input
                             className={styles.time_input}
                             id="timeFinish"
@@ -203,10 +201,10 @@ export default function Settings({ setMessage }: SettingsProps) {
 
 
             <div className={styles.field_container}>
-                <div className={styles.title}>Показывать выходные</div>
+                <div className={styles.title}>{t('settings.showWeekends')}</div>
                 <div className={styles.input_container}>
                     <input
-                      
+
                         id="showWeekend"
                         autoComplete="off"
                         checked={showWeekendValue}
@@ -221,10 +219,10 @@ export default function Settings({ setMessage }: SettingsProps) {
             </div>
 
             <div className={styles.field_container}>
-                <div className={styles.title}>Показывать праздники</div>
+                <div className={styles.title}>{t('settings.showHolidays')}</div>
                 <div className={styles.input_container}>
                     <input
-                      
+
                         id="showWeekend"
                         autoComplete="off"
                         checked={showHolidayValue}

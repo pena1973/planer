@@ -1,19 +1,17 @@
 
 import styles from "./systemSettings.module.scss";
 
-import {SettingsItem } from '@/types'
+import { SettingsItem } from '@/types'
 import Image from 'next/image';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 
 import { setSettings } from '@/store/slices'
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
 import save from "@/public/save-rem.png";
@@ -24,6 +22,7 @@ export interface SettingsProps {
 }
 
 export default function Settings({ setMessage }: SettingsProps) {
+    const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
     const settings = useSelector((state: RootState) => {
@@ -39,10 +38,9 @@ export default function Settings({ setMessage }: SettingsProps) {
     const [isQualControlValue, setIsQualControlValue] = useState(true);
     // const [showHolidayValue, setShowHolidayValue] = useState(true);
 
-    useEffect(() => {        
+    useEffect(() => {
         setIsQualControlValue(settings.isQualControl);
-        setModified(false);
-        
+        // setModified(false);        
     }, []);
 
     // колбеки кнопки
@@ -50,7 +48,7 @@ export default function Settings({ setMessage }: SettingsProps) {
 
     const saveSettingsHandler = async () => {
         setMessage("");
-        let settings_ = {...settings, isQualControl: isQualControlValue,}
+        let settings_ = { ...settings, isQualControl: isQualControlValue, }
 
         // запрос на сохранение
         try {
@@ -63,8 +61,8 @@ export default function Settings({ setMessage }: SettingsProps) {
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
-                        userId:user.id,
-                        teamId:team.id,
+                        userId: user.id,
+                        teamId: team.id,
                         settings: settings_,
                     }),
                 }
@@ -72,30 +70,31 @@ export default function Settings({ setMessage }: SettingsProps) {
             if (res.status !== 200) {
                 const receivedData = await res.json();
                 let error = receivedData.error;
-                setMessage(error);
+                // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
 
                 if (receivedData.success) {
                     //   Обновим настройки
-                    dispatch(setSettings(receivedData.settings as SettingsItem));                                      
+                    dispatch(setSettings(receivedData.settings as SettingsItem));
                     setModified(false);
-                    setMessage("Обновлены настройки");
+                    // setMessage("Обновлены настройки");
+                    setMessage(t('settings.settingUpdated'));
                 } else setMessage(receivedData.error);
             }
 
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+            setMessage(t('service.serverUnavailable') + e.message)
         }
 
         setModified(false);
     };
 
     const cancelScheduleHandler = () => {
-      
+
         setModified(false)
     };
 
@@ -109,10 +108,10 @@ export default function Settings({ setMessage }: SettingsProps) {
             />
 
             <div className={styles.field_container}>
-                <div className={styles.title}>Контроль качества (ОТК)</div>
+                <div className={styles.title}>{t('settings.control')}</div>
                 <div className={styles.input_container}>
                     <input
-                        
+
                         id="showWeekend"
                         autoComplete="off"
                         checked={isQualControlValue}

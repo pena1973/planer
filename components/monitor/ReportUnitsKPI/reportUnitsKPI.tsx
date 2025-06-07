@@ -1,21 +1,23 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./reportUnitsKPI.module.scss";
-import { UnitKPIItem, StatusEnum, TCardTermsItem, UnitItem } from "@/types";
+import Filter from "./Filter/filter";
+import { UnitKPIItem, UnitItem } from "@/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
+import { useTranslation } from 'react-i18next';
 
-import Image from 'next/image';
-import { padNumberToFourDigits, convertMinutesToTime1 } from "@/utils"
+import { convertMinutesToTime1 } from "@/utils"
 
 interface ReportUnitsKPIProps {
   setMessage: (message: string) => void,
-  teamId:number,
-  userId:number,
+  teamId: number,
+  userId: number,
+  units: UnitItem[]
 }
 
 interface ExpandKey {
   unitId: number, month: number | undefined,
-  
+
 }
 const monthNames = [
   "January",   // 0
@@ -36,9 +38,9 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   setMessage,
   teamId,
   userId,
+  units
 }) => {
-  
-
+  const { t, i18n } = useTranslation();
 
   const [expandKeyValue, setExpandKeyValue] = useState([] as ExpandKey[]); // ключ expand
   const [unitsKPIValue, setUnitsKPIValue] = useState([] as UnitKPIItem[]); // массив kpi по дням
@@ -47,10 +49,34 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   let today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const getTCardsTerms = async () => {
+  const getUnitKPI = async (
+    useUnit?: boolean,
+    useDate?: boolean,
+    useMonth?: boolean,
+    unitId?: number | null,
+    dateFrom?: string,
+    dateTo?: string,
+    month?: string) => {
     setShowLoader(true);
+
+    const monthIndex = monthNames.indexOf(String(month)); // Ищем индекс месяца в массиве
+
+    let filter = "";
+    // фильтр
+    if (useUnit && unitId) filter = filter.concat(`&unitId=${unitId}`)
+
+    if (useDate) {
+      let dateFrom1 = (dateFrom?.length === 0) ? '0001-01-01' : dateFrom;
+      filter = filter.concat(`&dateFrom=${dateFrom1}`)
+      
+      let dateTo1 = (dateTo?.length === 0) ? '3000-01-01' : dateTo;
+      filter = filter.concat(`&dateTo=${dateTo1}`)
+    }
+
+    if (useMonth) filter = filter.concat(`&month=${monthIndex}`)
+
     try {
-      const res = await fetch(`api/units-kpi-api?userId=${userId}&teamId=${teamId}&today=${today.toLocaleDateString('en-CA')}`,
+      const res = await fetch(`api/report-units-kpi-api?userId=${userId}&teamId=${teamId}&today=${today.toLocaleDateString('en-CA')}${filter}`,
         {
           method: 'get',
           headers: new Headers({
@@ -61,10 +87,9 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        setMessage(receivedData.message);
-
+        // setMessage(receivedData.message);
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + receivedData.message);
       } else {
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)
@@ -77,14 +102,13 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
     setShowLoader(false);
   }
 
   useEffect(() => {
-    getTCardsTerms();
-
+    getUnitKPI();
   }, []);
 
 
@@ -167,8 +191,8 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
                 <td></td>
                 <td className={styles.date_title}> {dateKey.date}</td>
                 <td> {(dateProductionTime > 0) ? convertMinutesToTime1(dateProductionTime) : ""} </td>
-                <td> {(dateOccupiedTime > 0) ? convertMinutesToTime1(dateOccupiedTime) : ""} </td>
                 <td> {(dateLoadind > 0) ? `${dateLoadind} %` : ""}</td>
+                <td> {(dateOccupiedTime > 0) ? convertMinutesToTime1(dateOccupiedTime) : ""} </td>                
                 <td> {(dateResult > 0) ? `${dateResult} %` : ""}</td>
                 <td> {(datePlan > 0) ? `${datePlan} %` : ""}</td>
                 <td> {(dateDefect > 0) ? `${dateDefect} %` : ""}</td>
@@ -197,8 +221,8 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
             <td></td>
             <td className={styles.month_title}> {monthNames[monthKey.month] || ""}</td>
             <td> {(monthProductionTime > 0) ? convertMinutesToTime1(monthProductionTime) : ""} </td>
-            <td> {(monthOccupiedTime > 0) ? convertMinutesToTime1(monthOccupiedTime) : ""} </td>
             <td> {(monthLoadind > 0) ? `${monthLoadind} %` : ""}</td>
+            <td> {(monthOccupiedTime > 0) ? convertMinutesToTime1(monthOccupiedTime) : ""} </td>          
             <td> {(monthPlan > 0) ? `${monthPlan} %` : ""}</td>
             <td> {(monthResult > 0) ? `${monthResult} %` : ""}</td>
             <td> {(monthDefect > 0) ? `${monthDefect} %` : ""}</td>
@@ -230,8 +254,8 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         <td> {unitKey.title}</td>
         <td> </td>
         <td> {(unitProductionTime > 0) ? convertMinutesToTime1(unitProductionTime) : ""} </td>
-        <td> {(unitOccupiedTime > 0) ? convertMinutesToTime1(unitOccupiedTime) : ""} </td>
         <td> {(unitLoadind > 0) ? `${unitLoadind} %` : ""}</td>
+        <td> {(unitOccupiedTime > 0) ? convertMinutesToTime1(unitOccupiedTime) : ""} </td>        
         <td> {(unitPlan > 0) ? `${unitPlan} %` : ""}</td>
         <td> {(unitResult > 0) ? `${unitResult} %` : ""}</td>
         <td> {(unitDefect > 0) ? `${unitDefect} %` : ""}</td>
@@ -244,13 +268,19 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
 
   return (
     <div className={styles.container}>
+      <Filter
+        monthNames={monthNames}
+        units={units}
+        getUnitKPI={getUnitKPI}
+
+      />
       {showLoader &&
         <div className={styles.loader_container}>
-          <div className={styles.title}>Ждем...</div>
+          <div className={styles.title}>{t('reportUnitsKPI.wait')}</div>
           <ButtonLoader width={100} height={100} />
         </div>
       }
-      {!showLoader && <div>  фильтр заглушка</div>}
+
       {!showLoader && <div className={styles.table_container}>
         {/* Шапка таблицы */}
         <table className={styles._table}>
@@ -283,14 +313,14 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
                   }
                   }>{(expandKeyValue.length !== 0) ? "—" : "+"}</div>
               </th>
-              <th className={styles.unit_top} >Юнит</th>
-              <th className={styles.unit_top} >Месяц, дата</th>
-              <th>Чистое рабочее время</th>
-              <th>Занятое время</th>
-              <th>Загрузка в т.ч.</th>
-              <th>План</th>
-              <th>Результат</th>
-              <th>Брак</th>
+              <th className={styles.unit_top}>{t('reportUnitsKPI.unit')}</th>
+              <th className={styles.unit_top}>{t('reportUnitsKPI.date')}</th>
+              <th>{t('reportUnitsKPI.workTime')}</th>
+              <th>{t('reportUnitsKPI.loading')}</th>
+              <th>{t('reportUnitsKPI.busyTime')}</th>              
+              <th>{t('reportUnitsKPI.plan')}</th>
+              <th>{t('reportUnitsKPI.result')}</th>
+              <th>{t('reportUnitsKPI.defect')}</th>
             </tr>
           </thead>
           <tbody>

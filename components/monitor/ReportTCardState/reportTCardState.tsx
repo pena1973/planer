@@ -5,7 +5,9 @@ import { StatusEnum, TCardTermsItem, UnitLoadItem } from "@/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import Filter from "./Filter/filter";
 
-import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
+
+
 import { padNumberToFourDigits, convertMinutesToTime } from "@/utils"
 
 interface ReportTCardStateProps {
@@ -20,6 +22,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   teamId,
   userId,
 }) => {
+  const { t, i18n } = useTranslation();
 
   const [tCardsValue, setTCardsValue] = useState([] as TCardTermsItem[]);
   const [unitLoadsValue, setUnitLoadsValue] = useState([] as UnitLoadItem[]);
@@ -59,10 +62,9 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        setMessage(receivedData.error);
-
+        const error = receivedData.error;
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
       } else {
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)
@@ -75,7 +77,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
     setShowLoader(false);
   }
@@ -168,7 +170,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
             <tr key={`${tCard.id}-${index}`}>
               <td></td>
               <td className={styles.operation_title}>
-                &nbsp;&nbsp; cтарт {lo.dateStart}: {convertMinutesToTime(lo.timeStart)} - финиш {lo.dateFinish}: {convertMinutesToTime(lo.timeFinish)}</td>
+               &nbsp;&nbsp; {t('reportTCardState.start')} {lo.dateStart}: {convertMinutesToTime(lo.timeStart)} - {t('reportTCardState.finish')} {lo.dateFinish}: {convertMinutesToTime(lo.timeFinish)}</td>
               <td className={styles.operation_row}><div className={styles.status_row}>
                 <div className={loStatusStyle} />
                 {lo.status}
@@ -216,7 +218,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
               {oper.status}
             </div>
           </td>
-          <td className={styles.operation_row}>{(oper.readyTerm.date === '0001-01-01') ? "" : `${oper.readyTerm.date} : ${convertMinutesToTime(oper.readyTerm.time)}`}</td>
+          <td className={styles.operation_row}>{(oper.readyTerm.date === '0001-01-01'||oper.readyTerm.date === '') ? "" : `${oper.readyTerm.date} : ${convertMinutesToTime(Number(oper.readyTerm.time))}`}</td>
           <td className={styles.operation_row}>{operReady}%</td>
         </tr>
         {expandOperValue.includes((oper.id) ? oper.id : NaN) && operLoadsReactNodes}
@@ -230,6 +232,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
 
     if (commonDuration === 0) commonDuration = 1; // чтобы не делить на ноль
     let cardReady = Math.round(readyDuration / commonDuration * 100);
+    const time = tCard.readyTerm.time;
     return (<>
 
       <tr key={index}>
@@ -251,7 +254,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
           {tCard.status}
         </div>
         </td>
-        <td>{(tCard.readyTerm.date === '0001-01-01') ? "" : `${tCard.readyTerm.date} : ${convertMinutesToTime(tCard.readyTerm.time)}`}</td>
+        <td>{(tCard.readyTerm.date === '0001-01-01') ? "" : `${tCard.readyTerm.date} : ${convertMinutesToTime(Number(tCard.readyTerm.time))}`}</td>
         <td> {cardReady}%</td>
       </tr>
       {expandCardValue.includes(tCard.id) && tCardOperationsReactNodes}
@@ -269,7 +272,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
       />
       {showLoader &&
         <div className={styles.loader_container}>
-          <div className={styles.title}>Ждем...</div>
+          <div className={styles.title}>{t('reportTCardState.wait')}</div>
           <ButtonLoader width={100} height={100} />
         </div>
       }
@@ -290,10 +293,10 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
                     }
                   }}>{(expandCardValue.length !== 0) ? "—" : "+"}</div>
               </th>
-              <th >Карта, Операция, Интервал</th>
-              <th >Статус</th>
-              <th >Срок готовности</th>
-              <th >Готовность</th>
+              <th>{t('reportTCardState.card')}</th>
+              <th>{t('reportTCardState.status')}</th>
+              <th>{t('reportTCardState.term')}</th>
+              <th>{t('reportTCardState.readines')}</th>
             </tr>
           </thead>
           <tbody>

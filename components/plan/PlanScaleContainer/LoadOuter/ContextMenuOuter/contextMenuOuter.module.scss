@@ -2,23 +2,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
-.container_context_menu {
-  font-size: 12px;
+.container_context_menu {  
   position: absolute;
-  z-index: 10;
-  background-color: rgb(240, 240, 240);
+  z-index: 10;  
   top: 45px;
   width: 200px;
   border-radius: 10px;
-  /* Скругленные углы */
-  background-color: rgb(240, 240, 240);
-  /* Светло-серый фон */
-  border: 1px solid #ccc;
-  /* Равномерная серая граница */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  /* Легкая тень для глубины */
-  transition: box-shadow 0.3s ease;
-  /* Плавный переход для эффекта при наведении */
+  background-color: $sidebar_background;    
+  box-shadow: $box-shadow;  
+  transition: box-shadow 0.3s ease;  
   padding: 3px;
   font-size: 12px;
   cursor: auto;
@@ -26,64 +18,58 @@
 
 .icon_edit_save {
   cursor: pointer;
-
 }
 
 .container_icon {
   width: 100%;
   display: flex;
-  flex-direction: row;
-  // align-items: flex-end;
+  flex-direction: row;  
   justify-content: space-between;
-  border-top: 1px solid #ccc;
+  border-top: $border;
   padding: 0 3px;
 }
 
-.coment {
-  // border-top: 1px solid #ccc;
-  padding: 2px;
-  // margin: 5px;
+.coment {  
+  padding: 2px;  
 }
 
-.title {
-  // border-top: 1px solid #ccc;
-  padding: 2px;
-  // margin: 5px;
-  font-weight: bold;
-  font-size: 14px;
+.title {    
+    padding: 2px;    
+    font-weight: bold;
+    font-size: $header4_font_size;    
 }
 
 /* Треугольник сверху блока */
 .contextMenuTriangle {
   position: absolute;
-  top: -5.5px;
-  /* высота треугольника */
+  top: -5.5px;  
   left: 3.5px;
-  /* центрирование треугольника по горизонтали */
   width: 0;
   height: 0;
   border-left: 7.5px solid transparent;
   border-right: 7.5px solid transparent;
-  border-bottom: 7.5px solid rgb(240, 240, 240);
+  border-bottom: 7.5px solid $sidebar_background;
   /* цвет должен совпадать с фоном меню */
 }
 
 .work_date {
   width: 80px;
-  padding: 2px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 12px;
+  height: 18px;
+  padding: 0 2px;
+  border: $border;
+  border-radius: $border-radius;
+  font-size: $header4_font_size;
   font-weight: bold;
-  margin-left: 4px;
+  // margin-left: 4px;
 }
 
 .work_time {
   width: 45px;
-  padding: 2px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 12px;
+  height: 18px;
+  padding: 0 2px;
+  border: $border;
+  border-radius: $border-radius;
+  font-size: $header4_font_size;
   font-weight: bold;
 
 }

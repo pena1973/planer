@@ -4,14 +4,15 @@ import styles from "./templatesCatalog.module.scss";
 import { TemplateItem } from '@/types'
 import Image from 'next/image';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { setTemplates } from '@/store/slices'
 
 import { validateFileContent } from "@/utils"
+
+import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
@@ -27,6 +28,7 @@ export interface UOMSCatalogProps {
 }
 
 export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
+     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
     const templates = useSelector((state: RootState) => {
@@ -75,11 +77,14 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
         let message ="";
         templatesValue.forEach((elem, index) => {
             if (!elem.name) {
-                message = message.concat(`Заполните название шаблона строка ${index + 1}! `);
+                // {t('teamSchedule.additonalTime')}
+                // message = message.concat(`Заполните название шаблона строка ${index + 1}! `);
+                 message = message.concat(`${t('templates.fillTitle')} ${index + 1}! `);
                 todoReturn = true;
             }
             if (!elem.fileContent) {
-                message = message.concat(`Загрузите шаблон строка ${index + 1}!` );
+                // message = message.concat(`Загрузите шаблон строка ${index + 1}!` );
+                message = message.concat(`${t('templates.uploadTemplate')} ${index + 1}!` );
                 todoReturn = true;
             }
         })
@@ -108,9 +113,9 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
             if (res.status !== 200) {
                 const receivedData = await res.json();
                 let error = receivedData.error;
-                setMessage(error);
+                // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                 setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
@@ -120,12 +125,14 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                     let templates_ = receivedData.templates as TemplateItem[]
                     dispatch(setTemplates(templates_));
                     setModified(false);
-                    setMessage("Обновлен список шаблонов карт");
+                    // setMessage("Обновлен список шаблонов карт");
+                    setMessage(t('templates.templatesUpdated'));
+                    
                 } else setMessage(receivedData.error);
             }
 
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+            setMessage(t('service.serverUnavailable') + e.message)            
         }
 
         setModified(false);
@@ -186,12 +193,16 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                             let errorMessage = '';
 
                             if (missingFields.length > 0) {
-                                errorMessage += `Отсутствуют обязательные поля: ${missingFields.join(', ')}. 
-                                Загрузка сделана не будет!`;
+                                // errorMessage += `Отсутствуют обязательные поля: ${missingFields.join(', ')}.                                 
+                                // Загрузка сделана не будет!`;
+                                errorMessage += `${t('templates.errorMessage1')} ${missingFields.join(', ')}.                                 
+                                ${t('templates.errorMessage1')}`;
                             }
                             if (invalidFields.length > 0) {
-                                errorMessage += `Некорректные значения в полях: ${invalidFields.join(', ')}.
-                                Загрузка сделана не будет!`;
+                                // errorMessage += `Некорректные значения в полях: ${invalidFields.join(', ')}.
+                                // Загрузка сделана не будет!`;
+                                errorMessage += `${t('templates.errorMessage3')} ${invalidFields.join(', ')}.
+                                ${t('templates.errorMessage1')}`;
                             }
 
                             alert(errorMessage);
@@ -208,14 +219,17 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                         // Возможно, нужно отправить jsonData в API для сохранения в базе данных
                     } catch (err) {
                         console.error('Ошибка при парсинге файла:', err);
-                        alert('Ошибка при загрузке шаблона. Файл поврежден или некорректный.');
+
+                        // alert('Ошибка при загрузке шаблона. Файл поврежден или некорректный.');
+                         alert(t('templates.alert1'));
                     }
                 };
 
                 // Чтение содержимого файла как строки
                 reader.readAsText(file);
             } else {
-                alert('Пожалуйста, выберите файл в формате JSON.');
+                // alert('Пожалуйста, выберите файл в формате JSON.');
+                alert(t('templates.alert2'));
             }
         };
 
@@ -230,7 +244,6 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
         <tr key={index}>
             <td>
                 <Image
-
                     src={del} alt="del" width={20} height={20}
                     onClick={() => deleteTemplateHandler(index)}
                 />
@@ -267,7 +280,8 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                 </button>
             </td>
             <td>
-                {(!template.fileContent) ?"": "загружен" }
+                {/* {(!template.fileContent) ?"": "загружен" } */}
+                {(!template.fileContent) ?"": t('templates.downloaded') }
             </td>
 
         </tr>
@@ -284,10 +298,10 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                 <thead>
                     <tr>
                         <th></th>
-                        <th>Название</th>
+                        <th>{t('templates.title')}</th>
                         <th></th>
                         <th></th>
-                        <th>Шаблон</th>
+                        <th>{t('templates.template')}</th>
 
                     </tr>
                 </thead>

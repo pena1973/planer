@@ -6,6 +6,8 @@ import { padNumberToFourDigits, } from "@/utils"
 
 import cancel from "@/public/cancel.png";
 
+import { useTranslation } from 'react-i18next';
+
 export interface LoadOperProcessProps {
     containerHeight: number,
     oper: TCardOperationItem,
@@ -34,7 +36,7 @@ export default function LoadOperProcess({
     closeOperHandler,
 
 }: LoadOperProcessProps) {
-
+  const { t, i18n } = useTranslation();
     const formatMinutes = (totalMinutes: number | undefined): string => {
         if (!totalMinutes) return "00-00";
         const hours = Math.floor(totalMinutes / 60);
@@ -77,25 +79,25 @@ export default function LoadOperProcess({
             />
             {/* Здесь будет отображаться информация о загруженной операции */}
             <div className={styles.oper_content_container}>
-                <div className={styles.oper_title}>Card: {titleCard}</div>
-                <div className={styles.oper_title}>Oper: C{oper.idc}, {operInfo?.title}, {oper.status}, {operInfo?.duration} мин</div>
-                <div className={styles.oper_title}>Start: {operInfo?.start.date}: {formatMinutes(operInfo?.start.time)}</div>
-                <div className={styles.oper_title}>Finish: {operInfo?.finish.date}: {formatMinutes(operInfo?.finish.time)}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.card')}: {titleCard}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.oper')}: C{oper.idc}, {operInfo?.title}, {oper.status}, {operInfo?.duration} {t('loadOperProcess.min')}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.start')}: {operInfo?.start.date}: {formatMinutes(operInfo?.start.time)}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.finish')}: {operInfo?.finish.date}: {formatMinutes(operInfo?.finish.time)}</div>
             </div>
 
             <div className={styles.oper_content}>
 
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Result</span></div>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperProcess.result')}</span></div>
                     {outReactNodes}
                 </div>
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Task</span></div>
-                    <div className={styles.oper_coment}>{(oper.coment) ? oper.coment : "нет коментариев"}</div>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperProcess.task')}</span></div>
+                    <div className={styles.oper_coment}>{(oper.coment) ? oper.coment : t('loadOperProcess.noComents')}</div>
                 </div>
 
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Source</span></div>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperProcess.source')}</span></div>
                     {innReactNodes}
                 </div>
 

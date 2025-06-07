@@ -7,9 +7,56 @@
     "text50": "Learn to perceive speech by ear",
     "text60": "Solve tasks and check yourself with the help of AI",
     "text70": "Learn over 100 conversational topics",
-    "text80": "Consolidate knowledge in practice with a tutor"
+    "text80": "Consolidate knowledge in practice with a tutor",
+    "downloadTCards": "Process maps loaded"
   },
   "register": {
-    "buttonRecovery": "Restore!"
+    "buttonRecovery": "Восстановить!"
+  },
+  "service": {
+    "loginLengthMustBe": "",
+    "passLengthMustBe": "",
+    "roleNotSelected": "",
+    "nicknameNotSelected": "",
+    "pass1NotEqualPass2": "",
+    "noConnection": ""
+  },
+  "cardsoper": {
+    "sendtoplan": "Send to schedule",
+    "comment": "Comment",
+    "repeat": "Repeat",
+    "sourse": "Source",
+    "action": "Action",
+    "result": "Result"
+  },
+  "cardsopernew": {
+    "add": "Add",
+    "comment": "Comment",
+    "repeat": "Repeat",
+    "sourse": "Source",
+    "action": "Action",
+    "result": "Result",
+    "fillUOM": "Please specify unit of measurement!"
+  },
+  "fileUpload": {
+    "json": "Drag and drop your JSON file here",
+    "alert": "Please upload a valid JSON file",
+    "alert1": "Missing required fields:",
+    "alert2": "Invalid field values:",
+    "alert3": "Failed to read or parse the file."
+  },
+  "scale": {
+    "resetScale": "Reset scale",
+    "scaleSize": "Scale:",
+    "inner": "Internal",
+    "outer": "External"
+  },
+  "contexMenuI": {
+    "card": "Process map",
+    "action": "Action:",
+    "duration": "Duration",
+    "interruptible": "Interruptible",
+    "koef": "Coefficient",
+    "status": "Status"
   }
 }

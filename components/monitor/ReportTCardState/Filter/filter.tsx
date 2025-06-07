@@ -1,10 +1,10 @@
 import { useState } from "react";
 import styles from "./filter.module.scss";
+import { useTranslation } from 'react-i18next';
+import { StatusEnum } from "@/types";
 
-import { StatusEnum, TCardTermsItem, UnitLoadItem } from "@/types";
 
-
-interface ReportTCardStateProps {
+interface FilterComponentProps {
     getTCardsTerms: (
         useNumber: boolean,
         useDate: boolean,
@@ -18,11 +18,12 @@ interface ReportTCardStateProps {
     userId: number,
 }
 
-const FilterComponent: React.FC<ReportTCardStateProps> = (
+const FilterComponent: React.FC<FilterComponentProps> = (
     { getTCardsTerms,
         teamId,
         userId }
 ) => {
+     const { t, i18n } = useTranslation();
     const [useTCardNumberFilter, setUseTCardNumberFilter] = useState(false);
     const [useTCardDateFilter, setUseTCardDateFilter] = useState(false);
     const [useTCardStatusFilter, setUseTCardStatusFilter] = useState(false);
@@ -60,7 +61,7 @@ const FilterComponent: React.FC<ReportTCardStateProps> = (
                     type="checkbox"
                     onChange={(e) => setUseTCardNumberFilter(!useTCardNumberFilter)}
                 />
-                <div className={styles.table_filter_label}>Номер карты</div>
+                <div className={styles.table_filter_label}>{t('reportTCardState.cardNumber')}</div>
                 <input
                     className={styles.filter_input_number}
                     id="tCardNumber"
@@ -80,7 +81,7 @@ const FilterComponent: React.FC<ReportTCardStateProps> = (
                     type="checkbox"
                     onChange={(e) => setUseTCardDateFilter(!useTCardDateFilter)}
                 />
-                <div className={styles.table_filter_label}>Дата карты с</div>
+                <div className={styles.table_filter_label}>{t('reportTCardState.cardDateFrom')}</div>
                 <input
                     className={styles.filter_input}
                     id="tCardDateFrom"
@@ -90,7 +91,7 @@ const FilterComponent: React.FC<ReportTCardStateProps> = (
                     onChange={(e) => setTCardDateFromFilter(e.target.value)}
                 // disabled={!useTCardDateFilter}
                 />
-                <div className={styles.table_filter_label}>по</div>
+                <div className={styles.table_filter_label}>{t('reportTCardState.cardDateTo')}</div>
                 <input
                     className={styles.filter_input}
                     id="tCardDateTo"
@@ -110,12 +111,12 @@ const FilterComponent: React.FC<ReportTCardStateProps> = (
                     type="checkbox"
                     onChange={(e) => setUseTCardStatusFilter(!useTCardStatusFilter)}
                 />
-                <div className={styles.table_filter_label}>Статус карты</div>
+                <div className={styles.table_filter_label}>{t('reportTCardState.cardStatus')}</div>
               
                 <div className={styles.selectContainer}>
                     <div className={styles.select} onClick={toggleDropdown}>
                         <div className={styles.selectedItem}>
-                            {tCardStatusFilter ? statuses.find(status => status.value === tCardStatusFilter)?.label : "Выберите"}
+                            {tCardStatusFilter ? statuses.find(status => status.value === tCardStatusFilter)?.label : t('reportTCardState.cardSelect')}
                         </div>
                         <div className={styles.arrow}>&#9662;</div>
                     </div>
@@ -156,7 +157,7 @@ const FilterComponent: React.FC<ReportTCardStateProps> = (
                     tCardDateFromFilter,
                     tCardDateToFilter,
                     tCardStatusFilter)}
-            > Применить </button>
+            > {t('reportTCardState.apply')}</button>
         </div>
     );
 };

@@ -38,12 +38,12 @@ import {
   setTemplates,
 } from '@/store/slices'
 
-import words from "@/public/add.jpg";
-import net from "@/public/add.jpg";
-import learn from "@/public/add.jpg";
-import exercises from "@/public/add.jpg";
-import hearing from "@/public/add.jpg";
-import topic from "@/public/add.jpg";
+import ico1 from "@/public/ico1.png";
+import ico2 from "@/public/ico2.png";
+import ico3 from "@/public/ico5.png";
+import ico4 from "@/public/ico3.png";
+import ico5 from "@/public/ico4.png";
+import ico6 from "@/public/ico6.png";
 
 import {
 
@@ -143,7 +143,6 @@ export default function Index({ }: IndexProps) {
         const receivedData = await res.json();
         let error = receivedData.error;
         setMessageLogin(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
         setMessageLogin(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
@@ -164,15 +163,14 @@ export default function Index({ }: IndexProps) {
           dispatch(setTeam(team_));
           dispatch(setSettings(settings_));
           dispatch(setSignedAgreement(signed_));
-          // setTextAgreementValue(agreementText_);
           agreementId.current = agreementId_;
-          textAgreement.current=agreementText_;
+          textAgreement.current = agreementText_;
           setStep(3);
         } else setMessageLogin(receivedData.message);
       }
 
     } catch (e: any) {
-      // setMessageLogin(t('service.noConnection') + e.message)            
+      // setMessageLogin(t('service.serverUnavailable') + e.message)            
     }
     setLoaderButtonLogin(false)
   }
@@ -212,7 +210,7 @@ export default function Index({ }: IndexProps) {
         setMessage(t('service.recoveryMailSent'));
       }
     } catch (e: any) {
-      setMessage(t('service.noConnection') + e.message)
+      setMessage(t('service.serverUnavailable') + e.message)
     }
     // setLoaderButtonRecovery(false);
   }
@@ -311,7 +309,7 @@ export default function Index({ }: IndexProps) {
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
 
 
@@ -335,19 +333,20 @@ export default function Index({ }: IndexProps) {
         let error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
           let uoms_ = receivedData.uoms as UOMItem[]
           dispatch(setUOMs(uoms_));
-          setMessage("Загружены единицы измерения")          
+          // setMessage("Загружены единицы измерения")
+          setMessage(t('index.downloadUoms'))
         }
         else setMessage(receivedData.error);
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
   }
   const downloadActions = async () => {
@@ -367,19 +366,20 @@ export default function Index({ }: IndexProps) {
         let error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
           let actions_ = receivedData.actions as ActionItem[]
           dispatch(setActions(actions_));
-          setMessage("Загружены действия")          
+          // setMessage("Загружены действия")
+          setMessage(t('index.downloadActions'))
         }
         else setMessage(receivedData.error);
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
 
   }
@@ -400,19 +400,20 @@ export default function Index({ }: IndexProps) {
         let error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
           let templates_ = receivedData.templates as TemplateItem[]
           dispatch(setTemplates(templates_));
-          setMessage("Загружены шаблоны")          
+          // setMessage("Загружены шаблоны")
+          setMessage(t('index.downloadTemplates'))
         }
         else setMessage(receivedData.error);
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
 
   }
@@ -434,7 +435,7 @@ export default function Index({ }: IndexProps) {
         let error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
@@ -447,16 +448,15 @@ export default function Index({ }: IndexProps) {
             const idB = b.id ?? 0; // Если id b не существует, считаем его 0          
             return idA - idB; // Сравниваем id
           });
-
           dispatch(setUnits(units_));
-          setMessage("Загружены юниты")
-          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
-          //   setdownloadedAllValue(downloadedAllValue+1);
+          // setMessage("Загружены юниты")
+          setMessage(t('index.downloadUnits'))
+
         }
         else setMessage(receivedData.error);
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
 
   }
@@ -477,19 +477,20 @@ export default function Index({ }: IndexProps) {
         let error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
           let exceptions = receivedData.exceptions as UnitExceptionItem[]
           dispatch(setUnitExceptions(exceptions)); // Это ме надо?
-          setMessage("Загружены исключения юнитов")
+          // setMessage("Загружены исключения юнитов")
+          setMessage(t('index.downloadUnutsExceptions'))
         }
         else setMessage(receivedData.error);
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
 
   }
@@ -509,20 +510,20 @@ export default function Index({ }: IndexProps) {
         const receivedData = await res.json();
         let error = receivedData.error;
         setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let unitActions = receivedData.exceptions as UnitActionItem[]
-          dispatch(setUnitActions(unitActions)); 
-          setMessage("Загружены действия юнитов")
+          let unitActions = receivedData.actions as UnitActionItem[]
+          dispatch(setUnitActions(unitActions));
+          // setMessage("Загружены действия юнитов")
+          setMessage(t('index.downloadUnutsActions'))
         }
         else setMessage(receivedData.error);
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
 
   }
@@ -543,7 +544,7 @@ export default function Index({ }: IndexProps) {
         const receivedData = await res.json();
         let error = receivedData.error;
         setMessage(error);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
       } else {
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)        
@@ -553,13 +554,12 @@ export default function Index({ }: IndexProps) {
           let tCards_ = tCards.sort((a, b) => a.idc - b.idc);
           let tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
           dispatch(setTCards(tCardsUpdated));
-          setMessage("Загружены карты");
-          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
-          //   setdownloadedAllValue(downloadedAllValue+1);
+          // setMessage("Загружены карты");
+          setMessage(t('index.downloadTCards'))
         }
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
   };
   // загружает настройки отображения календаря
@@ -578,26 +578,25 @@ export default function Index({ }: IndexProps) {
         const receivedData = await res.json();
         let error = receivedData.error;
         setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
           let settings = receivedData.schedule as SettingsItem
           dispatch(setSettings(settings));
-          setMessage("Загружены настройки календаря");
-          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
-          //   setdownloadedAllValue(downloadedAllValue+1);
+          // setMessage("Загружены настройки календаря");
+          setMessage(t('index.downloadSettings'))
+
         }
         else
           setMessage(receivedData.error);
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
   }
-  
+
   // загружает  расписание работы компании
   const downloadSchedule = async () => {
     try {
@@ -614,22 +613,20 @@ export default function Index({ }: IndexProps) {
         const receivedData = await res.json();
         let error = receivedData.error;
         setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
           let schedule = receivedData.schedule as ScheduleItem
           dispatch(setSchedule(schedule));
-          setMessage("Загружено расписание")
-          // if ((downloadedAllValue+1)===6) setMessage("Все загружено, можно работать")
-          //   setdownloadedAllValue(downloadedAllValue+1);
+          // setMessage("Загружено расписание")
+          setMessage(t('index.downloadSchedule'))
         }
         else setMessage(receivedData.error);
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
   }
   // запрос Загрузки
@@ -649,28 +646,23 @@ export default function Index({ }: IndexProps) {
         const receivedData = await res.json();
         let error = receivedData.error;
         setMessage(error);
-        // setMessage(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
       } else {
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
           //  массив юнитов с загрузками
-
           let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
 
           dispatch(setUnitLoads(unitsLoads));
-          setMessage("Загружены планы и история ")
+          // setMessage("Загружены планы и история ")
+          setMessage(t('index.downloadLoads'))
         }
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      setMessage(t('service.serverUnavailable') + e.message)
     }
 
-
-    // }
-
-    // // Обновим сообщение для пользователя
-    // setMessage(`Элемент с id: ${itemId} был перемещен`);
   };
 
 
@@ -686,7 +678,7 @@ export default function Index({ }: IndexProps) {
         await downloadUnits();
         await downloadUnutsActions();
         await downloadUnutsExceptions();
-        await downloadSettings();        
+        await downloadSettings();
         await downloadSchedule();
         await downloadTCards();
         await downloadLoads();
@@ -739,7 +731,7 @@ export default function Index({ }: IndexProps) {
       }
 
     } catch (e: any) {
-      // setMessageLogin(t('service.noConnection') + e.message)            
+      // setMessageLogin(t('service.serverUnavailable') + e.message)            
     }
     setLoaderButtonLogin(false)
 
@@ -756,16 +748,25 @@ export default function Index({ }: IndexProps) {
       <pre />
       <div className="container_index">
         {(step !== 3) && <div className="container_index_left">
-          <div className="index_title">Planing tool</div>
-          <div className="index_describtion">Планировщик загрузки ресурсов компании
+          <div className="index_title">Plan&Track Pro</div>
+          {/* <div className="index_describtion">Планировщик загрузки ресурсов компании */}
+          <div className="index_describtion">{t('index.title')}
             <div className="index_line"></div>
           </div>
-          <div className="ads"><Image className="img_" src={words} alt="words" />Работает в соответствии с заказом от клиента</div>
-          <div className="ads"><Image className="img_" src={exercises} alt="words" />Выстраивает технологическую карту выполнения заказа</div>
-          <div className="ads"><Image className="img_" src={hearing} alt="words" />Отслеживает кажый произведенный предмет индивидуально</div>
-          <div className="ads"><Image className="img_" src={net} alt="words" /> Формирует индивидуальный код каждого изделия, легко найти</div>
-          <div className="ads"><Image className="img_" src={topic} alt="words" />Автоматически моделирует загрузку ваших приизводственных центров</div>
-          <div className="ads"><Image className="img_" src={learn} alt="words" />Формирует задания исполнителям и отслеживает выполнение</div>
+
+          <div className="ads"><Image className="img_" src={ico1} alt="ico1" />{t('index.ico1')}</div>
+          <div className="ads"><Image className="img_" src={ico2} alt="ico2" />{t('index.ico2')}</div>
+          <div className="ads"><Image className="img_" src={ico3} alt="ico3" />{t('index.ico3')}</div>
+          <div className="ads"><Image className="img_" src={ico4} alt="ico4" />{t('index.ico4')}</div>
+          <div className="ads"><Image className="img_" src={ico5} alt="ico5" />{t('index.ico5')}</div>
+          <div className="ads"><Image className="img_" src={ico6} alt="ico6" />{t('index.ico6')}</div>
+
+          {/* <div className="ads"><Image className="img_" src={ico1} alt="ico1" />Работает в соответствии с заказом от клиента</div>
+          <div className="ads"><Image className="img_" src={ico2} alt="ico2" />Выстраивает технологическую карту выполнения заказа</div>
+          <div className="ads"><Image className="img_" src={ico3} alt="ico3" />Отслеживает кажый произведенный предмет индивидуально</div>
+          <div className="ads"><Image className="img_" src={ico4} alt="ico4" /> Формирует индивидуальный код каждого изделия, легко найти</div>
+          <div className="ads"><Image className="img_" src={ico5} alt="ico5" />Автоматически моделирует загрузку ваших приизводственных центров</div>
+          <div className="ads"><Image className="img_" src={ico6} alt="ico6" />Формирует задания исполнителям и отслеживает выполнение</div> */}
         </div>}
         {(step !== 3) && <div className="container_index_right">
 
@@ -927,7 +928,7 @@ export default function Index({ }: IndexProps) {
           }
           {(step === 4) &&
             <div className="loader_container">
-              <div className="loader_title">Ждем...</div>
+              <div className="loader_title">{t('index.wait')}...</div>
               <div className="loader_title">{message}</div>
               <pre />
               <ButtonLoader width={200} height={200} />

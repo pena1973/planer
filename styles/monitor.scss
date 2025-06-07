@@ -16,6 +16,11 @@
     padding: 10px 15px;
     cursor: pointer;
 }
+.monitor_container_catalog {
+    padding: 10px 15px;
+    cursor: pointer;
+    width: 199px;
+}
 
 .monitor_container_navigation {
     display: flex;
@@ -31,8 +36,9 @@
     color: $third_text_color;
 }
 
-.monitor_container {
-    display: inline-flex;
+.monitor_container {    
+     display: flex;
+    flex-wrap: wrap;
 }
 
 .current_day {

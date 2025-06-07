@@ -4,15 +4,12 @@ import { ActionItem } from '@/types'
 import Image from 'next/image';
 import { useEffect, useState } from "react";
 
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 import { setActions, } from '@/store/slices'
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
@@ -26,8 +23,8 @@ export interface ActionsCatalogProps {
 export default function ActionsCatalog({
     setMessage
 }: ActionsCatalogProps) {
+    const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
-
     const actions = useSelector((state: RootState) => {
         return state.catalogSlice.actions;
     })
@@ -41,14 +38,11 @@ export default function ActionsCatalog({
         return state.authSlice.user;
     })
 
-
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [actionsValue, setActionsValue] = useState([] as ActionItem[]);
-
    
     useEffect(() => {
-        setActionsValue(actions);
-        // downloadActions()
+        setActionsValue(actions);        
     }, []);
 
     // колбеки кнопки
@@ -85,7 +79,8 @@ export default function ActionsCatalog({
         setMessage("");
         actionsValue.forEach((elem) => {
             if (!elem.title) {
-                setMessage("Заполните название действия!");
+                // "Заполните название действия!"
+                setMessage(t('actionsCatalog.filltitle'));
                 return;
             }
         })
@@ -110,9 +105,9 @@ export default function ActionsCatalog({
             if (res.status !== 200) {
                 const receivedData = await res.json();
                 let error = receivedData.error;
-                setMessage(error);
+                // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                 setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
@@ -123,12 +118,14 @@ export default function ActionsCatalog({
                     dispatch(setActions(actions_));
                     setActionsValue(actions_)
                     setModified(false);
-                    setMessage("Обновлен список Действий");
+                    // setMessage("Обновлен список Действий");
+                    setMessage(t('actionsCatalog.listUpdated'));
+                    
                 } else setMessage(receivedData.error);
             }
 
         } catch (e: any) {
-            // setMessage(t('service.noConnection') + e.message)            
+             setMessage(t('service.serverUnavailable') + e.message)            
         }
 
         setModified(false);
@@ -208,9 +205,9 @@ export default function ActionsCatalog({
                 <thead>
                     <tr>
                         <th ></th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Interaptible</th>
+                        <th>{t('actionsCatalog.code')}</th>
+                        <th>{t('actionsCatalog.name')}</th>
+                        <th>{t('actionsCatalog.interaptible')}</th>
                     </tr>
                 </thead>
                 <tbody>

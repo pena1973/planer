@@ -1,7 +1,7 @@
 
 import React from 'react';
 import styles from './dropdownSelectOper.module.scss'; 
-
+import { useTranslation } from 'react-i18next';
 // Определение типа для опций
 interface Option {
     id: number;
@@ -17,6 +17,7 @@ interface DropdownSelectOperProps {
 }
 
 const DropdownSelectOper: React.FC<DropdownSelectOperProps> = ({ options, onSelect, selectedValue }) => {
+    const { t, i18n } = useTranslation();
     return (
         <select 
             // className={styles.oper_select} 
@@ -28,7 +29,7 @@ const DropdownSelectOper: React.FC<DropdownSelectOperProps> = ({ options, onSele
             }}
         >
             {/* Плейсхолдер */}
-            <option className={styles.placeholder} value="" disabled>Выберите</option> 
+            <option className={styles.placeholder} value="" disabled>{t('dropdownselectoper.select')}</option> 
             {/* <option value="" disabled></option> */}
             {options.map(option => (
                 <option key={option.id} value={option.id}>

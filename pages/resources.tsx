@@ -11,9 +11,9 @@ import UsersCatalog from "@/components/catalogs/UsersCatalog/usersCatalog";
 
 import UnitsCatalog from "@/components/catalogs/UnitsCatalog/unitsCatalog";
 // import Arrow1 from "@/components/Arrow1/arrow1";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Link from 'next/link';
-import { ActionItem, UOMItem, UnitItem, UserItem } from '@/types'
+import { useTranslation } from 'react-i18next';
 
 import Image from 'next/image';
 
@@ -22,30 +22,26 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 
-import {
-  setResourcePoint
-} from '@/store/slices';
-import { Index } from "typeorm";
+import { setResourcePoint} from '@/store/slices';
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+
+// const URL = process.env.NEXT_PUBLIC_URL;
+// let _url = String(URL);
+// _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 interface ResourcesProps {
 
 }
 
 export default function Resources({ }: ResourcesProps) {
-
+  const { t, i18n } = useTranslation();
   const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-  const [resource, setResource] = useState(0); // переключатель между каталогами
-
+  
   const resourcePoint = useSelector((state: RootState) => {
     return state.viewSlice.resourcePoint;
   })
-
   const team = useSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
@@ -58,32 +54,29 @@ export default function Resources({ }: ResourcesProps) {
 
   }, []);
 
-
-
-
   return (
     <Layout>
       <div className="container_global" >
         <div className="container_global_left">
           <div className="container_catalogs">
-            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(1))}>Команда</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(2))}>Расписание</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(3))}>Действия</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(4))}>Единицы измерения</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(5))}>Юниты</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(6))}>Настройки</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(7))}>Шаблоны</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(1))}>{t('resources.team')}</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(2))}>{t('resources.schedule')}</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(3))}>{t('resources.actions')}</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(4))}>{t('resources.uoms')}</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(5))}>{t('resources.units')}</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(6))}>{t('resources.setting')}</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(7))}>{t('resources.templates')}</div>
 
 
           </div>
-          <div className="container_cards_title">Пояснение</div>
+          <div className="container_cards_title">{t('resources.notes')}</div>
           <div className="container_global_message">{message}</div>
 
         </div>
         <div className="container_global_right">
           {/* компания */}
           {resourcePoint === 1 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Команда</div>
+            <div className="catalog_title">{t('resources.team')}</div>
             <Team
               user={user}
               team={team}
@@ -99,35 +92,35 @@ export default function Resources({ }: ResourcesProps) {
           </div>}
           {/* расписание */}
           {resourcePoint === 2 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Расписание работы команды</div>
+            <div className="catalog_title">{t('resources.teamschedule')}</div>
             <TeamSchedule setMessage={setMessage} />
           </div>}
           {/* Действия */}
           {resourcePoint === 3 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Каталог производственных операций команды</div>
+            <div className="catalog_title">{t('resources.teamactions')}</div>
             <ActionsCatalog setMessage={setMessage} />
           </div>}
           {/* ЕдИзм */}
           {resourcePoint === 4 &&
             <div className="contaitainer_catalog">
-              <div className="catalog_title"> Каталог единиц измерения</div>
+              <div className="catalog_title">{t('resources.uoms')}</div>
               <UOMSCatalog setMessage={setMessage} />
             </div>}
           {/* Юниты */}
           {resourcePoint === 5 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Каталог производственных центров (юнитов) и настройки</div>
+            <div className="catalog_title">{t('resources.teamunits')}</div>
             <UnitsCatalog setMessage={setMessage} />
           </div>}
           {/* Визуальные настройки календаря */}
           {resourcePoint === 6 && <div className="contaitainer_catalog">
-            <div className="catalog_title"> Настройки календаря</div>
+            <div className="catalog_title">{t('resources.calendarsetting')}</div>
             <Settings setMessage={setMessage} />
-            <div className="catalog_title"> Настройки учета</div>
+            <div className="catalog_title"> {t('resources.accauntingsetting')}</div>
             <SystemSettings setMessage={setMessage} />
           </div>}
           {resourcePoint === 7 &&
             <div className="contaitainer_catalog">
-              <div className="catalog_title"> Шаблоны карт</div>
+              <div className="catalog_title">{t('resources.cardtemplates')}</div>
               <TemplatesCatalog setMessage={setMessage} />
             </div>}
         </div>

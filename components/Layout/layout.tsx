@@ -20,14 +20,12 @@ import {
 import Head from "next/head";
 import Image from 'next/image';
 import Link from 'next/link';
-// import clouds from "./cloud.module.css";
-// import header1 from "./header.module.scss";
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import '../../i18n'
 
-const locales = ['en', 'lv', 'ru'];
+const locales = ['en', 'ru'];
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
@@ -74,7 +72,7 @@ export default function Layout({ children }: PropsWithChildren) {
     return (
         <>
             <Head>
-                <title>plan optimizer</title>
+                <title>PTPro</title>
                 <meta name="description" content="plan optimizer" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <link rel="icon" type="image/x-icon" href="icon.ico"></link>
@@ -85,12 +83,12 @@ export default function Layout({ children }: PropsWithChildren) {
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
 
-                        {(!user.id) && <Link className={styles.header_menu_item} href="/">Optimizer</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/cards">Cards</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/planing">Planing</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/resources">Resources</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/monitor">Monitor</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/support">Support</Link>}
+                        {(!user.id) && <Link className={styles.header_menu_item} href="/">PTpro</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
+                        {(user.id) && <Link className={styles.header_menu_item} href="/support">{t('layout.support')}</Link>}
 
 
                     </ul>
@@ -113,8 +111,8 @@ export default function Layout({ children }: PropsWithChildren) {
                             </div>
                         )}
                     </div>                    
-                    <button>Профиль</button>
-                    {(user.id) &&  <button onClick={exit}>Выход</button>}
+                    <button>{t('layout.profile')}</button>
+                    {(user.id) &&  <button onClick={exit}>{t('layout.exit')}</button>}
                 </div>
             </div>
             <main className={styles.layout}>{children}</main>

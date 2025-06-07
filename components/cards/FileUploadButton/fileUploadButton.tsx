@@ -2,7 +2,9 @@
 import React, { useState, } from "react";
 import styles from './fileUploadButton.module.scss';
 import { generateUniqueId,calculateMaxIdc,validateFileContent } from "@/utils"
-import { TCardItem, TCardContent,ProductContent,OperationContent, TCardOperationItem, StatusEnum, ActionItem, UOMItem } from "@/types"; // Импортируем нужные типы
+import { TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem } from "@/types"; // Импортируем нужные типы
+
+import { useTranslation } from 'react-i18next';
 
 export interface FileUploadButtonProps<T> {
   onCardUpload: (tCard: TCardItem) => void,
@@ -15,6 +17,9 @@ const FileUploadButton = <T extends {}>({
   uoms,
   actions,
 }: FileUploadButtonProps<T>) => {
+ 
+  const { t, i18n } = useTranslation();
+
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания drag&drop
 
 
@@ -35,7 +40,9 @@ const FileUploadButton = <T extends {}>({
     if (file && file.type === 'application/json') {
       readFile(file);
     } else {
-      alert('Пожалуйста, загрузите файл в формате JSON');
+      alert( t('fileUpload.alert')
+      // 'Пожалуйста, загрузите файл в формате JSON'
+    );
     }
   };
 
@@ -131,10 +138,12 @@ const FileUploadButton = <T extends {}>({
           let errorMessage = '';
 
           if (missingFields.length > 0) {
-            errorMessage += `Отсутствуют обязательные поля: ${missingFields.join(', ')}. `;
+            // Отсутствуют обязательные поля:
+            errorMessage += `${t('fileUpload.alert1')} Отсутствуют обязательные поля: ${missingFields.join(', ')}. `;
           }
           if (invalidFields.length > 0) {
-            errorMessage += `Некорректные значения в полях: ${invalidFields.join(', ')}.`;
+            // Некорректные значения в полях:
+            errorMessage += `${t('fileUpload.alert2')} ${invalidFields.join(', ')}.`;
           }
 
           alert(errorMessage);
@@ -144,18 +153,22 @@ const FileUploadButton = <T extends {}>({
           onCardUpload(tCard);
         }
       } catch (err) {
-        alert('Невозможно прочитать или распарсить файл.');
+        // alert('Невозможно прочитать или распарсить файл.');
+        alert(t('fileUpload.alert3'));
+        
       }
     };
     reader.readAsText(file);
   };
 
+  // Загрузите файл JSON сюда 
   return (<div
     className={`${styles.container_card_load} ${isDragging ? 'dragover' : ''}`}
     onDragOver={handleDragOverFile}
     onDragLeave={handleDragLeaveFile}
     onDrop={handleDropFile}
     onClick={handleFileClick}
-  > Загрузите файл JSON сюда </div>)
+  > {t('fileUpload.json')} </div>)
+  
 }
 export default FileUploadButton;

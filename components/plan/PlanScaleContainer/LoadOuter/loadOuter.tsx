@@ -16,10 +16,7 @@ export interface LoadProps {
     erazLoadHandler: (load_idc: number) => void,
     handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,
     handleMouseUpOper: () => void,
-    handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
-    // index: number,
-    // isOuterStart: boolean,//  это старт оутсортера
-    // isOuterFinish: boolean,//  это финиш оутсортера
+    handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,   
     stopCloseMenu: (idc: number) => void,
     moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
 
@@ -39,58 +36,54 @@ export default function LoadOuter({
     handleMouseDownOper,
     handleMouseUpOper,
     handleRightClickMenu,
-    // index,
-    // isOuterStart,
-    // isOuterFinish,
+
     stopCloseMenu,
     moveLoadHandler,
 
 }: LoadProps) {
-
-    // let index = (isOuterStart) ? 1 : 2; // это либо конец либо начало
-
+  
     // старт и финиш -маленькимй треугольничек сверху ли снизу и другое контекстноке меню
     //  ширина лоада 5 минут  -  стандартная для сьтарта и ждля финиша
     let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
     let shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
-    let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
+    let left = blockwidth / 5 * shift+ (load.isOuterFinish?-26:0); // тот же схвиг в пикселях
     let width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
-    let triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
-    let triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
+     let triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
+     let triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
 
     switch (load.status) {
         case StatusEnum.planed:
             intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
-            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPlaned}`; // Класс по умолчанию
-            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPlaned}`; // Класс по умолчанию                
-            break;
+            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPlaned}`; // Класс по умолчанию
+            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPlaned}`; // Класс по умолчанию                
+             break;
         case StatusEnum.prepared:
             intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
-            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPrepared}`; // Класс по умолчанию
-            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPrepared}`; // Класс по умолчанию                
-            break;
+            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPrepared}`; // Класс по умолчанию
+            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPrepared}`; // Класс по умолчанию                
+             break;
         case StatusEnum.defective:
             intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
-            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDefected}`; // Класс по умолчанию
-            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDefected}`; // Класс по умолчанию                
-            break;
+            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDefected}`; // Класс по умолчанию
+            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDefected}`; // Класс по умолчанию                
+             break;
         case StatusEnum.ready:
             intervalClass = `${styles.interval} ${styles.ready}`; // готовый
-            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightReady}`; // Класс по умолчанию
-            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftReady}`; // Класс по умолчанию                
+            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightReady}`; // Класс по умолчанию
+            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftReady}`; // Класс по умолчанию                
             break;
         case StatusEnum.performed:
             intervalClass = `${styles.interval} ${styles.performed}`; // получен от поставщика но не проверен
-            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPerformed}`; // Класс по умолчанию
-            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPerformed}`; // Класс по умолчанию                
+            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPerformed}`; // Класс по умолчанию
+            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPerformed}`; // Класс по умолчанию                
             break;
         case StatusEnum.cancelled:
             intervalClass = `${styles.interval} ${styles.cancelled}`; // отменен
-            triangleRightClass = `${styles.triangleRight} ${styles.triangleRightСancelled}`; // Класс по умолчанию
-            triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftСancelled}`; // Класс по умолчанию                
+            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightСancelled}`; // Класс по умолчанию
+            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftСancelled}`; // Класс по умолчанию                
 
             break;
         default:
@@ -117,8 +110,7 @@ export default function LoadOuter({
     return (
         <>
             {/* Треугольник (стрелка) */}
-
-            {/* <div className={styles.triangleTop} /> */}
+            
             {load.isOuterFinish && <div className={triangleLeftClass} />}
             {load.isOuterStart && <div className={triangleRightClass} />}
             <div className={intervalClass}
@@ -127,19 +119,18 @@ export default function LoadOuter({
                 draggable={true}
                 id={String(load.idc)}
                 style={{
-                    minWidth: '20px', maxWidth: '20px', width: `${width}px`, left: `${left}px`,
+                    minWidth: '30px', maxWidth: '30px', width: `${width}px`, left: `${left}px`,
                     cursor: (draggingLoad === load) ? "grabbing" : "grab"
                 }
                 }
-                onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`C${load.idc_oper}`}
+                onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`A${load.idc_oper}`}
             </div>
 
             {contectMenuShow === load.idc &&
                 <ContexMenu
                     tCard={tCard}
                     load={load}
-                    left={left}
-                    // width={width}
+                    left={left}                    
                     erazLoadHandler={erazLoadHandler}
                     retool={unitView.retool}
                     stopCloseMenu={stopCloseMenu}

@@ -3,16 +3,14 @@ import UnitTaskStackProcess from "@/components/monitor/UnitTaskStackProcess/unit
 import UnitTaskStackControl from "@/components/monitor/UnitTaskStackControl/unitTaskStackControl";
 import UnitTaskStackOutsource from "@/components/monitor/UnitTaskStackOutsource/unitTaskStackOutsource";
 import ReportTCardState from "@/components/monitor/ReportTCardState/reportTCardState";
-import ReportTCardState1 from "@/components/monitor/ReportTCardState/reportTCardState";
 import ReportUnitsKPI from "@/components/monitor/ReportUnitsKPI/reportUnitsKPI";
 
 import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/arrowButton";
+import { useTranslation } from 'react-i18next';
 
+import { useEffect, useState } from "react";
 
-// import Arrow1 from "@/components/Arrow1/arrow1";
-import { useEffect, useState, useRef } from "react";
-import Link from 'next/link';
-import { ActionItem, UOMItem, UnitBelongEnum, UnitItem, ScheduleItem, DaysOfWeek, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types'
+import { UnitBelongEnum, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types'
 
 import Image from 'next/image';
 
@@ -20,78 +18,74 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
-
+import { isWeekend, isHoliday, isAdditionalTime } from "@/utils";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
-import { Index } from "typeorm";
-import { get } from "http";
-import { TCardOperationTable } from "./db/models/data/t_card_operations";
 
+// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
+// const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-//  функция определяемт входит ли  дата в список дат дополнительного времени работы
-const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.team)
+//     return schedule.workdays.some(workday =>
+//       new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+//     ); else return false
+// }
+// //  функция определяемт входит ли  дата в список выходных расписания
+// const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
+//   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
-    return schedule.workdays.some(workday =>
-      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-    ); else return false
-}
-//  функция определяемт входит ли  дата в список выходных расписания
-const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
-  const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
+//   let dayString = DaysOfWeek.SUNDAY;
 
-  let dayString = DaysOfWeek.SUNDAY;
+//   switch (dayOfWeek) {
+//     case 1:
+//       dayString = DaysOfWeek.MONDAY;
+//       break;
+//     case 2:
+//       dayString = DaysOfWeek.TUESDAY;
+//       break;
+//     case 3:
+//       dayString = DaysOfWeek.WEDNESDAY;
+//       break;
+//     case 4:
+//       dayString = DaysOfWeek.THURSDAY;
+//       break;
+//     case 5:
+//       dayString = DaysOfWeek.FRIDAY;
+//       break;
+//     case 6:
+//       dayString = DaysOfWeek.SATURDAY;
+//       break;
+//     default:
+//       dayString = DaysOfWeek.SUNDAY;
+//       break;
+//   }
 
-  switch (dayOfWeek) {
-    case 1:
-      dayString = DaysOfWeek.MONDAY;
-      break;
-    case 2:
-      dayString = DaysOfWeek.TUESDAY;
-      break;
-    case 3:
-      dayString = DaysOfWeek.WEDNESDAY;
-      break;
-    case 4:
-      dayString = DaysOfWeek.THURSDAY;
-      break;
-    case 5:
-      dayString = DaysOfWeek.FRIDAY;
-      break;
-    case 6:
-      dayString = DaysOfWeek.SATURDAY;
-      break;
-    default:
-      dayString = DaysOfWeek.SUNDAY;
-      break;
-  }
+//   // Проверяем, является ли день выходным
+//   if (schedule.team) return schedule.weekends.includes(dayString);
+//   else return false
+// }
+// //  функция определяемт входит ли  дата в список праздниклв расписания
+// const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
-  // Проверяем, является ли день выходным
-  if (schedule.team) return schedule.weekends.includes(dayString);
-  else return false
-}
-//  функция определяемт входит ли  дата в список праздниклв расписания
-const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.team)
+//     return schedule.holidays.some(holiday =>
+//       new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+//     ); else return false
+// }
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
-    return schedule.holidays.some(holiday =>
-      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-    ); else return false
-}
 interface MonitorProps {
 
 }
 
 export default function Monitor({ }: MonitorProps) {
+
+  const { t, i18n } = useTranslation();
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();
@@ -112,11 +106,9 @@ export default function Monitor({ }: MonitorProps) {
   const user = useSelector((state: RootState) => {
     return state.authSlice.user;
   })
-
   const monitorPoint = useSelector((state: RootState) => {
     return state.viewSlice.monitorPoint;
   })
-
   const units = useSelector((state: RootState) => {
     return state.catalogSlice.units;
   })
@@ -148,15 +140,15 @@ export default function Monitor({ }: MonitorProps) {
   }, []);
 
   //  меняем статус карты (если нужно) и операции и лоадов по событию
-  const setStatusLoadsHandler = (tCardStatus: StatusEnum,tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => {
+  const setStatusLoadsHandler = (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => {
 
     const cardIndex = tCards.findIndex(card => card.id === tCardId);
     if (cardIndex < 0) return
-    
+
     // обновили лоады
     const unitLoads_ = unitLoads.map(lo => operloadsIds.includes(lo.id as number) ? { ...lo, status: tOperStatus } : lo);
     dispatch(setUnitLoads(unitLoads_));
-  
+
     // Обновляем статус операции если он загружен
     const tCardOperations = tCards[cardIndex].tCardOperations?.map(operation => {
       if (operation.id === operId) {
@@ -164,16 +156,14 @@ export default function Monitor({ }: MonitorProps) {
       }
       return operation;
     }) as TCardOperationItem[];
-  
 
-   let updatedTCard =  { ...tCards[cardIndex], status: tCardStatus, tCardOperations: tCardOperations }
+
+    let updatedTCard = { ...tCards[cardIndex], status: tCardStatus, tCardOperations: tCardOperations }
 
     let _tCards = [...tCards]
     _tCards.splice(cardIndex, 1, updatedTCard);
 
     dispatch(setTCards(_tCards));
-
-
   }
 
 
@@ -273,14 +263,14 @@ export default function Monitor({ }: MonitorProps) {
       <div className="container_global" >
         <div className="container_global_left">
           <div className="container_catalogs">
-            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(1))}>Загрузка юнитов</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(2))}>Операции на стороне</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(3))}>Готовность карт</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(4))}>KPI рабочих юнитов</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setMonitorPoint(5))}>Коды синхронизации</div>
+            <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(1))}>{t('monitor.unitLoading')}</div>
+            <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(2))}>{t('monitor.outerActions')}</div>
+            <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(3))}>{t('monitor.readiness')}</div>
+            <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(4))}>{t('monitor.kpi')}</div>
+            <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(5))}>{t('monitor.syncCodes')}</div>
 
           </div>
-          <div className="container_cards_title">Пояснение</div>
+          <div className="container_cards_title">{t('monitor.notes')}</div>
           <div className="container_global_message">{message}</div>
 
         </div>
@@ -290,7 +280,7 @@ export default function Monitor({ }: MonitorProps) {
           {/* Настройки */}
           {monitorPoint === 1 && <div className="container_monitor">
 
-            <div className="catalog_title"> Загрузка юнитов</div>
+            <div className="catalog_title"> {t('monitor.unitLoading')}</div>
             <div className="monitor_container_navigation">
               <BackwardButton onClick={() => {
                 let newDate = new Date(day);
@@ -321,7 +311,7 @@ export default function Monitor({ }: MonitorProps) {
           </div>}
           {/* состояние операций на outsource */}
           {monitorPoint === 2 && <div className="container_monitor">
-            <div className="catalog_title"> Операции переданные сторонним исполнителям</div>
+            <div className="catalog_title">{t('monitor.outerActions1')}</div>
             <UnitTaskStackOutsource
               outerLoads={outerLoads}
               tCards={tCards}
@@ -334,22 +324,23 @@ export default function Monitor({ }: MonitorProps) {
           </div>}
           {/* Готовность карт */}
           {monitorPoint === 3 && <div className="container_monitor">
-            <div className="catalog_title"> Готовность карт</div>
-            <ReportTCardState setMessage={setMessage} 
-             teamId={team.id}
-             userId={user.id}
-             />
+            <div className="catalog_title">{t('monitor.readiness')}</div>
+            <ReportTCardState setMessage={setMessage}
+              teamId={team.id}
+              userId={user.id}
+            />
           </div>}
           {monitorPoint === 4 && <div className="container_monitor">
-            <div className="catalog_title"> KPI рабочих юнитов</div>
+            <div className="catalog_title">{t('monitor.kpi1')}</div>
             <ReportUnitsKPI
               setMessage={setMessage}
               teamId={team.id}
-              userId={user.id} />
+              userId={user.id}
+              units={units} />
           </div>}
           {monitorPoint === 5 && <div className="container_monitor">
-            <div className="catalog_title"> Коды синхронизации карт</div>
-            
+            <div className="catalog_title"> {t('monitor.kpi1')} </div>
+
           </div>
           }
         </div>

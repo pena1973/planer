@@ -1,25 +1,13 @@
 
 import styles from "./contextMenuOuter.module.scss";
-
-import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
-
+import { padNumberToFourDigits, } from "@/utils"
 import Image from 'next/image';
-
 import { useEffect, useState, useRef } from "react";
-
-import { useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
-import { setUOMs, } from '@/store/slices'
-
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 import eraz from "@/public/erazer1-rem.png";
 import save from "@/public/save-rem.png";
-
-import { TCardItem, UnitLoadItem, TCardOperationItem } from "@/types";
+import { StatusEnum, TCardItem, UnitLoadItem, } from "@/types";
+import { useTranslation } from 'react-i18next';
 
 export interface ContexMenuOuterProps {
     tCard: TCardItem,
@@ -45,6 +33,7 @@ export default function ContexMenuOuter({
     retool,
 
 }: ContexMenuOuterProps) {
+    const { t, i18n } = useTranslation();
 
     const [timeStartValue, setTimeStartValue] = useState(0);
     const [timeFinisValue, setTimeFinishValue] = useState(0);
@@ -63,8 +52,9 @@ export default function ContexMenuOuter({
         const minutes = totalMinutes % 60;
         return { hours, minutes };
     }
+    // const dur1 = load.isRetool ? retool : load.loadInfo.duration;
 
-    let dur = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration));
+    let dur = Math.round(load.loadInfo.duration);
 
     const time = convertMinutes(dur);
 
@@ -78,70 +68,75 @@ export default function ContexMenuOuter({
 
 
             <div className={styles.coment}>
-                <span className={styles.title}>card</span> {`: ${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")}`}
+                <span className={styles.title}>{t('contexMenuO.card')}</span> {`: ${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")}`}
             </div>
 
             <div className={styles.coment}>
-                <span className={styles.title}>operation</span> {`: A${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
+                <span className={styles.title}>{t('contexMenuO.action')}</span> {`: A${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
             </div>
             <div className={styles.coment}>
-                <span className={styles.title}>duration</span> {`: ${dur} min (${time.hours} h, ${time.minutes} m)`}
+                <span className={styles.title}>{t('contexMenuO.duration')}</span> {`: ${dur} min (${time.hours} h, ${time.minutes} m)`}
             </div>
 
-            {/* // тут инпут и замеnки */}
             {load.isOuterStart &&
                 <div className={styles.coment}
                     onClick={e =>
                         stopCloseMenu(load.idc)}>
-                    <span className={styles.title}>data start</span>
-                    <input
-                        className={styles.work_date}
-                        id={`isOuterFinish`}
-                        autoComplete="off"
-                        value={dateValue}
-                        type="date"
-                        onChange={e => {
-                            const date = e.target.value.toLocaleString().split(',')[0]
-                            setDateValue(date);
-                            setIsModified(true);
-                        }}
+                    <span className={styles.title}>{t('contexMenuO.dateStart')}</span>
 
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                e.preventDefault();
-                                const nextElem = document.getElementById("isOuterTimeStart");
-                                nextElem?.focus();
-                            }
-                        }}
-                    />
+                    {(load.status === StatusEnum.prepared) &&
+                        <input
+                            className={styles.work_date}
+                            id={`isOuterFinish`}
+                            autoComplete="off"
+                            value={dateValue}
+                            type="date"
+
+                            onChange={e => {
+                                const date = e.target.value.toLocaleString().split(',')[0]
+                                setDateValue(date);
+                                setIsModified(true);
+                            }}
+
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    const nextElem = document.getElementById("isOuterTimeStart");
+                                    nextElem?.focus();
+                                }
+                            }}
+                        />}
+                    &nbsp; &nbsp;{(load.status !== StatusEnum.prepared) && dateValue}
                 </div>}
 
             {load.isOuterStart &&
                 <div className={styles.coment}
                     onClick={e => stopCloseMenu(load.idc)}>
-                    <span className={styles.title}>time start </span>
-                    <input
-                        className={styles.work_time}
-                        id={`isOuterTimeStart`}
-                        autoComplete="off"
-                        value={
-                            `${String(Math.floor(timeStartValue / 60)).padStart(2, '0')}:${String(timeStartValue % 60).padStart(2, '0')}`
-                        }
-                        type="time"
-                        onChange={e => {
-                            const [hours, minutes] = e.target.value.split(":").map(Number);
-                            const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
-                            setTimeStartValue(totalMinutes);
-                            setIsModified(true);
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                e.preventDefault();
-                                const nextElem = document.getElementById("save_icon");
-                                nextElem?.focus();
+                    <span className={styles.title}>{t('contexMenuO.timeStart')}</span>
+                    {(load.status === StatusEnum.prepared) &&
+                        <input
+                            className={styles.work_time}
+                            id={`isOuterTimeStart`}
+                            autoComplete="off"
+                            value={
+                                `${String(Math.floor(timeStartValue / 60)).padStart(2, '0')}:${String(timeStartValue % 60).padStart(2, '0')}`
                             }
-                        }}
-                    />
+                            type="time"
+                            onChange={e => {
+                                const [hours, minutes] = e.target.value.split(":").map(Number);
+                                const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
+                                setTimeStartValue(totalMinutes);
+                                setIsModified(true);
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    const nextElem = document.getElementById("save_icon");
+                                    nextElem?.focus();
+                                }
+                            }}
+                        />}
+                    &nbsp; &nbsp;{(load.status !== StatusEnum.prepared) && `${String(Math.floor(timeStartValue / 60)).padStart(2, '0')}:${String(timeStartValue % 60).padStart(2, '0')}`}
                 </div>}
 
 
@@ -150,68 +145,73 @@ export default function ContexMenuOuter({
                 <div className={styles.coment}
                     onClick={e =>
                         stopCloseMenu(load.idc)}>
-                    <span className={styles.title}>data finish</span>
-                    <input
-                        className={styles.work_date}
-                        id={`isOuterFinish`}
-                        autoComplete="off"
-                        value={dateValue}
-                        type="date"
-                        onChange={e => {
-                            const date = e.target.value.toLocaleString().split(',')[0]
-                            setDateValue(date);
-                            setIsModified(true);
-                        }}
+                    <span className={styles.title}>{t('contexMenuO.dateFinish')}</span>
+                    {(load.status === StatusEnum.prepared) &&
+                        <input
+                            className={styles.work_date}
+                            id={`isOuterFinish`}
+                            autoComplete="off"
+                            value={dateValue}
+                            type="date"
+                            onChange={e => {
+                                const date = e.target.value.toLocaleString().split(',')[0]
+                                setDateValue(date);
+                                setIsModified(true);
+                            }}
 
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                e.preventDefault();
-                                const nextElem = document.getElementById("isOuterTimeFinish");
-                                nextElem?.focus();
-                            }
-                        }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    const nextElem = document.getElementById("isOuterTimeFinish");
+                                    nextElem?.focus();
+                                }
+                            }}
 
-                    />
+                        />}
+                    &nbsp; &nbsp;{(load.status !== StatusEnum.prepared) && dateValue}
                 </div>}
 
             {load.isOuterFinish &&
                 <div className={styles.coment}
                     onClick={e => stopCloseMenu(load.idc)}>
-                    <span className={styles.title}>time finish </span>
-                    <input
-                        className={styles.work_time}
-                        id={`isOuterTimeFinish`}
-                        autoComplete="off"
-                        value={
-                            `${String(Math.floor(timeFinisValue / 60)).padStart(2, '0')}:${String(timeFinisValue % 60).padStart(2, '0')}`
-                        }
-                        type="time"
-                        onChange={e => {
-                            const [hours, minutes] = e.target.value.split(":").map(Number);
-                            const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
-                            setTimeFinishValue(totalMinutes);
-                            setIsModified(true);
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                e.preventDefault();
-                                const nextElem = document.getElementById("save_icon");
-                                nextElem?.focus();
+                    <span className={styles.title}>{t('contexMenuO.timeFinish')}</span>
+                    {(load.status === StatusEnum.prepared) &&
+                        <input
+                            className={styles.work_time}
+                            id={`isOuterTimeFinish`}
+                            autoComplete="off"
+                            value={
+                                `${String(Math.floor(timeFinisValue / 60)).padStart(2, '0')}:${String(timeFinisValue % 60).padStart(2, '0')}`
                             }
-                        }}
-                    />
+                            type="time"
+                            onChange={e => {
+                                const [hours, minutes] = e.target.value.split(":").map(Number);
+                                const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
+                                setTimeFinishValue(totalMinutes);
+                                setIsModified(true);
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    const nextElem = document.getElementById("save_icon");
+                                    nextElem?.focus();
+                                }
+                            }}
+                        />}
+                    &nbsp; &nbsp;{(load.status !== StatusEnum.prepared) && `${String(Math.floor(timeFinisValue / 60)).padStart(2, '0')}:${String(timeStartValue % 60).padStart(2, '0')}`}
                 </div>}
 
             <div className={styles.coment}>
-                <span className={styles.title}>status</span> {`: ${load.status}`}
+                <span className={styles.title}>{t('contexMenuO.status')}</span> {`: ${load.status}`}
             </div>
 
 
 
             {/* <button> стереть</button> */}
             <div className={styles.container_icon}>
+
                 <div className={styles.save_container_icon}>
-                    <Image className={styles.icon_edit_save}
+                    {(load.status === StatusEnum.prepared) && <Image className={styles.icon_edit_save}
                         id={"save_icon"}
                         src={save}
                         alt="save" width={20} height={20}
@@ -224,7 +224,7 @@ export default function ContexMenuOuter({
                                 timeFinisValue
                             )
                         }}
-                    />
+                    />}
                     {isModified && <div>*</div>}
                 </div>
                 <Image className={styles.icon_edit_save}

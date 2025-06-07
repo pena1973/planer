@@ -94,7 +94,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
   }
   // Закрываем операцию без изменения по нажатию кенопки юнитом 
@@ -150,7 +150,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
 
     setCurrentOper({} as TCardOperationItem);

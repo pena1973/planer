@@ -1,26 +1,19 @@
 
 import styles from "./contextMenuInner.module.scss";
-import { useEffect, useState, useRef } from "react";
+import { useState } from "react";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-
-import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
-
+import { padNumberToFourDigits, } from "@/utils"
 import Image from 'next/image';
-
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
 import eraz from "@/public/erazer1-rem.png";
-
-import { StatusEnum, TCardItem, UnitLoadItem } from "@/types";
+import { TCardItem, UnitLoadItem } from "@/types";
+import { useTranslation } from 'react-i18next';
 
 export interface ContexMenuInnerProps {
     tCard: TCardItem,
     load: UnitLoadItem,
     left: number,
     width: number,
-    erazLoadHandler: (load_idc: number) =>void;
+    erazLoadHandler: (load_idc: number) => void;
     retool: number,
     blocked: boolean
 }
@@ -36,6 +29,7 @@ export default function ContexMenuInner({
 
 
 }: ContexMenuInnerProps) {
+    const { t, i18n } = useTranslation();
 
     const [buttonLoader, setButtonLoader] = useState(false);
 
@@ -56,26 +50,26 @@ export default function ContexMenuInner({
             <div className={styles.contextMenuTriangle} />
 
             <div className={styles.coment}>
-                <span className={styles.title}>card</span> {`: ${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")}`}
+                <span className={styles.title}> {t('contexMenuI.card')}</span> {`: ${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")}`}
             </div>
 
             <div className={styles.coment}>
-                <span className={styles.title}>operation</span> {`: A${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
+                <span className={styles.title}>{t('contexMenuI.action')}</span> {`: A${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
             </div>
             <div className={styles.coment}>
-                <span className={styles.title}>duration</span> {`: ${dur} min (${time.hours} h, ${time.minutes} m)`}
-            </div>
-
-            <div className={styles.coment}>
-                <span className={styles.title}>interruptible</span> {`: ${load.loadInfo?.interruptible ? "yes" : "no"}`}
+                <span className={styles.title}>{t('contexMenuI.duration')}</span> {`: ${dur} min (${time.hours} h, ${time.minutes} m)`}
             </div>
 
             <div className={styles.coment}>
-                <span className={styles.title}>unit koef</span> {`: ${load.loadInfo?.koef}`}
+                <span className={styles.title}>{t('contexMenuI.interruptible')}</span> {`: ${load.loadInfo?.interruptible ? "yes" : "no"}`}
             </div>
 
             <div className={styles.coment}>
-                <span className={styles.title}>status</span> {`: ${load.status}`}
+                <span className={styles.title}>{t('contexMenuI.koef')}</span> {`: ${load.loadInfo?.koef}`}
+            </div>
+
+            <div className={styles.coment}>
+                <span className={styles.title}>{t('contexMenuI.status')}</span> {`: ${load.status}`}
             </div>
 
 

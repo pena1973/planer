@@ -10,6 +10,7 @@ import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
 import DottedLine from "./DottedLine/dottedLine";
 
+import { useTranslation } from 'react-i18next';
 
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
@@ -18,117 +19,6 @@ const calculateWidthDay = (totalWidth: number, scale: number): number => {
   return (totalWidth * scale) / 100;
 };
 
-// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
-// const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
-
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.team)
-//     return schedule.workdays.some(workday =>
-//       new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-//     ); else return false
-// }
-// //  функция определяемт входит ли  дата в список выходных расписания
-// const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
-//   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
-
-//   let dayString = DaysOfWeek.SUNDAY;
-
-//   switch (dayOfWeek) {
-//     case 1:
-//       dayString = DaysOfWeek.MONDAY;
-//       break;
-//     case 2:
-//       dayString = DaysOfWeek.TUESDAY;
-//       break;
-//     case 3:
-//       dayString = DaysOfWeek.WEDNESDAY;
-//       break;
-//     case 4:
-//       dayString = DaysOfWeek.THURSDAY;
-//       break;
-//     case 5:
-//       dayString = DaysOfWeek.FRIDAY;
-//       break;
-//     case 6:
-//       dayString = DaysOfWeek.SATURDAY;
-//       break;
-//     default:
-//       dayString = DaysOfWeek.SUNDAY;
-//       break;
-//   }
-
-//   // Проверяем, является ли день выходным
-//   if (schedule.team) return schedule.weekends.includes(dayString);
-//   else return false
-// }
-// //  функция определяемт входит ли  дата в список праздниклв расписания
-// const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.team)
-//     return schedule.holidays.some(holiday =>
-//       new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-//     );
-//   else return false
-// }
-
-// // генерация привычной нам даты - ее использую как id дня
-// const idDay = (date: Date): string => {
-//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-//   const year = date.getFullYear();  // Год
-
-//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-// };
-
-// // генерация одного дня на шкале
-// const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem => {
-//   const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-//   currentDate.setHours(0, 0, 0, 0);
-
-//   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
-//   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
-//   const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
-
-//   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
-//   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-//   let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
-
-//   if (_isAdditionalTime) {
-//     const workday = schedule.workdays.find(
-//       workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
-//     // если дата есть, то нужно просто взять дополнительное время из workday  
-//     if (workday) {
-//       if (_isWeekend || _isHoliday) {
-//         timeStartWork = workday.timeStart;
-//         timeFinishWork = workday.timeFinish;
-//       } else {
-//         timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
-//         timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
-//       }
-//       //  проверим перерывы и если попадают в рабочий период вставим
-//       breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
-//     }
-//   }
-
-
-//   // Создаем объект CalendarItem
-//   const calendarItem: CalendarItem = {
-//     idDay: idDay(currentDate),
-//     date: new Date(currentDate),  // Текущая дата
-//     mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
-//     day: true,  // Указываем, что это день
-//     timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
-//     timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
-//     breaks: breaks,
-//   };
-//   return calendarItem;  // Возвращаем один элемент календаря
-// };
 
 // вычисление связующих линий оутсорта
 interface Line { startId: string, endId: string }
@@ -204,6 +94,8 @@ export default function PlanScaleContainer({
   unPinLoadHandler
 
 }: PlanScaleContainerProps) {
+  
+  const { t, i18n } = useTranslation();
 
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
   const divRefPlus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором планирование
@@ -838,13 +730,13 @@ export default function PlanScaleContainer({
           <button
             className={styles.button_reset}
             onClick={() => scaleReset()}>
-            сброс шкалы
+            {t('scale.resetScale')}
           </button>
         </div>
         <div className={styles.plug1}></div>
-        <div className={styles.units_title}> свои</div>
+        <div className={styles.units_title}>{t('scale.inner')}</div>
         {unitsReactNodesInner}
-        <div className={styles.units_title}> сторонние</div>
+        <div className={styles.units_title}> {t('scale.outer')}</div>
         {unitsReactNodesOuter}
         <div className={styles.plug2}></div>
       </div>
@@ -860,7 +752,7 @@ export default function PlanScaleContainer({
               value={scale}
               onChange={handleScaleChange}
             />
-            <label className={styles.rangeSlider_label} >Масштаб: {Math.round(scale)}%</label>
+            <label className={styles.rangeSlider_label} > {t('scale.scaleSize')} {Math.round(scale)}%</label>
 
           </div>
 
@@ -918,4 +810,4 @@ export default function PlanScaleContainer({
 };
 
 
-// export default PlanScaleContainer;
+

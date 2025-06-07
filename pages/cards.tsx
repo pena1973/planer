@@ -16,6 +16,8 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 
 import { useRouter } from 'next/navigation';
 
+import { useTranslation } from 'react-i18next';
+
 import { } from '@/store/slices';
 import { ProductContent, OperationContent, TCardContent, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum, TemplateItem, UnitLoadItem } from "@/types";
 import { checkReconcilation } from "@/cardsHandlers";
@@ -31,7 +33,7 @@ import reset from "@/public/cancel.png";
 interface CardsProps { }
 
 export default function Cards({ }: CardsProps) {
-
+  const { t, i18n } = useTranslation();
   const { push } = useRouter();
   const dispatch = useAppDispatch();
 
@@ -643,7 +645,7 @@ export default function Cards({ }: CardsProps) {
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
 
     setRemoveLoaderCard(NaN);
@@ -701,7 +703,7 @@ export default function Cards({ }: CardsProps) {
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
     setSaveLoaderCard(NaN);
   };
@@ -774,7 +776,7 @@ export default function Cards({ }: CardsProps) {
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
     setResetLoaderCard(NaN);
   };
@@ -823,7 +825,7 @@ export default function Cards({ }: CardsProps) {
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
     // setSelectLoaderCard(NaN);
     setResetLoaderCard(NaN)
@@ -1021,7 +1023,7 @@ export default function Cards({ }: CardsProps) {
       }
 
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
     setSaveTemplateLoaderCard(false);
   };
@@ -1587,7 +1589,7 @@ export default function Cards({ }: CardsProps) {
         onDrop={(e) => { handleDrop(e, `S${tStage.idc}`) }}
       >
         <div className="container_stage_title">
-          Stage {tStage.code}
+         {t('cards.stage')} {tStage.code}
           <Image className="icon_del_stage"
             src={delL} alt="del" width={20} height={20}
             onClick={() => delStage(tStage)}
@@ -1599,7 +1601,7 @@ export default function Cards({ }: CardsProps) {
           />
         </div>
         {operationsReactNodes}
-        <button className="button1" onClick={() => addOperHandler(tStage)}> добавить </button>
+        <button className="button1" onClick={() => addOperHandler(tStage)}> {t('cards.addstage')}</button>
       </div>
 
     );
@@ -1672,14 +1674,14 @@ export default function Cards({ }: CardsProps) {
       <div className="container_global" >
         <div className="container_global_left">
           <div className="container_cards_left_inner">
-            <div className="container_cards_title">технологические карты</div>
+            <div className="container_cards_title">{t('cards.tcards')}</div>
             <div className="container_cards">
               {tCardsReactNodes}
               <div className="container_buttons">
-                <button onClick={() => addTCardHandler()}>Добавить</button>
+                <button onClick={() => addTCardHandler()}>{t('cards.addtcard')}</button>
               </div>
             </div>
-            <div className="container_cards_title">Пояснение</div>
+            <div className="container_cards_title">{t('cards.explanation')}</div>
             <div className="container_global_message">{message}
 
             </div>
@@ -1696,18 +1698,18 @@ export default function Cards({ }: CardsProps) {
           <div className={`container_card_menu`}>
             <div className={`container_status`}>
 
-              status: {tCards[tCardIndex].status} &nbsp;&nbsp;<StatusCircle status={tCards[tCardIndex].status} />
+              {t('cards.status')}: {tCards[tCardIndex].status} &nbsp;&nbsp;<StatusCircle status={tCards[tCardIndex].status} />
               {(tCards[tCardIndex].status === StatusEnum.ready)
                 && <button
                   className={`button_prepared`}
                   onClick={setCardClose}>
-                  закрыть карту
+                 {t('cards.closecard')}
                 </button>}
               {(tCards[tCardIndex].status === StatusEnum.draft)
                 && <button
                   className={`button_prepared`}
                   onClick={setCardPrepared}>
-                  отправить на планирование
+                  {t('cards.sendtoplan')}
                 </button>}
 
               {templatesReactNodes}
@@ -1716,12 +1718,12 @@ export default function Cards({ }: CardsProps) {
               <button
                 className={`button_prepared`}
                 onClick={() => saveTemplate()}>
-                сохранить как шаблон
+                {t('cards.savetemplate')}
               </button>
               <button
                 className={`button_prepared`}
                 onClick={() => upLoadtCard(tCards[tCardIndex])}>
-                выгрузить карту
+                {t('cards.uploadcard')}
               </button>
             </div>
           </div>
@@ -1731,7 +1733,7 @@ export default function Cards({ }: CardsProps) {
             <div className="container_products">
               <div className="container_stage_title">
                 {/* <div></div> */}
-                Продукция
+                {t('cards.products')}
                 <Image className="icon_add_stage"
                   src={add} alt="del" width={20} height={20}
                   onClick={() => addStage(0)}
@@ -1760,7 +1762,7 @@ export default function Cards({ }: CardsProps) {
               />
               {/* Отходы */}
               <div className="container_stage_title">
-                Отходы
+                {t('cards.wastes')}
               </div>
               <TCardProducts
                 tCardProducts={tCardWastes}
@@ -1784,7 +1786,7 @@ export default function Cards({ }: CardsProps) {
                 lightProduct={lightProduct}
               />
               <div className="container_stage_title">
-                Коментарий
+                {t('cards.comment')}
               </div>
               <TCardComent
                 coment={coment}
@@ -1797,7 +1799,7 @@ export default function Cards({ }: CardsProps) {
             {tCardMaterials.length > 0 &&
               <div className="container_products">
                 <div className="container_stage_title">
-                  Материалы
+                 {t('cards.materials')}
                 </div>
                 <TCardProducts
                   tCardProducts={tCardMaterials}

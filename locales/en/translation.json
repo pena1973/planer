@@ -1,14 +1,57 @@
 {
+  "dropdownselectoper": {
+    "select": ""
+  },
+  "layout": {
+    "cards": "Cards",
+    "planing": "Planing",
+    "resources": "Resources",
+    "monitor": "Monitor",
+    "support": "Support",
+    "profile": "Profile",
+    "exit": "Log out"
+  },
+  "cards": {
+    "stage": "Stage",
+    "addstage": "Add stage",
+    "tcards": "Process maps",
+    "addtcard": "Add",
+    "explanation": "Notes",
+    "status": "Status",
+    "closecard": "Close card",
+    "sendtoplan": "Send to schedule",
+    "savetemplate": "Save as template",
+    "uploadcard": "Export card",
+    "products": "Products",
+    "wastes": "Waste",
+    "comment": "Comment",
+    "materials": "Materials"
+  },
   "service": {
-    "loginNotEntered": "",
-    "serverUnavailable": "",
-    "recoveryMailSent": "",
-    "noConnection": "",
-    "loginLengthMustBe": "",
-    "passLengthMustBe": "",
-    "roleNotSelected": "",
-    "nicknameNotSelected": "",
-    "pass1NotEqualPass2": ""
+    "loginNotEntered": "Please enter your login",
+    "passnNotEntered": "Please enter your password",
+    "serverUnavailable": "Server is currently unavailable",
+    "recoveryMailSent": "Password recovery email has been sent"
+  },
+  "index": {
+    "downloadUoms": "Measurement units loaded",
+    "downloadActions": "Available actions loaded",
+    "downloadTemplates": "Templates loaded",
+    "downloadUnits": "Units loaded",
+    "downloadUnutsExceptions": "Unit exceptions loaded",
+    "downloadUnutsActions": "Unit actions loaded",
+    "downloadSettings": "Settings loaded",
+    "downloadSchedule": "Team schedule loaded",
+    "downloadLoads": "Planning data and history loaded",
+    "title": "Smart resource scheduling for your company",
+    "ico1": "Fully aligned with customer orders",
+    "ico2": "Builds a process card for every order",
+    "ico3": "Tracks every item individually throughout production",
+    "ico4": "Generates a unique code for each item for easy search",
+    "ico5": "Automatically models your production center workload",
+    "ico6": "Assigns tasks and monitors execution in real time",
+    "wait": "Loading, please wait...",
+    "downloadTCards": "Process maps loaded"
   },
   "login": {
     "email": "Login(email)",
@@ -21,9 +64,242 @@
     "email": "Login(email)",
     "pass": "Password",
     "compare": "Doesn't match",
-    "nickname": "Nickname",
+    "repeatpass": "Repeat password",
     "visible": "(visible to everyone)",
+    "nickname": "Nickname",
     "buttonRegister": "Register!",
     "login": "Login!"
-  }
+  },
+  "planing": {
+    "planed": "Planed",
+    "prepared": "Prepared",
+    "toFix": "Needs revision",
+    "explanation": "Notes"
+  },
+  "cardsoper": {
+    "sendtoplan": "Send to schedule",
+    "comment": "Comment",
+    "repeat": "Repeat",
+    "sourse": "Source",
+    "action": "Action",
+    "result": "Result"
+  },
+  "cardsopernew": {
+    "add": "Add",
+    "comment": "Comment",
+    "repeat": "Repeat",
+    "sourse": "Source",
+    "action": "Action",
+    "result": "Result",
+    "fillUOM": "Please specify the unit of measurement!"
+  },
+  "fileUpload": {
+    "json": "Upload your JSON file here",
+    "alert": "Please upload a valid JSON file",
+    "alert1": "Missing required fields:",
+    "alert2": "Invalid values in the following fields:",
+    "alert3": "Unable to read or parse the file."
+  },
+  "scale": {
+    "resetScale": "Reset scale",
+    "scaleSize": "Scale:",
+    "inner": "Internal",
+    "outer": "External"
+  },
+  "contexMenuI": {
+    "card": "Card",
+    "action": "Action:",
+    "duration": "Duration",
+    "interruptible": "Interruptible",
+    "koef": "Coefficient",
+    "status": "Status"
+  },
+  "contexMenuO": {
+    "card": "Card",
+    "action": "Action:",
+    "duration": "Duration",
+    "dateStart": "Start date:",
+    "timeStart": "Start time:",
+    "dateFinish":"Finish date:",
+    "timeFinish":"Finish time:",
+    "status": "Status"
+  },
+  "resources": {
+    "team": "Team",
+    "schedule": "Schedule",
+    "teamschedule": "Team work schedule",
+    "actions": "Actions",
+    "teamactions": "Team actions",
+    "uoms": "UOMs",
+    "units": "Units",
+    "teamunits": "Production units and their settings",
+    "setting": "Settings",
+    "calendarsetting": "Calendar settings",
+    "accauntingsetting": "Accounting settings",
+    "templates": "Templates",
+    "cardtemplates": "Map templates",
+    "notes": "Notes"
+  },
+  "actionsCatalog": {
+    "filltitle": "Please enter the action name!",
+    "listUpdated": "Action list updated",
+    "code": "Code",
+    "name": "Name",
+    "interaptible": "Interruptible"
+  },
+  "settings": {
+    "showTime": "Show time",
+    "start": "Start",
+    "end": "End",
+    "showWeekends": "Show weekends",
+    "showHolidays": "Show holidays",
+    "settingUpdated": "Settings updated",
+    "control": "Quality control (QC)"
+  },
+  "team": {
+    "teamTitle": "Team",
+    "teamNumber": "Team number",
+    "teamComent": "Comment",
+    "settingUpdated": "Settings updated"
+  },
+  "teamSchedule": {
+    "workHours": "Work hours",
+    "start": "Start",
+    "finish": "Finish",
+    "schedueUpdated": "Schedule updated",
+    "breaks": "Workday breaks",
+    "weekends": "Weekends",
+    "weekDay": "Weekday",
+    "holidays": "Holidays (dates)",
+    "date": "Date",
+    "additonalTime": "Additional working hours (dates and time)",
+    "timeZone": "Time zone"
+  },
+  "templates": {
+    "fillTitle": "Please enter the template name (row)",
+    "uploadTemplate": "Upload the template (row)",
+    "templatesUpdated": "Template list updated",
+    "errorMessage1": "Missing required fields:",
+    "errorMessage2": "Upload will not proceed!",
+    "errorMessage3": "Invalid values in fields:",
+    "alert1": "Error uploading template. File is corrupted or invalid.",
+    "alert2": "Please select a file in JSON format.",
+    "downloaded": "Downloaded",
+    "title": "Title",
+    "template": "Template"
+  },
+  "units": {
+    "fillCode": "Enter the unit code (row)",
+    "fillTitle": "Enter the unit name (row)",
+    "fillBelong": "Specify if the unit is internal or external (row)",
+    "fillType": "Specify the unit type (production or storage) (row)",
+    "fillAction": "Enter the action in the unit's action list",
+    "fillKoef": "Enter the coefficient in the unit's action list",
+    "fillDate": "Enter the date in the unit’s schedule exceptions list",
+    "fillStart": "Enter the start time in the unit’s schedule exceptions list",
+    "fillFihish": "Enter the end time in the unit’s schedule exceptions list",
+    "fillTimeType": "Enter the time type in the unit’s schedule exceptions list",
+    "unitsUpdated": "Unit list, actions, and schedule exceptions updated",
+    "Code": "Code",
+    "Name": "Name",
+    "Whoos": "Owner",
+    "Retool": "Setup time (min)",
+    "Type": "Type",
+    "Coment": "Comment",
+    "UnitActions": "Unit actions:",
+    "ActionTitle": "Action",
+    "ActionKoef": "Time coefficient",
+    "ExTitle": "Unit schedule exceptions from general timeline",
+    "ExDate": "Date",
+    "ExStart": "Start",
+    "ExFinish": "Finish",
+    "ExTimeType": "Time type"
+  },
+  "users": {
+    "usersUpdated": "User list updated",
+    "title": "User",
+    "unit": "Unit",
+    "active": "Active"
+  },
+  "monitor": {
+    "unitLoading": "Units loading",
+    "outerActions": "External actions",
+    "outerActions1": "Actions assigned to external performers",
+    "readiness": "Map readiness",
+    "kpi": "Units KPIs",
+    "kpi1": "KPIs of working units",
+    "syncCodes": "Sync codes",
+    "syncCodes1": "Product sync codes from maps",
+    "notes": "Notes"
+  },
+  "unitTaskStackProcess": {
+    "loading": "Loading",
+    "time": "time",
+    "result": "Result",
+    "defect": "Defect"
+  },
+   "unitTaskStackOutsource": {
+    "card": "Card",
+    "oper": "Operation, code",
+    "unit": "Unit",
+    "start": "Start",
+    "finish": "Finish",
+    "status": "Status",
+    "ready": "Ready",
+    "defect": "Defective"
+},
+  "loadOperProcess": {
+    "card": "Card",
+    "oper": "Action",
+    "start": "Start",
+    "finish": "Finish",
+    "min": "min",
+    "result": "Result",
+    "task": "Task",
+    "noComents": "no comments",
+    "source": "Source"
+  },
+  "loadMonitorProcess": {
+    "card": "Card",
+    "continuation": "Continuation",
+    "min": "min"
+  },
+  "reportTCardState": {
+    "start": "Start",
+    "finish": "Finish",
+    "wait": "Waiting...",
+    "card": "Card, Operation, Interval",
+    "status": "Status",
+    "term": "Due date",
+    "readines": "Readiness",
+    "cardNumber": "Card number",
+    "cardDateFrom": "Card date from",
+    "cardDateTo": "to",
+    "cardStatus": "Card status",
+    "cardSelect": "Select",
+    "apply": "Apply"
+  },
+  "reportUnitsKPI": {
+    "wait": "Wait...",
+    "unit": "Unit",
+    "date": "Month, date",
+    "workTime": "Working time",
+    "busyTime": "Busy time incl.:",
+    "loading": "Loading",
+    "plan": "Planed",
+    "result": "Result",
+    "defect": "Defect",
+    "month": "Month",
+    "dateFrom": "From",
+    "dateTo": "to",
+    "unitSelect": "Select",
+    "monthSelect": "Select"
+  },
+  "support": {
+  "billing": "Billing",
+  "messages": "Support",
+  "billing1": "Billing and payments",
+  "messages1": "Technical support ",
+  "notes": "Notes"
+}
 }

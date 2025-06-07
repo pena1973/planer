@@ -1,22 +1,14 @@
-import { PropsWithChildren, useState, useEffect, useRef } from "react";
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { useAppDispatch } from "@/pages/_app";
 import styles from "./tCardOper.module.scss";
 import { TCardOperationItem, StatusEnum } from '@/types'
-import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/utils'
+import { convertMillisecondsToTime} from '@/utils'
 import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
-import {
-
-} from '@/store/slices';
 
 import Image from 'next/image';
 
-import save from "@/public/save-rem.png";
 import edit from "@/public/edit-rem.png";
 import del from "@/public/del2.png";
-
-
-import { useRouter, usePathname } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
@@ -33,14 +25,13 @@ export interface TCardOperProps {
     currentDraggingElement: string,
     positionX: number,
     positionY: number,
-    handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,
-    // index: number
+    handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,   
     deleteOperHandler: (id: number) => void,
     editOperHandler: (id: number) => void
     setOperStatus: (idc: number, status: StatusEnum) => void,
     fixDefect: (idc: number) => void,
     lightProduct: number,
-    fixed:boolean,
+    fixed: boolean,
 
 }
 
@@ -55,8 +46,7 @@ export default function TCardOper({
     currentDraggingElement,
     positionX,
     positionY,
-    handleDrop,
-    // index,
+    handleDrop,    
     deleteOperHandler,
     editOperHandler,
     setOperStatus,
@@ -64,8 +54,7 @@ export default function TCardOper({
     lightProduct,
     fixed,
 }: TCardOperProps) {
-    const dispatch = useAppDispatch();
-
+    const { t, i18n } = useTranslation();
     let outReactNodes;
 
     if (tCardOperation.out) {
@@ -155,12 +144,12 @@ export default function TCardOper({
                     &nbsp;
                     {tCardOperation.status}
                 </div>
-                Action {tCardOperation.idc}
-                <div className={styles.plug}> {(tCardOperation.fixOperIdc)?`fixing A${tCardOperation.fixOperIdc}`:``}</div>
+                {t('cardsoper.action')} {tCardOperation.idc}
+                <div className={styles.plug}> {(tCardOperation.fixOperIdc) ? `fixing A${tCardOperation.fixOperIdc}` : ``}</div>
             </div>
             <div className={styles.container_tables}>
                 <div className={styles.container_out}>
-                    <div className={styles.out_title}>result</div>
+                    <div className={styles.out_title}>{t('cardsoper.result')}</div>
                     <div className={styles._out}
                         onDrop={(e) => { handleDrop(e, `A${tCardOperation.idc}O`) }}
                         onDragOver={(e) => e.preventDefault()} // Обязательно для возможности сброса
@@ -169,14 +158,14 @@ export default function TCardOper({
                     </div>
                 </div>
                 <div className={styles.container_action}>
-                    <div className={styles.action_title}>action</div>
+                    <div className={styles.action_title}>{t('cardsoper.action')}</div>
                     <div className={styles._action}>
                         <div className={styles._oper_title}>{tCardOperation.action.title}</div>
                         <div className={styles._oper_qtu}>{`${hours}h ${minutes}m ${seconds}s ${milliseconds}ms`}</div>
                     </div>
                 </div>
                 <div className={styles.container_in}>
-                    <div className={styles.in_title}>sourse</div>
+                    <div className={styles.in_title}>{t('cardsoper.sourse')}</div>
                     <div className={styles._in}
                         onDrop={(e) => { handleDrop(e, `A${tCardOperation.idc}I`) }}
                         onDragOver={(e) => e.preventDefault()} // Обязательно для возможности сброса
@@ -186,7 +175,7 @@ export default function TCardOper({
                 </div>
             </div>
             <div className={styles.container_coment}>
-                <div className={styles.coment_title}>comment</div>
+                <div className={styles.coment_title}>{t('cardsoper.comment')}</div>
                 <div className={styles._coment}>
                     {tCardOperation.coment}
                 </div>
@@ -196,13 +185,13 @@ export default function TCardOper({
                     {(tCardOperation.status === StatusEnum.draft)
                         && <button className={styles.button_status}
                             onClick={() => setOperStatus(tCardOperation.idc, StatusEnum.prepared)}>
-                            на планирование
+                            {t('cardsoper.sendtoplan')}
                         </button>}
 
                     {(tCardOperation.status === StatusEnum.defective) && !fixed
                         && <button className={styles.button_status}
                             onClick={() => { fixDefect(tCardOperation.idc) }}>
-                            повторить
+                            {t('cardsoper.repeat')}
                         </button>}
                 </div>
                 {

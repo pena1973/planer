@@ -2,37 +2,36 @@ import Layout from "@/components/Layout/layout";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import PlanScaleContainer from "@/components/plan/PlanScaleContainer/planScaleContainer";
 
-import { useEffect, useState, useRef } from "react";
+import { useState,  } from "react";
 import Link from 'next/link';
-import { fillGaps } from "@/utils"
 
 import Image from 'next/image';
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
-import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
+import { formatDate, padNumberToFourDigits, } from "@/utils"
 
-import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum, TCardOperationItem } from "@/types";
-import { setUnitLoads, setUnitExceptions, setUnits, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
+import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum, } from "@/types";
+import { setUnitLoads,  setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
 import { } from '@/store/slices';
+
+import { useTranslation } from 'react-i18next';
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 
-
-// import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
 import eraz from "@/public/erazer1-rem.png";
 import light from "@/public/light-rem.png";
 import lighton from "@/public/light-on-rem.png";
-// import add from "@/public/add-rem.png";
-// import TCardProduct from "@/components/TCardProduct/tCardProduct";
 
 
 export default function Planing() {
+
+  const { t, i18n } = useTranslation();
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();
@@ -161,7 +160,7 @@ export default function Planing() {
         }
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
     setSaveLoaderCard(NaN);
   };
@@ -217,7 +216,7 @@ export default function Planing() {
         }
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
       // }
 
     }
@@ -281,7 +280,7 @@ export default function Planing() {
           }
         }
       } catch (e: any) {
-        // setMessage(t('service.noConnection') + e.message)            
+        // setMessage(t('service.serverUnavailable') + e.message)            
       }
 
     }
@@ -337,7 +336,7 @@ export default function Planing() {
             }
           }
         } catch (e: any) {
-          // setMessage(t('service.noConnection') + e.message)            
+          // setMessage(t('service.serverUnavailable') + e.message)            
         }
       }
     }
@@ -400,7 +399,7 @@ export default function Planing() {
         }
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
   }
 
@@ -481,7 +480,7 @@ export default function Planing() {
         }
       }
     } catch (e: any) {
-      // setMessage(t('service.noConnection') + e.message)            
+      // setMessage(t('service.serverUnavailable') + e.message)            
     }
 
     setDropLoaderCard(NaN)
@@ -616,19 +615,19 @@ export default function Planing() {
     <Layout>
       <div className="container_global" >
         <div className="container_global_left">
-          <div className="container_plan_title">запланированы</div>
+          <div className="container_plan_title">{t('planing.planed')}</div>
           <div className="container_plan_planed_card">
             {tCardsPlanedReactNodes}
           </div>
-          <div className="container_plan_title_no"> подготовлены</div>
+          <div className="container_plan_title_no"> {t('planing.prepared')}</div>
           <div className="container_plan_prepared_card">
             {tCardsToPlanReactNodes}
           </div>
-          <div className="container_plan_title_no"> на исправление</div>
+          <div className="container_plan_title_no"> {t('planing.toFix')}</div>
           <div className="container_plan_defective_card">
             {tCardsDefectiveReactNodes}
           </div>
-          <div className="container_plan_title">Пояснение</div>
+          <div className="container_plan_title">{t('planing.explanation')}</div>
           <div className="container_global_message">{message}</div>
 
         </div>
