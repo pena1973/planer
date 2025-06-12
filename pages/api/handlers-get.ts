@@ -10,7 +10,7 @@ import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 
-import { TypeEnum } from '@/types';
+import { SupportMessageItem, TypeEnum } from '@/types';
 import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
@@ -19,12 +19,13 @@ import { SettingsTable } from '@/pages/db/models/plan/settings';
 
 import { UserTable } from '@/pages/db/models/catalogs/users';
 import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
-
+import { BillTable } from '@/pages/db/models/support/bills';
+import { SupportTable } from '@/pages/db/models/support/support';
 
 
 // types
 import { StatusEnum, UserItem, UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem } from '@/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem, BillItem } from '@/types';
 
 // единицы измерения
 export async function getUOMs(
@@ -1063,4 +1064,76 @@ export async function getUsers(
       message: `Ошибка при получении данных: ${error.message}`,
     };
   }
+}
+
+
+// счета
+export async function getBills(
+  teamId: number,
+  billsRepository: Repository<BillTable>
+): Promise<BillItem[]> {
+
+  // Строим фильтр для поиска
+
+  const filter: { team_id?: number; } = {};
+
+  if (teamId) {
+    filter.team_id = teamId;
+  }
+
+  // Выполняем запрос с фильтрацией
+  const receivedBills = await billsRepository.find({
+    where: filter,  // Применяем фильтр к запросу
+  });
+  // console.log(receivedUOMS);
+
+  const bills__ = receivedBills
+    .map(bill => {
+      return {
+        id: bill.id,
+        date: new Date(bill.date).toLocaleDateString('en-CA'),
+        title: bill.title,
+        file: bill.fileContent,
+        teamId: bill.team_id,
+        paid: bill.paid,
+      } as BillItem;
+    });
+
+  return bills__;
+}
+
+// тех поддержка
+export async function getSuportMessages(
+  teamId: number,
+  supportRepository: Repository<SupportTable>
+): Promise<SupportMessageItem[]> {
+
+  // Строим фильтр для поиска
+
+  const filter: { team_id?: number; } = {};
+
+  if (teamId) {
+    filter.team_id = teamId;
+  }
+
+  // Выполняем запрос с фильтрацией
+  const receivedSuportMessages = await supportRepository.find({
+    where: filter,  // Применяем фильтр к запросу
+  });
+  // console.log(receivedUOMS);
+
+  const suportMessages = receivedSuportMessages
+    .map(mes => {
+      return {
+        id: mes.id,
+        date: new Date(mes.date).toLocaleDateString('en-CA'),
+        title: mes.title,
+        body: mes.body,
+        userId: mes.user_id,
+        fromUser: mes.fromUser,
+        basedOn: mes.basedOn,        
+      };
+    });
+
+  return suportMessages;
 }

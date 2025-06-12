@@ -141,7 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(405).end(); // Метод не поддерживается
     }
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (unit-users-api):', error);
+    console.error('Ошибка подключения или выполнения запроса (users-unit-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }

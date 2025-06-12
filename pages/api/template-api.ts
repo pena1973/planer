@@ -140,7 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 res.status(405).end(); // Метод не поддерживается
         }
     } catch (error) {
-        console.error('Ошибка подключения или выполнения запроса (tCardTemplate-api):', error);
+        console.error('Ошибка подключения или выполнения запроса (template-api):', error);
         res.status(500).json({ error: 'Не удалось обработать запрос' });
     }
 }

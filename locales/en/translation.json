@@ -120,8 +120,8 @@
     "duration": "Duration",
     "dateStart": "Start date:",
     "timeStart": "Start time:",
-    "dateFinish":"Finish date:",
-    "timeFinish":"Finish time:",
+    "dateFinish": "Finish date:",
+    "timeFinish": "Finish time:",
     "status": "Status"
   },
   "resources": {
@@ -238,7 +238,7 @@
     "result": "Result",
     "defect": "Defect"
   },
-   "unitTaskStackOutsource": {
+  "unitTaskStackOutsource": {
     "card": "Card",
     "oper": "Operation, code",
     "unit": "Unit",
@@ -247,7 +247,7 @@
     "status": "Status",
     "ready": "Ready",
     "defect": "Defective"
-},
+  },
   "loadOperProcess": {
     "card": "Card",
     "oper": "Action",
@@ -296,10 +296,18 @@
     "monthSelect": "Select"
   },
   "support": {
-  "billing": "Billing",
-  "messages": "Support",
-  "billing1": "Billing and payments",
-  "messages1": "Technical support ",
-  "notes": "Notes"
-}
+    "billing": "Billing",
+    "messages": "Support",
+    "billing1": "Billing and payments",
+    "messages1": "Technical support ",
+    "notes": "Notes",
+    "profile": "Profile",
+    "profile1": "Profile"
+  },
+  "bills": {
+    "date": " Дата",
+    "title": "Счет",
+    "download": " Скачать",
+    "paid": "Оплачен"
+  }
 }

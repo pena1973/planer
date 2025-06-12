@@ -83,7 +83,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
 
-                        {(!user.id) && <Link className={styles.header_menu_item} href="/">PTpro</Link>}
+                        {(!user.id) && <Link className={styles.header_menu_item} href="/"></Link>}
                         {(user.id) && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
                         {(user.id) && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
                         {(user.id) && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
@@ -111,7 +111,7 @@ export default function Layout({ children }: PropsWithChildren) {
                             </div>
                         )}
                     </div>                    
-                    <button>{t('layout.profile')}</button>
+                    {/* <button>{t('layout.profile')}</button> */}
                     {(user.id) &&  <button onClick={exit}>{t('layout.exit')}</button>}
                 </div>
             </div>

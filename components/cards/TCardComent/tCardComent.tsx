@@ -3,22 +3,22 @@ import styles from "./tCardComent.module.scss";
 
 import { useEffect, useState, useRef } from "react";
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
+// const URL = process.env.NEXT_PUBLIC_URL;
+// let _url = String(URL);
+// _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 
-export interface TCardProductProps {
+export interface TCardComentProps {
     coment: string,
     setComentTCardHandler: (coment: string) => void,
     tCardIdc: number,
 }
 
-export default function TCardProducts({
+export default function TCardComent({
     coment,
     setComentTCardHandler,
     tCardIdc
-}: TCardProductProps) {
+}: TCardComentProps) {
  
 
     // Функция для автоматической подгонки высоты

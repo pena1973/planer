@@ -406,7 +406,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (tcard-api1):', error);
+    console.error('Ошибка подключения или выполнения запроса (tcard-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }

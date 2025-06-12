@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (tcard-api):', error);
+    console.error('Ошибка подключения или выполнения запроса (report-units-kpi-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }

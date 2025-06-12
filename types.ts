@@ -1,26 +1,26 @@
-export interface TemplateItem{
+export interface TemplateItem {
     id: number,
     name: string,
-    fileContent: string, 
+    fileContent: string,
 }
 export enum TypeEnum {
-  P = 'P',
-  W = 'W',
-  M = 'M',
-  I = 'I',
-  O = 'O',
-  A = 'A', // Дейчствие
+    P = 'P',
+    W = 'W',
+    M = 'M',
+    I = 'I',
+    O = 'O',
+    A = 'A', // Дейчствие
 }
 
 export enum StatusEnum {
-    draft     = 'draft', // черновик
-    prepared  = 'prepared', // готов к началу планирования
-    planed    = 'planed', // запланирован
+    draft = 'draft', // черновик
+    prepared = 'prepared', // готов к началу планирования
+    planed = 'planed', // запланирован
     performed = 'performed',// выполнен юнитом
-    ready     = 'ready', // готов (проверен на брак)
+    ready = 'ready', // готов (проверен на брак)
     defective = 'defective', // бракован
     cancelled = 'cancelled', // отменен   
-    closed    = 'closed', // выполнена и закрыта   
+    closed = 'closed', // выполнена и закрыта   
 }
 
 export interface TCardStageItem {
@@ -39,9 +39,9 @@ export interface TCardOperationItem {
     action: ActionItem,
     duration: number, // в милисекундах   
     mode?: boolean // для целей редактирования на форме
-    status:StatusEnum,
+    status: StatusEnum,
     coment?: string,
-    fixOperIdc?:number, // ссылка на операцию которую исправляли
+    fixOperIdc?: number, // ссылка на операцию которую исправляли
 }
 
 export interface TCardProductItem {
@@ -61,15 +61,15 @@ export interface TCardItem {
     tCardProducts?: TCardProductItem[],
     tCardWastes?: TCardProductItem[],
     tCardOperations?: TCardOperationItem[],
-    tCardMaterials?: TCardProductItem[],   
+    tCardMaterials?: TCardProductItem[],
     // включаю потому что может быть 
     // не заполненная операциями стадия на этапе редактирования  
-    tCardStages?: TCardStageItem[], 
+    tCardStages?: TCardStageItem[],
     // это счетчик id для подчиненных сущьностей в пределах карты  
     // -  обеспечивает сквозную idc в карте иначе получим очень большие номера
-    maxIdc: number, 
+    maxIdc: number,
     coment?: string,
-    status:StatusEnum
+    status: StatusEnum
 }
 
 export interface UOMItem {
@@ -83,7 +83,7 @@ export interface ActionItem {
     title: string,
     code: string, // для синхронизации 
     modified?: boolean, // указание что модифицирована и не сохранена
-    interruptible:boolean, // можно ли прервать операцию с окончанием смены а потом продолжитть на след день
+    interruptible: boolean, // можно ли прервать операцию с окончанием смены а потом продолжитть на след день
 }
 
 // расширение интерфейса для отчета о состоянеии карт
@@ -91,12 +91,12 @@ export interface TCardTermsItem extends TCardItem {
     readyTerm: { date: string, time: number }, // срок готовности
     expand: boolean, //  состояние развернутости и свернутости
     tCardOperations: TCardOperationTermsItem[],
-  }
+}
 // расширение интерфейса
 export interface TCardOperationTermsItem extends TCardOperationItem {
     readyTerm: { date: string, time: number }, // срок готовности
     expand: boolean, //  состояние развернутости и свернутости
-  }
+}
 
 
 
@@ -111,7 +111,7 @@ export interface UnitItem {
     belong: UnitBelongEnum,
     type: UnitTypeEnum,
     coment: string,
-    active:boolean, 
+    active: boolean,
 }
 
 export interface UnitKPIItem {
@@ -122,46 +122,46 @@ export interface UnitKPIItem {
     planedTime: number;
     effectiveTime: number;
     defectTime: number;
-  }
-  
+}
+
 
 export interface UnitActionItem {
     id?: number,
     idc: number,
     action: ActionItem,
     koef: number,
-    unitId:number,
-    unitIdc:number, // временно для синхронизации пока юнит не записан
+    unitId: number,
+    unitIdc: number, // временно для синхронизации пока юнит не записан
 }
 //  отклонения юнита от расписания
 export interface UnitExceptionItem {
-    id?:number,
+    id?: number,
     idc: number,
-    date:string,
-    type: TimeTypeEnum, 
-    timeStart:number,
-    timeFinish:number,
-    unitId:number, 
-    unitIdc:number, // временно для синхронизации пока юнит не записан     
+    date: string,
+    type: TimeTypeEnum,
+    timeStart: number,
+    timeFinish: number,
+    unitId: number,
+    unitIdc: number, // временно для синхронизации пока юнит не записан     
 }
 // ТБ users
 export interface UserItem {
     id: number,
     login: string,
-    pass: string, 
+    pass: string,
     name: string,
     locale: string,
-    isAdmin:boolean,   
-    active?:boolean, 
+    isAdmin: boolean,
+    active?: boolean,
 }
 
 //  users-units
 export interface UserUnitItem {
     id: number,
-    userId: number,    
+    userId: number,
     name: string,
-    unit: UnitItem | null;       
-    active:boolean //  пригнак того что юзер инрает роль юнита
+    unit: UnitItem | null;
+    active: boolean //  пригнак того что юзер инрает роль юнита
 }
 
 // хранить обрабатывать
@@ -178,16 +178,16 @@ export enum UnitBelongEnum {
 
 // компания
 export interface TeamItem {
-    id:number,
-    title: string;  
+    id: number,
+    title: string;
     coment: string,
-    prefix: string,   
+    prefix: string,
 }
 
 // Шкала времени
 ///////////////////////////// 
 export enum DaysOfWeek {
-   
+
     SUNDAY = "SUNDAY",
     MONDAY = "MONDAY",
     TUESDAY = "TUESDAY",
@@ -195,18 +195,18 @@ export enum DaysOfWeek {
     THURSDAY = "THURSDAY",
     FRIDAY = "FRIDAY",
     SATURDAY = "SATURDAY"
-  }
+}
 
 // рабочее  время компании
 export interface ScheduleItem {
-    team: TeamItem,    
+    team: TeamItem,
     timeStartWork: number, // минут с начала дня 
     timeFinishWork: number, // минут с начала дня 
-    breaks:{ timeStart:number, timeFinish:number}[] // минут с начала дня 
-    holidays:string[], // даты не работы в рабочие дни (празднии) в строковом формате
-    weekends:DaysOfWeek[], // дни недели по номерам   - понедельник 1, воскресенье 7 
-    workdays:{ date:string,timeStart:number, timeFinish:number}[], // даты(в строковом формате) работы в выходные  (переносы)
-    timeZone:TimeZoneEnum
+    breaks: { timeStart: number, timeFinish: number }[] // минут с начала дня 
+    holidays: string[], // даты не работы в рабочие дни (празднии) в строковом формате
+    weekends: DaysOfWeek[], // дни недели по номерам   - понедельник 1, воскресенье 7 
+    workdays: { date: string, timeStart: number, timeFinish: number }[], // даты(в строковом формате) работы в выходные  (переносы)
+    timeZone: TimeZoneEnum
 }
 
 // Описание дня
@@ -217,32 +217,32 @@ export interface CalendarItem {
     day: boolean,
     timeStartWork: number, // минут с начала дня 
     timeFinishWork: number, // минут с начала дня 
-    breaks:{timeStart:number,timeFinish:number}[] // минут с начала дня 
+    breaks: { timeStart: number, timeFinish: number }[] // минут с начала дня 
 }
 
 export interface UnitCalendarItem extends CalendarItem {
-    unit:UnitItem,
-  }
+    unit: UnitItem,
+}
 // Описание операции (отрезка времени) на временной шкале юнита
 export interface UnitLoadItem {
-    id?:number,
+    id?: number,
     idc: number, //  уникальный id лоада до записи в базу    idc: Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`),
-    unit:UnitItem,  
-    date:string, //  дата в строковом формате // формат: YYYY-MM-DD
+    unit: UnitItem,
+    date: string, //  дата в строковом формате // формат: YYYY-MM-DD
     idc_oper: number,// Для визуализации на шкале
     id_oper: number, // для связи
     id_tCard: number,
     timeStart: number, // здесь в минутах
     timeFinish: number,
-    status:StatusEnum    
-    isActive:boolean,
-    isRetool:boolean, 
-    loadInfo:{tCardIdc:number,tCardDate:string,title:string,duration:number,interruptible:boolean,koef:number},
-    isPinned:boolean,//  перенесен вручшую на шкале
-    isOuterStart:boolean,//  это старт оутсортера
-    isOuterFinish:boolean,//  это финиш оутсортера
-    version:number // версия планирования для связи цепочки лоадов
-    isFirst:boolean, // стартовый интервал в цепочке интервалов (но не ретул)
+    status: StatusEnum
+    isActive: boolean,
+    isRetool: boolean,
+    loadInfo: { tCardIdc: number, tCardDate: string, title: string, duration: number, interruptible: boolean, koef: number },
+    isPinned: boolean,//  перенесен вручшую на шкале
+    isOuterStart: boolean,//  это старт оутсортера
+    isOuterFinish: boolean,//  это финиш оутсортера
+    version: number // версия планирования для связи цепочки лоадов
+    isFirst: boolean, // стартовый интервал в цепочке интервалов (но не ретул)
 }
 // 
 // описание дня работы юнита
@@ -257,12 +257,12 @@ export enum TimeTypeEnum {
 
 //  настройки системы
 export interface SettingsItem {
-    timeStartWork:number, //  начало показа календаря
-    timeFinishWork:number, //  конец показа календаря
-    showWeekend:boolean, // показывать выходные дни
+    timeStartWork: number, //  начало показа календаря
+    timeFinishWork: number, //  конец показа календаря
+    showWeekend: boolean, // показывать выходные дни
     showHoliday: boolean,// показывать праздники 
-    isQualControl:boolean,// применяется ли контроль качества  
-    
+    isQualControl: boolean,// применяется ли контроль качества  
+
 }
 
 
@@ -271,7 +271,7 @@ export enum TimeZoneEnum {
     // UTC 0
     "Europe/Lisbon" = "Europe/Lisbon, UTC+0", // Лиссабон
     "Europe/Dublin" = "Europe/Dublin, UTC+0", // Дублин
-  
+
     // UTC +1
     "Europe/Paris" = "Europe/Paris, UTC+1", // Париж
     "Europe/Berlin" = "Europe/Berlin, UTC+1", // Берлин
@@ -286,13 +286,13 @@ export enum TimeZoneEnum {
     "Europe/Prague" = "Europe/Prague, UTC+1", // Прага
     "Europe/Zurich" = "Europe/Zurich, UTC+1", // Цюрих
     "Europe/Luxembourg" = "Europe/Luxembourg, UTC+1", // Люксембург
-  
+
     // UTC +2
     "Europe/Helsinki" = "Europe/Helsinki, UTC+2", // Хельсинки
     "Europe/Sofia" = "Europe/Sofia, UTC+2", // София
     "Europe/Bucharest" = "Europe/Bucharest, UTC+2", // Бухарест  
     "Europe/Riga" = "Europe/Riga, UTC+2", // Бухарест  
-  
+
     // Россия
     "Europe/Kaliningrad" = "Europe/Kaliningrad, UTC+2", // Калининград
     "Europe/Moscow" = "Europe/Moscow, UTC+3", // Москва
@@ -305,7 +305,7 @@ export enum TimeZoneEnum {
     "Europe/Vladivostok" = "Europe/Vladivostok, UTC+10", // Владивосток
     "Europe/Magadan" = "Europe/Magadan, UTC+11", // Магадан
     "Europe/Kamchatka" = "Europe/Kamchatka, UTC+12", // Камчатка
-    
+
     // Казахстан
     "Asia/Almaty" = "Asia/Almaty, UTC+6", // Алматы
     "Asia/Aqtobe" = "Asia/Aqtobe, UTC+5", // Актобе
@@ -315,41 +315,60 @@ export enum TimeZoneEnum {
     "Asia/Oskemen" = "Asia/Oskemen, UTC+6", // Усть-Каменогорск
     "Asia/Pavlodar" = "Asia/Pavlodar, UTC+6", // Павлодар
     "Asia/Karaganda" = "Asia/Karaganda, UTC+6", // Караганда
-  }
-  
+}
 
-  // Для чтения данных из файла урезанный интерфейс
 
-   //// Интерфейсы для чтения карты из файла
-  
-   export  interface ProductContent {
+// Для чтения данных из файла урезанный интерфейс
+
+//// Интерфейсы для чтения карты из файла
+
+export interface ProductContent {
     idc: number;
     code: string;
     title: string;
     qtu: number;
     uom: { code: string; title: string };
-  }
+}
 
-  export  interface OperationContent {
+export interface OperationContent {
     order: number,
     idc: number;
-    stage: {idc: number, code: number};
+    stage: { idc: number, code: number };
     out: ProductContent[];
     inn: ProductContent[];
     action: { code: string; title: string };
     duration: number;
-   
-    coment?: string;
-  }
 
-  export interface TCardContent {
+    coment?: string;
+}
+
+export interface TCardContent {
     date: string;
     idc: number;
     tCardProducts: ProductContent[];
     tCardOperations: OperationContent[];
     tCardWastes?: ProductContent[];
-    tCardStages: {idc: number, code: number}[];
+    tCardStages: { idc: number, code: number }[];
     coment?: string;
-  
-  }
 
+}
+
+export interface SupportMessageItem {
+    id:number, // если новое то - (Временный id) 
+    date: string; // дата время писма
+    title: string;
+    body: string,
+    userId: number;
+    fromUser: boolean, // направление истина от юзера, лож- от системы
+    basedOn: number, // если это сообщение ответ то здесь id исходного письма.
+    // idChain: number, // id цепочки - равен исходному писму
+}
+export interface BillItem {
+    id?:number,
+    date: string; // период за который вымавлен счет
+    title: string;
+    file: string,
+    teamId: number;
+    paid: boolean,
+
+}

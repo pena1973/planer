@@ -217,7 +217,7 @@ export default function UsersCatalog({
     return (
         <div className={styles.container}>
 
-            {!showLoader && <div> фильтр заглушка</div>}
+            {!showLoader && <div> &nbsp; </div>}
 
             {!showLoader && <div className={styles.table_container}>
                 <Image className={styles.icon_cancel}

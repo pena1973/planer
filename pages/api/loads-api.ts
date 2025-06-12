@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(405).end(); // Метод не поддерживается
     }
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (load-api):', error);
+    console.error('Ошибка подключения или выполнения запроса (loads-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' + error });
   }
 }

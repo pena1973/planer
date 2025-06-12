@@ -22,12 +22,14 @@ import { SettingsTable } from '@/pages/db/models/plan/settings';
 import { UserTable } from '@/pages/db/models/catalogs/users';
 import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
 
+import { BillTable } from '@/pages/db/models/support/bills';
+import { SupportTable } from '@/pages/db/models/support/support';
 
 
 
 // types
-import { UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from '@/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem, TemplateItem, StatusEnum } from '@/types';
+import { UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem, SupportMessageItem } from '@/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, SettingsItem, TemplateItem, StatusEnum } from '@/types';
 
 
 // НАСТРОЙКИ
@@ -848,30 +850,30 @@ export async function updateTCardLoads(
   // Добавляем новые единицы лоады  -  операция нереальная! добавлено для совместимости с остальными функциями
   let savedNewLoads = [] as UnitLoadTable[];
   if (loadsToAdd.length > 0) {
-  const newLoads = loadsToAdd.map(load => {
-    return unitLoadRepository.create({
-      date: load.date,
-      idc: load.idc,
-      id_oper: load.id_oper,
-      idc_oper: load.idc_oper, // Идентификатор операции  
-      id_tCard: load.id_tCard, // Идентификатор тех карты
-      timeStart: Math.ceil(load.timeStart), // Время начала в минутах окр в большую сторону
-      timeFinish: Math.ceil(load.timeFinish), // Время окончания в минутах окр в большую сторону
-      team_id: teamId,
-      unit_id: load.unit.id,
-      status: load.status,
-      isActive: load.isActive,
-      isRetool: load.isRetool,
-      isPinned: load.isPinned,
-      isOuterStart: load.isOuterStart,
-      isOuterFinish: load.isOuterFinish,
-      version: load.version,
-      isFirst: load.isFirst,
+    const newLoads = loadsToAdd.map(load => {
+      return unitLoadRepository.create({
+        date: load.date,
+        idc: load.idc,
+        id_oper: load.id_oper,
+        idc_oper: load.idc_oper, // Идентификатор операции  
+        id_tCard: load.id_tCard, // Идентификатор тех карты
+        timeStart: Math.ceil(load.timeStart), // Время начала в минутах окр в большую сторону
+        timeFinish: Math.ceil(load.timeFinish), // Время окончания в минутах окр в большую сторону
+        team_id: teamId,
+        unit_id: load.unit.id,
+        status: load.status,
+        isActive: load.isActive,
+        isRetool: load.isRetool,
+        isPinned: load.isPinned,
+        isOuterStart: load.isOuterStart,
+        isOuterFinish: load.isOuterFinish,
+        version: load.version,
+        isFirst: load.isFirst,
+      });
     });
-  });
-  
-  if (newLoads.length > 0) savedNewLoads = await unitLoadRepository.save(newLoads);
-  if (!savedNewLoads) return { success: false, loads: [] as UnitLoadTable[], message: "Не удалось сохранить интервалы загрузок" }
+
+    if (newLoads.length > 0) savedNewLoads = await unitLoadRepository.save(newLoads);
+    if (!savedNewLoads) return { success: false, loads: [] as UnitLoadTable[], message: "Не удалось сохранить интервалы загрузок" }
   }
 
   // // Обновляем существующие лоады (только статус)
@@ -894,10 +896,10 @@ export async function updateTCardLoads(
 
   // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
   if (loads.length !== savedLoads.length) {
-    error = `Не удалось сохранить интервалы загрузки`;   
+    error = `Не удалось сохранить интервалы загрузки`;
     return { success: false, loads: [] as UnitLoadTable[], message: error }
   }
- 
+
 
   return { success: true, loads: savedLoads as UnitLoadTable[], message: "" }
 }
@@ -1575,5 +1577,46 @@ export async function updateStatusTCard(
   } catch (error: any) {
     console.error("Ошибка обновления статуса карты:", error);
     return { success: false, message: error.message || "Ошибка обновления статуса карты" };
+  }
+}
+
+///////////////////// SUPPORT //////////////////
+
+// Функция для обновления сообщения тех поддержки
+export async function updateSupportMessage(
+  teamId: number,
+  userId: number,
+  supportMessage: SupportMessageItem,
+  supportRepository: Repository<SupportTable>
+): Promise<{ success: boolean, message: string, savedMessage: SupportTable}> {
+  try {
+    // Создание нового сообщения для базы данных
+    const newSupportMessage = supportRepository.create({
+      date: supportMessage.date,
+      title: supportMessage.title,
+      body: supportMessage.body,
+      fromUser: supportMessage.fromUser,
+      basedOn: supportMessage.basedOn,      
+      user_id: userId,
+      team_id: teamId,
+    });
+
+    // Сохраняем новое сообщение в базе данных
+    const savedMessage = await supportRepository.save(newSupportMessage);
+
+    // Если сообщение сохранено успешно, возвращаем его с ID
+    return {
+      success: true,
+      message: "Сообщение успешно сохранено.",
+      savedMessage: savedMessage,
+      
+    };
+  } catch (error: any) {
+    console.error("Ошибка при сохранении сообщения:", error);
+    return {
+      success: false,
+      message: error.message || "Ошибка при сохранении сообщения.",
+      savedMessage: {} as SupportTable,      
+    };
   }
 }

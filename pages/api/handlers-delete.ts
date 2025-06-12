@@ -8,7 +8,6 @@ import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
 import { TCardTable } from '@/pages/db/models/data/t_cards'
 import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TypeEnum } from '@/pages/db/models/enums';
 import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
 import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
@@ -17,6 +16,8 @@ import { SettingsTable } from '@/pages/db/models/plan/settings';
 
 import { UserTable } from '@/pages/db/models/catalogs/users';
 import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
+import { BillTable } from '@/pages/db/models/support/bills';
+import { SupportTable } from '@/pages/db/models/support/support';
 
 
 
@@ -48,4 +49,27 @@ export async function deleteUsers(
   await usersRepository.remove(usersToDeleteEntities);
 
   return { success: true, message: 'Пользователи успешно удалены.' };
+}
+
+// Пользователи
+export async function deleteSupport(
+  idsToDelete: number[],  // Массив сообщений
+  supportRepository: Repository<SupportTable>,  
+) {
+  if (idsToDelete.length === 0) {
+    return { success: false, message: 'Нет сообщений для удаления.' };
+  }
+
+  
+  // Находим пользователей по их id
+  const mesToDeleteEntities = await supportRepository.findByIds(idsToDelete);
+
+  if (mesToDeleteEntities.length === 0) {
+    return { success: false, message: 'Сообщения не найдены в базе данных.' };
+  }
+
+  // Удаляем пользователей
+  await supportRepository.remove(mesToDeleteEntities);
+
+  return { success: true, message: 'Сообщения успешно удалены.' };
 }

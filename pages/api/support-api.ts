@@ -1,0 +1,84 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
+import { updateSupportMessage } from './handlers-update';  // расчеты
+
+import { SupportTable } from '@/pages/db/models/support/support';
+import { SupportMessageItem } from '@/types';
+import { getSuportMessages } from './handlers-get';
+import { deleteSupport } from './handlers-delete';  // расчеты
+
+interface RequestBody {
+  userId: number,
+  teamId: number,
+  supportMessage: SupportMessageItem;
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    // Убедимся, что подключение установлено    
+    const dbConnection = await connectDb();  // Получаем подключение
+
+    // Используем репозиторий для работы с сущностью TCardTable
+    const supportRepository = dbConnection.getRepository(SupportTable);
+
+    const { teamId: getTeamId } = req.query;
+    switch (req.method) {
+      case 'GET':
+        const messages_ = await getSuportMessages(Number(getTeamId), supportRepository)
+
+        // отправляем ответ
+        res.status(200).json({
+          success: true,
+          message: "",
+          supportMessages: messages_,
+        });
+
+        break;
+      case 'POST':
+        // Извлекаем данные из тела запроса
+        const { supportMessage, userId, teamId } = req.body as RequestBody;
+
+        // СПИСОК ДЕЙСТВИЙ 
+        const resSupport = await updateSupportMessage(
+          Number(teamId),
+          Number(userId),
+          supportMessage,
+          supportRepository
+
+        )
+        if (!resSupport.success) {
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSupport.message });
+          return;
+        }
+
+        const savedMessage = resSupport.savedMessage as SupportTable;
+
+        const supportMessage_ = {
+          id: savedMessage.id,
+          date: new Date(savedMessage.date).toLocaleDateString('en-CA'),
+          title: savedMessage.title,
+          body: savedMessage.body,
+          userId: savedMessage.user_id,
+          fromUser: savedMessage.fromUser,
+          basedOn: savedMessage.basedOn,
+        } as SupportMessageItem
+
+        // отправляем ответ
+        res.status(200).json({
+          success: true,
+          supportMessage: supportMessage_,
+        });
+        break;
+      // case 'DELETE':
+      //   deleteSupport(idsToDelete, supportRepository)
+
+      //   break;
+      default:
+        res.status(405).end(); // Метод не поддерживается
+    }
+  } catch (error) {
+    console.error('Ошибка подключения или выполнения запроса (support-api):', error);
+    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  }
+}
+

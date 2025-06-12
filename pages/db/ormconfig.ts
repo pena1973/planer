@@ -22,6 +22,8 @@ import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
 import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads'
 import { SettingsTable} from '@/pages/db/models/plan/settings'
 
+import { SupportTable } from '@/pages/db/models/support/support'
+import { BillTable} from '@/pages/db/models/support/bills'
 
 
 const host = String(process.env.NEXT_PUBLIC_DB_HOST);
@@ -45,7 +47,8 @@ const config: ConnectionOptions = {
     TCardStageTable,
     UOMsTable,ActionTable,TeamTable,UnitTable,UserTable,UnitActionTable,
     TeamScheduleTable,UnitExceptionTable,UnitLoadTable,SettingsTable,
-    AgreementTable,UserAgreeTable,UserUnitTable,TemplateTable
+    AgreementTable,UserAgreeTable,UserUnitTable,TemplateTable,
+    SupportTable,BillTable
     ],
   migrations: ["/pages/db/migrations/**/*.ts"],  // Путь к миграциям
   subscribers: [],

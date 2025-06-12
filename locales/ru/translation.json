@@ -114,14 +114,14 @@
     "koef": "Коэфициент",
     "status": "Статус"
   },
-   "contexMenuO": {
+  "contexMenuO": {
     "card": "Тех карта",
     "action": "Действие:",
     "duration": "Время",
     "dateStart": "Дата старта:",
     "timeStart": "Время старта:",
-    "dateFinish":"Дата финиша:",
-    "timeFinish":"Время финиша:",
+    "dateFinish": "Дата финиша:",
+    "timeFinish": "Время финиша:",
     "status": "Статус"
   },
   "resources": {
@@ -237,8 +237,8 @@
     "time": "времени",
     "result": "результат",
     "defect": "брак"
-  },  
-   "unitTaskStackOutsource": {
+  },
+  "unitTaskStackOutsource": {
     "card": "Карта",
     "oper": "Операция, код",
     "unit": "Юнит",
@@ -246,7 +246,7 @@
     "finish": "Финиш",
     "status": "Статус",
     "ready": "Готов",
-    "defect": "Брак"    
+    "defect": "Брак"
   },
   "loadOperProcess": {
     "card": "Карта",
@@ -296,10 +296,18 @@
     "monthSelect": "Выберите"
   },
   "support": {
-     "billing":" Счета",
-    "messages":"Обращения",    
-    "billing1":" Счета и оплаты",
-    "messages1":"Обращения в тех. поддержку",    
-    "notes":"Пояснение"    
+    "billing": " Счета",
+    "messages": "Обращения",
+    "billing1": " Счета и оплаты",
+    "messages1": "Обращения в тех. поддержку",
+    "notes": "Пояснение",
+    "profile": "Профиль",
+    "profile1": "Профиль"
+  },
+  "bills": {
+    "date": " Дата",
+    "title": "Счет",
+    "download": " Скачать",
+    "paid": "Оплачен"
   }
 }

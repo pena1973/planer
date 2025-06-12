@@ -150,7 +150,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(405).end(); // Метод не поддерживается
     }
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (erazeplan-api):', error);
+    console.error('Ошибка подключения или выполнения запроса (pre-unpinload-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' + error });
   }
 }

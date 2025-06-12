@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               belong: unit.belong,
               type: unit.type,
               coment: unit.coment,
-              activ: unit.activ,              
+              active: unit.active,                
             } as UnitItem;
           });
 
