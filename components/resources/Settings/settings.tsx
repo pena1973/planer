@@ -19,10 +19,14 @@ import save from "@/public/save-rem.png";
 
 
 export interface SettingsProps {
-    setMessage: (message: string) => void
+    setMessage: (message: string) => void,
+    token: string
 }
 
-export default function Settings({ setMessage }: SettingsProps) {
+export default function Settings({
+    setMessage,
+    token
+}: SettingsProps) {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
@@ -72,7 +76,7 @@ export default function Settings({ setMessage }: SettingsProps) {
                 {
                     method: 'post',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({

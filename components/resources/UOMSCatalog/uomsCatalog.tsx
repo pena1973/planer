@@ -21,12 +21,15 @@ import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
 export interface UOMSCatalogProps {
-    setMessage: (message: string) => void
+    setMessage: (message: string) => void,
 }
 
 export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     const dispatch = useAppDispatch();
 
+    const token = useSelector((state: RootState) => {
+        return state.authSlice.token;
+    })
     const uoms = useSelector((state: RootState) => {
         return state.catalogSlice.uoms;
     })
@@ -43,7 +46,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [uomsValue, setUomsValue] = useState([] as UOMItem[]);
 
-   
+
 
     useEffect(() => {
         setUomsValue(uoms);
@@ -94,7 +97,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                 {
                     method: 'post',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({

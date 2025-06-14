@@ -1,7 +1,7 @@
 
 import styles from "./unitsCatalog.module.scss";
 import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types';
-import { generateUniqueIdc} from '@/utils'
+import { generateUniqueIdc } from '@/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
@@ -48,6 +48,10 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
+    const token = useSelector((state: RootState) => {
+        return state.authSlice.token;
+    })
+
     const team = useSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
@@ -74,7 +78,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     // const [message, setMessage] = useState("");
     const [focusIndexUnit, setFocusIndexUnit] = useState(NaN); // Юнит на мкотором стоит курсор 
 
-    const [buttonLoader, setButtonLoader] = useState(false); 
+    const [buttonLoader, setButtonLoader] = useState(false);
 
     useEffect(() => {
         setExceptionsValue(unitExceptions)
@@ -132,7 +136,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
             if (!unit.code) {
                 // message = message + `Заполните код юнита строка ${index + 1}!\n`;
-                message = message + `${t('units.fillCode')} ${index + 1}!\n`;                
+                message = message + `${t('units.fillCode')} ${index + 1}!\n`;
                 exit = true;
             }
             if (!unit.title) {
@@ -209,7 +213,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                 {
                     method: 'post',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
@@ -239,8 +243,8 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                         const idA = a.id ?? 0; // Если id a не существует, считаем его 0
                         const idB = b.id ?? 0; // Если id b не существует, считаем его 0          
                         return idA - idB; // Сравниваем id
-                      });
-                      
+                    });
+
                     let exceptions_ = receivedData.exceptions as UnitExceptionItem[]
                     let actions_ = receivedData.actions as UnitActionItem[]
                     // временное хранилище                  
@@ -260,7 +264,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             }
 
         } catch (e: any) {
-            setMessage(t('service.serverUnavailable') + e.message)            
+            setMessage(t('service.serverUnavailable') + e.message)
         }
 
         setButtonLoader(false)
@@ -437,9 +441,9 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                     onChange={e => {
                         changeHandler(index, e.target.value, "code");
                     }}
-                    onFocus={() => setFocusIndexUnit(index)} 
+                    onFocus={() => setFocusIndexUnit(index)}
                 />
-                
+
             </td>
             <td>
                 <input
@@ -575,18 +579,18 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
         )
 
-     let selectedValues = (actionsValue || [])
-    .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)    
-    .map((elem) => 
-        elem.action?.id)
-        
+    let selectedValues = (actionsValue || [])
+        .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
+        .map((elem) =>
+            elem.action?.id)
+
     let unitFocusActionValueReactNodes = (actionsValue || [])
         .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
         .map((elem, index) => (
             (
                 <tr key={"ac" + index}>
                     <td>
-                        <Image                            
+                        <Image
                             src={del} alt="del" width={20} height={20}
                             onClick={() => deleteUnitActionHandler(elem.id, elem.idc)}
                         />
@@ -661,13 +665,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                         />
                     </div>
                     <div className={styles.container_icon_edit_save}>
-                    {buttonLoader && <ButtonLoader />}
-                    {!buttonLoader &&
-                        <Image className={styles.icon_edit_save}
-                            src={save}
-                            alt="arrow" width={20} height={20}
-                            onClick={() => { saveUnitsHandler() }}
-                        />}
+                        {buttonLoader && <ButtonLoader />}
+                        {!buttonLoader &&
+                            <Image className={styles.icon_edit_save}
+                                src={save}
+                                alt="arrow" width={20} height={20}
+                                onClick={() => { saveUnitsHandler() }}
+                            />}
                     </div>
                 </div>
 
@@ -725,7 +729,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                             </table>
                             <div className={styles.container_buttons_row}>
                                 <div className={styles.container_icon_edit_save}>
-                               
+
                                     <Image className={styles.icon_edit_save}
                                         src={add}
                                         alt="arrow" width={20} height={20}

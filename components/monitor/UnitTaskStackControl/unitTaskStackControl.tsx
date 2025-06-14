@@ -24,6 +24,7 @@ interface UnitTaskStackProcessProps {
   setStatusLoadsHandler: (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => void,
   teamId: number,
   userId: number,
+  token:string
 }
 
 const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
@@ -38,6 +39,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   setStatusLoadsHandler,
   teamId,
   userId,
+  token
 }) => {
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
 
@@ -66,7 +68,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -117,7 +119,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({

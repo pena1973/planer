@@ -13,6 +13,7 @@ interface BillingProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
+  token:string
 }
 
 export const Billing: React.FC<BillingProps> = ({
@@ -20,6 +21,7 @@ export const Billing: React.FC<BillingProps> = ({
   setMessage,
   teamId,
   userId,
+  token
 }) => {
 
   const { t, i18n } = useTranslation();
@@ -33,7 +35,7 @@ export const Billing: React.FC<BillingProps> = ({
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }

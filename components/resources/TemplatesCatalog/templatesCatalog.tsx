@@ -24,11 +24,14 @@ import upload from "@/public/upload2-rem.png";
 
 export interface UOMSCatalogProps {
     setMessage: (message: string) => void,
-
+    token: string
 }
 
-export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
-     const { t, i18n } = useTranslation();
+export default function TemplatesCatalog({
+    setMessage,
+    token
+}: UOMSCatalogProps) {
+    const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
     const templates = useSelector((state: RootState) => {
@@ -74,24 +77,25 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
     const saveTemplatesHandler = async () => {
         setMessage("");
         let todoReturn = false;
-        let message ="";
+        let message = "";
         templatesValue.forEach((elem, index) => {
             if (!elem.name) {
                 // {t('teamSchedule.additonalTime')}
                 // message = message.concat(`Заполните название шаблона строка ${index + 1}! `);
-                 message = message.concat(`${t('templates.fillTitle')} ${index + 1}! `);
+                message = message.concat(`${t('templates.fillTitle')} ${index + 1}! `);
                 todoReturn = true;
             }
             if (!elem.fileContent) {
                 // message = message.concat(`Загрузите шаблон строка ${index + 1}!` );
-                message = message.concat(`${t('templates.uploadTemplate')} ${index + 1}!` );
+                message = message.concat(`${t('templates.uploadTemplate')} ${index + 1}!`);
                 todoReturn = true;
             }
         })
 
         if (todoReturn) {
-             setMessage(message); 
-             return;}
+            setMessage(message);
+            return;
+        }
 
         // запрос на сохранение
         try {
@@ -100,7 +104,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                 {
                     method: 'post',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({
@@ -115,7 +119,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                 let error = receivedData.error;
                 // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                 setMessage(t('service.serverUnavailable') + error);
+                setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
@@ -127,12 +131,12 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                     setModified(false);
                     // setMessage("Обновлен список шаблонов карт");
                     setMessage(t('templates.templatesUpdated'));
-                    
+
                 } else setMessage(receivedData.error);
             }
 
         } catch (e: any) {
-            setMessage(t('service.serverUnavailable') + e.message)            
+            setMessage(t('service.serverUnavailable') + e.message)
         }
 
         setModified(false);
@@ -153,7 +157,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
         const fileName = `${templatesValue[indexTo].name}.json`;
         const exportData = templatesValue[indexTo].fileContent;
         // если ничего нет
-        if ((!exportData)) 
+        if ((!exportData))
             return;
 
         // Convert data to JSON
@@ -221,7 +225,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
                         console.error('Ошибка при парсинге файла:', err);
 
                         // alert('Ошибка при загрузке шаблона. Файл поврежден или некорректный.');
-                         alert(t('templates.alert1'));
+                        alert(t('templates.alert1'));
                     }
                 };
 
@@ -281,7 +285,7 @@ export default function TemplatesCatalog({ setMessage }: UOMSCatalogProps) {
             </td>
             <td>
                 {/* {(!template.fileContent) ?"": "загружен" } */}
-                {(!template.fileContent) ?"": t('templates.downloaded') }
+                {(!template.fileContent) ? "" : t('templates.downloaded')}
             </td>
 
         </tr>

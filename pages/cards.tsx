@@ -50,6 +50,10 @@ export default function Cards({ }: CardsProps) {
   const [lightProduct, setLightProduct] = useState(NaN); // idc  продукта который мы выделяем   
   const [saveTemplateLoaderCard, setSaveTemplateLoaderCard] = useState(false); // состояние сохранения шаблона
 
+ 
+  const token = useSelector((state: RootState) => {
+    return state.authSlice.token;
+  })
 
   const team = useSelector((state: RootState) => {
     return state.catalogSlice.team;
@@ -607,7 +611,7 @@ export default function Cards({ }: CardsProps) {
         {
           method: 'delete',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json',
 
           }),
@@ -667,7 +671,7 @@ export default function Cards({ }: CardsProps) {
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({
@@ -747,7 +751,7 @@ export default function Cards({ }: CardsProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -797,7 +801,7 @@ export default function Cards({ }: CardsProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -992,7 +996,7 @@ export default function Cards({ }: CardsProps) {
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({

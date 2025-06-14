@@ -10,9 +10,15 @@ interface SupportMessagesProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
+  token: string
 }
 
-export const SupportMessages: React.FC<SupportMessagesProps> = ({ setMessage, teamId, userId }) => {
+export const SupportMessages: React.FC<SupportMessagesProps> = ({
+  setMessage,
+  teamId,
+  userId,
+  token
+}) => {
 
   const { t, i18n } = useTranslation();
   const [supportMessagesValue, setSupportMessagesValue] = useState([] as SupportMessageItem[]);
@@ -24,6 +30,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({ setMessage, te
       const res = await fetch(`api/support-api?userId=${userId}&teamId=${teamId}`, {
         method: 'get',
         headers: new Headers({
+          'Authorization': 'Basic ' + token,
           'Content-Type': 'application/json'
         }),
       });
@@ -65,7 +72,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({ setMessage, te
     const updatedMessages = supportMessagesValue.filter(message => message.id !== id);
     setSupportMessagesValue(updatedMessages);
   };
-  
+
   const answerMessage = (basedOn: number) => {
     const basedOnMessage = supportMessagesValue.find(mes => mes.id === basedOn);
     if (!basedOnMessage) return;
@@ -94,7 +101,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({ setMessage, te
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({

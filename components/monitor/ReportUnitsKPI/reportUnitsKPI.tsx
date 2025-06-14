@@ -12,7 +12,8 @@ interface ReportUnitsKPIProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
-  units: UnitItem[]
+  units: UnitItem[],
+  token:string
 }
 
 interface ExpandKey {
@@ -38,9 +39,12 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   setMessage,
   teamId,
   userId,
-  units
+  units,
+  token
 }) => {
   const { t, i18n } = useTranslation();
+
+ 
 
   const [expandKeyValue, setExpandKeyValue] = useState([] as ExpandKey[]); // ключ expand
   const [unitsKPIValue, setUnitsKPIValue] = useState([] as UnitKPIItem[]); // массив kpi по дням
@@ -80,7 +84,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }

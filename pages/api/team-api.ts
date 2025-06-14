@@ -1,3 +1,4 @@
+import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getSettings } from './handlers-get';  // расчеты
@@ -13,8 +14,8 @@ interface RequestBody {
   title: string,
   coment: string,
 }
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -97,3 +98,4 @@ async function updateTeam(
     };
   
 }
+export default withAuth(handler)

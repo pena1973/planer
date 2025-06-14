@@ -1,3 +1,4 @@
+import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { Repository } from 'typeorm';
@@ -22,8 +23,8 @@ interface RequestBody {
   userId: number
 
 }
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -132,3 +133,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }
+export default withAuth(handler)

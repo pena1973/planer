@@ -135,7 +135,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({
@@ -200,6 +200,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'post',
           headers: new Headers({
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({ 'login': loginValue, 'link': link }),
@@ -269,7 +270,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({
@@ -330,7 +331,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -363,7 +364,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -397,7 +398,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -432,7 +433,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -474,7 +475,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -508,7 +509,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -542,7 +543,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -576,7 +577,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -611,7 +612,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -644,7 +645,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }
@@ -709,7 +710,7 @@ export default function Index({ }: IndexProps) {
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({

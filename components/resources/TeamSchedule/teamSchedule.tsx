@@ -21,10 +21,14 @@ import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
 export interface TeamScheduleProps {
-    setMessage: (message: string) => void
+    setMessage: (message: string) => void,
+    token:string
 }
 
-export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
+export default function TeamSchedule({ 
+    setMessage,
+    token
+ }: TeamScheduleProps) {
 
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
@@ -89,7 +93,7 @@ export default function TeamSchedule({ setMessage }: TeamScheduleProps) {
                 {
                     method: 'post',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({

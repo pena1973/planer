@@ -17,11 +17,13 @@ import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
 export interface ActionsCatalogProps {
-    setMessage: (message: string) => void
+    setMessage: (message: string) => void,
+    token:string
 }
 
 export default function ActionsCatalog({
-    setMessage
+    setMessage,
+    token
 }: ActionsCatalogProps) {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
@@ -92,7 +94,7 @@ export default function ActionsCatalog({
                 {
                     method: 'post',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({

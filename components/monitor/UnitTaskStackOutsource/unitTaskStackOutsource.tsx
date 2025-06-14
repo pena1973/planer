@@ -19,6 +19,7 @@ interface UnitTaskStackOutsourceProps {
   setStatusLoadsHandler: (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => void,
   teamId: number,
   userId: number,
+  token:string
 }
 
 const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
@@ -29,6 +30,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
   setStatusLoadsHandler,
   teamId,
   userId,
+  token
 }) => {
 
   const { t, i18n } = useTranslation();
@@ -45,7 +47,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({

@@ -21,13 +21,15 @@ import save from "@/public/save-rem.png";
 export interface usersCatalogProps {
     user: UserItem, // my user
     team: TeamItem,
-    setMessage: (message: string) => void
+    setMessage: (message: string) => void,
+    token:string
 }
 
 export default function UsersCatalog({
     user,
     team,
-    setMessage
+    setMessage,
+    token
 }: usersCatalogProps) {
 
     const { t, i18n } = useTranslation();    
@@ -53,7 +55,7 @@ export default function UsersCatalog({
                 {
                     method: 'get',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                 }
@@ -82,7 +84,7 @@ export default function UsersCatalog({
     }
 
     useEffect(() => {
-        getUsersUnits();
+      getUsersUnits();
 
     }, []);
 
@@ -94,7 +96,7 @@ export default function UsersCatalog({
                 {
                     method: 'post',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({

@@ -10,6 +10,7 @@ import { UserUnitTable } from '../db/models/catalogs/user_unit';
 
 import { UserItem } from '@/types';
 import { sign } from 'jsonwebtoken';
+import { createToken } from '@/lib/auth'
 import { getUser, getTeam, getLastAgreement } from './handlers-auth';  // расчеты
 import { getUsersUnits } from './handlers-get';  // расчеты
 import { text } from 'stream/consumers';
@@ -72,8 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const agreementId = resAgreement.agreementId;
 
         //  юзер получен генерю токен
-        const token = sign({ data: login }, String(process.env.JWTSECRET), { expiresIn: '24h' });
-
+        // const token = sign({ data: login }, String(process.env.JWTSECRET), { expiresIn: '24h' });
+         
+        const token = createToken({ login })
+        
         //  получаю Юнит который занимает юзер
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
         const resUserUnits_ = await getUsersUnits(

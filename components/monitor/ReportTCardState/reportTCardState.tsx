@@ -14,6 +14,7 @@ interface ReportTCardStateProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
+  token:string
 }
 
 
@@ -21,6 +22,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   setMessage,
   teamId,
   userId,
+  token
 }) => {
   const { t, i18n } = useTranslation();
 
@@ -55,7 +57,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
         {
           method: 'get',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
         }

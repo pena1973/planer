@@ -18,7 +18,7 @@ const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
-import { setSuportPoint} from '@/store/slices';
+import { setSuportPoint } from '@/store/slices';
 
 interface SupportProps {
 
@@ -29,7 +29,12 @@ export default function Support({ }: SupportProps) {
   const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-   
+
+
+  const token = useSelector((state: RootState) => {
+    return state.authSlice.token;
+  })
+  
   const suportPoint = useSelector((state: RootState) => {
     return state.viewSlice.suportPoint;
   })
@@ -41,7 +46,7 @@ export default function Support({ }: SupportProps) {
     return state.authSlice.user;
   })
 
- const unit = useSelector((state: RootState) => {
+  const unit = useSelector((state: RootState) => {
     return state.authSlice.unit;
   })
 
@@ -71,26 +76,29 @@ export default function Support({ }: SupportProps) {
               setMessage={setMessage}
               teamId={team.id}
               userId={user.id}
+              token={token}
             />
           </div>}
           {/* Действия */}
           {suportPoint === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.billing1')}</div>
-            <Billing            
+            <Billing
               teamId={team.id}
               userId={user.id}
               setMessage={setMessage}
+              token={token}
             />
           </div>}
           {/* Действия */}
           {suportPoint === 3 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.profile1')}</div>
-             <Profile            
+            <Profile
               team={team}
               user={user}
               unit={unit}
               setMessage={setMessage}
-            /> 
+              token={token}
+            />
           </div>}
         </div>
 

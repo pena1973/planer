@@ -1,4 +1,5 @@
 
+import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
@@ -22,8 +23,8 @@ import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
 
 import { UnitLoadItem, StatusEnum } from "@/types";
 
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -241,3 +242,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 //     return { success: false, message: error };
 //   }
 // }
+
+export default withAuth(handler)

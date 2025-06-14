@@ -1,4 +1,5 @@
 
+import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getUnits, getUnitLoads, getTCardOperations, getActions, getUnitActions } from './handlers-get';  // расчеты
@@ -10,8 +11,8 @@ import { ActionTable } from '@/pages/db/models/catalogs/actions';
 import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
 
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
 
     // Убедимся, что подключение установлено    
@@ -87,3 +88,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
+export default withAuth(handler)

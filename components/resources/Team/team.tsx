@@ -19,12 +19,14 @@ export interface TeamProps {
     user: UserItem,
     team: TeamItem,
     setMessage: (message: string) => void,
+    token:string
 }
 
 export default function Team({
     user,
     team,
     setMessage,
+    token
 
 }: TeamProps) {
     const { t, i18n } = useTranslation();
@@ -74,7 +76,7 @@ export default function Team({
                 {
                     method: 'post',
                     headers: new Headers({
-                        // 'Authorization': 'Basic ' + token,
+                        'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json'
                     }),
                     body: JSON.stringify({

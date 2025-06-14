@@ -1,3 +1,4 @@
+import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database'; // Подключение к базе данных
 import { TemplateTable } from '@/pages/db/models/catalogs/templates';
@@ -13,8 +14,8 @@ interface RequestBody {
     userId: number,
     tCard: TCardItem,
 }
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
         const dbConnection = await connectDb();  // Устанавливаем подключение
 
@@ -144,3 +145,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(500).json({ error: 'Не удалось обработать запрос' });
     }
 }
+export default withAuth(handler)

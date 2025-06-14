@@ -14,7 +14,8 @@ interface ProfileProps {
   setMessage: (message: string) => void,
   team: TeamItem,
   user: UserItem,
-  unit: UnitItem
+  unit: UnitItem,
+  token:string
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -23,6 +24,7 @@ export const Profile: React.FC<ProfileProps> = ({
   team,
   user,
   unit,
+  token
 }) => {
 
   const dispatch = useAppDispatch();
@@ -55,7 +57,7 @@ export const Profile: React.FC<ProfileProps> = ({
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({
@@ -103,7 +105,7 @@ export const Profile: React.FC<ProfileProps> = ({
         {
           method: 'post',
           headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
+            'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({

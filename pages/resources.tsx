@@ -22,7 +22,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 
-import { setResourcePoint} from '@/store/slices';
+import { setResourcePoint } from '@/store/slices';
 
 
 // const URL = process.env.NEXT_PUBLIC_URL;
@@ -38,7 +38,12 @@ export default function Resources({ }: ResourcesProps) {
   const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-  
+
+
+  const token = useSelector((state: RootState) => {
+    return state.authSlice.token;
+  })
+
   const resourcePoint = useSelector((state: RootState) => {
     return state.viewSlice.resourcePoint;
   })
@@ -81,24 +86,31 @@ export default function Resources({ }: ResourcesProps) {
               user={user}
               team={team}
               setMessage={setMessage}
+              token={token}
             />
             <pre />
             <UsersCatalog
               user={user}
               team={team}
               setMessage={setMessage}
+              token={token}
 
             />
           </div>}
           {/* расписание */}
           {resourcePoint === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('resources.teamschedule')}</div>
-            <TeamSchedule setMessage={setMessage} />
+            <TeamSchedule
+              setMessage={setMessage}
+              token={token} />
           </div>}
           {/* Действия */}
           {resourcePoint === 3 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('resources.teamactions')}</div>
-            <ActionsCatalog setMessage={setMessage} />
+            <ActionsCatalog
+              setMessage={setMessage}
+              token={token}
+            />
           </div>}
           {/* ЕдИзм */}
           {resourcePoint === 4 &&
@@ -114,14 +126,23 @@ export default function Resources({ }: ResourcesProps) {
           {/* Визуальные настройки календаря */}
           {resourcePoint === 6 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('resources.calendarsetting')}</div>
-            <Settings setMessage={setMessage} />
+            <Settings
+              setMessage={setMessage}
+              token={token}
+            />
             <div className="catalog_title"> {t('resources.accauntingsetting')}</div>
-            <SystemSettings setMessage={setMessage} />
+            <SystemSettings
+              setMessage={setMessage}
+              token={token}
+            />
           </div>}
           {resourcePoint === 7 &&
             <div className="contaitainer_catalog">
               <div className="catalog_title">{t('resources.cardtemplates')}</div>
-              <TemplatesCatalog setMessage={setMessage} />
+              <TemplatesCatalog
+                setMessage={setMessage}
+                token={token}
+              />
             </div>}
         </div>
 

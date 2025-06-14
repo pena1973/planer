@@ -1,3 +1,4 @@
+import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
 import { getTeamShedule } from './handlers-get';  // расчеты
@@ -11,8 +12,8 @@ import { UnitItem, ScheduleItem, TimeZoneEnum } from '@/types';
 interface RequestBody {
   schedule: ScheduleItem
 }
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -127,3 +128,4 @@ async function updateShedule(
   }
 }
 
+export default withAuth(handler)
