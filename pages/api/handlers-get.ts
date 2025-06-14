@@ -957,13 +957,21 @@ export async function getTCardOperationsByCardId(
 export async function getUsersUnits(
   teamId: number,
   usersRepository: Repository<UserTable>,
-  usersUnitsRepository: Repository<UserUnitTable>,
-  unitsRepository: Repository<UnitTable>
+  usersUnitsRepository: Repository<UserUnitTable>,  
+   userId?: number, // Добавляем необязательный параметр userId
 ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
 
-  try {
+ 
+try {
+    // Шаг 1: Формируем условие для поиска пользователей
+    const userCondition = userId ? { id: userId, team_id: teamId, isAdmin: false, active: true } : { team_id: teamId, isAdmin: false, active: true };
+
+    // Получаем пользователей по условию
+    const activeUsers = await usersRepository.find({ where: userCondition });
+
+
     // Шаг 1: Получаем всех пользователей команды
-    const activeUsers = await usersRepository.find({ where: { team_id: teamId, isAdmin: false, active: true } });
+    // const activeUsers = await usersRepository.find({ where: { team_id: teamId, isAdmin: false, active: true } });
     // Если активные пользователи не найдены
     if (activeUsers.length === 0) {
       return {
@@ -1020,6 +1028,8 @@ export async function getUsersUnits(
     };
   }
 }
+
+
 // получение пользователей команды
 export async function getUsers(
   teamId: number,

@@ -302,12 +302,30 @@
     "messages1": "Technical support ",
     "notes": "Notes",
     "profile": "Profile",
-    "profile1": "Profile"
+    "profile1": "Profile",
+    "new": "New",
+    "reply": "Reply",
+    "send": "Send"
   },
   "bills": {
-    "date": " Дата",
-    "title": "Счет",
-    "download": " Скачать",
-    "paid": "Оплачен"
+    "date": "Date",
+    "title": "Invoice",
+    "download": "Download",
+    "paid": "Paid"
+  },
+  "profile": {
+    "buttonChangePass": "Save",
+    "buttonChangeName": "Save",
+    "passold": "Old password",
+    "passnew1": "New password",
+    "passnew2": "New password again",
+    "name": "Name",
+    "id": "User ID",
+    "changeName": "change name",
+    "changePass": "change password",
+    "team": "Team",
+    "teamNumber": "Team number",
+    "admin": "administrator",
+    "unitCode": "Unit code"
   }
 }

@@ -1,15 +1,15 @@
 import Layout from "@/components/Layout/layout";
 
-import UOMSCatalog from "@/components/catalogs/UOMSCatalog/uomsCatalog";
-import ActionsCatalog from "@/components/catalogs/ActionsCatalog/аctionsCatalog";
-import TemplatesCatalog from "@/components/catalogs/TemplatesCatalog/templatesCatalog";
-import TeamSchedule from "@/components/catalogs/TeamSchedule/teamSchedule";
-import Settings from "@/components/catalogs/Settings/settings";
-import SystemSettings from "@/components/catalogs/SystemSettings/systemSettings";
-import Team from "@/components/catalogs/Team/team";
-import UsersCatalog from "@/components/catalogs/UsersCatalog/usersCatalog";
+import UOMSCatalog from "@/components/resources/UOMSCatalog/uomsCatalog";
+import ActionsCatalog from "@/components/resources/ActionsCatalog/аctionsCatalog";
+import TemplatesCatalog from "@/components/resources/TemplatesCatalog/templatesCatalog";
+import TeamSchedule from "@/components/resources/TeamSchedule/teamSchedule";
+import Settings from "@/components/resources/Settings/settings";
+import SystemSettings from "@/components/resources/SystemSettings/systemSettings";
+import Team from "@/components/resources/Team/team";
+import UsersCatalog from "@/components/resources/UsersCatalog/usersCatalog";
 
-import UnitsCatalog from "@/components/catalogs/UnitsCatalog/unitsCatalog";
+import UnitsCatalog from "@/components/resources/UnitsCatalog/unitsCatalog";
 // import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState } from "react";
 import Link from 'next/link';

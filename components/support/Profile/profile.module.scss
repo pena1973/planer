@@ -1,0 +1,165 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+
+/***********
+ * Контейнер
+ ***********/
+
+
+
+.container {
+
+  padding: 15px;
+  max-width: 242px;
+  min-width: 242px;
+  border-radius: 6px;
+  background-color: $main_container_background_color;
+  border: $border;
+  // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: $box-shadow;
+  color: $second_text_color;
+
+}
+
+.register_container {
+  margin: 50px 30px 10px;
+  padding: 15px;
+  max-width: 242px;
+  min-width: 242px;
+  border-radius: 6px;
+  background-color: $main_container_background_color;
+  border: $border;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  color: $second_text_color;
+}
+
+.register_input_container {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  // width: 180px;
+}
+._input_container {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  // width: 180px;
+}
+.checkbox_input_container {
+  display: flex;
+  flex-direction: row;
+  margin: 10px;
+  justify-content: center;
+  align-items: center;
+  // width: 180px;
+}
+
+.register_link_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+._button_container {
+  display: flex;
+  justify-content: center;
+}
+
+
+.title {
+  width: 100%;
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;      // Горизонтальное центрирование
+  align-items: center;          // Вертикальное центрирование
+  font-size: $header3_font_size;
+  color: $text_color_italic;
+  text-align: center;           // Центрируем текст в блоке
+  padding: 5px;                 // Отступы внутри
+  box-sizing: border-box;       // Включаем padding в расчёт ширины
+}
+
+.title_span {
+  font-weight: bold;
+  white-space: nowrap;          // «Имя:» не переносим
+  margin-right: 5px;            // Отступ после «Имя:»
+}
+
+.title p, .title span {
+  /* если есть вложенные элементы */
+  white-space: normal;          // Позволяем тексту переноситься внутри контента
+  word-break: break-word;       // Переносим длинные слова корректно
+}
+
+.register_notice {
+  font-size: $header4_font_size;
+  color: $text_color_italic;
+  font-style: italic;
+}
+
+.register_input {
+  border-radius: 10px;
+  padding: 5px;
+  border: 1px solid $border_card;
+  width: 100%;
+  // background: $light_background;
+}
+._input {
+  // border-radius: 10px;
+  padding: 5px;
+  // border: 1px solid $border_card;
+  width: 100%;
+  // background: $light_background;
+}
+.register_link {
+  font-size: $header4_font_size;
+  color: $text_color_italic;
+  font-style: italic;
+  cursor: pointer;
+  margin: 10px;
+  text-decoration: underline;
+}
+
+.register_pass_message_container {
+  font-size: $header4_font_size;
+  color: $text_color_italic;
+  font-style: italic;
+}
+
+.register_message_container {
+  // margin-left: 10px;
+  // color: $dark_text;    
+  text-align: center;
+  font-size: $header4_font_size;
+  color: $text_color_italic;
+  font-style: italic;
+  // background-color: aqua;
+}
+
+.register_message {
+  font-size: $header4_font_size;
+  // color: $dark_text;
+
+}
+
+.profile_button {
+  width: 150px;
+}
+
+// начальная загрузка
+.loader_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 110px);
+  flex-direction: column;
+  // background-color: aqua;
+
+}
+
+.loader_title {
+  font-size: $header1_font_size;
+  margin: 10px;
+}

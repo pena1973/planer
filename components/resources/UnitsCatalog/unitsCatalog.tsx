@@ -7,10 +7,10 @@ import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import Image from 'next/image';
 import { useEffect, useState } from "react";
 
-import DropdownSelectBelong from "@/components/catalogs/UnitsCatalog/DropdownSelectBelong/dropdownSelectBelong";
-import DropdownSelectType from "@/components/catalogs/UnitsCatalog/DropdownSelectType/dropdownSelectType";
-import DropdownSelectUnitAction from "@/components/catalogs/UnitsCatalog/DropdownSelectUnitAction/dropdownSelectUnitAction";
-import DropdownSelectTimeType from "@/components/catalogs/UnitsCatalog/DropdownSelectTimeType/dropdownSelectTimeType";
+import DropdownSelectBelong from "@/components/resources/UnitsCatalog/DropdownSelectBelong/dropdownSelectBelong";
+import DropdownSelectType from "@/components/resources/UnitsCatalog/DropdownSelectType/dropdownSelectType";
+import DropdownSelectUnitAction from "@/components/resources/UnitsCatalog/DropdownSelectUnitAction/dropdownSelectUnitAction";
+import DropdownSelectTimeType from "@/components/resources/UnitsCatalog/DropdownSelectTimeType/dropdownSelectTimeType";
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";

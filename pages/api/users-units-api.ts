@@ -48,8 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const resUserUnits_ = await getUsersUnits(
           Number(getTeamId),
           usersRepository,
-          usersUnitsRepository,
-          unitsRepository
+          usersUnitsRepository,          
         )
 
         if (!resUserUnits_.success) {

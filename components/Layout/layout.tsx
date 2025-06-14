@@ -5,7 +5,7 @@ import styles from "./layout.module.scss";
 
 import {
     UOMItem, ActionItem, UnitItem, SettingsItem,
-    TCardItem,  UnitLoadItem, ScheduleItem,
+    TCardItem, UnitLoadItem, ScheduleItem,
     UnitExceptionItem, UserItem,
     TeamItem
 } from '@/types'
@@ -27,15 +27,15 @@ import '../../i18n'
 
 const locales = ['en', 'ru'];
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
 export default function Layout({ children }: PropsWithChildren) {
     const { t, i18n } = useTranslation();
     const { push, back } = useRouter();
     const pathname = usePathname();
     const dispatch = useAppDispatch();
+
+    const loadingComplete = useSelector((state: RootState) => {
+        return state.viewSlice.loadingComplete;
+    })
 
     const user = useSelector((state: RootState) => {
         return state.authSlice.user;
@@ -62,10 +62,10 @@ export default function Layout({ children }: PropsWithChildren) {
         dispatch(setUnits([] as UnitItem[]));
         dispatch(setTCards([] as TCardItem[]));
         dispatch(setTCardIndex(0 as number));
-        dispatch(setSettings( {} as SettingsItem));
+        dispatch(setSettings({} as SettingsItem));
         dispatch(setSchedule({} as ScheduleItem));
         dispatch(setUnitLoads([] as UnitLoadItem[]));
-        
+
         push("/");
     };
 
@@ -83,13 +83,12 @@ export default function Layout({ children }: PropsWithChildren) {
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
 
-                        {(!user.id) && <Link className={styles.header_menu_item} href="/"></Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
-                        {(user.id) && <Link className={styles.header_menu_item} href="/support">{t('layout.support')}</Link>}
-
+                        {(!user.id) && !loadingComplete && <Link className={styles.header_menu_item} href="/"></Link>}
+                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
+                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
+                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
+                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
+                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/support">{t('layout.support')}</Link>}
 
                     </ul>
                 </div>
@@ -110,9 +109,9 @@ export default function Layout({ children }: PropsWithChildren) {
                                 ))}
                             </div>
                         )}
-                    </div>                    
+                    </div>
                     {/* <button>{t('layout.profile')}</button> */}
-                    {(user.id) &&  <button onClick={exit}>{t('layout.exit')}</button>}
+                    {(user.id) && <button onClick={exit}>{t('layout.exit')}</button>}
                 </div>
             </div>
             <main className={styles.layout}>{children}</main>

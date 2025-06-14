@@ -13,27 +13,27 @@
 
 .message_container {
   margin: 3px;
-  // padding: 10px;
-  // background-color: $main_container_background_color;
-  /* Светлый бежево-серый фон */
+  
   border: 1px solid #ccc;
   border-radius: 6px;
   width: 100%;
   // background-color: aquamarine;
   font-size: $header3_font_size;
+  
 }
 
 .header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  // margin: 3px;
+  
   padding: 5px;
-  background-color: $second_container_background_color;
+  // background-color: $second_container_background_color;
   border-bottom: $border;
   border-top-left-radius: $border-radius;
   border-top-right-radius: $border-radius;
   width: 100%;
+  background-color: $table_background_color;
 }
 .header_groupe{
   display: flex;
@@ -71,13 +71,14 @@
 .body {
   // margin: 3px;
   padding: 5px;
-  background-color: $second_container_background_color;
+  // background-color: $second_container_background_color;
   // border: $border;
   // border-radius: $border-radius;
   width: 100%;
   // max-width: 406px;
   min-height: 100px;
   max-height: 300px;
+  background-color: $table_background_color;
 }
 
 .body_input {
@@ -91,6 +92,10 @@
   resize: none;
   margin: -1px -1px -5px -1px;
   font-size: $header3_font_size;
+  background-color: $table_background_color;
+}
+.new {
+  background-color: white;
 }
 .title_input {
   flex: 1;
@@ -102,6 +107,7 @@
   width: -webkit-fill-available;
   margin-right: 5px;
   font-size: $header3_font_size;  
+  // background-color: $table_background_color;
 }
 
 .footer {
@@ -111,13 +117,13 @@
   align-items: center;
   // margin: 3px;
   padding: 0 5px;
-  background-color: $second_container_background_color;
+  // background-color: $second_container_background_color;
 
   border-top: $border;
   border-bottom-right-radius: $border-radius;
   border-bottom-left-radius: $border-radius;
   width: 100%;
-
+  background-color: $table_background_color;
 }
 
 .button_send{

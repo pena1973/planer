@@ -1,10 +1,15 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./billing.module.scss";
-import {BillItem } from "@/types";
+import { BillItem } from "@/types";
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 
-interface BillingProps { 
+
+import download from "@/public/download2-rem.png";
+
+
+interface BillingProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
@@ -30,7 +35,7 @@ export const Billing: React.FC<BillingProps> = ({
           headers: new Headers({
             // 'Authorization': 'Basic ' + token,
             'Content-Type': 'application/json'
-          }),         
+          }),
         }
       );
       if (res.status !== 200) {
@@ -45,7 +50,7 @@ export const Billing: React.FC<BillingProps> = ({
         if (receivedData.success) {
           // проверили и вернули общий статус карты
           const bills = receivedData.bills as BillItem[];
-          setBillsValue(bills);          
+          setBillsValue(bills);
         }
       }
 
@@ -53,12 +58,17 @@ export const Billing: React.FC<BillingProps> = ({
       setMessage(t('service.serverUnavailable') + e.message)
     }
   }
+  const downloadFile = (bill: BillItem) => { }
 
   let billsReactNodes = billsValue.map((bill, index) => {
     return (<tr key={index}>
       <td> {bill.date}</td>
       <td> {bill.title}</td>
-      <td> {bill.file}</td>
+      <td>  <Image className={styles.icon_bill}
+        src={download}
+        alt="arrow" width={20} height={20}
+        onClick={e => downloadFile(bill)}
+      /> </td>
       <td>{bill.paid}</td>
     </tr>)
   })

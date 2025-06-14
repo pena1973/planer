@@ -107,8 +107,8 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
           alt="arrow" width={20} height={20}
         />}
       <div className={styles.message_container}>
-        <div className={styles.header}>
-          <div className={styles.header_groupe}>
+        <div className={`${styles.header} ${isNew ? styles.new : ''}`}>
+          <div className={`${styles.header_groupe} ${isNew ? styles.new : ''}`}>
             {!isNew && expand &&
               <Image className={styles.icon_galka}
                 src={galka_vniz}
@@ -123,8 +123,8 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
               />}
             {!isNew && <div >{supportMessage.title}</div>}
             {isNew &&
-              <input
-                className={styles.title_input}
+              <input                
+                className={`${styles.title_input} ${isNew ? styles.new : ''}`}
                 placeholder='Тема'
                 id={"title" + index}
                 autoComplete="off"
@@ -133,7 +133,7 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
               />}
           </div>
           <div className={styles.header_groupe_id}>
-            <div className={styles.id}>ID#:{(supportMessage.id > 0) ? supportMessage.id : " new"}</div>
+            <div className={styles.id}>ID#:{(supportMessage.id > 0) ? supportMessage.id : t('support.new')}</div>
             <div className={styles.date}>{supportMessage.date}</div>
           </div>
         </div>
@@ -141,8 +141,8 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
         {expand &&
           <textarea
             ref={textareaRef}  // Привязываем ссылку
-            placeholder='Текст письма'
-            className={styles.body_input}
+            placeholder='Текст письма'            
+            className={`${styles.body_input} ${isNew ? styles.new : ''}`}
             id={"body" + index}
             autoComplete="off"
             value={supportMessageValue.body}
@@ -158,12 +158,16 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
           <div></div>
 
           {supportMessageValue.id < 0 &&
-            <button className={styles.button_send} 
-            onClick={e => { send() }}>
+            <button className={styles.button_send}
+              onClick={e => { send() }}>
               {buttonLoader && <ButtonLoader />}
-              {!buttonLoader && "Отправить"}
+              {!buttonLoader && t('support.send')}
             </button>}
-          {supportMessageValue.id > 0 && <button onClick={e => { answerMessage(supportMessageValue.id) }}>Ответить</button>}
+          {supportMessageValue.id > 0
+            && <button className={styles.button_send}
+              onClick={e => { answerMessage(supportMessageValue.id) }}>
+              {t('support.reply')}
+            </button>}
 
         </div>}
 

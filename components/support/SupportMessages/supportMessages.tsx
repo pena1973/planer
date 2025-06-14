@@ -61,79 +61,11 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({ setMessage, te
     setExpand(newMes.id);
   };
 
-  // const delMessage = (id: number) => {
-  //   const updatedMessages = supportMessagesValue.filter(message => message.id !== id);
-  //   setSupportMessagesValue(updatedMessages);
-  // };
-  const delMessage = async (id: number) => {
-    // Функция для рекурсивного удаления сообщений по цепочке
-    const deleteMessageChain = (id: number, messages: SupportMessageItem[]): SupportMessageItem[] => {
-      // Находим все сообщения, которые имеют связанное сообщение basedOn с текущим id
-      let chainMessages = messages.filter(message => message.basedOn === id);
-
-      // Для каждого из этих сообщений также проверяем, есть ли у них еще ответы (по basedOn)
-      chainMessages.forEach(message => {
-        // Рекурсивно удаляем связанные сообщения
-        chainMessages = [...chainMessages, ...deleteMessageChain(message.id, messages)];
-      });
-
-      // Возвращаем все сообщения в цепочке
-      return chainMessages;
-    };
-
-    // Получаем все сообщения, связанные с удаляемым (включая сам id)
-    const messagesToDelete = [supportMessagesValue.find(message => message.id === id), ...deleteMessageChain(id, supportMessagesValue)];
-
-
-    // Фильтруем undefined значения перед тем как получить их id
-    const idsToDelete = messagesToDelete.filter(mes => mes !== undefined).map(mes => mes!.id); // mes! для уверенности, что mes не undefined после фильтрации
-
-    // Запрос на удаление
-
-    try {
-      const res = await fetch(`api/support-api`,
-        {
-          method: 'delete',
-          headers: new Headers({
-            // 'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            userId: userId,
-            teamId: teamId,
-            idsToDelete: idsToDelete
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + receivedData.error);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-        setMessage(receivedData.message);
-        if (receivedData.success) {
-
-          // Массив всех сообщений, которые остаются после удаления
-          const updatedMessages = supportMessagesValue.filter(message => !messagesToDelete.some(toDelete => toDelete?.id === message.id));
-
-          // Обновляем состояние
-          setSupportMessagesValue(updatedMessages);
-
-          const ids = updatedMessages.map(mes => mes.id)
-          setExpandValue(ids)
-        }
-      }
-
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
-    }
-
-
-
+  const delMessage = (id: number) => {
+    const updatedMessages = supportMessagesValue.filter(message => message.id !== id);
+    setSupportMessagesValue(updatedMessages);
   };
-
+  
   const answerMessage = (basedOn: number) => {
     const basedOnMessage = supportMessagesValue.find(mes => mes.id === basedOn);
     if (!basedOnMessage) return;
@@ -269,7 +201,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({ setMessage, te
 
   return (
     <div className={styles.container}>
-      <button onClick={addSupportMessage}>Новое</button>
+      <button onClick={addSupportMessage}>{t('support.new')}</button>
       {topLevelMessagesReactNodes}
     </div>
   );

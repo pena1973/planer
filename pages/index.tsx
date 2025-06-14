@@ -35,7 +35,7 @@ import {
   setUOMs, setUnits, setTCards,
   setSettings, setSchedule,
   setUnitLoads, setSignedAgreement,
-  setTemplates,
+  setTemplates,setUnit,setLoadingComplete
 } from '@/store/slices'
 
 import ico1 from "@/public/ico1.png";
@@ -102,13 +102,18 @@ export default function Index({ }: IndexProps) {
   const user = useSelector((state: RootState) => {
     return state.authSlice.user;
   })
+  const unit = useSelector((state: RootState) => {
+    return state.authSlice.unit;
+  })
+
+  const loadingComplete = useSelector((state: RootState) => {
+    return state.viewSlice.loadingComplete;
+  })
+
   const signedAgreement = useSelector((state: RootState) => {
     return state.authSlice.signedAgreement;
   })
-
-  // // для выбора из списка
-  // let role = useRef("planer");
-
+  
   // status 0 - архив, 1 актив, 2 запрос 
   const loginClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonLogin(true)
@@ -156,6 +161,7 @@ export default function Index({ }: IndexProps) {
           let agreementText_ = receivedData.agreementText as string;
           let signed_ = receivedData.signed as boolean;
           let agreementId_ = receivedData.agreementId as number
+          let unit_ = receivedData.unit as UnitItem
 
           //   Обновим настройки
           dispatch(setUser(user_));
@@ -163,6 +169,7 @@ export default function Index({ }: IndexProps) {
           dispatch(setTeam(team_));
           dispatch(setSettings(settings_));
           dispatch(setSignedAgreement(signed_));
+          dispatch(setUnit(unit_));
           agreementId.current = agreementId_;
           textAgreement.current = agreementText_;
           setStep(3);
@@ -686,6 +693,7 @@ export default function Index({ }: IndexProps) {
         setStep(5);
         // Переходим на страницу "cards"
         push("/cards");
+        dispatch(setLoadingComplete(true))
       }
     };
     loadDataAndRedirect();  // Вызываем асинхронную функцию

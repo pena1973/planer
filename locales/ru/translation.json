@@ -302,12 +302,33 @@
     "messages1": "Обращения в тех. поддержку",
     "notes": "Пояснение",
     "profile": "Профиль",
-    "profile1": "Профиль"
+    "profile1": "Профиль",
+    "new": "Новое",
+       "reply": "Ответить",
+       "send": "Отправить"
+       
+    
   },
   "bills": {
     "date": " Дата",
     "title": "Счет",
     "download": " Скачать",
     "paid": "Оплачен"
+  },
+  "profile": {
+    "buttonChangePass": "Сохранить",
+    "buttonChangeName": "Сохранить",
+    "passold": "Старый пароль",
+    "passnew1":"Новый пароль",
+    "passnew2":"Новый пароль еще раз",
+    "name":"Имя",
+    "id":"Id пользователя",
+    "changeName":"сменить имя",
+    "changePass":"сменить пароль",
+    "team":"Команда",
+    "teamNumber":"№ команды",
+    "admin":"администратор",
+    "unitCode":"Код юнита"
   }
+  
 }

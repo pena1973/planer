@@ -10,7 +10,7 @@ import { AgreementTable } from '@/pages/db/models/catalogs/agreements';
 import { UserItem, TeamItem, } from '@/types';
 
 // хеш функция 
-const hashFoo = async (data: string) => {
+export const hashFoo = async (data: string) => {
   const { createHmac } = await import('node:crypto')
   const hash = createHmac('sha256', data)
     .digest('hex');
@@ -97,6 +97,76 @@ export async function createNewUser(
 
 }
 
+export async function updateUser(
+  userId: number,
+  oldpass: string | undefined,
+  newpass: string | undefined,
+  name: string | undefined,
+  usersRepository: Repository<UserTable>,
+): Promise<{ success: boolean, savedUser: UserItem, message?: string }> {
+
+  try {
+    // Ищем пользователя по ID
+    const user = await usersRepository.findOne({ where: { id: userId } });
+
+    // Если пользователь не найден
+    if (!user) {
+      return {
+        success: false,
+        savedUser: {} as UserItem,
+        message: 'Пользователь не найден.',
+      };
+    }
+
+
+
+    // Обновляем данные пользователя, если что-то передано
+    if (name !== undefined) {
+      user.name = name; // Обновляем никнейм
+    }
+
+    if (newpass !== undefined && oldpass !== undefined) {
+
+      const hashOld = await hashFoo(oldpass)
+
+      if (hashOld !== user.pass)
+        return {
+          success: false,
+          savedUser: {} as UserItem,
+          message: 'Не совпадает старый пароль',
+        }
+      const hashNew = await hashFoo(newpass)
+      user.pass = hashNew; // Обновляем пароль
+    }
+
+    // Сохраняем обновленного пользователя
+    const savedUser = await usersRepository.save(user);
+
+    // Возвращаем результат
+    return {
+      success: true,
+      savedUser: {
+        id: savedUser.id,
+        login: savedUser.login,
+        pass: "",
+        name: savedUser.name,
+        locale: savedUser.locale,
+        isAdmin: Boolean(savedUser.isAdmin),
+      },
+      message: 'Пользователь успешно обновлен.',
+    };
+
+  } catch (e: any) {
+    // Обработка ошибок
+    return {
+      success: false,
+      savedUser: {} as UserItem,
+      message: `Ошибка при обновлении пользователя: ${e.message}`,
+    };
+  }
+}
+
+
 export async function getUser(
   login: string,
   pass: string,
@@ -135,6 +205,37 @@ export async function getUser(
   // Возвращаем результат
   return { success: true, user, message: '' };
 }
+
+// export async function getUserById(
+//   userId: number,
+//   usersRepository: Repository<UserTable>
+// ): Promise<{ success: boolean, user: UserItem, message?: string }> {
+
+//   // Строим фильтр для поиска пользователя по userId
+//   const filter = { id: userId };
+
+//   // Ищем пользователя в базе данных
+//   const userRecord = await usersRepository.findOne({ where: filter });
+
+//   // Если пользователь не найден
+//   if (!userRecord) {
+//     return { success: false, user: {} as UserItem, message: 'Пользователь не найден' };
+//   }
+
+//   // Преобразуем данные из сущности в формат UserItem
+//   const user: UserItem = {
+//     id: userRecord.id,
+//     login: userRecord.login,
+//     pass: userRecord.pass, // Можно исключить, если не хотите передавать пароль
+//     name: userRecord.name,
+//     locale: userRecord.locale,
+//     isAdmin: userRecord.isAdmin, // Конвертируем строку в булево значение
+//   };
+
+//   // Возвращаем результат
+//   return { success: true, user, message: '' };
+// }
+
 
 export async function isUserExist(
   login: string,
@@ -179,12 +280,12 @@ export async function getTeam(
   };
 
 }
- 
+
 export async function getLastAgreement(
   userId: number,
   userAgreeRepository: Repository<UserAgreeTable>,
   agreementRepository: Repository<AgreementTable>
-): Promise<{ agreementText: string,agreementId:number|null, signed: boolean, dateSigned?: string, message?: string }> {
+): Promise<{ agreementText: string, agreementId: number | null, signed: boolean, dateSigned?: string, message?: string }> {
 
   const lastAgreements = await agreementRepository.find({
     order: { date: 'DESC' },  // Сортировка по дате в порядке убывания
@@ -196,7 +297,7 @@ export async function getLastAgreement(
     return {
       agreementText: "",
       signed: false,
-      agreementId:null,
+      agreementId: null,
       message: 'Не найдено ни одного соглашения.',
     };
   }
@@ -213,20 +314,20 @@ export async function getLastAgreement(
     return {
       agreementText: lastAgreement.text,
       signed: false,
-      agreementId:lastAgreement.id,
+      agreementId: lastAgreement.id,
       message: 'Не подписано.',
     };
   }
 
   // Проверяем, подписано ли соглашение
   const signed = userAgree ? userAgree.signed : false;
-  const dateSigned = signed ? String(userAgree.date)  : undefined;  // Если подписано, возвращаем дату
+  const dateSigned = signed ? String(userAgree.date) : undefined;  // Если подписано, возвращаем дату
 
   // Возвращаем информацию о последнем соглашении
   return {
     agreementText: lastAgreement.text,  // Текст последнего соглашения
     signed,                    // Статус подписания
-    agreementId:lastAgreement.id,
+    agreementId: lastAgreement.id,
     dateSigned,                // Дата подписания (если подписано)
     message: 'Информация успешно получена.',
   };

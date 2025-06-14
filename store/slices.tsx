@@ -24,6 +24,7 @@ export type AuthState = {
     token: string,
     user: UserItem,
     signedAgreement:boolean,
+    unit:UnitItem,
 }
 
 
@@ -38,6 +39,8 @@ export type PlanState = {
 export type ViewState = {
     monitorPoint: number,
     resourcePoint: number,
+    suportPoint: number,
+    loadingComplete:boolean
 }
 // Начальное состояние
 const catalogIntialState: CatalogState = {
@@ -57,6 +60,7 @@ const authIntialState: AuthState = {
     token: "",
     user: {} as UserItem,
     signedAgreement:false,
+    unit: {} as UnitItem,
 }
 const planIntialState: PlanState = {
     tCardLighted: {} as TCardItem,
@@ -69,6 +73,8 @@ const planIntialState: PlanState = {
 const viewIntialState: ViewState = {
     monitorPoint: 1,
     resourcePoint: 1,
+    suportPoint: 1,
+    loadingComplete:false
 }
 // хранилище
 const authSlice = createSlice({
@@ -84,7 +90,9 @@ const authSlice = createSlice({
         setSignedAgreement: (state, action) => {
             state.signedAgreement = action.payload;
         },
-        
+        setUnit: (state, action) => {
+            state.unit = action.payload;
+        },
     },
 })
 
@@ -170,6 +178,13 @@ const viewSlice = createSlice({
         setResourcePoint: (state, action) => {
             state.resourcePoint = action.payload;
         },
+        setSuportPoint: (state, action) => {
+            state.suportPoint = action.payload;
+        },
+        setLoadingComplete: (state, action) => {
+            state.loadingComplete = action.payload;
+        },
+        
 
     },
 
@@ -179,9 +194,9 @@ export default function Foo() { return <></> }  // пустышка для би�
 
 export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule } = catalogSlice.actions;
 export const { setTCards,setTCardIndex, setTemplates } = dataSlice.actions;
-export const { setToken, setUser,setSignedAgreement} = authSlice.actions;
+export const { setToken, setUser,setSignedAgreement,setUnit} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
-export const { setMonitorPoint, setResourcePoint } = viewSlice.actions;
+export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete } = viewSlice.actions;
 
 export { authSlice, catalogSlice, dataSlice, planSlice, viewSlice };
 
