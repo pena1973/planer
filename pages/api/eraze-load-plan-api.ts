@@ -20,11 +20,11 @@ interface RequestBody {
   tCardLoads: UnitLoadItem[],
   erazload: UnitLoadItem,
   today: string,
-  teamId:number,
-  userId:number
+  teamId: number,
+  userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -39,12 +39,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
       case 'POST':
 
-        const { tCardLoads, erazload, today,teamId,userId } = req.body as RequestBody;
+        const { tCardLoads, erazload, today, teamId, userId } = req.body as RequestBody;
 
         let tCardLoadsUpdated = [...tCardLoads];
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository,tCardStagesRepository)
+        const tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
@@ -58,7 +58,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         //  получаем список Id операций которые зависимы от нашей  -  
         // их будем удалять или отменять в зависимости от даты и статуса
-        let dependentOperationsIds = getDependentOperationsIds(tCard, oper);
+        const dependentOperationsIds = getDependentOperationsIds(tCard, oper);
 
         // добавлю и нашу операцию тоже
         dependentOperationsIds.push(Number(oper.id));
@@ -91,7 +91,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
 
         const tCardLoadsToDelete = tCardLoadsUpdated.filter(lo => {
-         return( dependentOperationsIds.includes(lo.id_oper)
+          return (dependentOperationsIds.includes(lo.id_oper)
             && lo.date >= today && lo.status === StatusEnum.planed)
         })
 
@@ -140,35 +140,49 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //   return dependentOperationsIdstoCancel.includes(lo.id_oper) ? { ...lo, status: StatusEnum.cancelled } : lo;
         // })        
 
-         tCardLoadsUpdated = tCardLoadsUpdated.map(load =>
+        tCardLoadsUpdated = tCardLoadsUpdated.map(load =>
           tCardLoadsToCancel.some(cancelLoad => cancelLoad.id === load.id)
             ? { ...load, status: StatusEnum.cancelled }
             : load
         );
 
-      // Получим карту в ее новом состоянии и тоже передадим      
-        
-      const _tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository,tCardStagesRepository)
+        // Получим карту в ее новом состоянии и тоже передадим      
+
+        const _tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
 
-        res.status(200).json({ 
-          success: true, 
-          unitsLoads: tCardLoadsUpdated, 
-          tCard: _tCard, 
-          message: "" });
+        res.status(200).json({
+          success: true,
+          unitsLoads: tCardLoadsUpdated,
+          tCard: _tCard,
+          message: ""
+        });
         break;
 
       default:
     }
     res.status(405).end(); // Метод не поддерживается
 
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (eraze-load-plan-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' + error });
+  // } catch (error) {
+  //   console.error('Ошибка подключения или выполнения запроса (eraze-load-plan-api):', error);
+  //   res.status(500).json({ error: 'Не удалось обработать запрос' + error });
+  // }
+  } catch (error: unknown) {
+  let errorMessage = "Неизвестная ошибка";
+
+  if (error instanceof Error) {
+    errorMessage = error.message;
+    console.error("Ошибка подключения или выполнения запроса (eraze-load-plan-api):", error);
+  } else {
+    console.error("Неизвестная ошибка подключения (eraze-load-plan-api):", error);
   }
+
+  res.status(500).json({ error: "Не удалось обработать запрос: " + errorMessage });
+}
+
 }
 
 
@@ -227,9 +241,19 @@ const cancelLoads = async (
     } else {
       return { success: false, message: "Нет загрузок для отмены." };
     }
-  } catch (error: any) {
-    console.error("Ошибка при отмене загрузок:", error);
-    return { success: false, message: error.message || "Ошибка при отмене загрузок." };
+    // } catch (error: any) {
+    //   console.error("Ошибка при отмене загрузок:", error);
+    //   return { success: false, message: error.message || "Ошибка при отмене загрузок." };
+    // }
+  } catch (error: unknown) {
+    let message = "Ошибка при отмене загрузок.";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка при отмене загрузок:", error);
+    } else {
+      console.error("Неизвестная ошибка при отмене загрузок:", error);
+    }
+    return { success: false, message };
   }
 };
 
@@ -259,10 +283,20 @@ const deleteLoads = async (
     } else {
       return { success: false, message: "Нет загрузок для удаления." };
     }
-  } catch (error: any) {
+  // } catch (error: any) {
+  //   console.error("Ошибка при удалении загрузок:", error);
+  //   return { success: false, message: error.message || "Ошибка при удалении загрузок." };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка при удалении загрузок.";
+  if (error instanceof Error) {
+    message = error.message;
     console.error("Ошибка при удалении загрузок:", error);
-    return { success: false, message: error.message || "Ошибка при удалении загрузок." };
+  } else {
+    console.error("Неизвестная ошибка при удалении загрузок:", error);
   }
+  return { success: false, message };
+}
 };
 
 const setOperStatus = async (
@@ -283,10 +317,20 @@ const setOperStatus = async (
     } else {
       return { success: false, message: "Ни одна операция не обновлена." };
     }
-  } catch (error: any) {
+  // } catch (error: any) {
+  //   console.error("Ошибка обновления операций:", error);
+  //   return { success: false, message: error.message || "Ошибка обновления статуса операций." };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка обновления статуса операций.";
+  if (error instanceof Error) {
+    message = error.message;
     console.error("Ошибка обновления операций:", error);
-    return { success: false, message: error.message || "Ошибка обновления статуса операций." };
+  } else {
+    console.error("Неизвестная ошибка обновления операций:", error);
   }
+  return { success: false, message };
+}
 };
 
 const setTCardStatus = async (
@@ -307,9 +351,20 @@ const setTCardStatus = async (
     } else {
       return { success: false, message: "Карта не обновлена." };
     }
-  } catch (error: any) {
+  // } catch (error: any) {
+  //   console.error("Ошибка обновления карты:", error);
+  //   return { success: false, message: error.message || "Ошибка обновления статуса карты." };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка обновления статуса карты.";
+  if (error instanceof Error) {
+    message = error.message;
     console.error("Ошибка обновления карты:", error);
-    return { success: false, message: error.message || "Ошибка обновления статуса карты." };
+  } else {
+    console.error("Неизвестная ошибка обновления карты:", error);
   }
+  return { success: false, message };
+}
+
 };
 export default withAuth(handler)

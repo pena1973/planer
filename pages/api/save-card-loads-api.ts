@@ -107,7 +107,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return checkOperationStatus(operation);
         });
 
-        let tCardStatus = (isAllOperationsNotLowerThanStatus) ? StatusEnum.planed : tCard.status
+        const tCardStatus = (isAllOperationsNotLowerThanStatus) ? StatusEnum.planed : tCard.status
         /////////////////////
         // Статус Карты  меняем на planed если все операции не ниже текущего статуса
 
@@ -198,8 +198,8 @@ async function saveLoads(
     return { success: false, savedUnitLoads: [] as UnitLoadItem[], message: error }
   }
 
-  let savedUnitLoads = savedNewLoads.map(loadT => {
-    let load = loadsToAdd.find(lo => lo.id_oper === loadT.id_oper && lo.idc === loadT.idc)
+  const savedUnitLoads = savedNewLoads.map(loadT => {
+    const load = loadsToAdd.find(lo => lo.id_oper === loadT.id_oper && lo.idc === loadT.idc)
     return {
       id: loadT.id,
       idc: loadT.idc,

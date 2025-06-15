@@ -10,7 +10,10 @@ import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule'
 import { UnitItem, ScheduleItem, TimeZoneEnum } from '@/types';
 
 interface RequestBody {
-  schedule: ScheduleItem
+  schedule: ScheduleItem,
+  userId:number, 
+  teamId:number
+
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -24,11 +27,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
 
     // userId, teamId в любом случае
-    const { userId, teamId } = req.query;
+    const { userId: userIdget, teamId: teamIdget } = req.query;
 
     switch (req.method) {
       case 'GET':
-        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
+        const shedule_ = await getTeamShedule(Number(teamIdget), teamScheduleRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -39,7 +42,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         break;
       case 'POST':
         // Извлекаем данные из тела запроса
-        const { schedule } = req.body as RequestBody;
+        const { schedule, userId, teamId } = req.body as RequestBody;
         
         const resSchedule = await updateShedule(
           teamScheduleRepository,

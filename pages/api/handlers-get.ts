@@ -175,7 +175,7 @@ export async function getUnitLoads(
 
   const unitLoadItems: UnitLoadItem[] = unitLoads.map(unitLoad => {
 
-    let unit = units.find(unit => unit.id === unitLoad.unit_id)
+    const unit = units.find(unit => unit.id === unitLoad.unit_id)
 
     return {
       id: unitLoad.id,
@@ -1020,13 +1020,24 @@ try {
       message: 'Данные успешно получены.',
     };
 
-  } catch (error: any) {
-    return {
-      success: false,
-      userUnits: [],
-      message: `Ошибка при получении данных: ${error.message}`,
-    };
+  // } catch (e: any) {
+  //   return {
+  //     success: false,
+  //     userUnits: [],
+  //     message: `Ошибка при получении данных: ${e.message}`,
+  //   };
+  // }
+  } catch (e: unknown) {
+  let message = "Ошибка при получении данных.";
+  if (e instanceof Error) {
+    message = `Ошибка при получении данных: ${e.message}`;
   }
+  return {
+    success: false,
+    userUnits: [],
+    message,
+  };
+}
 }
 
 
@@ -1067,13 +1078,25 @@ export async function getUsers(
       message: 'Данные успешно получены.',
     };
 
-  } catch (error: any) {
-    return {
-      success: false,
-      users: [],
-      message: `Ошибка при получении данных: ${error.message}`,
-    };
+  // } catch (e: any) {
+  //   return {
+  //     success: false,
+  //     users: [],
+  //     message: `Ошибка при получении данных: ${e.message}`,
+  //   };
+  // }
+  } catch (e: unknown) {
+  let message = "Ошибка при получении данных.";
+  if (e instanceof Error) {
+    message = `Ошибка при получении данных: ${e.message}`;
   }
+  return {
+    success: false,
+    users: [],
+    message,
+  };
+}
+
 }
 
 

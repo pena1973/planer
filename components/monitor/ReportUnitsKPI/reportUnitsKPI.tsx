@@ -240,9 +240,9 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
     const unitPlan = (unitLoadind === 0) ? 0 : Math.round(unitPlanedTime / unitOccupiedTime * 100)
     const unitResult = (unitLoadind === 0) ? 0 : Math.round(unitEffectiveTime / unitOccupiedTime * 100)
     const unitDefect = (unitLoadind === 0) ? 0 : Math.round(unitDefectTime / unitOccupiedTime * 100)
-    return (<>
+    return (<React.Fragment key={index}>
 
-      <tr key={index}>
+      <tr>
         <td>
           <div className={styles.expand_row}
             onClick={() => {
@@ -265,7 +265,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         <td> {(unitDefect > 0) ? `${unitDefect} %` : ""}</td>
       </tr >
       {expandKeyValue.some(key => key.unitId === Number(unitKey.id) && key.month === undefined) && unitMonthReactNodes}
-    </>
+    </React.Fragment>
     )
   })
 

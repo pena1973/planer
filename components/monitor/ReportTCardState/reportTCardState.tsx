@@ -235,7 +235,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     if (commonDuration === 0) commonDuration = 1; // чтобы не делить на ноль
     let cardReady = Math.round(readyDuration / commonDuration * 100);
     const time = tCard.readyTerm.time;
-    return (<>
+    return (<React.Fragment key={tCard.id}>
 
       <tr key={index}>
         <td>
@@ -260,7 +260,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
         <td> {cardReady}%</td>
       </tr>
       {expandCardValue.includes(tCard.id) && tCardOperationsReactNodes}
-    </>
+    </React.Fragment>
     )
   })
 

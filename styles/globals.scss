@@ -36,44 +36,6 @@ a {
 }
 
 
-// button {
-//     border: 0;
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-//     margin: 5px;
-//     border-radius: 15px;
-//     width: auto;
-//     border: 2px solid $button_border;
-//     cursor: pointer;
-//     // background: #e0e0e0; /* Основной фон кнопки */
-//     color: $button_text;
-//     padding: 7px 10px;
-//     font-size: 12px;
-//     font-weight: bold;
-//     transition: all 300ms ease;
-
-//     /* Эффект при наведении */
-//     &:hover {
-//         background: $button_hover;
-//         /* Немного более мягкий серый фон при наведении */
-//         box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15), 0px 3px 3px rgba(172, 165, 154, 0.3) inset;
-//         /* Меньшая тень и менее заметный внутренний эффект */
-//         transform: translateY(-1px);
-//         /* Немного поднимем кнопку при наведении */
-//     }
-
-//     /* Эффект при нажатии */
-//     &:active {
-//         background: $button_active;
-//         /* Более мягкий серый фон при нажатии */
-//         box-shadow: inset 0px 1px 2px rgba(0, 0, 0, 0.2);
-//         /* Более мягкая внутренняя тень */
-//         transform: translateY(1px);
-//         /* Легкая вдавленность при нажатии */
-//     }
-// }
-
 /* //////////////////// */
 .container_global {
     display: flex;
@@ -124,19 +86,7 @@ a {
     padding: 10px;
 }
 
-// table{
 
-//     margin: 5px;    
-//     width: 400px;
-//     height: auto;
-//     margin: 5px;
-//     border-radius: 10px; /* Скругленные углы */
-//     background-color: #f0f0f0; /* Светло-серый фон */
-//     border: 1px solid #ccc; /* Равномерная серая граница */
-//     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень для глубины */
-//     transition: box-shadow 0.3s ease; /* Плавный переход для эффекта при наведении */
-//     position: relative
-// }
 
 // .Чистое.........................
 
@@ -235,11 +185,6 @@ button {
         /* Легкая вдавленность при нажатии */
     }
 }
-
-//  button:hover {
-//     background-color: $button_hover_background_color;
-//     /* затемняем при наведении */
-//}
 
 // общий чекбокс
 

@@ -89,10 +89,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return
         }
         //  получаем список операций которые зависимы от нашей  -  их будем перепланировать
-        let dependentOperationsIds = getDependentOperationsIds(tCard, oper);
+        const dependentOperationsIds = getDependentOperationsIds(tCard, oper);
 
         // Формируем массив по карте без лоадов этой операции и зависимых от нее
-        let cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
+        const cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
           !(load.id_oper === operId || dependentOperationsIds.includes(load.id_oper as number))
         );
         
@@ -123,10 +123,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // планируем все операции  начиная (включая) с нашей  (исключая пришпиленные)
 
-        let operationsToPlanIds= [...dependentOperationsIds,Number(oper.id)]
+        const operationsToPlanIds= [...dependentOperationsIds,Number(oper.id)]
         
         // Планируем карту начиная с нашей операции (есключая ее саму)
-        let resultPlaningNextOper = planTCardFromOperINC(operationsToPlanIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
+        const resultPlaningNextOper = planTCardFromOperINC(operationsToPlanIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
         //  Если не удалось запланировать
         if (!resultPlaningNextOper.success) {
           res.status(200).json({

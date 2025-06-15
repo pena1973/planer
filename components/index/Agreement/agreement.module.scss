@@ -50,7 +50,7 @@
   height: calc(100vh - 200px);
   font-size: $header3_font_size; 
   color: $second_text_color;
-  border: 1px solid $border_card;
+  border: $border;
   width: 100%;
   resize: none;
   padding: 10px;

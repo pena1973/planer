@@ -668,7 +668,7 @@ export default function PlanScaleContainer({
     const hoursScaleReactNodes = generateTimeScalePlan(elem)
 
     return (
-      <div
+      <div 
         className={styles.day_scale}
         style={{ width: `${dayWidth}px` }} key={`day-${index}`}>
 
@@ -701,12 +701,12 @@ export default function PlanScaleContainer({
     )
   });
   const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
-  let linesPlusReactNodes = linesPlus.map((elem) => {
-    return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefPlus.current} />
+  let linesPlusReactNodes = linesPlus.map((elem,index) => {
+    return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefPlus.current} index={index} />
   })
   const linesMinus = createLines("Minus", today.toLocaleDateString("en-CA"), unitLoads)
-  let linesMinusReactNodes = linesMinus.map((elem) => {
-    return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefMinus.current} />
+  let linesMinusReactNodes = linesMinus.map((elem,index) => {
+    return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefMinus.current} index={index} />
   })
 
   let unitsReactNodesInner = unitsViewInner.current.map(elem => {

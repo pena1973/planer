@@ -102,7 +102,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return checkOperationStatus(operation);
         });
        
-        let tCardStatus = (isAllOperationsNotLowerThanStatus) ? status : tCard.status
+        const tCardStatus = (isAllOperationsNotLowerThanStatus) ? status : tCard.status
 
         // обновим статус карты если изменился
         if (tCard.status !== tCardStatus) {

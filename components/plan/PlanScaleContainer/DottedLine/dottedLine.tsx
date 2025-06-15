@@ -8,6 +8,7 @@ interface DottedLineProps {
   stroke?: string;
   strokeWidth?: number;
   dashArray?: string;
+  index:number
 }
 
 const DottedLine: React.FC<DottedLineProps> = ({
@@ -16,7 +17,8 @@ const DottedLine: React.FC<DottedLineProps> = ({
   container,
   stroke = 'gray',
   strokeWidth = 1,
-  dashArray = '3,5'
+  dashArray = '3,5',
+  index
 }) => {
   const [coords, setCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
 
@@ -70,7 +72,7 @@ const DottedLine: React.FC<DottedLineProps> = ({
     };
   }, [startId, endId, container]);
 
-  return (
+  return (<React.Fragment key={index}>
     <svg
       style={{
         position: 'absolute',
@@ -92,6 +94,7 @@ const DottedLine: React.FC<DottedLineProps> = ({
         strokeDasharray={dashArray}
       />
     </svg>
+    </React.Fragment>
   );
 };
 

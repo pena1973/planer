@@ -15,6 +15,7 @@ let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 export interface TCardOperProps {
+    index:number
     tCardOperation: TCardOperationItem;
     dragOverHandler: (e: React.DragEvent<HTMLElement>) => void,
     dropHandler: (e: React.DragEvent<HTMLElement>) => void,
@@ -32,10 +33,10 @@ export interface TCardOperProps {
     fixDefect: (idc: number) => void,
     lightProduct: number,
     fixed: boolean,
-
 }
 
 export default function TCardOper({
+    index,
     tCardOperation,
     dragOverHandler,
     dropHandler,
@@ -52,7 +53,7 @@ export default function TCardOper({
     setOperStatus,
     fixDefect,
     lightProduct,
-    fixed,
+    fixed,    
 }: TCardOperProps) {
     const { t, i18n } = useTranslation();
     let outReactNodes;
@@ -121,7 +122,7 @@ export default function TCardOper({
 
     const { hours, minutes, seconds, milliseconds } = convertMillisecondsToTime(tCardOperation.duration);
     return (
-        <div className={styles.container}
+        <div key={index} className={styles.container}
             onDragOver={(e) => dragOverHandler(e)}
             onDrop={(e) => { handleDrop(e, `S${tCardOperation.stage.idc}T${tCardOperation.idc}`) }}
 

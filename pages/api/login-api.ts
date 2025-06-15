@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { generateTeamNumber, extractIdFromTeamNumber } from '@/utils';
 
 import { UserTable } from '@/pages/db/models/catalogs/users';
 import { TeamTable } from '@/pages/db/models/catalogs/teams';
@@ -9,11 +8,9 @@ import { AgreementTable } from '../db/models/catalogs/agreements';
 import { UserUnitTable } from '../db/models/catalogs/user_unit';
 
 import { UserItem } from '@/types';
-import { sign } from 'jsonwebtoken';
-import { createToken } from '@/lib/auth'
+import { createAccessToken, createRefreshToken } from '@/lib/auth'
 import { getUser, getTeam, getLastAgreement } from './handlers-auth';  // расчеты
 import { getUsersUnits } from './handlers-get';  // расчеты
-import { text } from 'stream/consumers';
 
 
 interface RequestBody {
@@ -74,9 +71,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         //  юзер получен генерю токен
         // const token = sign({ data: login }, String(process.env.JWTSECRET), { expiresIn: '24h' });
-         
-        const token = createToken({ login })
-        
+
+        // const token = createToken({ login })
+        const accessToken = createAccessToken({ login })
+        const refreshToken = createRefreshToken({ login })
+
+        // Устанавливаем refresh в HttpOnly cookie
+        res.setHeader('Set-Cookie', [
+          `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24 * 7}`, // 7 дней
+        ])
+
+
         //  получаю Юнит который занимает юзер
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
         const resUserUnits_ = await getUsersUnits(
@@ -93,13 +98,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ;
         }
 
-        const unit = (resUserUnits_.userUnits.length>0)?resUserUnits_.userUnits[0].unit:undefined
+        const unit = (resUserUnits_.userUnits.length > 0) ? resUserUnits_.userUnits[0].unit : undefined
 
         // отправляем ответ
         res.status(200).json({
           success: true,
           team: team,
-          token: token,
+          token: accessToken ,
           user: user,
           agreementText: agreementText,
           agreementId: agreementId,

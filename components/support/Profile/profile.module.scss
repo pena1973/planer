@@ -102,16 +102,13 @@
 .register_input {
   border-radius: 10px;
   padding: 5px;
-  border: 1px solid $border_card;
+  border: $border;
   width: 100%;
-  // background: $light_background;
+  
 }
-._input {
-  // border-radius: 10px;
-  padding: 5px;
-  // border: 1px solid $border_card;
+._input {  
+  padding: 5px;  
   width: 100%;
-  // background: $light_background;
 }
 .register_link {
   font-size: $header4_font_size;

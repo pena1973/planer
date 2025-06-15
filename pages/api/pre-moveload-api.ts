@@ -97,14 +97,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
 
         //  получаем список операций которые зависимы от нашей  -  их будем перепланировать
-        let dependentOperationsIds = getDependentOperationsIds(tCard, oper);
+        const dependentOperationsIds = getDependentOperationsIds(tCard, oper);
         // Формируем массив по карте без лоадов этой операции и зависимых от нее
-        let cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
+        const cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
           !(load.id_oper === oper.id || dependentOperationsIds.includes(load.id_oper as number))
         );
 
         // также для сохранения истории мы по этой операции и зависимым операциям должны оставить все отмененные бракованные и готовые
-        let cardLoadsOperEndDepHistory = tCardLoads.filter(load =>
+        const cardLoadsOperEndDepHistory = tCardLoads.filter(load =>
           !(load.status === StatusEnum.prepared || load.status === StatusEnum.planed)
           && (load.id_oper === oper.id || dependentOperationsIds.includes(load.id_oper as number))
         );
@@ -117,7 +117,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         let planedCardLoads = [...cardLoadsWithoutOperEndDep, ...cardLoadsOperEndDepHistory];
 
         // получаем момент готовности входящих запчастей и не раньше сегодня  и не раньше входящего старта
-        let readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperEndDep, date, timeStart, today)
+        const readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperEndDep, date, timeStart, today)
 
         if (!readySourceMoment) {
           res.status(200).json({
@@ -135,13 +135,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
           // 1. если перетаскиваем на внешний
           //   то старт и финиш операции не меняем  и считываем как был из старых лоадов
-          let operloads = tCardLoads.filter(load => load.id_oper === pinnedLoad.id_oper);
+          const operloads = tCardLoads.filter(load => load.id_oper === pinnedLoad.id_oper);
           // сортируем по возрастанию
           operloads.sort((a, b) =>
             a.date.localeCompare(b.date) || a.timeStart - b.timeStart
           );
-          let loadStart = operloads[0];
-          let loadFinish = operloads[operloads.length - 1];
+          const loadStart = operloads[0];
+          const loadFinish = operloads[operloads.length - 1];
 
           //  с внутреннего
           if (pinnedLoad.unit.belong === UnitBelongEnum.inner) {
@@ -198,7 +198,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
             // Планируем зависимые операции
-            let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
+            const resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
             //  Если не удалось запланировать
             if (!resultPlaningNextOper.success) {
               res.status(200).json({
@@ -216,7 +216,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           if ((pinnedLoad.isOuterStart && pinnedLoad.unit.belong === UnitBelongEnum.outer)) {
 
             // проверяем чтобы начало не было позже хваста операции
-            let finishLoad = tCardLoads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterFinish);
+            const finishLoad = tCardLoads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterFinish);
             if (!finishLoad) {
               res.status(200).json({
                 success: false,
@@ -316,7 +316,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
             // Планируем карту начиная с нашей операции исключая ее саму
-            let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
+            const resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
             //  Если не удалось запланировать
             if (!resultPlaningNextOper.success) {
               res.status(200).json({
@@ -362,7 +362,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           unitLoadItemsFull = [...unitLoadItemsFull, ...planedCardLoads];
 
           // Планируем нашу операцию на юните
-          let resultPlaningOper = planOperOnUnit(oper, tCard, unit,unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today, readySourceMoment.date, readySourceMoment.time)
+          const resultPlaningOper = planOperOnUnit(oper, tCard, unit,unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today, readySourceMoment.date, readySourceMoment.time)
           //  Если не удалось запланировать
           if (!resultPlaningOper.success) {
             res.status(200).json({
@@ -379,7 +379,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // планируем все последующие операции  исключая пришпиленные
 
           // Планируем карту начиная с нашей операции (есключая ее саму)
-          let resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_,unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
+          const resultPlaningNextOper = planTCardFromOperINC(dependentOperationsIds, tCard, units_,unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
           //  Если не удалось запланировать
           if (!resultPlaningNextOper.success) {
             res.status(200).json({

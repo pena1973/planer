@@ -88,13 +88,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
     // Таблица Юнитов   
     const deleteUnitHandler = (indexToRemove: number) => {
-        let unitsValueUpdated = [...unitsValue]
+        const unitsValueUpdated = [...unitsValue]
         unitsValueUpdated.splice(indexToRemove, 1)
         setUnitsValue(unitsValueUpdated)
         setFocusIndexUnit(indexToRemove - 1);
     };
     const changeHandler = (indexToChange: number, value: string | null | UnitBelongEnum | UnitTypeEnum, field: string) => {
-        let unit = unitsValue[indexToChange];
+        const unit = unitsValue[indexToChange];
         let updatedUnit = unit;
         switch (field) {
             case "code":
@@ -119,7 +119,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             default:
                 break;
         }
-        let unitsValueUpdated = [...unitsValue]
+        const unitsValueUpdated = [...unitsValue]
         unitsValueUpdated.splice(indexToChange, 1, updatedUnit)
         setUnitsValue(unitsValueUpdated)
         setFocusIndexUnit(indexToChange);
@@ -159,13 +159,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         actionsValue.forEach((act) => {
 
             if (!act.action) {
-                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
+                const title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
                 // message = message + `Заполните действие в списке действий юнита ${title}!\n`;
                 message = message + `${t('units.fillAction')} ${title}!\n`;
                 exit = true;
             }
             if (!act.koef) {
-                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
+                const title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
                 // message = message + `Заполните коэфициент в списке действий юнита ${title}!\n`;
                 message = message + `${t('units.fillKoef')} ${title}!\n`;
                 exit = true;
@@ -176,25 +176,25 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         exceptionsValue.forEach((ex) => {
 
             if (!ex.date) {
-                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
+                const title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
                 // message = message + `Заполните дату в списке отклонений расписания юнита ${title}!\n`;
                 message = message + `${t('units.fillDate')} ${title}!\n`;
                 exit = true;
             }
             if (!ex.timeStart) {
-                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
+                const title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
                 // message = message + `Заполните время старта в списке отклонений расписания юнита ${title}!\n`;
                 message = message + `${t('units.fillStart')} ${title}!\n`;
                 exit = true;
             }
             if (!ex.timeFinish) {
-                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
+                const title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
                 // message = message + `Заполните время финиша в списке отклонений расписания юнита ${title}!\n`;
                 message = message + `${t('units.fillFihish')} ${title}!\n`;
                 exit = true;
             }
             if (!ex.type) {
-                let title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
+                const title = unitsValue.find(unit => (!unit.id) ? unit.idc === ex.unitIdc : unit.id === ex.unitId)?.title;
                 // message = message + `Заполните тип времени в списке отклонений расписания юнита ${title}!\n`;
                 message = message + `${t('units.fillTimeType')} ${title}!\n`;
                 exit = true;
@@ -245,8 +245,8 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                         return idA - idB; // Сравниваем id
                     });
 
-                    let exceptions_ = receivedData.exceptions as UnitExceptionItem[]
-                    let actions_ = receivedData.actions as UnitActionItem[]
+                    const exceptions_ = receivedData.exceptions as UnitExceptionItem[]
+                    const actions_ = receivedData.actions as UnitActionItem[]
                     // временное хранилище                  
                     setUnitsValue(units_);
                     // сеансовое хранилище                  

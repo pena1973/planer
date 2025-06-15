@@ -574,7 +574,7 @@ export async function updateExceptions(
 
   // Добавляем новые действия Юнита
   const newUnitException = unitExceptionsToAdd.map(unitException => {
-    let date = new Date(unitException.date);
+    const date = new Date(unitException.date);
     return unitExceptionsRepository.create({
       idc: unitException.idc,
       date: date,
@@ -1159,7 +1159,7 @@ export async function updateOperations(
 
   // Добавляем новые операции
 
-  let newOperations = [];
+  const newOperations = [];
 
   for (const operation of operationsToAdd) {
     const savedStage = savedTCardStages.find((stage) => stage.idc === operation.stage.idc);
@@ -1201,7 +1201,7 @@ export async function updateOperations(
 
 
   // Обновляем существующие операции
-  let updatedOperations = [] as TCardOperationTable[];
+  const updatedOperations = [] as TCardOperationTable[];
 
   for (const operation of operationsToUpdate) {
     const existingOperation = existingTCardOperations.find(
@@ -1468,10 +1468,21 @@ export async function updateStatusOperationByTCardId(
       return { success: false, message: "Операции не были обновлены" };
     }
 
-  } catch (error: any) {
+  // } catch (error: any) {
+  //   console.error("Ошибка обновления операций:", error);
+  //   return { success: false, message: error.message || "Ошибка обновления операций" };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка обновления операций";
+  if (error instanceof Error) {
+    message = error.message;
     console.error("Ошибка обновления операций:", error);
-    return { success: false, message: error.message || "Ошибка обновления операций" };
+  } else {
+    console.error("Неизвестная ошибка обновления операций:", error);
   }
+  return { success: false, message };
+}
+
 }
 
 
@@ -1487,10 +1498,21 @@ export async function updateStatusOperationByOperId(
     } else {
       return { success: false, message: "Операция не обновлена" };
     }
-  } catch (error: any) {
+  // } catch (error: any) {
+  //   console.error("Ошибка обновления операции:", error);
+  //   return { success: false, message: error.message || "Ошибка обновления операции" };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка обновления операции";
+  if (error instanceof Error) {
+    message = error.message;
     console.error("Ошибка обновления операции:", error);
-    return { success: false, message: error.message || "Ошибка обновления операции" };
+  } else {
+    console.error("Неизвестная ошибка обновления операции:", error);
   }
+  return { success: false, message };
+}
+
 }
 
 export async function updateStatusOperationsByOperIds(
@@ -1515,10 +1537,19 @@ export async function updateStatusOperationsByOperIds(
       // console.error(error);
       return { success: false, message: error };
     }
-  } catch (error: any) {
-    // console.error("Ошибка при обновлении операций:", error);
-    return { success: false, message: error.message || "Ошибка при обновлении операций." };
+  // } catch (error: any) {
+  //   // console.error("Ошибка при обновлении операций:", error);
+  //   return { success: false, message: error.message || "Ошибка при обновлении операций." };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка при обновлении операций.";
+  if (error instanceof Error) {
+    message = error.message;
+    console.error("Ошибка при обновлении операций:", error);
   }
+  return { success: false, message };
+}
+
 }
 
 
@@ -1548,10 +1579,21 @@ export async function updateStatusLoads(
     } else {
       return { success: false, message: "Ни одна загрузка не обновлена" };
     }
-  } catch (error: any) {
+  // } catch (error: any) {
+  //   console.error("Ошибка обновления статусов загрузок:", error);
+  //   return { success: false, message: error.message || "Ошибка обновления статусов загрузок" };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка обновления статусов загрузок";
+  if (error instanceof Error) {
+    message = error.message;
     console.error("Ошибка обновления статусов загрузок:", error);
-    return { success: false, message: error.message || "Ошибка обновления статусов загрузок" };
+  } else {
+    console.error("Неизвестная ошибка обновления статусов загрузок:", error);
   }
+  return { success: false, message };
+}
+
 }
 
 // Функция для обновления статуса карты
@@ -1574,10 +1616,21 @@ export async function updateStatusTCard(
     } else {
       return { success: false, message: "Не удалось обновить карту" };
     }
-  } catch (error: any) {
+  // } catch (error: any) {
+  //   console.error("Ошибка обновления статуса карты:", error);
+  //   return { success: false, message: error.message || "Ошибка обновления статуса карты" };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка обновления статуса карты";
+  if (error instanceof Error) {
+    message = error.message;
     console.error("Ошибка обновления статуса карты:", error);
-    return { success: false, message: error.message || "Ошибка обновления статуса карты" };
+  } else {
+    console.error("Неизвестная ошибка обновления статуса карты:", error);
   }
+  return { success: false, message };
+}
+
 }
 
 ///////////////////// SUPPORT //////////////////
@@ -1611,12 +1664,27 @@ export async function updateSupportMessage(
       savedMessage: savedMessage,
       
     };
-  } catch (error: any) {
+  // } catch (error: any) {
+  //   console.error("Ошибка при сохранении сообщения:", error);
+  //   return {
+  //     success: false,
+  //     message: error.message || "Ошибка при сохранении сообщения.",
+  //     savedMessage: {} as SupportTable,      
+  //   };
+  // }
+  } catch (error: unknown) {
+  let message = "Ошибка при сохранении сообщения.";
+  if (error instanceof Error) {
+    message = error.message;
     console.error("Ошибка при сохранении сообщения:", error);
-    return {
-      success: false,
-      message: error.message || "Ошибка при сохранении сообщения.",
-      savedMessage: {} as SupportTable,      
-    };
+  } else {
+    console.error("Неизвестная ошибка при сохранении сообщения:", error);
   }
+  return {
+    success: false,
+    message,
+    savedMessage: {} as SupportTable,
+  };
+}
+
 }

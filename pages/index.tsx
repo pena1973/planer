@@ -1,5 +1,9 @@
 import Layout from "@/components/Layout/layout";
 import { useEffect, useState, useRef, use } from "react";
+import { configureTokenAccess } from '@/lib/fetchWithRefresh'
+
+
+import { store } from '@/store' // путь к твоему Redux store
 import Link from 'next/link';
 
 import {
@@ -35,7 +39,7 @@ import {
   setUOMs, setUnits, setTCards,
   setSettings, setSchedule,
   setUnitLoads, setSignedAgreement,
-  setTemplates,setUnit,setLoadingComplete
+  setTemplates, setUnit, setLoadingComplete
 } from '@/store/slices'
 
 import ico1 from "@/public/ico1.png";
@@ -113,7 +117,7 @@ export default function Index({ }: IndexProps) {
   const signedAgreement = useSelector((state: RootState) => {
     return state.authSlice.signedAgreement;
   })
-  
+
   // status 0 - архив, 1 актив, 2 запрос 
   const loginClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonLogin(true)
@@ -166,6 +170,12 @@ export default function Index({ }: IndexProps) {
           //   Обновим настройки
           dispatch(setUser(user_));
           dispatch(setToken(token_));
+         
+          configureTokenAccess(
+            () => store.getState().authSlice.token, // или твой точный селектор
+            (newToken: string) => dispatch(setToken(newToken))
+          )
+
           dispatch(setTeam(team_));
           dispatch(setSettings(settings_));
           dispatch(setSignedAgreement(signed_));
@@ -953,6 +963,7 @@ export default function Index({ }: IndexProps) {
           setMessage={(message: string) => { }}
         />}
       </div>
+     
     </Layout>
   )
 }

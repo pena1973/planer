@@ -99,6 +99,9 @@ export default function Monitor({ }: MonitorProps) {
     return date;
   });
 
+ const token = useSelector((state: RootState) => {
+    return state.authSlice.token;
+  })
 
   const team = useSelector((state: RootState) => {
     return state.catalogSlice.team;
@@ -231,6 +234,7 @@ export default function Monitor({ }: MonitorProps) {
           setStatusLoadsHandler={setStatusLoadsHandler}
           teamId={team.id}
           userId={user.id}
+          token={token}
         />
       }
 
@@ -250,6 +254,7 @@ export default function Monitor({ }: MonitorProps) {
           isQualControl={settings.isQualControl}
           teamId={team.id}
           userId={user.id}
+          token={token}
         />
 
       }
@@ -320,6 +325,7 @@ export default function Monitor({ }: MonitorProps) {
               setStatusLoadsHandler={setStatusLoadsHandler}
               teamId={team.id}
               userId={user.id}
+              token={token}
             />
           </div>}
           {/* Готовность карт */}
@@ -328,6 +334,7 @@ export default function Monitor({ }: MonitorProps) {
             <ReportTCardState setMessage={setMessage}
               teamId={team.id}
               userId={user.id}
+              token={token}
             />
           </div>}
           {monitorPoint === 4 && <div className="container_monitor">
@@ -336,7 +343,9 @@ export default function Monitor({ }: MonitorProps) {
               setMessage={setMessage}
               teamId={team.id}
               userId={user.id}
-              units={units} />
+              units={units} 
+              token={token}
+              />
           </div>}
           {monitorPoint === 5 && <div className="container_monitor">
             <div className="catalog_title"> {t('monitor.kpi1')} </div>

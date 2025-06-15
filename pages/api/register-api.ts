@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         } else {
           //  иначе ищем команду по номеру
-          let teamId = extractIdFromTeamNumber(teamNumber);
+          const teamId = extractIdFromTeamNumber(teamNumber);
 
           const resTeam1 = await getTeam(teamId, teamsRepository)
 

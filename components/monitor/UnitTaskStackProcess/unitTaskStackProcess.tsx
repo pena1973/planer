@@ -364,7 +364,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   }
 
   return (
-    <div className={styles.container}
+    <div key={unit.id} className={styles.container}
       style={{ minHeight: `${containerHeight}px` }} >
       <div className={styles.title_container}>
         <div className={styles.title}>{unit.title}</div>

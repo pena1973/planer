@@ -210,20 +210,20 @@ function findAvailableTimeForOperation(
   }
 
   // Массив кандидатов, найденных для разных юнитов
-  let possibleCandidates: Candidate[] = [];
+  const possibleCandidates: Candidate[] = [];
 
   // Перебираем каждый совместимый юнит
-  for (let unit of compatibleuUnits) {
+  for (const unit of compatibleuUnits) {
     const actions = unitActions.filter(ac => ac.unitId === unit.id)
     // Определяем время переналадки и длительность выполнения операции
     const retoolTime = unit.retool; // время переналадки (в минутах)
-    let action = actions.find(a => a.action.id === operation.action.id);
-    let koef = action ? action.koef : 1;
+    const action = actions.find(a => a.action.id === operation.action.id);
+    const koef = action ? action.koef : 1;
     const opRequired = operationDuration * koef; // время выполнения операции (без ретула)
-    let onPlaned = 0; //- это сколько уже запланировано
+    const onPlaned = 0; //- это сколько уже запланировано
     const totalRequired = retoolTime + opRequired; // общее время
-    let opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
-    let isRetoolSegmentDefined = (retoolTime === 0)
+    const opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
+    const isRetoolSegmentDefined = (retoolTime === 0)
 
     // ищем для юнита возможные сегменты операции
     const resultOpSegments = findAvailableSegmentsDay(
@@ -265,13 +265,13 @@ function findAvailableTimeForOperation(
     const bestCandidate = possibleCandidates[0];
 
     // Формируем итоговый массив загрузок (UnitLoadItem) для победившего юнита
-    let updatedUnitLoads: UnitLoadItem[] = [];
+    const updatedUnitLoads: UnitLoadItem[] = [];
 
     let isFirst = true;
     bestCandidate.opSegments.forEach(seg => {
       const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id)
-      let action = actions_.find(act => act.id = operation.action.id);
-      let koef = (action) ? action.koef : 1;
+      const action = actions_.find(act => act.id = operation.action.id);
+      const koef = (action) ? action.koef : 1;
 
       updatedUnitLoads.push({
         idc_oper: operation.idc,
@@ -383,7 +383,7 @@ function findAvailableSegmentsDay(
   // Если рабочее время отсутствует – пропускаем день
   // перепрыгиваем на следующий день
   if (workEnd === workStart) {
-    let nextDate = new Date(targetDate)
+    const nextDate = new Date(targetDate)
     nextDate.setDate(nextDate.getDate() + 1);
     return findAvailableSegmentsDay(
       nextDate,
@@ -423,7 +423,7 @@ function findAvailableSegmentsDay(
   let availableStart = Math.max(workStart, moment);
 
   // если начало выпадает на занятый интервал  сдвигаем начало на окончание занятого интервала
-  let currentbusyPeriod = busyPeriods.find(p => p.start <= availableStart && p.end > availableStart)
+  const currentbusyPeriod = busyPeriods.find(p => p.start <= availableStart && p.end > availableStart)
   if (currentbusyPeriod)
     availableStart = Math.max(availableStart, currentbusyPeriod.end);
 
@@ -493,7 +493,7 @@ function findAvailableSegmentsDay(
 
     // если в этот день интервалов не нашлось идем на след день
     if (!found) {
-      let nextDate = new Date(targetDate)
+      const nextDate = new Date(targetDate)
       nextDate.setDate(nextDate.getDate() + 1);
 
       return findAvailableSegmentsDay(
@@ -680,7 +680,7 @@ const doLoopProductsOper = (
   timeFinish: number
 ): readyProduct[] => {
   if (dateFinish !== "") {
-    let readyProductsOut = operation.out.map(elem => {
+    const readyProductsOut = operation.out.map(elem => {
       return {
         id: elem.id,
         idc: elem.idc,
@@ -735,12 +735,12 @@ export const planTCardFromOperINC = (
 
   let updatedUnitLoads = [...unitLoads];
   let planedCardLoads: UnitLoadItem[] = [];
-  let today = new Date(today_);
+  const today = new Date(today_);
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  let stopDate_ = new Date();
+  const stopDate_ = new Date();
   stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
   stopDate_.setDate(stopDate_.getDate() + 90);
-  let stopDate = stopDate_.toLocaleDateString("en-CA");
+  const stopDate = stopDate_.toLocaleDateString("en-CA");
 
   // массив готовых продуктов и дата время готовности каждого продукта
   // стартуем с продуктов которые  берутся со склада  
@@ -778,7 +778,7 @@ export const planTCardFromOperINC = (
 
   // здесь стартуем цикл планирования с сегодняшней даты пока операций для планирования в tCardOperations не останется
   let stoploop = false;
-  let message = "";
+ 
   while (tCardOperations.length > 0 && !stoploop) {
     //+ 1--------    
 
@@ -789,7 +789,7 @@ export const planTCardFromOperINC = (
     let message="";
 
     tCardOperations.forEach((operation) => {
-      let hasAllMatchingProducts = operation.inn.every(innProduct => {
+      const hasAllMatchingProducts = operation.inn.every(innProduct => {
         // Ищем продукт в tCardReady с таким же code и uom
         const matchingReadyProduct = readyProducts.find(elem =>
           elem.code === innProduct.code && elem.uom.id === innProduct.uom.id
@@ -852,10 +852,10 @@ export const planTCardFromOperINC = (
       //  проворачиваем без пертеписывания лоадов
       if (!operationsToPlanIds.includes(Number(operation.id))) {
 
-        let operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.id_oper === operation.id);
+        const operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.id_oper === operation.id);
 
         // вытаскиваем последний лоад операции соответствующий статусу самой операции (для позиционирования во времени)
-        let { dateFinish, timeFinish } = dateResultLoad(operLoads, operation.status);
+        const { dateFinish, timeFinish } = dateResultLoad(operLoads, operation.status);
         //////////////////////////////////////////////////
         //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности 
         readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
@@ -877,10 +877,10 @@ export const planTCardFromOperINC = (
         });
 
         // Ищем лоады на эту операцию если есть
-        let operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.id_oper === operation.id);
+        const operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.id_oper === operation.id);
 
         // вытаскиваем последний лоад операции соответствующий статусу самой операции (для позиционирования во времени)
-        let { dateFinish, timeFinish, } = dateResultLoad(operLoads, operation.status);
+        const { dateFinish, timeFinish, } = dateResultLoad(operLoads, operation.status);
 
         let isPinned = false;
 
@@ -899,7 +899,7 @@ export const planTCardFromOperINC = (
           updatedUnitLoads = updatedUnitLoads.filter(lo => lo.id_oper != (operation.id))
 
           // проверяем наличие  исходников операции на плановую дату на дату 
-          let sourcesProducts = readyProducts.filter(elem => elem.reservedTo === operation.idc);
+          const sourcesProducts = readyProducts.filter(elem => elem.reservedTo === operation.idc);
 
           let { maxDateSource, maxTimeSource } = (sourcesProducts.length > 0)
             ? getMaxDate(sourcesProducts, operation.inn) : { maxDateSource: today_, maxTimeSource: 0 };
@@ -911,7 +911,7 @@ export const planTCardFromOperINC = (
           }
 
           // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-          let resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, isPinned);
+          const resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, isPinned);
 
           // если не удалось запланировать то прерываем расчет
           if (!resultPlaning.success) {
@@ -919,7 +919,7 @@ export const planTCardFromOperINC = (
             stoploop = true;
           } else {
 
-            let { planedUnitLoads, dateReady, timeReady } = resultPlaning;
+            const { planedUnitLoads, dateReady, timeReady } = resultPlaning;
             updatedUnitLoads = [...updatedUnitLoads, ...planedUnitLoads];
 
             let planedOperLoads = planedUnitLoads.filter(lo => lo.id_oper === operation.id)
@@ -965,12 +965,12 @@ export const planOperOnUnit = (
 ): { success: boolean, operLoads: UnitLoadItem[], message: string } => {
 
   let updatedUnitLoads = [...unitLoads];
-  let today = new Date(today_);
+  const today = new Date(today_);
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
   let stopDate_ = new Date();
   stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
   stopDate_.setDate(stopDate_.getDate() + 90);
-  let stopDate = stopDate_.toLocaleDateString("en-CA");
+  const stopDate = stopDate_.toLocaleDateString("en-CA");
 
   let message = "";
 
@@ -990,7 +990,7 @@ export const planOperOnUnit = (
   }
 
   // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-  let resultPlaning = findAvailableTimeForOperation(tCard, [unit], unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, true);
+  const resultPlaning = findAvailableTimeForOperation(tCard, [unit], unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, true);
 
   // если не удалось запланировать то прерываем расчет
   if (!resultPlaning.success) {
@@ -1113,10 +1113,10 @@ export const getPreviousOpers = (
   oper: TCardOperationItem,
   tCard: TCardItem
 ): number[] | undefined => {
-  let prevOpers: number[] = [];
+  const prevOpers: number[] = [];
 
   // Формируем массив исходных продуктов из текущей операции  
-  let innProducts: TCardProductItem[] = oper.inn.map(material => ({
+  const innProducts: TCardProductItem[] = oper.inn.map(material => ({
     id: material.id,
     idc: material.idc,
     code: material.code,
@@ -1228,7 +1228,7 @@ export const getFinishOperations = (
   // Находим максимальный момент завершения
   // Предполагаем, что load.date имеет формат "YYYY-MM-DD" и load.timeFinish – минуты от начала дня
 
-  let finishLoad = filteredLoads.reduce((latest, load) => {
+  const finishLoad = filteredLoads.reduce((latest, load) => {
     if (load.date > latest.date) {
       return load;
     } else if (load.date === latest.date && load.timeFinish > latest.timeFinish) {

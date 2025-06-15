@@ -134,7 +134,7 @@ export const getUnitsSchedule = (
   endDate.setDate(endDate.getDate() + 90);
 
   // Итерируем по дням диапазона
-  let currentDate = new Date(startDate);
+  const currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     // Генерируем базовый CalendarItem для текущего дня (без учёта индивидуальных исключений)
     const calendarItem = generateCalendarItem(new Date(currentDate), schedule);

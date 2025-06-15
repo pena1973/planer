@@ -4,6 +4,7 @@ import Layout from "@/components/Layout/layout";
 import { SupportMessages } from "@/components/support/SupportMessages/supportMessages";
 import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
+import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
@@ -34,7 +35,7 @@ export default function Support({ }: SupportProps) {
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;
   })
-  
+
   const suportPoint = useSelector((state: RootState) => {
     return state.viewSlice.suportPoint;
   })
@@ -63,6 +64,7 @@ export default function Support({ }: SupportProps) {
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(1))}>{t('support.messages')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(2))}>{t('support.billing')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(3))}>{t('support.profile')}</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(4))}>{t('support.cookie')}</div>
           </div>
           <div className="container_cards_title">{t('support.notes')}</div>
           <div className="container_global_message">{message}</div>
@@ -99,6 +101,12 @@ export default function Support({ }: SupportProps) {
               setMessage={setMessage}
               token={token}
             />
+          </div>}
+          {/* политика куки */}
+          {suportPoint === 4 && <div className="contaitainer_catalog">
+            <div className="catalog_title">{t('support.cookie')}</div>
+            <CookiePolicyBlock />
+
           </div>}
         </div>
 

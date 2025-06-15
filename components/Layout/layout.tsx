@@ -2,20 +2,22 @@ import { PropsWithChildren, useState, useEffect, useRef } from "react";
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import styles from "./layout.module.scss";
+import { logout } from '@/lib/logout'
+import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
+import CookieBanner from '@/components/CookieBanner/сookieBanner'
+// import {
+//     UOMItem, ActionItem, UnitItem, SettingsItem,
+//     TCardItem, UnitLoadItem, ScheduleItem,
+//     UnitExceptionItem, UserItem,
+//     TeamItem
+// } from '@/types'
 
-import {
-    UOMItem, ActionItem, UnitItem, SettingsItem,
-    TCardItem, UnitLoadItem, ScheduleItem,
-    UnitExceptionItem, UserItem,
-    TeamItem
-} from '@/types'
-
-import {
-    setTeam, setToken, setUser,
-    setUnitExceptions, setActions,
-    setUOMs, setUnits, setTCards,
-    setSettings, setSchedule, setUnitLoads, setTCardIndex
-} from '@/store/slices'
+// import {
+//     setTeam, setToken, setUser,
+//     setUnitExceptions, setActions,
+//     setUOMs, setUnits, setTCards,
+//     setSettings, setSchedule, setUnitLoads, setTCardIndex
+// } from '@/store/slices'
 
 import Head from "next/head";
 import Image from 'next/image';
@@ -52,23 +54,26 @@ export default function Layout({ children }: PropsWithChildren) {
         setDropdownOpen(false);
         i18n.changeLanguage(locale);
     }
+    // const exit = () => {
+    //     dispatch(setToken(""));
+    //     dispatch(setUser({} as UserItem));
+    //     dispatch(setTeam({} as TeamItem));
+    //     dispatch(setUnitExceptions([] as UnitExceptionItem[]));
+    //     dispatch(setActions([] as ActionItem[]));
+    //     dispatch(setUOMs([] as UOMItem[]));
+    //     dispatch(setUnits([] as UnitItem[]));
+    //     dispatch(setTCards([] as TCardItem[]));
+    //     dispatch(setTCardIndex(0 as number));
+    //     dispatch(setSettings({} as SettingsItem));
+    //     dispatch(setSchedule({} as ScheduleItem));
+    //     dispatch(setUnitLoads([] as UnitLoadItem[]));
+
+    //     push("/");
+    // };
+
     const exit = () => {
-        dispatch(setToken(""));
-        dispatch(setUser({} as UserItem));
-        dispatch(setTeam({} as TeamItem));
-        dispatch(setUnitExceptions([] as UnitExceptionItem[]));
-        dispatch(setActions([] as ActionItem[]));
-        dispatch(setUOMs([] as UOMItem[]));
-        dispatch(setUnits([] as UnitItem[]));
-        dispatch(setTCards([] as TCardItem[]));
-        dispatch(setTCardIndex(0 as number));
-        dispatch(setSettings({} as SettingsItem));
-        dispatch(setSchedule({} as ScheduleItem));
-        dispatch(setUnitLoads([] as UnitLoadItem[]));
-
-        push("/");
-    };
-
+        logout('/')
+    }
     return (
         <>
             <Head>
@@ -78,7 +83,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 <link rel="icon" type="image/x-icon" href="icon.ico"></link>
 
             </Head>
-
+            <CookieBanner />
             <div className={styles.header}>
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
@@ -114,7 +119,10 @@ export default function Layout({ children }: PropsWithChildren) {
                     {(user.id) && <button onClick={exit}>{t('layout.exit')}</button>}
                 </div>
             </div>
+
             <main className={styles.layout}>{children}</main>
+            {(user) && user.isAdmin && <ScreenSizeModal />}
+
         </>
     )
 }

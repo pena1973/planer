@@ -43,7 +43,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //  получим юниты с загрузкой  до планирования новой карты         
         const unitsLoads = await getUnitLoads(units, unitLoadRepository)
         // запросим операции  чтобы дополнить информацию по лоадам
-        let operIds = Array.from(new Set(unitsLoads.map(load => load.id_oper)));
+        const operIds = Array.from(new Set(unitsLoads.map(load => load.id_oper)));
 
         const opers = await getTCardOperations(operIds, tCardOperationsRepository)
 

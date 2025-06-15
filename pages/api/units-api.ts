@@ -87,7 +87,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const actions_ = actions.map(action => {
           if (!action.unitId) {
-            let unit = savedUnits.find(un => un.idc === action.unitIdc)
+            const unit = savedUnits.find(un => un.idc === action.unitIdc)
             if (unit) return { ...action, unitId: unit.id }
             else return undefined;
           } else { return action }
@@ -96,7 +96,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //  заполнили id юнитов в исключениях ищем по idc все что не имело unitId
         const exceptions_ = exceptions.map(ex => {
           if (!ex.unitId) {
-            let unit = savedUnits.find(un => un.idc === ex.unitIdc)
+            const unit = savedUnits.find(un => un.idc === ex.unitIdc)
             if (unit) return { ...ex, unitId: unit.id }
             else return undefined;
           } else { return ex }

@@ -597,7 +597,7 @@ export default function Cards({ }: CardsProps) {
     setRemoveLoaderCard(idToRemove);
     const indexCardToRemote = tCards.findIndex(card => card.id === idToRemove);
     // если новая  - просто удаляем карту без id она не записана в БД
-    if (tCards[tCardIndex]?.idc === 0) {
+    if (tCards[indexCardToRemote]?.idc === 0) {
       let updatedTCards = [...tCards];
       updatedTCards.splice(indexCardToRemote, 1)
       dispatch(setTCards(updatedTCards));
@@ -1554,7 +1554,7 @@ export default function Cards({ }: CardsProps) {
       return (<>
         {!(tCardOperation.mode) &&
           <TCardOper
-            key={index1}
+            index={index1}
             tCardOperation={tCardOperation}
             dragOverHandler={dragOverHandler}
             dropHandler={dropHandler}

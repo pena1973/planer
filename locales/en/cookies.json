@@ -1,0 +1,16 @@
+{
+  "title": "Cookie Policy",
+  "intro": "We only use technical cookies for user authentication and proper site operation.",
+  "what_we_use": "What cookies we use",
+  "refresh": "• refreshToken — stores the authorization token required for automatic login. Stored for 7 days in an HttpOnly cookie.",
+  "session": "• sessionStorage — temporarily stores user, team, UI state, and cards. Cleared on browser close.",
+  "not_used": "What cookies we do not use",
+  "not_used_text": "We do not use cookies for advertising, analytics, or tracking. No cookies are shared with third parties.",
+  "disable": "How to disable cookies",
+  "disable_text": "You can disable cookies in your browser settings, but it may limit site functionality, including login.",
+  "contact": "Contact",
+  "contact_text": "If you have questions, please contact us at: example@yourdomain.com",
+  "text": "We use technical cookies for authentication and to make the site work properly.",
+  "link": "More in the cookies policy",
+  "accept": "Got it"
+}

@@ -1,0 +1,48 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+.banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $main_container_background_color; /* бежево-серый, в тон с остальным фоном */
+  color: #1a1a1a;
+  padding: 12px 20px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+//   border-top: 1px solid #aaa;
+  border-top: $border;
+//   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: $box-shadow ;
+}
+
+.banner a {
+  color: $text_color_italic;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.banner a:hover {
+  color: $text_color;
+  
+}
+
+
+.button {
+//   background-color: #e0ded9;
+//   border: 1px solid #aaa;
+//   border-radius: 4px;
+//   padding: 6px 12px;
+  cursor: pointer;
+//   font-size: 13px;
+  transition: background 0.2s ease;
+}
+
+.button:hover {
+  background-color: #d1cec9;
+}
+
