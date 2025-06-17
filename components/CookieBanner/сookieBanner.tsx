@@ -23,6 +23,7 @@ export default function CookieBanner() {
       <p className="text-sm">
         {t('text')} <a href="/cookies-policy">{t('link')}</a>
       </p>
+      
       <button onClick={acceptCookies} className={styles.button}>
         {t('accept')}
       </button>

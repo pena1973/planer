@@ -1,29 +1,29 @@
 
 import { ConnectionOptions } from 'typeorm';
 
-import { TCardTable} from '@/pages/db/models/data/t_cards'
-import { TCardStageTable} from '@/pages/db/models/data/t_card_stages'
-import { TCardOperationTable} from '@/pages/db/models/data/t_card_operations'
-import { TCardProductTable} from '@/pages/db/models/data/t_card_products'
+import { TCardTable} from '@/db/models/data/t_cards'
+import { TCardStageTable} from '@/db/models/data/t_card_stages'
+import { TCardOperationTable} from '@/db/models/data/t_card_operations'
+import { TCardProductTable} from '@/db/models/data/t_card_products'
 
-import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
-import { ActionTable} from '@/pages/db/models/catalogs/actions'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UserTable } from '@/pages/db/models/catalogs/users'
-import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit'
-import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { AgreementTable } from '@/pages/db/models/catalogs/agreements'
-import { UserAgreeTable } from '@/pages/db/models/catalogs/user_agree'
-import { TemplateTable} from '@/pages/db/models/catalogs/templates'
+import { UOMsTable } from '@/db/models/catalogs/uoms';
+import { ActionTable} from '@/db/models/catalogs/actions'
+import { TeamTable } from '@/db/models/catalogs/teams'
+import { UserTable } from '@/db/models/catalogs/users'
+import { UnitTable } from '@/db/models/catalogs/units'
+import { UserUnitTable } from '@/db/models/catalogs/user_unit'
+import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
+import { AgreementTable } from '@/db/models/catalogs/agreements'
+import { UserAgreeTable } from '@/db/models/catalogs/user_agree'
+import { TemplateTable} from '@/db/models/catalogs/templates'
 
-import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule'
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads'
-import { SettingsTable} from '@/pages/db/models/plan/settings'
+import { TeamScheduleTable } from '@/db/models/plan/team_schedule'
+import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions'
+import { UnitLoadTable } from '@/db/models/plan/unit_loads'
+import { SettingsTable} from '@/db/models/plan/settings'
 
-import { SupportTable } from '@/pages/db/models/support/support'
-import { BillTable} from '@/pages/db/models/support/bills'
+import { SupportTable } from '@/db/models/support/support'
+import { BillTable} from '@/db/models/support/bills'
 
 
 const host = String(process.env.NEXT_PUBLIC_DB_HOST);

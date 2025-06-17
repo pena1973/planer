@@ -1,4 +1,4 @@
-import { TCardProductItem, TCardOperationItem, TCardItem, StatusEnum } from "@/types";
+import { TCardProductItem, TCardOperationItem, TCardItem, StatusEnum } from "@/types/types";
 
 //  проверка наличия материальных активов
 // алгоритм такой
@@ -14,7 +14,7 @@ export const checkReconcilation = (
   tCardOperationsArg: TCardOperationItem[],
 
 ) => {
-  let tCardProducts = [] as TCardProductItem[];
+  const tCardProducts = [] as TCardProductItem[];
   let tCardOperations = [] as TCardOperationItem[];
   let tCardWastes = [] as TCardProductItem[];
   let tCardMaterials = [] as TCardProductItem[];
@@ -34,7 +34,7 @@ export const checkReconcilation = (
   // если не соответствует беру со склада
   tCardOperations = tCardOperationsArg.map(oper => {
     // просматриваем все oper.inn  и ищем их в outArr и материалах (должно гдето найтись )
-    let updatedInn = [] as TCardProductItem[]
+    const updatedInn = [] as TCardProductItem[]
     // операция, перебираем вход
     oper.inn.forEach(iteminn => {
       let qtuinn = iteminn.qtu; // количество на входе
@@ -49,7 +49,7 @@ export const checkReconcilation = (
       }// количество больше 0 и источник указан  распределяем
       else {
         while (qtuinn > 0) {
-          let itemoutIndex = outArr1.findIndex(itemout => { return (itemout.code === iteminn.code && itemout.idc === iteminn.idc && itemout.qtu > 0) })
+          const itemoutIndex = outArr1.findIndex(itemout => { return (itemout.code === iteminn.code && itemout.idc === iteminn.idc && itemout.qtu > 0) })
 
           // если не нашли - берем со склада
           if (itemoutIndex === -1) {
@@ -58,10 +58,10 @@ export const checkReconcilation = (
             continue;
           }
 
-          let itemout = outArr1[itemoutIndex];
+          const itemout = outArr1[itemoutIndex];
           let qtuout = itemout.qtu
 
-          let thisQtu = Math.min(qtuinn, qtuout)
+          const thisQtu = Math.min(qtuinn, qtuout)
           qtuinn = qtuinn - thisQtu; // убираем учтенное количество из входа
           qtuout = qtuout - thisQtu; // убираем учтенное количество из выхода
 
@@ -109,21 +109,21 @@ export const checkReconcilation = (
   // все что с -  =-  в материалы
 
   // проходим по продуктам и сворачиваем по idс
-  let tCardProductsByID = groupAndSumByIDAndUom(tCardProductsArg);
+  const tCardProductsByID = groupAndSumByIDAndUom(tCardProductsArg);
 
   // а потом прописываем источник  распределяя на несколько разных если он разбит
   tCardProductsByID.forEach(item => {
     let qtu = item.qtu; // все что заказано по этому ИД и что надо распределить по операциям
 
     // отфильтровали позитив(продукты операций) по id - получится массив с источниками
-    let positiveArrByIDproduct = positiveArr.filter(item1 => { return (item1.idc === item.idc && item1.uom.id === item.uom.id) })
+    const positiveArrByIDproduct = positiveArr.filter(item1 => { return (item1.idc === item.idc && item1.uom.id === item.uom.id) })
 
     positiveArrByIDproduct.forEach(item2 => {
       // произведено по этому коду
       let qtuOut = item2.qtu
 
       // то что есть в продуктах и в результате операций
-      let thisQtu = Math.min(qtu, item2.qtu)
+      const thisQtu = Math.min(qtu, item2.qtu)
 
       if (thisQtu > 0) {
         tCardProducts.push({ ...item, qtu: thisQtu, code: item2.code })
@@ -158,7 +158,7 @@ export const checkReconcilation = (
     ...item, qtu: Math.abs(item.qtu)
   }));
 
-  let tCardProducts_ = tCardProducts.sort((a, b) => a.idc - b.idc);
+  const tCardProducts_ = tCardProducts.sort((a, b) => a.idc - b.idc);
 
   // Преобразуем qtu всех элементов в положительное значение
   return { tCardWastesUpdated: tCardWastes, tCardMaterialsUpdated: tCardMaterials, tCardProductsUpdated: tCardProducts_, tCardOperationsUpdated: tCardOperations };

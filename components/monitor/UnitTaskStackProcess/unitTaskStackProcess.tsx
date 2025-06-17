@@ -5,7 +5,7 @@ import styles from "./unitTaskStackProcess.module.scss";
 import {
   CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem,
   TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum
-} from "@/types";
+} from "@/types/types";
 
 import LoadMonitorProcess from "./LoadMonitorProcess/loadMonitorProcess";
 import LoadOperProcess from "./LoadOperProcess/loadOperProcess";

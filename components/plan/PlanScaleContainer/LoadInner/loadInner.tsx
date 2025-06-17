@@ -2,7 +2,7 @@
 import styles from "./loadInner.module.scss";
 
 import Image from 'next/image';
-import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
+import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
 
 // import pinon from "@/public/pin_on-rem.png";
 import pinon from "@/public/point-rem.png";

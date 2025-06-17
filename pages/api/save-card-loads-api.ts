@@ -1,28 +1,26 @@
 
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getTCardOperationsByCardId, getUnitLoads } from './handlers-get';  // расчеты
-import { } from './handlers-plan';  // планирование карты
-import { updateStatusOperationsByOperIds,updateStatusTCard } from './handlers-update';  // 
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { getTCardOperationsByCardId } from '@/handlers/handlers-get';  // расчеты
+import { } from '@/handlers/handlers-plan';  // планирование карты
+import { updateStatusOperationsByOperIds,updateStatusTCard } from '@/handlers/handlers-update';  // 
 
 
 import { Repository, In } from 'typeorm';
 
-import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
-import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule';
-import { TCardTable } from '@/pages/db/models/data/t_cards'
+import { UnitLoadTable } from '@/db/models/plan/unit_loads';
+import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions';
+import { TeamScheduleTable } from '@/db/models/plan/team_schedule';
+import { TCardTable } from '@/db/models/data/t_cards'
 
-import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
+import { UnitTable } from '@/db/models/catalogs/units'
+import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
+import { TCardOperationTable } from '@/db/models/data/t_card_operations'
+import { TCardProductTable } from '@/db/models/data/t_card_products'
 import {getStatusPriority} from "@/utils"
 
-
-import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "@/types";
+import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "@/types/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[];  // запланированные лоады в статусе prepared  по данной карте
@@ -36,19 +34,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
-
-    const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
     const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
-    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-
-
-    
-    
 
     switch (req.method) {
       // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ

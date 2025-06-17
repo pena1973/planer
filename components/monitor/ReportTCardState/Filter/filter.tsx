@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./filter.module.scss";
 import { useTranslation } from 'react-i18next';
-import { StatusEnum } from "@/types";
+import { StatusEnum } from "@/types/types";
 
 
 interface FilterComponentProps {

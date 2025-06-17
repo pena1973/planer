@@ -1,22 +1,14 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { generateTeamNumber, extractIdFromTeamNumber } from '@/utils';
+import connectDb from '@/db/database';  // Импортируем функцию подключения
 
-import { UserTable } from '@/pages/db/models/catalogs/users';
-import { TeamTable } from '@/pages/db/models/catalogs/teams';
-import { UserUnitTable } from '@/pages/db/models/catalogs/user_unit';
-import { UnitTable } from '../db/models/catalogs/units';
-
-import { Repository } from 'typeorm';
-import { UserUnitItem, UserItem } from '@/types';
-import { sign } from 'jsonwebtoken';
-// import { getUser, createNewTeam, createNewUser, getTeam, getLastAgreement } from './handlers-auth';  // расчеты
-import { getUsersUnits, getUsers } from './handlers-get';  // расчеты
-import { updateUsersUnits, updateUsers } from './handlers-update';  // расчеты
-import { deleteUsers } from './handlers-delete';  // расчеты
-
-import { text } from 'stream/consumers';
+import { UserTable } from '@/db/models/catalogs/users';
+import { TeamTable } from '@/db/models/catalogs/teams';
+import { UserUnitTable } from '@/db/models/catalogs/user_unit';
+import { UnitTable } from '@/db/models/catalogs/units';
+import { UserUnitItem, UserItem } from '@/types/types';
+import { getUsersUnits, getUsers } from '@/handlers/handlers-get';  // расчеты
+import { updateUsersUnits, updateUsers } from '@/handlers/handlers-update';  // расчеты
 
 interface RequestBody {
   userId: number,
@@ -34,7 +26,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const usersRepository = dbConnection.getRepository(UserTable);
     const teamsRepository = dbConnection.getRepository(TeamTable);
     const usersUnitsRepository = dbConnection.getRepository(UserUnitTable);
-    const unitsRepository = dbConnection.getRepository(UnitTable);
+    
 
 
 

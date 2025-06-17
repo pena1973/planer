@@ -3,7 +3,7 @@ import {
     TCardItem, UnitLoadItem, ScheduleItem,
     UnitExceptionItem, UserItem,
     TeamItem
-} from '@/types'
+} from '@/types/types'
 
 import { store } from '@/store'
 import {

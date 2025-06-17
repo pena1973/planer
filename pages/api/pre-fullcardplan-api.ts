@@ -1,27 +1,25 @@
 
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
-import { getAllPreparedOperationsIds, planTCardFromOperINC } from './handlers-plan';  // планирование карты
-import { getTCard, getTeamShedule, getExceptions, getTCardFull, getUnitActions } from './handlers-get';  // 
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { getUnits, getUnitLoads } from '@/handlers/handlers-get';  // расчеты
+import { getAllPreparedOperationsIds, planTCardFromOperINC } from '@/handlers/handlers-plan';  // планирование карты
+import { getTeamShedule, getExceptions, getTCardFull, getUnitActions } from '@/handlers/handlers-get';  // 
 
-import { Repository, In } from 'typeorm';
+import { UnitLoadTable } from '@/db/models/plan/unit_loads';
+import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions';
+import { TeamScheduleTable } from '@/db/models/plan/team_schedule';
+import { TCardTable } from '@/db/models/data/t_cards'
 
-import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
-import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule';
-import { TCardTable } from '@/pages/db/models/data/t_cards'
+import { UnitTable } from '@/db/models/catalogs/units'
 
-import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
+import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
+import { TCardOperationTable } from '@/db/models/data/t_card_operations'
+import { TCardProductTable } from '@/db/models/data/t_card_products'
+import { TCardStageTable } from '@/db/models/data/t_card_stages'
 
 
-import { UnitLoadItem, StatusEnum } from "@/types";
+import { UnitLoadItem } from "@/types/types";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // export default async function handler(req: NextApiRequest, res: NextApiResponse) {

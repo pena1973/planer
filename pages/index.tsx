@@ -20,7 +20,7 @@ import {
   TeamItem,
   TemplateItem,
 
-} from "@/types";
+} from "@/types/types";
 
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import Agreement from "@/components/index/Agreement/agreement";

@@ -1,15 +1,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
+import connectDb from '@/db/database';  // Импортируем функцию подключения
 import { generateTeamNumber, extractIdFromTeamNumber } from '@/utils';
 
-import { UserTable } from '@/pages/db/models/catalogs/users';
-import { TeamTable } from '@/pages/db/models/catalogs/teams';
-import { UserAgreeTable } from '@/pages/db/models/catalogs/user_agree';
-import { AgreementTable } from '../db/models/catalogs/agreements';
+import { UserTable } from '@/db/models/catalogs/users';
+import { TeamTable } from '@/db/models/catalogs/teams';
+import { UserAgreeTable } from '@/db/models/catalogs/user_agree';
+import { AgreementTable } from '@/db/models/catalogs/agreements';
 import { Repository } from 'typeorm';
-import { TeamItem, UserItem } from '@/types';
+import { TeamItem, UserItem } from '@/types/types';
 import { sign } from 'jsonwebtoken';
-import { signAgreement } from './handlers-auth';  // расчеты
+import { signAgreement } from '@/handlers/handlers-auth';  // расчеты
 import { text } from 'stream/consumers';
 
 

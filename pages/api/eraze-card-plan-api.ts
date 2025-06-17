@@ -1,29 +1,25 @@
 
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnits, getUnitLoads } from './handlers-get';  // расчеты
-import { getEarliestStart } from './handlers-plan';  // планирование карты
-
-
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { getEarliestStart } from '@/handlers/handlers-plan';  // планирование карты
 import { Repository, In } from 'typeorm';
 
-import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions';
-import { TeamScheduleTable } from '@/pages/db/models/plan/team_schedule';
-import { TCardTable } from '@/pages/db/models/data/t_cards'
+import { UnitLoadTable } from '@/db/models/plan/unit_loads';
+import { TeamScheduleTable } from '@/db/models/plan/team_schedule';
+import { TCardTable } from '@/db/models/data/t_cards'
 
-import { UnitTable } from '@/pages/db/models/catalogs/units'
+import { UnitTable } from '@/db/models/catalogs/units'
 
-import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import { getTCard, getTCardFull } from './handlers-get';  // 
-import { updateStatusTCard } from './handlers-update';  // 
+import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
+import { TCardOperationTable } from '@/db/models/data/t_card_operations'
+import { TCardProductTable } from '@/db/models/data/t_card_products'
+import { getTCard, getTCardFull } from '@/handlers/handlers-get';  // 
+import { updateStatusTCard } from '@/handlers/handlers-update';  // 
 
-import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
+import { TCardStageTable } from '@/db/models/data/t_card_stages'
 
-import { TCardOperationItem, UnitLoadItem, StatusEnum } from "@/types";
+import { TCardOperationItem, UnitLoadItem, StatusEnum } from "@/types/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],

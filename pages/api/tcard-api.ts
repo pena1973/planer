@@ -1,19 +1,16 @@
 // Это вариант АПИ по обработке карты оптимизированный того что без 1 в имени, потом надо остальное переделать
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { Repository } from 'typeorm';
+import connectDb from '@/db/database';  // Импортируем функцию подключения
 
-import { TCardTable } from '@/pages/db/models/data/t_cards'
-import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
-import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
+import { TCardTable } from '@/db/models/data/t_cards'
+import { TCardStageTable } from '@/db/models/data/t_card_stages'
+import { TCardOperationTable } from '@/db/models/data/t_card_operations'
+import { TCardProductTable } from '@/db/models/data/t_card_products'
+import { TeamTable } from '@/db/models/catalogs/teams'
+import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
+import { UnitLoadTable } from '@/db/models/plan/unit_loads'
 
-import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads'
-
-// import { TypeEnum } from '@/pages/db/models/enums';
 import {
   TCardItem, TCardProductItem,
   TCardOperationItem, TCardStageItem,
@@ -22,12 +19,13 @@ import {
   UnitLoadItem,
   UnitTypeEnum,
   UnitBelongEnum
-} from '@/types';
-import { getTCardFull, getTCardLoads, getUnitActions } from './handlers-get';  // 
-import { updateCard, updateStages, updateOperations, updateProducts, updateTCardLoads, updateStatusTCard, updateStatusOperationByTCardId, updateStatusOperationsByOperIds } from './handlers-update';  // 
+} from '@/types/types';
+import { getTCardFull, getTCardLoads, getUnitActions } from '@/handlers/handlers-get';  // 
+import { updateCard, updateStages, updateOperations, 
+  updateProducts, updateTCardLoads, updateStatusTCard, 
+  updateStatusOperationByTCardId } from '@/handlers/handlers-update';  // 
 
-import { t } from 'i18next';
-import { TypeEnum } from '@/types';
+import { TypeEnum } from '@/types/types';
 // Определение перечисления
 
 interface RequestBody {

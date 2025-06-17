@@ -1,12 +1,12 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getSettings } from './handlers-get';  // расчеты
-import { updateSettings } from './handlers-update';  // расчеты
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { getSettings } from '@/handlers/handlers-get';  // расчеты
+import { updateSettings } from '@/handlers/handlers-update';  // расчеты
 
-import { SettingsTable} from '@/pages/db/models/plan/settings'
+import { SettingsTable} from '@/db/models/plan/settings'
 
-import { UnitItem, SettingsItem } from '@/types';
+import { SettingsItem } from '@/types/types';
 
 interface RequestBody {
   userId:number,

@@ -1,7 +1,6 @@
 
 
-import { CalendarItem, UnitCalendarItem,UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
-import { UnitTable } from "../db/models/catalogs/units";
+import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "@/types/types";
 
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
 const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {

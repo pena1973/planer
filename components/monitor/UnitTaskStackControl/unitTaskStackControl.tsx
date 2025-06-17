@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./unitTaskStackControl.module.scss";
-import { UnitLoadItem, UnitItem, TCardItem, TCardOperationItem, StatusEnum } from "@/types";
+import { UnitLoadItem, UnitItem, TCardItem, TCardOperationItem, StatusEnum } from "@/types/types";
 import LoadMonitorControl from "./LoadMonitorControl/loadMonitorControl";
 import LoadOperControl from "./LoadOperControl/loadOperControl";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";

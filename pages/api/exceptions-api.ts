@@ -1,13 +1,12 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getExceptions } from './handlers-get';  // расчеты
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { getExceptions } from '@/handlers/handlers-get';  // расчеты
 
-import { Repository, In } from 'typeorm';
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
+import { TeamTable } from '@/db/models/catalogs/teams'
+import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions'
 
-import { UnitItem, UnitExceptionItem } from '@/types';
+import {  UnitExceptionItem } from '@/types/types';
 
 interface RequestBody {
   exceptions: UnitExceptionItem

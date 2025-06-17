@@ -1,5 +1,5 @@
 
-import { CalendarItem, TCardContent, StatusEnum,  ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types";
+import { CalendarItem, TCardContent, StatusEnum,  ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types/types";
 
 export const fillGaps = (dataStart: number, loading: { name: string, start: number, finish: number }[]) => {
   let timeLScale = [] as { loaded: boolean, name: string, start: number, finish: number }[]

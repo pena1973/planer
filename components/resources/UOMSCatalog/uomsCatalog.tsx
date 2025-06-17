@@ -1,7 +1,7 @@
 
 import styles from "./uomsCatalog.module.scss";
 
-import { UOMItem } from '@/types'
+import { UOMItem } from '@/types/types'
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 
@@ -11,10 +11,6 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { setUOMs, } from '@/store/slices'
-
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
@@ -49,11 +45,9 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [uomsValue, setUomsValue] = useState([] as UOMItem[]);
-
-// eslint-disable-next-line react-hooks/exhaustive-deps
+    
     useEffect(() => {
-        setUomsValue(uoms);
-       
+        setUomsValue(uoms);       
     }, []);
 
     // колбеки кнопки
@@ -155,9 +149,6 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
         setUomsValue([...uoms]);
         setModified(false)
     };
-
-
-
 
     const uomsValueReactNodes = uomsValue.map((uom, index) => (
         (

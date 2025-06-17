@@ -3,7 +3,7 @@ import styles from "./usersCatalog.module.scss";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import DropdownSelectUnit from "./DropdownSelectUnit/dropdownSelectUnit";
 
-import { TeamItem, UserUnitItem, UserItem } from '@/types'
+import { TeamItem, UserUnitItem, UserItem } from '@/types/types'
 import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";

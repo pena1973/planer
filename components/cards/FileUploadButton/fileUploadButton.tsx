@@ -2,7 +2,7 @@
 import React, { useState, } from "react";
 import styles from './fileUploadButton.module.scss';
 import { generateUniqueId,calculateMaxIdc,validateFileContent } from "@/utils"
-import { TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem } from "@/types"; // Импортируем нужные типы
+import { TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem } from "@/types/types"; // Импортируем нужные типы
 
 import { useTranslation } from 'react-i18next';
 

@@ -1,6 +1,6 @@
 
 import styles from "./tCardProduct.module.scss";
-import { UOMItem, StatusEnum } from '@/types'
+import { UOMItem, StatusEnum } from '@/types/types'
 
 import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
 // import Image from 'next/image';

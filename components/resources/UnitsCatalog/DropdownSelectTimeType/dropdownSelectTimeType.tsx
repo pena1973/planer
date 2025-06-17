@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './dropdownSelectTimeType.module.scss';
-import { TimeTypeEnum } from '@/types';
+import { TimeTypeEnum } from '@/types/types';
 
 // Определение типов для пропсов компонента
 interface DropdownSelectTimeTypeProps {

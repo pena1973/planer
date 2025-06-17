@@ -1,6 +1,6 @@
 
 import styles from "./tCardProducts.module.scss";
-import { TCardOperationItem, TCardProductItem, UOMItem } from '@/types'
+import { TCardOperationItem, TCardProductItem, UOMItem } from '@/types/types'
 import Image from 'next/image';
 
 import TCardProduct from "@/components/cards/TCardProduct/tCardProduct";

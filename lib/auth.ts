@@ -14,15 +14,6 @@ export function createRefreshToken(payload: object) {
   return sign(payload, REFRESH_SECRET, { expiresIn: '7d' })
 }
 
-// export function verifyAccessToken(token: string) {
-//   try {
-//     return verify(token, ACCESS_SECRET)
-//   } catch {
-//     return null
-//   }
-// }
-
-
 export function verifyAccessToken(token: string): MyJwtPayload | null {
   try {
     return verify(token, ACCESS_SECRET) as MyJwtPayload;

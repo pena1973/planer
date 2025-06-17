@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./unitTaskStackOutsource.module.scss";
-import { UnitLoadItem, TCardItem, StatusEnum } from "@/types";
+import { UnitLoadItem, TCardItem, StatusEnum } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 
 

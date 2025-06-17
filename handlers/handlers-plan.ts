@@ -4,7 +4,7 @@ import {
   CalendarItem, TimeTypeEnum, StatusEnum,
   UnitItem, ScheduleItem, DaysOfWeek, UnitBelongEnum,
   UnitActionItem
-} from "@/types";
+} from "@/types/types";
 
 // функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
 const getLoadIdc = (

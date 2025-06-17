@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./agreement.module.scss";
-import { UnitKPIItem, StatusEnum, TCardTermsItem, UnitItem,UserItem } from "@/types";
+import { UnitKPIItem, StatusEnum, TCardTermsItem, UnitItem,UserItem } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';

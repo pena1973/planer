@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from "./supportMessages.module.scss";
-import { SupportMessageItem } from "@/types";
+import { SupportMessageItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import { SupportMessage } from './SupportMessage/supportMessage';
 

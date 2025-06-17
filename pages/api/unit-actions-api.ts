@@ -1,17 +1,16 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnitActions } from './handlers-get';  // расчеты
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { getUnitActions } from '@/handlers/handlers-get';  // расчеты
+import { TeamTable } from '@/db/models/catalogs/teams'
+import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
 
-import { Repository, In } from 'typeorm';
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-
-import { UnitItem, UnitExceptionItem } from '@/types';
+import { UnitExceptionItem } from '@/types/types';
 
 interface RequestBody {
   exceptions: UnitExceptionItem
 }
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

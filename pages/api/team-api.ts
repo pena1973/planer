@@ -1,13 +1,11 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getSettings } from './handlers-get';  // расчеты
+import connectDb from '@/db/database';  // Импортируем функцию подключения
 
 import { Repository, In } from 'typeorm';
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { SettingsTable } from '@/pages/db/models/plan/settings'
+import { TeamTable } from '@/db/models/catalogs/teams'
 
-import { TeamItem } from '@/types';
+import { TeamItem } from '@/types/types';
 
 interface RequestBody {
   teamId:number,

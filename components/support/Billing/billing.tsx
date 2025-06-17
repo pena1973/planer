@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./billing.module.scss";
-import { BillItem } from "@/types";
+import { BillItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 

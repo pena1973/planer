@@ -1,10 +1,9 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { TCardTable } from '@/pages/db/models/data/t_cards';
-import { getRepository } from 'typeorm';
-import { getTCards, } from './handlers-get';  // 
-import { StatusEnum } from '@/types';
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { TCardTable } from '@/db/models/data/t_cards';
+import { getTCards, } from '@/handlers/handlers-get';  // 
+import { StatusEnum } from '@/types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 // export default async function handler(req: NextApiRequest, res: NextApiResponse) { 

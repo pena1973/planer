@@ -1,12 +1,10 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { updateUOMS } from './handlers-update';  // расчеты
-
-import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
-import { Code, Repository } from 'typeorm';
-import { UOMItem } from '@/types';
-import { getUOMs } from './handlers-get';  // расчеты
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { updateUOMS } from '@/handlers/handlers-update';  // расчеты
+import { UOMsTable } from '@/db/models/catalogs/uoms';
+import { UOMItem } from '@/types/types';
+import { getUOMs } from '@/handlers/handlers-get';  // расчеты
 
 interface RequestBody {
   userId:number,

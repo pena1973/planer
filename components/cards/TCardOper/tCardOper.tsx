@@ -1,6 +1,6 @@
 import { useAppDispatch } from "@/pages/_app";
 import styles from "./tCardOper.module.scss";
-import { TCardOperationItem, StatusEnum } from '@/types'
+import { TCardOperationItem, StatusEnum } from '@/types/types'
 import { convertMillisecondsToTime} from '@/utils'
 import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
 

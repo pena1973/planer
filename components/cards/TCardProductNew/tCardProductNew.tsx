@@ -4,7 +4,7 @@ import { RootState,
     // useAppDispatch 
 } from "@/pages/_app";
 import styles from "./tCardProductNew.module.scss";
-import { UOMItem } from '@/types'
+import { UOMItem } from '@/types/types'
 import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM';
 
 import Image from 'next/image';

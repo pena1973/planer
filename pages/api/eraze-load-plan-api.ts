@@ -1,18 +1,18 @@
 
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getDependentOperationsIds, getEarliestStart, } from './handlers-plan';  // планирование карты
-import { getTCard, getTCardFull } from './handlers-get';  // 
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { getDependentOperationsIds } from '@/handlers/handlers-plan';  // планирование карты
+import { getTCardFull } from '@/handlers/handlers-get';  // 
 
 
-import { TCardTable } from '@/pages/db/models/data/t_cards'
-import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import { TCardStageTable } from '@/pages/db/models/data/t_card_stages'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
+import { TCardTable } from '@/db/models/data/t_cards'
+import { TCardOperationTable } from '@/db/models/data/t_card_operations'
+import { TCardProductTable } from '@/db/models/data/t_card_products'
+import { TCardStageTable } from '@/db/models/data/t_card_stages'
+import { UnitLoadTable } from '@/db/models/plan/unit_loads';
 
-import { TCardProductItem, TCardOperationItem, UnitLoadItem, StatusEnum, } from "@/types";
+import { TCardProductItem, TCardOperationItem, UnitLoadItem, StatusEnum, } from "@/types/types";
 
 import { Repository, In } from 'typeorm';
 

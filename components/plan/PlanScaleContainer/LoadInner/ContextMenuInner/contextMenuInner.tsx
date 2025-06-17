@@ -5,7 +5,7 @@ import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { padNumberToFourDigits, } from "@/utils"
 import Image from 'next/image';
 import eraz from "@/public/erazer1-rem.png";
-import { TCardItem, UnitLoadItem } from "@/types";
+import { TCardItem, UnitLoadItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 
 export interface ContexMenuInnerProps {

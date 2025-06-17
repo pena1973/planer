@@ -3,7 +3,7 @@ import {
     TCardItem,  UnitLoadItem, ScheduleItem,
     UnitExceptionItem, UnitActionItem, UserItem,
     TeamItem,TemplateItem
-} from '@/types';
+} from '@/types/types';
 
 import { createSlice } from '@reduxjs/toolkit';
 

@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./reportUnitsKPI.module.scss";
 import Filter from "./Filter/filter";
-import { UnitKPIItem, UnitItem } from "@/types";
+import { UnitKPIItem, UnitItem } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { useTranslation } from 'react-i18next';
 

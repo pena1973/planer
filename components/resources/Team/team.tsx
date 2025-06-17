@@ -1,7 +1,7 @@
 
 import styles from "./team.module.scss";
 
-import { TeamItem, UserItem } from '@/types'
+import { TeamItem, UserItem } from '@/types/types'
 import { generateTeamNumber } from '@/utils'
 
 import Image from 'next/image';

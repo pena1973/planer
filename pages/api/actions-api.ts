@@ -1,12 +1,12 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
+import connectDb from '@/db/database';  // Импортируем функцию подключения
 
-import { ActionTable } from '@/pages/db/models/catalogs/actions';
+import { ActionTable } from '@/db/models/catalogs/actions';
 import { Repository } from 'typeorm';
-import { ActionItem } from '@/types';
-import { getActions } from './handlers-get';  
-import { updateActions } from './handlers-update';  
+import { ActionItem } from '@/types/types';
+import { getActions } from '@/handlers/handlers-get';  
+import { updateActions } from '@/handlers/handlers-update';  
 
 interface RequestBody {
   userId:number,

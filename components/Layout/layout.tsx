@@ -5,19 +5,6 @@ import styles from "./layout.module.scss";
 import { logout } from '@/lib/logout'
 import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
 import CookieBanner from '@/components/CookieBanner/сookieBanner'
-// import {
-//     UOMItem, ActionItem, UnitItem, SettingsItem,
-//     TCardItem, UnitLoadItem, ScheduleItem,
-//     UnitExceptionItem, UserItem,
-//     TeamItem
-// } from '@/types'
-
-// import {
-//     setTeam, setToken, setUser,
-//     setUnitExceptions, setActions,
-//     setUOMs, setUnits, setTCards,
-//     setSettings, setSchedule, setUnitLoads, setTCardIndex
-// } from '@/store/slices'
 
 import Head from "next/head";
 import Image from 'next/image';

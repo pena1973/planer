@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, OneToMany, } from 'typeorm';
 import { TCardTable } from './t_cards'; // Импортируем зависимую сущность
-import { UOMsTable } from '@/pages/db/models/catalogs/uoms';
+import { UOMsTable } from '../../models/catalogs/uoms';
 
-import { TypeEnum } from '@/types';
+import { TypeEnum } from '@/types/types';
 
 import { TCardOperationTable } from './t_card_operations'; // Импортируем зависимую сущность
 

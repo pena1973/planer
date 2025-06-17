@@ -19,8 +19,20 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
 import { } from '@/store/slices';
-import { UOMItem, ProductContent, OperationContent, TCardContent, TCardProductItem, ActionItem, TCardOperationItem, TCardItem, TCardStageItem, StatusEnum, TemplateItem, UnitLoadItem } from "@/types";
-import { checkReconcilation } from "@/cardsHandlers";
+import {
+  ProductContent,
+  OperationContent,
+  TCardContent,
+  TCardProductItem,
+  ActionItem,
+  TCardOperationItem,
+  TCardItem,
+  TCardStageItem,
+  StatusEnum,
+  TemplateItem,
+  UnitLoadItem
+} from "@/types/types";
+import { checkReconcilation } from "@/lib/cardsHandlers";
 
 import { setTCards, setTCardIndex, setTemplates, setUnitLoads } from '@/store/slices'
 
@@ -862,6 +874,7 @@ export default function Cards() {
     // setSelectLoaderCard(NaN);
     setResetLoaderCard(NaN)
   };
+
   // Установка коментария в карту
   const setComentTCardHandler = (coment: string) => {
     // Обновляем карту в стейте и в redux

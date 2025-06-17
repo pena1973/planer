@@ -1,7 +1,7 @@
 
 import styles from "./loadMonitorControl.module.scss";
 import Image from 'next/image';
-import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
+import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
 
 export interface LoadMonitorControlProps {
     loadHeight: number,

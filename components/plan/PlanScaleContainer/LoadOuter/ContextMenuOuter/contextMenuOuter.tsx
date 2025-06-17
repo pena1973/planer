@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from "react";
 
 import eraz from "@/public/erazer1-rem.png";
 import save from "@/public/save-rem.png";
-import { StatusEnum, TCardItem, UnitLoadItem, } from "@/types";
+import { StatusEnum, TCardItem, UnitLoadItem, } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 
 export interface ContexMenuOuterProps {

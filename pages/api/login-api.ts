@@ -1,16 +1,16 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
+import connectDb from '@/db/database';  // Импортируем функцию подключения
 
-import { UserTable } from '@/pages/db/models/catalogs/users';
-import { TeamTable } from '@/pages/db/models/catalogs/teams';
-import { UserAgreeTable } from '@/pages/db/models/catalogs/user_agree';
-import { AgreementTable } from '../db/models/catalogs/agreements';
-import { UserUnitTable } from '../db/models/catalogs/user_unit';
+import { UserTable } from '@/db/models/catalogs/users';
+import { TeamTable } from '@/db/models/catalogs/teams';
+import { UserAgreeTable } from '@/db/models/catalogs/user_agree';
+import { AgreementTable } from '@/db/models/catalogs/agreements';
+import { UserUnitTable } from '@/db/models/catalogs/user_unit';
 
-import { UserItem } from '@/types';
+import { UserItem } from '@/types/types';
 import { createAccessToken, createRefreshToken } from '@/lib/auth'
-import { getUser, getTeam, getLastAgreement } from './handlers-auth';  // расчеты
-import { getUsersUnits } from './handlers-get';  // расчеты
+import { getUser, getTeam, getLastAgreement } from '@/handlers/handlers-auth';  // расчеты
+import { getUsersUnits } from '@/handlers/handlers-get';  // расчеты
 
 
 interface RequestBody {

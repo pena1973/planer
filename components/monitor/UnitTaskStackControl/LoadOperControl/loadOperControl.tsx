@@ -1,7 +1,7 @@
 
 import styles from "./loadOperControl.module.scss";
 import Image from 'next/image';
-import { StatusEnum, UnitLoadItem, TCardOperationItem, UnitItem, TCardItem } from "@/types";
+import { StatusEnum, UnitLoadItem, TCardOperationItem, UnitItem, TCardItem } from "@/types/types";
 import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
 
 import cancel from "@/public/cancel.png";

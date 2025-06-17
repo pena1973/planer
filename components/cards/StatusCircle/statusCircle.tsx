@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusEnum } from '@/types'; 
+import { StatusEnum } from '@/types/types'; 
 import styles from "./statusCircle.module.scss";
 
 

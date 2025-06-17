@@ -1,12 +1,9 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database'; // Подключение к базе данных
-import { TemplateTable } from '@/pages/db/models/catalogs/templates';
-import { Repository } from 'typeorm';
-import { TemplateItem } from '@/types'; // Ваш тип TCardItem для работы с шаблонами
-import fs from 'fs';
-import path from 'path';
-import { updateTemplates } from './handlers-update';  // расчеты
+import connectDb from '@/db/database'; // Подключение к базе данных
+import { TemplateTable } from '@/db/models/catalogs/templates';
+import { TemplateItem } from '@/types/types'; 
+import { updateTemplates } from '@/handlers/handlers-update';  
 
 
 

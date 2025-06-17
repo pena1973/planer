@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import styles from "./reportTCardState.module.scss";
-import { StatusEnum, TCardTermsItem, UnitLoadItem } from "@/types";
+import { StatusEnum, TCardTermsItem, UnitLoadItem } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import Filter from "./Filter/filter";
 
@@ -16,7 +16,6 @@ interface ReportTCardStateProps {
   userId: number,
   token: string
 }
-
 
 const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   setMessage,
@@ -35,149 +34,149 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
 
   const [showLoader, setShowLoader] = useState(false);
 
-  // const getTCardsTerms = async (
-  //   useNumber?: boolean,
-  //   useDate?: boolean,
-  //   useStatus?: boolean,
-  //   tCardNumber?: number,
-  //   tCardDateFrom?: string,
-  //   tCardDateTo?: string,
-  //   tCardStatus?: StatusEnum | "",) => {
+  const getTCardsTerms = async (
+    useNumber?: boolean,
+    useDate?: boolean,
+    useStatus?: boolean,
+    tCardNumber?: number,
+    tCardDateFrom?: string,
+    tCardDateTo?: string,
+    tCardStatus?: StatusEnum | "",) => {
 
-  //   setShowLoader(true);
-
-  //   let filter = "";
-  //   // фильтр
-  //   if (useNumber && tCardNumber) filter = filter.concat(`&tCardNumber=${tCardNumber}`)
-  //   if ((useDate) && (tCardDateFrom)) filter = filter.concat(`&tCardDateFrom=${tCardDateFrom}`)
-  //   if ((useDate) && (tCardDateTo)) filter = filter.concat(`&tCardDateTo=${tCardDateTo}`)
-  //   if (useStatus) filter = filter.concat(`&tCardStatus=${tCardStatus}`)
-
-  //   try {
-  //     const res = await fetch(`api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
-  //       {
-  //         method: 'get',
-  //         headers: new Headers({
-  //           'Authorization': 'Basic ' + token,
-  //           'Content-Type': 'application/json'
-  //         }),
-  //       }
-  //     );
-  //     if (res.status !== 200) {
-  //       const receivedData = await res.json();
-  //       const error = receivedData.error;
-  //       //  console.log(t('service.serverUnavailable') + res.status);
-  //       setMessage(t('service.serverUnavailable') + error);
-  //     } else {
-  //       const receivedData = await res.json();
-  //       // console.log("receivedData", receivedData)
-
-  //       if (receivedData.success) {
-  //         setUnitLoadsValue(receivedData.unitLoadItems as UnitLoadItem[]); // лоады по операциям
-  //         setTCardsValue(receivedData.tCards as TCardTermsItem[]); //  получаем карту с операциями
-  //         setMessage(receivedData.message);
-  //       }
-  //     }
-
-  //     // } catch (e: any) {
-  //     //   setMessage(t('service.serverUnavailable') + e.message)
-  //     // }
-  //   } catch (e: unknown) {
-  //     let message = t('service.serverUnavailable');
-  //     if (e instanceof Error) {
-  //       message += e.message;
-  //     }
-  //     setMessage(message);
-  //   }
-
-  //   setShowLoader(false);
-  // }
-
-  const getTCardsTerms = useCallback(async (params?: {
-    useNumber?: boolean;
-    useDate?: boolean;
-    useStatus?: boolean;
-    tCardNumber?: number;
-    tCardDateFrom?: string;
-    tCardDateTo?: string;
-    tCardStatus?: StatusEnum | "";
-  }) => {
     setShowLoader(true);
 
-    const {
-      useNumber = false,
-      useDate = false,
-      useStatus = false,
-      tCardNumber,
-      tCardDateFrom,
-      tCardDateTo,
-      tCardStatus,
-    } = params || {};
-
     let filter = "";
-    if (useNumber && tCardNumber) filter += `&tCardNumber=${tCardNumber}`;
-    if (useDate && tCardDateFrom) filter += `&tCardDateFrom=${tCardDateFrom}`;
-    if (useDate && tCardDateTo) filter += `&tCardDateTo=${tCardDateTo}`;
-    if (useStatus) filter += `&tCardStatus=${tCardStatus}`;
+    // фильтр
+    if (useNumber && tCardNumber) filter = filter.concat(`&tCardNumber=${tCardNumber}`)
+    if ((useDate) && (tCardDateFrom)) filter = filter.concat(`&tCardDateFrom=${tCardDateFrom}`)
+    if ((useDate) && (tCardDateTo)) filter = filter.concat(`&tCardDateTo=${tCardDateTo}`)
+    if (useStatus) filter = filter.concat(`&tCardStatus=${tCardStatus}`)
 
     try {
-      const res = await fetch(
-        `api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
+      const res = await fetch(`api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
         {
-          method: "get",
+          method: 'get',
           headers: new Headers({
-            Authorization: "Basic " + token,
-            "Content-Type": "application/json",
+            'Authorization': 'Basic ' + token,
+            'Content-Type': 'application/json'
           }),
         }
       );
-
-      const data = await res.json();
-
       if (res.status !== 200) {
-        setMessage(t("service.serverUnavailable") + data.error);
-      } else if (data.success) {
-        setUnitLoadsValue(data.unitLoadItems as UnitLoadItem[]);
-        setTCardsValue(data.tCards as TCardTermsItem[]);
-        setMessage(data.message);
+        const receivedData = await res.json();
+        const error = receivedData.error;
+        //  console.log(t('service.serverUnavailable') + res.status);
+        setMessage(t('service.serverUnavailable') + error);
+      } else {
+        const receivedData = await res.json();
+        // console.log("receivedData", receivedData)
+
+        if (receivedData.success) {
+          setUnitLoadsValue(receivedData.unitLoadItems as UnitLoadItem[]); // лоады по операциям
+          setTCardsValue(receivedData.tCards as TCardTermsItem[]); //  получаем карту с операциями
+          setMessage(receivedData.message);
+        }
       }
+
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
     } catch (e: unknown) {
-      let message = t("service.serverUnavailable");
-      if (e instanceof Error) message += e.message;
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
       setMessage(message);
     }
 
     setShowLoader(false);
-  }, [
-    userId,
-    teamId,
-    token,
-    t,
-    setMessage,
-    setShowLoader,
-    setUnitLoadsValue,
-    setTCardsValue,
-  ]);
-  // Адаптер — создаём совместимую с <Filter /> обёртку:
-  const callGetTCardsTermsLegacy = useCallback((
-    useNumber: boolean,
-    useDate: boolean,
-    useStatus: boolean,
-    tCardNumber: number,
-    tCardDateFrom: string,
-    tCardDateTo: string,
-    tCardStatus: StatusEnum | ""
-  ) => {
-    getTCardsTerms({
-      useNumber,
-      useDate,
-      useStatus,
-      tCardNumber,
-      tCardDateFrom,
-      tCardDateTo,
-      tCardStatus,
-    });
-  }, [getTCardsTerms]);
+  }
+
+  // const getTCardsTerms = useCallback(async (params?: {
+  //   useNumber?: boolean;
+  //   useDate?: boolean;
+  //   useStatus?: boolean;
+  //   tCardNumber?: number;
+  //   tCardDateFrom?: string;
+  //   tCardDateTo?: string;
+  //   tCardStatus?: StatusEnum | "";
+  // }) => {
+  //   setShowLoader(true);
+
+  //   const {
+  //     useNumber = false,
+  //     useDate = false,
+  //     useStatus = false,
+  //     tCardNumber,
+  //     tCardDateFrom,
+  //     tCardDateTo,
+  //     tCardStatus,
+  //   } = params || {};
+
+  //   let filter = "";
+  //   if (useNumber && tCardNumber) filter += `&tCardNumber=${tCardNumber}`;
+  //   if (useDate && tCardDateFrom) filter += `&tCardDateFrom=${tCardDateFrom}`;
+  //   if (useDate && tCardDateTo) filter += `&tCardDateTo=${tCardDateTo}`;
+  //   if (useStatus) filter += `&tCardStatus=${tCardStatus}`;
+
+  //   try {
+  //     const res = await fetch(
+  //       `api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
+  //       {
+  //         method: "get",
+  //         headers: new Headers({
+  //           Authorization: "Basic " + token,
+  //           "Content-Type": "application/json",
+  //         }),
+  //       }
+  //     );
+
+  //     const data = await res.json();
+
+  //     if (res.status !== 200) {
+  //       setMessage(t("service.serverUnavailable") + data.error);
+  //     } else if (data.success) {
+  //       setUnitLoadsValue(data.unitLoadItems as UnitLoadItem[]);
+  //       setTCardsValue(data.tCards as TCardTermsItem[]);
+  //       setMessage(data.message);
+  //     }
+  //   } catch (e: unknown) {
+  //     let message = t("service.serverUnavailable");
+  //     if (e instanceof Error) message += e.message;
+  //     setMessage(message);
+  //   }
+
+  //   setShowLoader(false);
+  // }, [
+  //   userId,
+  //   teamId,
+  //   token,
+  //   t,
+  //   setMessage,
+  //   setShowLoader,
+  //   setUnitLoadsValue,
+  //   setTCardsValue,
+  // ]);
+  // // Адаптер — создаём совместимую с <Filter /> обёртку:
+  // const callGetTCardsTermsLegacy = useCallback((
+  //   useNumber: boolean,
+  //   useDate: boolean,
+  //   useStatus: boolean,
+  //   tCardNumber: number,
+  //   tCardDateFrom: string,
+  //   tCardDateTo: string,
+  //   tCardStatus: StatusEnum | ""
+  // ) => {
+  //   getTCardsTerms({
+  //     useNumber,
+  //     useDate,
+  //     useStatus,
+  //     tCardNumber,
+  //     tCardDateFrom,
+  //     tCardDateTo,
+  //     tCardStatus,
+  //   });
+  // }, [getTCardsTerms]);
 
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -365,7 +364,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   return (
     <div className={styles.container}>
       <Filter
-        getTCardsTerms={callGetTCardsTermsLegacy}
+        getTCardsTerms={getTCardsTerms}
         teamId={teamId}
         userId={userId}
       />

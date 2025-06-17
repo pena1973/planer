@@ -1,7 +1,7 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
-import { DaysOfWeek,TimeZoneEnum } from "@/types"; // Подключаем сущность для связи
+import { DaysOfWeek,TimeZoneEnum } from "@/types/types"; // Подключаем сущность для связи
 
 
 @Entity("team_schedule")

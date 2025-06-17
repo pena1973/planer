@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useEffect, useState } from "react";
 
-import { UnitBelongEnum, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types'
+import { UnitBelongEnum, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types/types'
 
 import Image from 'next/image';
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSelector } from 'react-redux';
 import { RootState } from "@/pages/_app";
 import styles from "./tCardOperNew.module.scss";
-import { TCardOperationItem, TCardProductItem, ActionItem,  } from '@/types'
+import { TCardOperationItem, TCardProductItem, ActionItem,  } from '@/types/types'
 import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
 import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/utils'
 

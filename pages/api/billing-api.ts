@@ -1,10 +1,8 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { BillTable } from '@/pages/db/models/support/bills';
-
-import { BillItem } from '@/types';
-import { getBills } from './handlers-get';  // расчеты
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { BillTable } from '@/db/models/support/bills';
+import { getBills } from '@/handlers/handlers-get';  // расчеты
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {

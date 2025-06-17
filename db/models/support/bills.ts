@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
+import { TeamTable } from '../../models/catalogs/teams'
 
 @Entity("bills")
 export class BillTable {

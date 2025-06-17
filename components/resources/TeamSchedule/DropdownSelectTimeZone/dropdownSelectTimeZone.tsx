@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from './dropdownSelectTimeZone.module.scss';
-import { TimeZoneEnum } from '@/types';
+import { TimeZoneEnum } from '@/types/types';
 
 // Определение типов для пропсов компонента
 interface DropdownSelectTimeZoneProps {

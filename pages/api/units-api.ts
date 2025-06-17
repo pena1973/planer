@@ -1,16 +1,13 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { getUnits } from './handlers-get';  // расчеты
-import { updateUnits,updateUnitActions, updateExceptions} from './handlers-update';  // расчеты
-import { Repository, In } from 'typeorm';
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { getUnits } from '@/handlers/handlers-get';  
+import { updateUnits,updateUnitActions, updateExceptions} from '@/handlers/handlers-update';  
+import { UnitTable } from '@/db/models/catalogs/units'
+import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
+import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions'
 
-import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UnitActionTable } from '@/pages/db/models/catalogs/unit_actions'
-import { UnitExceptionTable } from '@/pages/db/models/plan/unit_exceptions'
-
-import { UnitItem, UnitActionItem, UnitExceptionItem } from '@/types';
+import { UnitItem, UnitActionItem, UnitExceptionItem } from '@/types/types';
 
 interface RequestBody {
   userId: number,

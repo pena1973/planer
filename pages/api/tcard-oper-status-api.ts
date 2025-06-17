@@ -1,18 +1,20 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { Repository } from 'typeorm';
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { TCardTable } from '@/db/models/data/t_cards'
+import { TCardOperationTable } from '@/db/models/data/t_card_operations'
 
-import { TCardTable } from '@/pages/db/models/data/t_cards'
-import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
+import { UnitLoadTable } from '@/db/models/plan/unit_loads';
 
-import { TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, UnitLoadItem, StatusEnum } from '@/types';
+import { TCardOperationItem, StatusEnum } from '@/types/types';
 
-import { updateStatusOperationByOperId, updateStatusLoads, updateStatusTCard } from '@/pages/api/handlers-update';
-import { getTCard, getTCardOperationsByCardId, getTCardOperationLoads } from '@/pages/api/handlers-get';
-import { getStatusPriority } from "@/utils"
+import { updateStatusOperationByOperId, updateStatusLoads, 
+  updateStatusTCard } from '@/handlers/handlers-update';
+
+  import { getTCard, getTCardOperationsByCardId, 
+  getTCardOperationLoads } from '@/handlers/handlers-get';
+
+  import { getStatusPriority } from "@/utils"
 
 interface RequestBody {
   tCardId: number,

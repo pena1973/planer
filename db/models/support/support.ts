@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UserTable } from '@/pages/db/models/catalogs/users'
+import { TeamTable } from '../../models/catalogs/teams'
+import { UserTable } from '../../models/catalogs/users'
 
 @Entity("support")
 export class SupportTable {

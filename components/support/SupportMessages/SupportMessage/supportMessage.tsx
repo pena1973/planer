@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./supportMessage.module.scss";
-import { SupportMessageItem } from "@/types";
+import { SupportMessageItem } from "@/types/types";
 
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 

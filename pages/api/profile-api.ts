@@ -1,11 +1,11 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { UserTable } from '@/pages/db/models/catalogs/users';
+import connectDb from '@/db/database';  // Импортируем функцию подключения
+import { UserTable } from '@/db/models/catalogs/users';
 
-import { UserItem } from '@/types';
+import { UserItem } from '@/types/types';
 
-import { updateUser  } from './handlers-auth';  // расчеты
+import { updateUser  } from '@/handlers/handlers-auth';  // расчеты
 
 interface RequestBody {
   userId: number,

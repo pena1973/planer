@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import styles from './dropdownSelectUnit.module.scss';
-import { UnitItem } from '@/types';  // Путь к типу UnitItem
+import { UnitItem } from '@/types/types';  // Путь к типу UnitItem
 
 // Определение типов для пропсов компонента
 interface DropdownSelectUnitProps {

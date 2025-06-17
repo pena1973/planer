@@ -1,7 +1,7 @@
 
 import styles from "./templatesCatalog.module.scss";
 
-import { TemplateItem } from '@/types'
+import { TemplateItem } from '@/types/types'
 import Image from 'next/image';
 
 import { useEffect, useState } from "react";

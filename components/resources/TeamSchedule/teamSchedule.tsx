@@ -4,7 +4,7 @@ import styles from "./teamSchedule.module.scss";
 import DropdownSelectWeekDay from "./DropdownSelectWeekDay/dropdownSelectWeekDay";
 import DropdownSelectTimeZone from "./DropdownSelectTimeZone/dropdownSelectTimeZone";
 
-import { DaysOfWeek, TeamItem, ScheduleItem, TimeZoneEnum } from '@/types'
+import { DaysOfWeek, TeamItem, ScheduleItem, TimeZoneEnum } from '@/types/types'
 import Image from 'next/image';
 
 import { useEffect, useState } from "react";

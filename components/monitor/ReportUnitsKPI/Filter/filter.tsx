@@ -2,7 +2,7 @@
 import { useState } from "react";
 import styles from "./filter.module.scss";
 import { useTranslation } from 'react-i18next';
-import { UnitBelongEnum, UnitItem, UnitTypeEnum } from "@/types";
+import { UnitBelongEnum, UnitItem, UnitTypeEnum } from "@/types/types";
 
 
 interface FilterComponentProps {

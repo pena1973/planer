@@ -1,6 +1,6 @@
 
 import styles from "./аctionsCatalog.module.scss";
-import { ActionItem } from '@/types'
+import { ActionItem } from '@/types/types'
 import Image from 'next/image';
 import { useEffect, useState } from "react";
 

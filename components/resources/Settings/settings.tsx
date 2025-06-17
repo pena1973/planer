@@ -1,7 +1,7 @@
 
 import styles from "./settings.module.scss";
 
-import { SettingsItem } from '@/types'
+import { SettingsItem } from '@/types/types'
 import Image from 'next/image';
 
 import { useEffect, useState } from "react";

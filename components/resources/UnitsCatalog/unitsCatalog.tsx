@@ -1,6 +1,6 @@
 
 import styles from "./unitsCatalog.module.scss";
-import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types';
+import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types/types';
 import { generateUniqueIdc } from '@/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 

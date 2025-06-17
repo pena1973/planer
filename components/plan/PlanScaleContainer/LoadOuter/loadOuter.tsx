@@ -2,7 +2,7 @@
 import styles from "./loadOuter.module.scss";
 import ContexMenu from "./ContextMenuOuter/contextMenuOuter";
 
-import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types";
+import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
 export interface LoadProps {
     dayWidth: number,
     quants: number,

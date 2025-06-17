@@ -1,13 +1,13 @@
 
 import { Repository, In, Any } from 'typeorm';
 // tables
-import { UserTable } from '@/pages/db/models/catalogs/users'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UserAgreeTable } from '@/pages/db/models/catalogs/user_agree';
-import { AgreementTable } from '@/pages/db/models/catalogs/agreements';
+import { UserTable } from '@/db/models/catalogs/users'
+import { TeamTable } from '@/db/models/catalogs/teams'
+import { UserAgreeTable } from '@/db/models/catalogs/user_agree';
+import { AgreementTable } from '@/db/models/catalogs/agreements';
 
 // types
-import { UserItem, TeamItem, } from '@/types';
+import { UserItem, TeamItem, } from '@/types/types';
 
 // хеш функция 
 export const hashFoo = async (data: string) => {

@@ -1,0 +1,19 @@
+@import '@/styles/colors.scss';
+
+.container_cookie {
+    display: flex;
+    flex-direction: row;
+    // width: 80%;
+    justify-content: center;
+    // align-items: baseline;
+    height: inherit;
+    padding-top: 40px;
+    height: fit-content;
+    // max-width: 600px ;
+    @media screen and (max-width: 650px) {
+        flex-direction: column;
+        width: 95%;
+        align-items: center;
+    }
+}
+

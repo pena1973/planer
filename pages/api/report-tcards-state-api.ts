@@ -1,30 +1,25 @@
 import { withAuth } from '@/lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/pages/db/database';  // Импортируем функцию подключения
-import { Repository } from 'typeorm';
+import connectDb from '@/db/database';  // Импортируем функцию подключения
 
-import { getTCardsTerms, getUnitLoads, getUnits } from './handlers-get';  // 
-import { UnitTable } from '@/pages/db/models/catalogs/units'
-import { TCardTable } from '@/pages/db/models/data/t_cards'
-import { TCardOperationTable } from '@/pages/db/models/data/t_card_operations'
-import { TeamTable } from '@/pages/db/models/catalogs/teams'
-import { UnitLoadTable } from '@/pages/db/models/plan/unit_loads';
-import { TCardProductTable } from '@/pages/db/models/data/t_card_products'
-import { StatusEnum } from '@/types';
+import { getTCardsTerms } from '@/handlers/handlers-get';  // 
+import { TCardTable } from '@/db/models/data/t_cards'
+import { TCardOperationTable } from '@/db/models/data/t_card_operations'
+import { TeamTable } from '@/db/models/catalogs/teams'
+import { UnitLoadTable } from '@/db/models/plan/unit_loads';
+import { TCardProductTable } from '@/db/models/data/t_card_products'
+import { StatusEnum } from '@/types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
-
     // Используем репозиторий для работы с сущностью TCardTable
     const teamRepository = dbConnection.getRepository(TeamTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
     const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-
 
     // userId, teamId в любом случае
     const { userId, teamId, tCardNumber, tCardDateFrom, tCardDateTo, tCardStatus } = req.query;
