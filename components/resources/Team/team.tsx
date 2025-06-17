@@ -19,7 +19,7 @@ export interface TeamProps {
     user: UserItem,
     team: TeamItem,
     setMessage: (message: string) => void,
-    token:string
+    token: string
 }
 
 export default function Team({
@@ -38,6 +38,7 @@ export default function Team({
 
     const teamNumberValue = generateTeamNumber(team.prefix, team.id);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (team) {
             setTitleValue(team.title);
@@ -88,7 +89,7 @@ export default function Team({
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                let error = receivedData.error;
+                const error = receivedData.error;
                 // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
                 setMessage(t('service.serverUnavailable') + error);
@@ -98,7 +99,7 @@ export default function Team({
 
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let team_ = receivedData.team as TeamItem
+                    const team_ = receivedData.team as TeamItem
                     dispatch(setTeam(team_));
                     setModified(false);
                     // setMessage("Обновлены настройки");
@@ -107,9 +108,17 @@ export default function Team({
                 } else setMessage(receivedData.error);
             }
 
-        } catch (e: any) {
-            // setMessage(t('service.serverUnavailable') + e.message)            
+            // } catch (e: any) {
+            //     // setMessage(t('service.serverUnavailable') + e.message)            
+            // }
+        } catch (e: unknown) {
+            let message = t('service.serverUnavailable');
+            if (e instanceof Error) {
+                message += e.message;
+            }
+            setMessage(message);
         }
+
 
         setModified(false);
     };

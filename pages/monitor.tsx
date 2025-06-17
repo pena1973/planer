@@ -21,69 +21,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import { isWeekend, isHoliday, isAdditionalTime } from "@/utils";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
 
-// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
-// const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
-
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.team)
-//     return schedule.workdays.some(workday =>
-//       new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-//     ); else return false
-// }
-// //  функция определяемт входит ли  дата в список выходных расписания
-// const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
-//   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
-
-//   let dayString = DaysOfWeek.SUNDAY;
-
-//   switch (dayOfWeek) {
-//     case 1:
-//       dayString = DaysOfWeek.MONDAY;
-//       break;
-//     case 2:
-//       dayString = DaysOfWeek.TUESDAY;
-//       break;
-//     case 3:
-//       dayString = DaysOfWeek.WEDNESDAY;
-//       break;
-//     case 4:
-//       dayString = DaysOfWeek.THURSDAY;
-//       break;
-//     case 5:
-//       dayString = DaysOfWeek.FRIDAY;
-//       break;
-//     case 6:
-//       dayString = DaysOfWeek.SATURDAY;
-//       break;
-//     default:
-//       dayString = DaysOfWeek.SUNDAY;
-//       break;
-//   }
-
-//   // Проверяем, является ли день выходным
-//   if (schedule.team) return schedule.weekends.includes(dayString);
-//   else return false
-// }
-// //  функция определяемт входит ли  дата в список праздниклв расписания
-// const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.team)
-//     return schedule.holidays.some(holiday =>
-//       new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-//     ); else return false
-// }
-
-interface MonitorProps {
-
-}
-
-export default function Monitor({ }: MonitorProps) {
+export default function Monitor() {
 
   const { t, i18n } = useTranslation();
 
@@ -131,10 +69,11 @@ export default function Monitor({ }: MonitorProps) {
     return state.dataSlice.tCards;
   })
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,
     // продолжаем увеличивать дату.
-    let day_ = new Date(day);
+    const day_ = new Date(day);
     while ((isWeekend(day_, schedule) || isHoliday(day_, schedule)) && !isAdditionalTime(day_, schedule)) {
 
       day_.setDate(day_.getDate() + 1);
@@ -161,9 +100,9 @@ export default function Monitor({ }: MonitorProps) {
     }) as TCardOperationItem[];
 
 
-    let updatedTCard = { ...tCards[cardIndex], status: tCardStatus, tCardOperations: tCardOperations }
+    const updatedTCard = { ...tCards[cardIndex], status: tCardStatus, tCardOperations: tCardOperations }
 
-    let _tCards = [...tCards]
+    const _tCards = [...tCards]
     _tCards.splice(cardIndex, 1, updatedTCard);
 
     dispatch(setTCards(_tCards));
@@ -205,7 +144,7 @@ export default function Monitor({ }: MonitorProps) {
     };
   }
 
-  let unitsValueReactNodes = units
+  const unitsValueReactNodes = units
     .filter((elem) => elem.belong === UnitBelongEnum.inner)
     .map((unit) => {
       // фильтрую по юниту 
@@ -221,6 +160,7 @@ export default function Monitor({ }: MonitorProps) {
       // юниты работники
       if (unit.type === UnitTypeEnum.process) {
         return <UnitTaskStackProcess
+        key={unit.id}
           unit={unit}
           tCards={tCards}
           day={day.toLocaleDateString("en-CA")}
@@ -243,6 +183,7 @@ export default function Monitor({ }: MonitorProps) {
         const performedLoads = unitLoads.filter((lo) => lo.status === StatusEnum.performed);
 
         return <UnitTaskStackControl
+        key={unit.id}
           unit={unit}
           tCards={tCards}
           day={day.toLocaleDateString("en-CA")}
@@ -288,7 +229,7 @@ export default function Monitor({ }: MonitorProps) {
             <div className="catalog_title"> {t('monitor.unitLoading')}</div>
             <div className="monitor_container_navigation">
               <BackwardButton onClick={() => {
-                let newDate = new Date(day);
+                const newDate = new Date(day);
                 newDate.setDate(newDate.getDate() - 1);
                 // Пока новая дата является выходным или праздником и нет дополнительного времени,
                 // продолжаем уменьшать дату.
@@ -301,7 +242,7 @@ export default function Monitor({ }: MonitorProps) {
               <span className="current_day">{day.toLocaleDateString("en-CA")}</span>
 
               <ForwardButton onClick={() => {
-                let newDate = new Date(day);
+                const newDate = new Date(day);
                 newDate.setDate(newDate.getDate() + 1);
                 // Пока новая дата является выходным или праздником и нет дополнительного времени,
                 // продолжаем увеличивать дату.

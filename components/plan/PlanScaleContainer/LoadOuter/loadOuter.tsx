@@ -44,15 +44,15 @@ export default function LoadOuter({
   
     // старт и финиш -маленькимй треугольничек сверху ли снизу и другое контекстноке меню
     //  ширина лоада 5 минут  -  стандартная для сьтарта и ждля финиша
-    let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
-    let shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
+    const blockwidth = dayWidth / quants; //это ширина блока на 5 минут
+    const shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
-    let left = blockwidth / 5 * shift+ (load.isOuterFinish?-26:0); // тот же схвиг в пикселях
-    let width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
+    const left = blockwidth / 5 * shift+ (load.isOuterFinish?-26:0); // тот же схвиг в пикселях
+    const width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
-     let triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
-     let triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
+     const triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
+     const triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
 
     switch (load.status) {
         case StatusEnum.planed:

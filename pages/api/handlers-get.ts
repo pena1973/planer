@@ -1,5 +1,6 @@
 
-import { Repository, In, Any, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere } from 'typeorm';
+
 // tables
 import { UnitTable } from '@/pages/db/models/catalogs/units'
 import { TeamTable } from '@/pages/db/models/catalogs/teams'
@@ -64,7 +65,8 @@ export async function getActions(
   actionsRepository: Repository<ActionTable>
 ): Promise<ActionItem[]> {
   // Строим фильтр для поиска
-  const filter: any = {};
+
+  const filter: Partial<ActionTable> = {};
   if (teamId) {
     filter.team_id = teamId;
   }
@@ -95,7 +97,7 @@ export async function getUnits(
   // unitActionsRepository: Repository<UnitActionTable>
 ): Promise<UnitItem[]> {
   // Строим фильтр для поиска
-  const filter: any = {};
+  const filter: Partial<UnitActionTable> = {};
   if (teamId) {
     filter.team_id = teamId;
   }
@@ -272,11 +274,23 @@ export async function getTCards(
   tCardRepository: Repository<TCardTable>
 ): Promise<TCardItem[]> {
 
+
   // Строим фильтр для поиска
-  const filter: any = {};
+  const filter: FindOptionsWhere<TCardTable> = {};
+
   if (teamId) {
-    filter.team_id = teamId;  // Фильтрация по team_id
+    filter.team_id = teamId;
   }
+
+  if (statuses && statuses.length > 0) {
+    filter.status = In(statuses);
+  }
+
+  // // Строим фильтр для поиска
+  // const filter: any = {};
+  // if (teamId) {
+  //   filter.team_id = teamId;  // Фильтрация по team_id
+  // }
 
 
   if (statuses && statuses.length > 0) {
@@ -316,7 +330,7 @@ export async function getTCard(
   tCardRepository: Repository<TCardTable>
 ): Promise<TCardItem | undefined> {
   // Строим фильтр для поиска по id карты
-  const filter: any = {};
+  const filter: Partial<TCardTable> = {};
 
   if (tcardId) {
     filter.id = tcardId;
@@ -517,43 +531,41 @@ export async function getTCardsTerms(
   tCardStatus: StatusEnum | undefined,
   tCardRepository: Repository<TCardTable>,
   tCardOperationRepository: Repository<TCardOperationTable>,
-  tCardProductRepository: Repository<TCardProductTable>,
+  // tCardProductRepository: Repository<TCardProductTable>,
   unitLoadRepository: Repository<UnitLoadTable>
 ): Promise<{ terms: TCardTermsItem[], loads: UnitLoadItem[] }> {
 
-  // Создаем объект фильтра для карты
-  const tCardFilter: any = {
-    where: { team_id: teamId },
-    relations: ['team', 'user'],
+  
+    const where: FindOptionsWhere<TCardTable> = {
+    team_id: teamId,
   };
 
-  // Фильтрация по tCardIdc, если он задан
   if (tCardIdc) {
-    tCardFilter.where.idc = tCardIdc;
+    where.idc = tCardIdc;
   }
 
-  // Фильтрация по дате
   const dateFrom = tCardDateFrom ? new Date(tCardDateFrom) : undefined;
   const dateTo = tCardDateTo ? new Date(tCardDateTo) : undefined;
-  if (dateFrom) {
-    dateFrom.setHours(0, 0, 0, 0);  // Устанавливаем начало дня (00:00:00)
-  }
-  if (dateTo) {
-    dateTo.setHours(23, 59, 59, 999);  // Устанавливаем конец дня (23:59:59)
+  if (dateFrom) dateFrom.setHours(0, 0, 0, 0);
+  if (dateTo) dateTo.setHours(23, 59, 59, 999);
+
+  if (dateFrom && dateTo) {
+    where.date = Between(dateFrom, dateTo);
+  } else if (dateFrom) {
+    where.date = MoreThanOrEqual(dateFrom);
+  } else if (dateTo) {
+    where.date = LessThanOrEqual(dateTo);
   }
 
-  // Фильтрация по дате
-  if (dateFrom && dateTo) {
-    tCardFilter.where.date = Between(dateFrom, dateTo);  // Если указаны обе даты
-  } else if (dateFrom) {
-    tCardFilter.where.date = MoreThanOrEqual(dateFrom);  // Фильтрация по дате с начала
-  } else if (dateTo) {
-    tCardFilter.where.date = LessThanOrEqual(dateTo);  // Фильтрация по дате до указанной
-  }
-  // Фильтрация по статусу, если он задан
   if (tCardStatus) {
-    tCardFilter.where.status = tCardStatus;
+    where.status = tCardStatus;
   }
+
+  // Создаем объект фильтра для карты
+  const tCardFilter: FindManyOptions<TCardTable> = {
+  where,
+  relations: ['team', 'user'],
+};
 
   // Получаем все карты для заданной компании с фильтрацией
   const tCards = await tCardRepository.find(tCardFilter);
@@ -649,7 +661,7 @@ export async function getTCardsTerms(
     } as ReadyTerm
 
     const cardOperationsData = operationsData.filter(oper => oper.tcard_id === card.id);
-    let tCardOperations = [] as TCardOperationTermsItem[];
+    const tCardOperations = [] as TCardOperationTermsItem[];
     // формируем массив операций по карте
     for (const oper of cardOperationsData) {
       // Отбираем все загрузки для данной операции
@@ -702,7 +714,7 @@ export async function getExceptions(
   teamId: number,
   unitExceptionsRepository: Repository<UnitExceptionTable>): Promise<UnitExceptionItem[]> {
   // Строим фильтр для поиска
-  const filter: any = {};
+  const filter: Partial<UnitExceptionTable> = {};
   if (teamId) {
     filter.team_id = teamId;
   }
@@ -736,7 +748,7 @@ export async function getUnitActions(
   unitActionsRepository: Repository<UnitActionTable>): Promise<UnitActionItem[]> {
 
   // Строим фильтр для поиска
-  const filter: any = {};
+  const filter: Partial<UnitActionTable> = {};
   if (teamId) {
     filter.team_id = teamId;
   }
@@ -774,10 +786,12 @@ export async function getTeamShedule(
   teamScheduleRepository: Repository<TeamScheduleTable>
 ): Promise<ScheduleItem> {
   // Строим фильтр для поиска
-  const filter: any = {};
-  if (teamId) {
-    filter.team_id = teamId;
-  }
+  // const filter: any = {};
+  // if (teamId) {
+  //   filter.team_id = teamId;
+  // }
+
+  const filter: FindOptionsWhere<TeamScheduleTable> = { team_id: teamId };
 
   const receivedSchedule = await teamScheduleRepository.find({
     where: filter,  // Применяем фильтр к запросу
@@ -786,7 +800,7 @@ export async function getTeamShedule(
 
   if (!receivedSchedule || receivedSchedule.length === 0) return {} as ScheduleItem;
 
-  let scheduleTable = receivedSchedule[0]
+  const scheduleTable = receivedSchedule[0]
   const schedule = {
     team: scheduleTable.team,
     timeStartWork: scheduleTable.timeStartWork,
@@ -813,7 +827,7 @@ export async function getSettings(
   settingsRepository: Repository<SettingsTable>
 ): Promise<SettingsItem> {
   // Строим фильтр для поиска
-  const filter: any = {};
+  const filter: Partial<SettingsTable> = {};
   if (teamId) {
     filter.team_id = teamId;
   }
@@ -825,7 +839,7 @@ export async function getSettings(
 
   if (!receivedSettings || receivedSettings.length === 0) return {} as SettingsItem;
 
-  let settingsTable = receivedSettings[0]
+  const settingsTable = receivedSettings[0]
   const settings = {
     team: settingsTable.team,
     timeStartWork: settingsTable.timeStartWork,
@@ -845,7 +859,7 @@ export async function getTCardOperation(
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem | undefined> {
   // Строим фильтр для поиска по id карты
-  const filter: any = {};
+  const filter: Partial<TCardOperationTable> = {};
 
   if (operId) {
     filter.id = operId;
@@ -957,12 +971,12 @@ export async function getTCardOperationsByCardId(
 export async function getUsersUnits(
   teamId: number,
   usersRepository: Repository<UserTable>,
-  usersUnitsRepository: Repository<UserUnitTable>,  
-   userId?: number, // Добавляем необязательный параметр userId
+  usersUnitsRepository: Repository<UserUnitTable>,
+  userId?: number, // Добавляем необязательный параметр userId
 ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
 
- 
-try {
+
+  try {
     // Шаг 1: Формируем условие для поиска пользователей
     const userCondition = userId ? { id: userId, team_id: teamId, isAdmin: false, active: true } : { team_id: teamId, isAdmin: false, active: true };
 
@@ -995,24 +1009,23 @@ try {
           active: false,
         };
       } else
-        userUnit
-      // Если для пользователя есть один или несколько юнитов
-      return {
-        id: userUnit.id,
-        userId: userUnit.user_id,
-        name: userUnit.user.name,
-        unit: {
-          id: userUnit.unit?.id,              // ID юнита
-          title: userUnit.unit?.title,        // Название юнита
-          code: userUnit.unit?.code || '',    // Код юнита (если есть)
-          retool: userUnit.unit?.retool,      // Время на переналадку
-          belong: userUnit.unit?.belong,      // Принадлежность юнита (enum)
-          type: userUnit.unit?.type,          // Тип юнита (enum)
-          coment: userUnit.unit?.coment,      // Комментарий юнита (если есть)
-          active: userUnit.unit?.active,        // Статус активности
-        } as UnitItem,
-        active: userUnit.active,
-      } as UserUnitItem;
+        // Если для пользователя есть один или несколько юнитов
+        return {
+          id: userUnit.id,
+          userId: userUnit.user_id,
+          name: userUnit.user.name,
+          unit: {
+            id: userUnit.unit?.id,              // ID юнита
+            title: userUnit.unit?.title,        // Название юнита
+            code: userUnit.unit?.code || '',    // Код юнита (если есть)
+            retool: userUnit.unit?.retool,      // Время на переналадку
+            belong: userUnit.unit?.belong,      // Принадлежность юнита (enum)
+            type: userUnit.unit?.type,          // Тип юнита (enum)
+            coment: userUnit.unit?.coment,      // Комментарий юнита (если есть)
+            active: userUnit.unit?.active,        // Статус активности
+          } as UnitItem,
+          active: userUnit.active,
+        } as UserUnitItem;
     })
     return {
       success: true,
@@ -1020,24 +1033,24 @@ try {
       message: 'Данные успешно получены.',
     };
 
-  // } catch (e: any) {
-  //   return {
-  //     success: false,
-  //     userUnits: [],
-  //     message: `Ошибка при получении данных: ${e.message}`,
-  //   };
-  // }
+    // } catch (e: any) {
+    //   return {
+    //     success: false,
+    //     userUnits: [],
+    //     message: `Ошибка при получении данных: ${e.message}`,
+    //   };
+    // }
   } catch (e: unknown) {
-  let message = "Ошибка при получении данных.";
-  if (e instanceof Error) {
-    message = `Ошибка при получении данных: ${e.message}`;
+    let message = "Ошибка при получении данных.";
+    if (e instanceof Error) {
+      message = `Ошибка при получении данных: ${e.message}`;
+    }
+    return {
+      success: false,
+      userUnits: [],
+      message,
+    };
   }
-  return {
-    success: false,
-    userUnits: [],
-    message,
-  };
-}
 }
 
 
@@ -1078,24 +1091,24 @@ export async function getUsers(
       message: 'Данные успешно получены.',
     };
 
-  // } catch (e: any) {
-  //   return {
-  //     success: false,
-  //     users: [],
-  //     message: `Ошибка при получении данных: ${e.message}`,
-  //   };
-  // }
+    // } catch (e: any) {
+    //   return {
+    //     success: false,
+    //     users: [],
+    //     message: `Ошибка при получении данных: ${e.message}`,
+    //   };
+    // }
   } catch (e: unknown) {
-  let message = "Ошибка при получении данных.";
-  if (e instanceof Error) {
-    message = `Ошибка при получении данных: ${e.message}`;
+    let message = "Ошибка при получении данных.";
+    if (e instanceof Error) {
+      message = `Ошибка при получении данных: ${e.message}`;
+    }
+    return {
+      success: false,
+      users: [],
+      message,
+    };
   }
-  return {
-    success: false,
-    users: [],
-    message,
-  };
-}
 
 }
 
@@ -1164,7 +1177,7 @@ export async function getSuportMessages(
         body: mes.body,
         userId: mes.user_id,
         fromUser: mes.fromUser,
-        basedOn: mes.basedOn,        
+        basedOn: mes.basedOn,
       };
     });
 

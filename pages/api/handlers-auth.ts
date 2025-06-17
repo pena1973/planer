@@ -366,7 +366,7 @@ export async function signAgreement(
 
 
   // Проверяем, существует ли уже запись о подписании соглашения
-  let userAgree = await userAgreeRepository.findOne({
+  const userAgree = await userAgreeRepository.findOne({
     where: { user_id: userId, agreement_id: agreementId },
   });
 

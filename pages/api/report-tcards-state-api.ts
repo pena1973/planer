@@ -44,8 +44,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           status,
           tCardRepository,
           tCardOperationsRepository,
-          tCardProductRepository,
-          unitLoadRepository)
+          // tCardProductRepository,
+          unitLoadRepository
+        )
         if (!terms) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

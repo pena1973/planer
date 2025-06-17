@@ -80,11 +80,12 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
     const [buttonLoader, setButtonLoader] = useState(false);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setExceptionsValue(unitExceptions)
         setActionsValue(unitActions)
         setUnitsValue(units)
-    }, []);
+    },[] );
 
     // Таблица Юнитов   
     const deleteUnitHandler = (indexToRemove: number) => {
@@ -227,7 +228,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                let error = receivedData.error;
+                const error = receivedData.error;
                 // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
                 setMessage(t('service.serverUnavailable') + error);
@@ -237,7 +238,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                 // setMessage(receivedData.error);
                 if (receivedData.success) {
                     //   Обновим список юнитов
-                    let units_ = receivedData.units as UnitItem[]
+                    const units_ = receivedData.units as UnitItem[]
                     units_.sort((a, b) => {
                         // Проверка на undefined
                         const idA = a.id ?? 0; // Если id a не существует, считаем его 0
@@ -263,14 +264,22 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                 } else setMessage(receivedData.error);
             }
 
-        } catch (e: any) {
-            setMessage(t('service.serverUnavailable') + e.message)
+            // } catch (e: any) {
+            //     setMessage(t('service.serverUnavailable') + e.message)
+            // }
+        } catch (e: unknown) {
+            let message = t('service.serverUnavailable');
+            if (e instanceof Error) {
+                message += e.message;
+            }
+            setMessage(message);
         }
+
 
         setButtonLoader(false)
     };
     const addUnitHandler = () => {
-        let newUnit = {
+        const newUnit = {
             title: "Юнит",
             code: generateUniqueCode(unitsValue),
             retool: 1,
@@ -291,9 +300,9 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
     function unitModified() {
         // укажу что юнит модифицирован
-        let unit = unitsValue[focusIndexUnit]
-        let updatedUnit = { ...unit, modified: true }
-        let unitsValueUpdated = [...unitsValue]
+        const unit = unitsValue[focusIndexUnit]
+        const updatedUnit = { ...unit, modified: true }
+        const unitsValueUpdated = [...unitsValue]
         unitsValueUpdated.splice(focusIndexUnit, 1, updatedUnit)
         setUnitsValue(unitsValueUpdated)
     }
@@ -302,7 +311,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     const changeUnitActionHandler = (idToChange: number | undefined, idcToChange: number, value: number | null | { id: number, title: string }, field: string) => {
         unitModified();
         // отклонения
-        let actionsValueUpdated = [...actionsValue]
+        const actionsValueUpdated = [...actionsValue]
         let indexToChange = -1;
 
         if (!idToChange) {
@@ -338,8 +347,8 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     }
     const addUnitActionHandler = () => {
         unitModified();
-        let unit = unitsValue[focusIndexUnit];
-        let actionsValueUpdated = [...actionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, koef: 1 } as UnitActionItem]
+        const unit = unitsValue[focusIndexUnit];
+        const actionsValueUpdated = [...actionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, koef: 1 } as UnitActionItem]
         setActionsValue(actionsValueUpdated);
     };
     const deleteUnitActionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
@@ -353,7 +362,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             indexToRemove = actionsValue.findIndex(elem => elem.id === idToRemove)
             if (indexToRemove < 0) return
         }
-        let actionsValueUpdated = [...actionsValue];
+        const actionsValueUpdated = [...actionsValue];
         actionsValueUpdated.splice(indexToRemove, 1)
         setActionsValue(actionsValueUpdated);
     };
@@ -364,7 +373,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
 
         // отклонения
-        let exceptionsValueUpdated = [...exceptionsValue]
+        const exceptionsValueUpdated = [...exceptionsValue]
         let indexToChange = -1;
 
         if (!idToChange) {
@@ -400,8 +409,8 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     }
     const addExceptionHandler = () => {
         unitModified();
-        let unit = unitsValue[focusIndexUnit];
-        let exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
+        const unit = unitsValue[focusIndexUnit];
+        const exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
         setExceptionsValue(exceptionsValueUpdated);
     };
     const deleteExceptionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
@@ -415,13 +424,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             indexToRemove = exceptionsValue.findIndex(elem => elem.id === idToRemove)
             if (indexToRemove < 0) return
         }
-        let exceptionsValueUpdated = [...exceptionsValue];
+        const exceptionsValueUpdated = [...exceptionsValue];
         exceptionsValueUpdated.splice(indexToRemove, 1)
         setExceptionsValue(exceptionsValueUpdated);
     };
 
     // Юниты
-    let unitsValueReactNodes = unitsValue.map((elem, index) => (
+    const unitsValueReactNodes = unitsValue.map((elem, index) => (
         <tr key={index}>
 
             <td>
@@ -508,7 +517,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         </tr>
     ))
     // Исключения
-    let unitFocusExceptionsValueReactNodes = exceptionsValue
+    const unitFocusExceptionsValueReactNodes = exceptionsValue
         .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
         .map((elem, index) => (
 
@@ -579,12 +588,12 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
         )
 
-    let selectedValues = (actionsValue || [])
+    const selectedValues = (actionsValue || [])
         .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
         .map((elem) =>
             elem.action?.id)
 
-    let unitFocusActionValueReactNodes = (actionsValue || [])
+    const unitFocusActionValueReactNodes = (actionsValue || [])
         .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
         .map((elem, index) => (
             (

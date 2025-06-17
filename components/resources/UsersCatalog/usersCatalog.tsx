@@ -3,7 +3,7 @@ import styles from "./usersCatalog.module.scss";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import DropdownSelectUnit from "./DropdownSelectUnit/dropdownSelectUnit";
 
-import { TeamItem, UserUnitItem, UserItem} from '@/types'
+import { TeamItem, UserUnitItem, UserItem } from '@/types'
 import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";
@@ -22,7 +22,7 @@ export interface usersCatalogProps {
     user: UserItem, // my user
     team: TeamItem,
     setMessage: (message: string) => void,
-    token:string
+    token: string
 }
 
 export default function UsersCatalog({
@@ -32,7 +32,7 @@ export default function UsersCatalog({
     token
 }: usersCatalogProps) {
 
-    const { t, i18n } = useTranslation();    
+    const { t, i18n } = useTranslation();
     const [users_units, setUsersUnits] = useState([] as UserUnitItem[]);
     const users_units_old = useRef(users_units); // для восстановления по cancel    
 
@@ -44,7 +44,7 @@ export default function UsersCatalog({
         return state.catalogSlice.units;
     })
 
-    let selectedUnits = users_units
+    const selectedUnits = users_units
         .map((u) => u.unit)
         .filter((unit) => unit !== undefined && unit !== null);  // Фильтруем null и undefined
 
@@ -64,28 +64,35 @@ export default function UsersCatalog({
                 const receivedData = await res.json();
                 // setMessage(receivedData.message);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                 setMessage(t('service.serverUnavailable') + receivedData.message);
+                setMessage(t('service.serverUnavailable') + receivedData.message);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
 
                 if (receivedData.success) {
-                    let users_units_ = receivedData.users_units as UserUnitItem[];
+                    const users_units_ = receivedData.users_units as UserUnitItem[];
                     setUsersUnits(users_units_);
                     users_units_old.current = users_units_;
                     // setMessage(receivedData.message);
                 }
             }
 
-        } catch (e: any) {
-            setMessage(t('service.serverUnavailable') + e.message)            
+            // } catch (e: any) {
+            //     setMessage(t('service.serverUnavailable') + e.message)            
+            // }
+        } catch (error: unknown) {
+            let message = t('service.serverUnavailable');
+            if (error instanceof Error) {
+                message += error.message;
+            }
+            setMessage(message);
         }
+
         setShowLoader(false);
     }
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-      getUsersUnits();
-
+        getUsersUnits();
     }, []);
 
     const saveUsersUnitsHandler = async () => {
@@ -108,7 +115,7 @@ export default function UsersCatalog({
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                let error = receivedData.error;
+                const error = receivedData.error;
                 setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
                 setMessage(t('service.serverUnavailable') + error);
@@ -118,7 +125,7 @@ export default function UsersCatalog({
 
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let users_units_ = receivedData.users_units as UserUnitItem[]
+                    const users_units_ = receivedData.users_units as UserUnitItem[]
                     setUsersUnits(users_units_)
                     users_units_old.current = users_units_;
                     setModified(false);
@@ -126,8 +133,15 @@ export default function UsersCatalog({
                     setMessage(t('users.usersUpdated'));
                 } else setMessage(receivedData.error);
             }
-        } catch (e: any) {
-            setMessage(t('service.serverUnavailable') + e.message)            
+            // } catch (e: any) {
+            //     setMessage(t('service.serverUnavailable') + e.message)
+            // }
+        } catch (e: unknown) {
+            let message = t('service.serverUnavailable');
+            if (e instanceof Error) {
+                message += e.message;
+            }
+            setMessage(message);
         }
         setButtonLoader(false);
     };
@@ -145,18 +159,18 @@ export default function UsersCatalog({
                     unit = units.find(unit => unit.id === value);
                     if (!unit) return;
                 }
-                let user_unit = users_units[indexToChange];
-                let updated_user_unit = { ...user_unit, unit: unit };
-                let updated_users_units = [...users_units];
+                const user_unit = users_units[indexToChange];
+                const updated_user_unit = { ...user_unit, unit: unit };
+                const updated_users_units = [...users_units];
                 updated_users_units.splice(indexToChange, 1, updated_user_unit);
                 setUsersUnits(updated_users_units);
                 break;
 
             case "active":
                 if (typeof value === 'boolean') {
-                    let user_unit = users_units[indexToChange];
-                    let updated_user_unit = { ...user_unit, active: value };
-                    let updated_users_units = [...users_units];
+                    const user_unit = users_units[indexToChange];
+                    const updated_user_unit = { ...user_unit, active: value };
+                    const updated_users_units = [...users_units];
                     updated_users_units.splice(indexToChange, 1, updated_user_unit);
                     setUsersUnits(updated_users_units);
                 }
@@ -171,13 +185,13 @@ export default function UsersCatalog({
 
     };
     const deleteRowHandler = (indexToRemove: number) => {
-        let users_unitsUpdated = [...users_units]
+        const users_unitsUpdated = [...users_units]
         users_unitsUpdated.splice(indexToRemove, 1)
         setUsersUnits(users_unitsUpdated)
         setModified(true);
     };
 
-    let users_unitsReactNodes = users_units.map((user, index) => {
+    const users_unitsReactNodes = users_units.map((user, index) => {
 
         return (
             <tr key={index}>
@@ -247,16 +261,16 @@ export default function UsersCatalog({
 
                 <div className={styles.container_buttons_row}>
 
-                    <div className={styles.container_icon_edit_save}>                    
-                    {buttonLoader && <ButtonLoader />}
-                    {!buttonLoader &&
-                        <Image className={styles.icon_edit_save}
-                            src={save}
-                            alt="arrow" width={20} height={20}
-                            onClick={() => {
-                                saveUsersUnitsHandler()
-                            }}
-                        />}
+                    <div className={styles.container_icon_edit_save}>
+                        {buttonLoader && <ButtonLoader />}
+                        {!buttonLoader &&
+                            <Image className={styles.icon_edit_save}
+                                src={save}
+                                alt="arrow" width={20} height={20}
+                                onClick={() => {
+                                    saveUsersUnitsHandler()
+                                }}
+                            />}
                         {modified && <div>*</div>}
                     </div>
 

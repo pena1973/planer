@@ -80,6 +80,7 @@ export default function TCardOperNew({
         return state.catalogSlice.uoms;
     })
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
 
         setInnValue(inn);
@@ -92,7 +93,7 @@ export default function TCardOperNew({
         setSecundValue(seconds)
         setMSValue(milliseconds)
 
-    }, []);
+    },[] );
 
     const cancelHandler = () => {
          cancelOperHandler(idc);
@@ -119,7 +120,7 @@ export default function TCardOperNew({
             setInnValue([...innValue, { idc: currentId, code: "" } as TCardProductItem]);
         }
         currentId = currentId + 1;
-        let idinn = currentId + 1;
+        const idinn = currentId + 1;
         if (mode === "O") {
             setOutValue([...outValue, { idc: currentId, code: `A${idc}O` + idinn } as TCardProductItem]);
         }
@@ -145,8 +146,8 @@ export default function TCardOperNew({
     // ! событие перевод строки на другую по кнопке enter
     const onKeyDown = (e: React.KeyboardEvent<HTMLElement>, id: number, pref: string) => {
         if (e.key === 'Enter') {
-            let index = out.findIndex(elem => elem.idc === id);
-            let focusElem = out[(index === out.length - 1) ? index : index + 1];
+            const index = out.findIndex(elem => elem.idc === id);
+            const focusElem = out[(index === out.length - 1) ? index : index + 1];
             document.getElementById(pref + focusElem.idc)?.focus();
         }
     }
@@ -155,12 +156,12 @@ export default function TCardOperNew({
 
         if (fieldName === "qtu" && !/^\d*$/.test(String(value))) return
 
-        let value1 = (fieldName === "qtu") ? Number(value) : value
+        const value1 = (fieldName === "qtu") ? Number(value) : value
 
         setEdited(true);
         // setCartEdited();
         if (in_out === "I") {
-            let innValueUpdated = innValue.map((product, index1) => {
+            const innValueUpdated = innValue.map((product, index1) => {
                 if (index1 === index) {
                     return { ...product, [fieldName]: value1 };
                 }
@@ -170,7 +171,7 @@ export default function TCardOperNew({
         }
 
         if (in_out === "O") {
-            let outValueUpdated = outValue.map((product, index1) => {
+            const outValueUpdated = outValue.map((product, index1) => {
                 if (index1 === index) {
                     return { ...product, [fieldName]: value1 };
                 }
@@ -202,7 +203,7 @@ export default function TCardOperNew({
     };
     const handleSelectOper = (oper: { id: number, title: string } | null) => {
 
-        let foundOper = actions.find(elem => { return elem.id === oper?.id })
+        const foundOper = actions.find(elem => { return elem.id === oper?.id })
         setEdited(true);      
         setActionValue((!foundOper) ? null : foundOper);
     };
@@ -237,7 +238,7 @@ export default function TCardOperNew({
     }, [comentValue]); // Каждый раз, когда изменяется содержимое, высота будет пересчитана
 
 
-    let resultReactNodes = outValue.map((elem2, index) => {
+    const resultReactNodes = outValue.map((elem2, index) => {
         return (
             <div key={index} className={styles.container_in_out_item}>
                 <Image className={styles.icon_del}
@@ -271,7 +272,7 @@ export default function TCardOperNew({
         )
     })
 
-    let sourceReactNodes = innValue.map((elem3, index) => {
+    const sourceReactNodes = innValue.map((elem3, index) => {
 
         return (
             <div key={index} className={styles.container_in_out_item}>

@@ -39,10 +39,9 @@ const DottedLine: React.FC<DottedLineProps> = ({
       setCoords({ x1, y1, x2, y2 });
     }
   };
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     updateCoords();
-
     // Обновляем координаты на каждом кадре
     let animationFrameId: number;
     const tick = () => {

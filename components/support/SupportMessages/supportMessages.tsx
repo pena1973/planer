@@ -45,14 +45,22 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
           setSupportMessagesValue(messages);
         }
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
-  };
 
+  };
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     getSupportMessages();
-  }, []);
+  },[] );
 
   const addSupportMessage = () => {
     const newMes = {
@@ -122,16 +130,24 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
         if (receivedData.success) {
           // проверили и вернули общий статус карты
           const message = receivedData.supportMessage as SupportMessageItem;
-          let messages = [...supportMessagesValue]
+          const messages = [...supportMessagesValue]
           messages.splice(index, 1, message)
           setSupportMessagesValue(messages);
           setExpand(message.id)
         }
       }
 
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
 
 
   }
@@ -149,7 +165,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
 
   // Функция для поиска всех сообщений, относящихся к текущему (по basedOn) и с добавлением сдвига
   const findMessagesInChain = (baseMessageId: number, shift: number = 0) => {
-    let messages = supportMessagesValue.filter(mes => mes.basedOn === baseMessageId);
+    const messages = supportMessagesValue.filter(mes => mes.basedOn === baseMessageId);
     messages.sort((a, b) => a.id! - b.id!); // Сортировка по id (возрастание)
 
     const result = messages.map((message, index) => {

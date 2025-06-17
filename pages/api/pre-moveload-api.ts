@@ -260,7 +260,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           if ((pinnedLoad.isOuterFinish && pinnedLoad.unit.belong === UnitBelongEnum.outer)) {
 
             // проверяем чтобы начало не было позже хваста операции
-            let startLoad = tCardLoads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterStart);
+            const startLoad = tCardLoads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterStart);
             if (!startLoad) {
               res.status(200).json({
                 success: false,

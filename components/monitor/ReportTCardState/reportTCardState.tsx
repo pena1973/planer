@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import styles from "./reportTCardState.module.scss";
 import { StatusEnum, TCardTermsItem, UnitLoadItem } from "@/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
@@ -14,7 +14,7 @@ interface ReportTCardStateProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
-  token:string
+  token: string
 }
 
 
@@ -34,59 +34,156 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   const [expandOperValue, setExpandOperValue] = useState([] as number[]); // id  oper
 
   const [showLoader, setShowLoader] = useState(false);
-  const getTCardsTerms = async (
-    useNumber?: boolean,
-    useDate?: boolean,
-    useStatus?: boolean,
-    tCardNumber?: number,
-    tCardDateFrom?: string,
-    tCardDateTo?: string,
-    tCardStatus?: StatusEnum | "",) => {
 
+  // const getTCardsTerms = async (
+  //   useNumber?: boolean,
+  //   useDate?: boolean,
+  //   useStatus?: boolean,
+  //   tCardNumber?: number,
+  //   tCardDateFrom?: string,
+  //   tCardDateTo?: string,
+  //   tCardStatus?: StatusEnum | "",) => {
+
+  //   setShowLoader(true);
+
+  //   let filter = "";
+  //   // фильтр
+  //   if (useNumber && tCardNumber) filter = filter.concat(`&tCardNumber=${tCardNumber}`)
+  //   if ((useDate) && (tCardDateFrom)) filter = filter.concat(`&tCardDateFrom=${tCardDateFrom}`)
+  //   if ((useDate) && (tCardDateTo)) filter = filter.concat(`&tCardDateTo=${tCardDateTo}`)
+  //   if (useStatus) filter = filter.concat(`&tCardStatus=${tCardStatus}`)
+
+  //   try {
+  //     const res = await fetch(`api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
+  //       {
+  //         method: 'get',
+  //         headers: new Headers({
+  //           'Authorization': 'Basic ' + token,
+  //           'Content-Type': 'application/json'
+  //         }),
+  //       }
+  //     );
+  //     if (res.status !== 200) {
+  //       const receivedData = await res.json();
+  //       const error = receivedData.error;
+  //       //  console.log(t('service.serverUnavailable') + res.status);
+  //       setMessage(t('service.serverUnavailable') + error);
+  //     } else {
+  //       const receivedData = await res.json();
+  //       // console.log("receivedData", receivedData)
+
+  //       if (receivedData.success) {
+  //         setUnitLoadsValue(receivedData.unitLoadItems as UnitLoadItem[]); // лоады по операциям
+  //         setTCardsValue(receivedData.tCards as TCardTermsItem[]); //  получаем карту с операциями
+  //         setMessage(receivedData.message);
+  //       }
+  //     }
+
+  //     // } catch (e: any) {
+  //     //   setMessage(t('service.serverUnavailable') + e.message)
+  //     // }
+  //   } catch (e: unknown) {
+  //     let message = t('service.serverUnavailable');
+  //     if (e instanceof Error) {
+  //       message += e.message;
+  //     }
+  //     setMessage(message);
+  //   }
+
+  //   setShowLoader(false);
+  // }
+
+  const getTCardsTerms = useCallback(async (params?: {
+    useNumber?: boolean;
+    useDate?: boolean;
+    useStatus?: boolean;
+    tCardNumber?: number;
+    tCardDateFrom?: string;
+    tCardDateTo?: string;
+    tCardStatus?: StatusEnum | "";
+  }) => {
     setShowLoader(true);
 
+    const {
+      useNumber = false,
+      useDate = false,
+      useStatus = false,
+      tCardNumber,
+      tCardDateFrom,
+      tCardDateTo,
+      tCardStatus,
+    } = params || {};
+
     let filter = "";
-    // фильтр
-    if (useNumber && tCardNumber) filter = filter.concat(`&tCardNumber=${tCardNumber}`)
-    if ((useDate) && (tCardDateFrom)) filter = filter.concat(`&tCardDateFrom=${tCardDateFrom}`)
-    if ((useDate) && (tCardDateTo)) filter = filter.concat(`&tCardDateTo=${tCardDateTo}`)
-    if (useStatus) filter = filter.concat(`&tCardStatus=${tCardStatus}`)
+    if (useNumber && tCardNumber) filter += `&tCardNumber=${tCardNumber}`;
+    if (useDate && tCardDateFrom) filter += `&tCardDateFrom=${tCardDateFrom}`;
+    if (useDate && tCardDateTo) filter += `&tCardDateTo=${tCardDateTo}`;
+    if (useStatus) filter += `&tCardStatus=${tCardStatus}`;
 
     try {
-      const res = await fetch(`api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
+      const res = await fetch(
+        `api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
         {
-          method: 'get',
+          method: "get",
           headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
+            Authorization: "Basic " + token,
+            "Content-Type": "application/json",
           }),
         }
       );
+
+      const data = await res.json();
+
       if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-
-        if (receivedData.success) {
-          setUnitLoadsValue(receivedData.unitLoadItems as UnitLoadItem[]); // лоады по операциям
-          setTCardsValue(receivedData.tCards as TCardTermsItem[]); //  получаем карту с операциями
-          setMessage(receivedData.message);
-        }
+        setMessage(t("service.serverUnavailable") + data.error);
+      } else if (data.success) {
+        setUnitLoadsValue(data.unitLoadItems as UnitLoadItem[]);
+        setTCardsValue(data.tCards as TCardTermsItem[]);
+        setMessage(data.message);
       }
-
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+    } catch (e: unknown) {
+      let message = t("service.serverUnavailable");
+      if (e instanceof Error) message += e.message;
+      setMessage(message);
     }
-    setShowLoader(false);
-  }
 
+    setShowLoader(false);
+  }, [
+    userId,
+    teamId,
+    token,
+    t,
+    setMessage,
+    setShowLoader,
+    setUnitLoadsValue,
+    setTCardsValue,
+  ]);
+  // Адаптер — создаём совместимую с <Filter /> обёртку:
+  const callGetTCardsTermsLegacy = useCallback((
+    useNumber: boolean,
+    useDate: boolean,
+    useStatus: boolean,
+    tCardNumber: number,
+    tCardDateFrom: string,
+    tCardDateTo: string,
+    tCardStatus: StatusEnum | ""
+  ) => {
+    getTCardsTerms({
+      useNumber,
+      useDate,
+      useStatus,
+      tCardNumber,
+      tCardDateFrom,
+      tCardDateTo,
+      tCardStatus,
+    });
+  }, [getTCardsTerms]);
+
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     getTCardsTerms();
-  }, []);
+  }, [getTCardsTerms]);
 
   const getStyleStatus = (status: StatusEnum): string => {
 
@@ -123,9 +220,9 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
 
     }
   }
-  let tCardsValueReactNodes = tCardsValue.map((tCard, index) => {
+  const tCardsValueReactNodes = tCardsValue.map((tCard, index) => {
     // лоады карты
-    let tCardLoads = unitLoadsValue.filter(lo => lo.id_tCard === tCard.id)
+    const tCardLoads = unitLoadsValue.filter(lo => lo.id_tCard === tCard.id)
 
     let commonDuration = 0;
     let readyDuration = 0;
@@ -133,7 +230,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     const tCardOperationsReactNodes = tCard.tCardOperations.map((oper, index) => {
 
       // Группируем лоады по версии
-      let groupedLodes = tCardLoads
+      const groupedLodes = tCardLoads
         .filter(lo => lo.idc_oper === oper.idc) // Фильтруем лоады по операции
         .filter(lo => !lo.isRetool) // Исключаем лоады с isRetool = true
         .reduce<Record<number, { status: StatusEnum, dateStart: string, timeStart: number, dateFinish: string, timeFinish: number, version: number }>>((acc, load) => {
@@ -172,7 +269,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
             <tr key={`${tCard.id}-${index}`}>
               <td></td>
               <td className={styles.operation_title}>
-               &nbsp;&nbsp; {t('reportTCardState.start')} {lo.dateStart}: {convertMinutesToTime(lo.timeStart)} - {t('reportTCardState.finish')} {lo.dateFinish}: {convertMinutesToTime(lo.timeFinish)}</td>
+                &nbsp;&nbsp; {t('reportTCardState.start')} {lo.dateStart}: {convertMinutesToTime(lo.timeStart)} - {t('reportTCardState.finish')} {lo.dateFinish}: {convertMinutesToTime(lo.timeFinish)}</td>
               <td className={styles.operation_row}><div className={styles.status_row}>
                 <div className={loStatusStyle} />
                 {lo.status}
@@ -197,7 +294,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
         operReady = 50;
         readyDuration += (oper.duration / 2);
       }
-      let fixTitle = (oper.fixOperIdc) ? `, исправление A ${oper.fixOperIdc}` : ``;
+      const fixTitle = (oper.fixOperIdc) ? `, исправление A ${oper.fixOperIdc}` : ``;
 
       return (<>
         <tr key={`${tCard.id}-${index}`}>
@@ -220,7 +317,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
               {oper.status}
             </div>
           </td>
-          <td className={styles.operation_row}>{(oper.readyTerm.date === '0001-01-01'||oper.readyTerm.date === '') ? "" : `${oper.readyTerm.date} : ${convertMinutesToTime(Number(oper.readyTerm.time))}`}</td>
+          <td className={styles.operation_row}>{(oper.readyTerm.date === '0001-01-01' || oper.readyTerm.date === '') ? "" : `${oper.readyTerm.date} : ${convertMinutesToTime(Number(oper.readyTerm.time))}`}</td>
           <td className={styles.operation_row}>{operReady}%</td>
         </tr>
         {expandOperValue.includes((oper.id) ? oper.id : NaN) && operLoadsReactNodes}
@@ -233,7 +330,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     const cardStatusStyle = getStyleStatus(tCard.status);
 
     if (commonDuration === 0) commonDuration = 1; // чтобы не делить на ноль
-    let cardReady = Math.round(readyDuration / commonDuration * 100);
+    const cardReady = Math.round(readyDuration / commonDuration * 100);
     const time = tCard.readyTerm.time;
     return (<React.Fragment key={tCard.id}>
 
@@ -268,7 +365,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   return (
     <div className={styles.container}>
       <Filter
-        getTCardsTerms={getTCardsTerms}
+        getTCardsTerms={callGetTCardsTermsLegacy}
         teamId={teamId}
         userId={userId}
       />

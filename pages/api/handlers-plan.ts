@@ -641,7 +641,7 @@ function findAvailableSegmentsDay(
     }
 
     if (onPlaned < opRequired) {
-      let nextDate = new Date(targetDate)
+      const nextDate = new Date(targetDate)
       nextDate.setDate(nextDate.getDate() + 1);
 
       return findAvailableSegmentsDay(
@@ -922,7 +922,7 @@ export const planTCardFromOperINC = (
             const { planedUnitLoads, dateReady, timeReady } = resultPlaning;
             updatedUnitLoads = [...updatedUnitLoads, ...planedUnitLoads];
 
-            let planedOperLoads = planedUnitLoads.filter(lo => lo.id_oper === operation.id)
+            const planedOperLoads = planedUnitLoads.filter(lo => lo.id_oper === operation.id)
             planedCardLoads = [...planedCardLoads, ...planedOperLoads];
 
             //   операцию распределили  добавляем продукты (если есть) произведенные операцией со сроком готовности                    
@@ -967,7 +967,7 @@ export const planOperOnUnit = (
   let updatedUnitLoads = [...unitLoads];
   const today = new Date(today_);
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  let stopDate_ = new Date();
+  const stopDate_ = new Date();
   stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
   stopDate_.setDate(stopDate_.getDate() + 90);
   const stopDate = stopDate_.toLocaleDateString("en-CA");
@@ -997,7 +997,7 @@ export const planOperOnUnit = (
     message = `Операция - C${operation.idc}: ${resultPlaning.message}`;
     return { success: false, operLoads: [], message: message };
   }
-  let operLoads = resultPlaning.planedUnitLoads.filter(lo => lo.id_oper === operation.id)
+  const operLoads = resultPlaning.planedUnitLoads.filter(lo => lo.id_oper === operation.id)
   // updatedUnitLoads = [...updatedUnitLoads, ...resultPlaning.planedUnitLoads];
   return { success: true, operLoads: operLoads, message: "" };
 }

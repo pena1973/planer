@@ -6,17 +6,17 @@ import { TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem } from "@/type
 
 import { useTranslation } from 'react-i18next';
 
-export interface FileUploadButtonProps<T> {
+export interface FileUploadButtonProps {
   onCardUpload: (tCard: TCardItem) => void,
   uoms: UOMItem[],
   actions: ActionItem[],
 }
 
-const FileUploadButton = <T extends {}>({
+const FileUploadButton = ({
   onCardUpload,
   uoms,
   actions,
-}: FileUploadButtonProps<T>) => {
+}: FileUploadButtonProps) => {
  
   const { t, i18n } = useTranslation();
 

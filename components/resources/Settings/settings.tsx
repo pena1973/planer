@@ -48,13 +48,13 @@ export default function Settings({
     const [showWeekendValue, setShowWeekendValue] = useState(true);
     const [showHolidayValue, setShowHolidayValue] = useState(true);
 
+   // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setTimeStartWorkValue(settings.timeStartWork);
         setTimeFinishWorkValue(settings.timeFinishWork);
         setShowWeekendValue(settings.showWeekend);
         setShowHolidayValue(settings.showHoliday);
         setModified(false);
-
     }, []);
 
     // колбеки кнопки
@@ -62,7 +62,7 @@ export default function Settings({
 
     const saveSettingsHandler = async () => {
         setMessage("");
-        let settings = {
+        const settings = {
             timeStartWork: timeStartWorkValue,
             timeFinishWork: timeFinishWorkValue,
             showWeekend: showWeekendValue,
@@ -88,7 +88,7 @@ export default function Settings({
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                let error = receivedData.error;
+                const error = receivedData.error;
                 // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
                 setMessage(t('service.serverUnavailable') + error);
@@ -98,7 +98,7 @@ export default function Settings({
 
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let settings = receivedData.settings as SettingsItem
+                    const settings = receivedData.settings as SettingsItem
                     dispatch(setSettings(settings));
                     setTimeStartWorkValue(settings.timeStartWork);
                     setTimeFinishWorkValue(settings.timeFinishWork);
@@ -109,9 +109,17 @@ export default function Settings({
                 } else setMessage(receivedData.error);
             }
 
-        } catch (e: any) {
-            setMessage(t('service.serverUnavailable') + e.message)
+            // } catch (e: any) {
+            //     setMessage(t('service.serverUnavailable') + e.message)
+            // }
+        } catch (e: unknown) {
+            let message = t('service.serverUnavailable');
+            if (e instanceof Error) {
+                message += e.message;
+            }
+            setMessage(message);
         }
+
 
         setModified(false);
     };

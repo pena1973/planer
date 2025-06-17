@@ -19,7 +19,7 @@ interface UnitTaskStackOutsourceProps {
   setStatusLoadsHandler: (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => void,
   teamId: number,
   userId: number,
-  token:string
+  token: string
 }
 
 const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
@@ -77,9 +77,17 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
         }
       }
 
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
   }
 
 
@@ -112,7 +120,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
 
   const outerLoads__ = getFirstLoads(outerLoads); //  отбираем только первые лоады для каждой операции 
 
-  let operValueReactNodes = outerLoads__.map((lo, index) => {
+  const operValueReactNodes = outerLoads__.map((lo, index) => {
 
     const tCard = tCards.find(tCard => tCard.id === lo.id_tCard); // ищем карточку
     const terms = getStartFinishOper(lo);

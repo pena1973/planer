@@ -1,21 +1,7 @@
 // /lib/auth.ts — генерация и проверка токена
-// import { sign, verify } from 'jsonwebtoken'
-
-// const SECRET = process.env.JWTSECRET!
-
-// export function createToken(payload: object) {
-//   return sign(payload, SECRET, { expiresIn: '24h' })
-// }
-
-// export function verifyToken(token: string) {
-//   try {
-//     return verify(token, SECRET)
-//   } catch {
-//     return null
-//   }
-// }
-
 import { sign, verify } from 'jsonwebtoken'
+
+import type { MyJwtPayload } from '@/types/auth-types';
 
 const ACCESS_SECRET = process.env.JWTSECRET!
 const REFRESH_SECRET = process.env.JWTREFRESHSECRET!  // добавь в .env
@@ -28,18 +14,34 @@ export function createRefreshToken(payload: object) {
   return sign(payload, REFRESH_SECRET, { expiresIn: '7d' })
 }
 
-export function verifyAccessToken(token: string) {
+// export function verifyAccessToken(token: string) {
+//   try {
+//     return verify(token, ACCESS_SECRET)
+//   } catch {
+//     return null
+//   }
+// }
+
+
+export function verifyAccessToken(token: string): MyJwtPayload | null {
   try {
-    return verify(token, ACCESS_SECRET)
+    return verify(token, ACCESS_SECRET) as MyJwtPayload;
   } catch {
-    return null
+    return null;
   }
 }
 
-export function verifyRefreshToken(token: string) {
+export interface TokenPayload {
+  login: string;
+  exp?: number; // если срок действия токена используется
+  iat?: number; // issued at, тоже может быть
+}
+
+export function verifyRefreshToken(token: string): TokenPayload | null {
   try {
-    return verify(token, REFRESH_SECRET)
+    return verify(token, REFRESH_SECRET) as TokenPayload;
   } catch {
-    return null
+    return null;
   }
 }
+

@@ -15,7 +15,7 @@ interface ProfileProps {
   team: TeamItem,
   user: UserItem,
   unit: UnitItem,
-  token:string
+  token: string
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -70,7 +70,7 @@ export const Profile: React.FC<ProfileProps> = ({
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         // setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         setMessage(t('service.serverUnavailable') + error);
@@ -80,7 +80,7 @@ export const Profile: React.FC<ProfileProps> = ({
 
         if (receivedData.success) {
           //   Обновим текущую карту
-          let user_ = receivedData.user as UserItem
+          const user_ = receivedData.user as UserItem
           dispatch(setUser(user_));
           setPassValue("");
           setNewPass1Value("");
@@ -89,9 +89,17 @@ export const Profile: React.FC<ProfileProps> = ({
         } else setMessage(receivedData.error);
       }
 
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
     setLoaderButtonPass(false)
   }
 
@@ -117,7 +125,7 @@ export const Profile: React.FC<ProfileProps> = ({
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         // setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         setMessage(t('service.serverUnavailable') + error);
@@ -127,16 +135,24 @@ export const Profile: React.FC<ProfileProps> = ({
 
         if (receivedData.success) {
           //   Обновим текущую карту
-          let user_ = receivedData.user as UserItem
+          const user_ = receivedData.user as UserItem
           dispatch(setUser(user_));
           setNameValue("")
           setMessage(t('profile.userUpdated'));
         } else setMessage(receivedData.error);
       }
 
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
     setLoaderButtonName(false)
   }
 

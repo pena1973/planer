@@ -39,7 +39,7 @@ export default function ContexMenuInner({
         return { hours, minutes };
     }
 
-    let dur = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration));
+    const dur = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration));
 
     const time = convertMinutes(dur);
 

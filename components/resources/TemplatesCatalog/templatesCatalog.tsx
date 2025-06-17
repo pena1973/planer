@@ -50,15 +50,14 @@ export default function TemplatesCatalog({
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [templatesValue, setTemplatesValue] = useState([] as TemplateItem[]);
 
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setTemplatesValue(templates);
-
     }, []);
 
     // колбеки кнопки
     const deleteTemplateHandler = (indexToRemove: number) => {
-        let uomsValueUpdated = [...templatesValue]
+        const uomsValueUpdated = [...templatesValue]
         uomsValueUpdated.splice(indexToRemove, 1)
         setTemplatesValue(uomsValueUpdated)
         setModified(true);
@@ -68,7 +67,7 @@ export default function TemplatesCatalog({
         setModified(true);
         let updateTemplate = templatesValue[indexToChange];
         updateTemplate = { ...updateTemplate, name: value }
-        let templatesValueUpdated = [...templatesValue]
+        const templatesValueUpdated = [...templatesValue]
         templatesValueUpdated.splice(indexToChange, 1, updateTemplate)
         setTemplatesValue(templatesValueUpdated)
 
@@ -116,7 +115,7 @@ export default function TemplatesCatalog({
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                let error = receivedData.error;
+                const error = receivedData.error;
                 // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
                 setMessage(t('service.serverUnavailable') + error);
@@ -126,7 +125,7 @@ export default function TemplatesCatalog({
 
                 if (receivedData.success) {
                     // //   Обновим текущую карту
-                    let templates_ = receivedData.templates as TemplateItem[]
+                    const templates_ = receivedData.templates as TemplateItem[]
                     dispatch(setTemplates(templates_));
                     setModified(false);
                     // setMessage("Обновлен список шаблонов карт");
@@ -135,16 +134,24 @@ export default function TemplatesCatalog({
                 } else setMessage(receivedData.error);
             }
 
-        } catch (e: any) {
-            setMessage(t('service.serverUnavailable') + e.message)
-        }
+        // } catch (e: any) {
+        //     setMessage(t('service.serverUnavailable') + e.message)
+        // }
+        } catch (e: unknown) {
+  let message = t('service.serverUnavailable');
+  if (e instanceof Error) {
+    message += e.message;
+  }
+  setMessage(message);
+}
+
 
         setModified(false);
     };
 
     const addTemplateHandler = () => {
 
-        let newTemplate = { name: "new", fileContent: "" } as TemplateItem;
+        const newTemplate = { name: "new", fileContent: "" } as TemplateItem;
         setTemplatesValue([...templatesValue, newTemplate])
         setModified(true);
     };
@@ -170,7 +177,7 @@ export default function TemplatesCatalog({
         link.click();
     }
     const uploadTemplateHandler = (indexTo: number) => {
-        let templatesValue_ = [...templatesValue];
+        const templatesValue_ = [...templatesValue];
         // Создаем элемент input для загрузки файла
         const input = document.createElement('input');
         input.type = 'file';
@@ -243,7 +250,7 @@ export default function TemplatesCatalog({
 
 
 
-    let templatesValueReactNodes = templatesValue.map((template, index) => (
+    const templatesValueReactNodes = templatesValue.map((template, index) => (
 
         <tr key={index}>
             <td>

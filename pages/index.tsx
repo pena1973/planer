@@ -57,11 +57,8 @@ const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
-interface IndexProps {
 
-}
-
-export default function Index({ }: IndexProps) {
+export default function Index() {
   const { t, i18n } = useTranslation();
 
   const { push } = useRouter();
@@ -150,7 +147,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessageLogin(error);
         setMessageLogin(t('service.serverUnavailable') + res.status);
       } else {
@@ -158,19 +155,19 @@ export default function Index({ }: IndexProps) {
         // console.log("receivedData", receivedData)
 
         if (receivedData.success) {
-          let user_ = receivedData.user as UserItem;
-          let token_ = receivedData.token as string;
-          let team_ = receivedData.team as TeamItem;
-          let settings_ = receivedData.settings as SettingsItem;
-          let agreementText_ = receivedData.agreementText as string;
-          let signed_ = receivedData.signed as boolean;
-          let agreementId_ = receivedData.agreementId as number
-          let unit_ = receivedData.unit as UnitItem
+          const user_ = receivedData.user as UserItem;
+          const token_ = receivedData.token as string;
+          const team_ = receivedData.team as TeamItem;
+          const settings_ = receivedData.settings as SettingsItem;
+          const agreementText_ = receivedData.agreementText as string;
+          const signed_ = receivedData.signed as boolean;
+          const agreementId_ = receivedData.agreementId as number
+          const unit_ = receivedData.unit as UnitItem
 
           //   Обновим настройки
           dispatch(setUser(user_));
           dispatch(setToken(token_));
-         
+
           configureTokenAccess(
             () => store.getState().authSlice.token, // или твой точный селектор
             (newToken: string) => dispatch(setToken(newToken))
@@ -186,9 +183,17 @@ export default function Index({ }: IndexProps) {
         } else setMessageLogin(receivedData.message);
       }
 
-    } catch (e: any) {
-      // setMessageLogin(t('service.serverUnavailable') + e.message)            
+      // } catch (e: any) {
+      //   // setMessageLogin(t('service.serverUnavailable') + e.message)            
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
     setLoaderButtonLogin(false)
   }
   const loginRecovery = async (e: React.MouseEvent<HTMLElement>) => {
@@ -203,7 +208,7 @@ export default function Index({ }: IndexProps) {
     const URL_RECOVERY = process.env.NEXT_PUBLIC_URL_RECOVERY;
     let _urlRecovery = String(URL_RECOVERY);
     _urlRecovery = _urlRecovery.concat((_urlRecovery[_urlRecovery.length - 1] === "/") ? "" : "/");
-    let link = _urlRecovery + "recovery/";
+    const link = _urlRecovery + "recovery/";
     try {
       //  нужно отправить писмо на восстановление      
       const res = await fetch(`${_url}auth/mailrecovery`,
@@ -227,9 +232,17 @@ export default function Index({ }: IndexProps) {
         // setMessage(' Вам на пошту надіслано листа з посиланням на сторінку відновлення пароля!');          
         setMessage(t('service.recoveryMailSent'));
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
     // setLoaderButtonRecovery(false);
   }
   const registerClick = async (e: React.MouseEvent<HTMLElement>) => {
@@ -294,7 +307,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessageRegister(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         // setMessageRegister(t('service.serverUnavailable') + res.status);
@@ -304,12 +317,12 @@ export default function Index({ }: IndexProps) {
 
         if (receivedData.success) {
 
-          let user_ = receivedData.user as UserItem;
-          let token_ = receivedData.token as string;
-          let team_ = receivedData.team as TeamItem;
-          let settings_ = receivedData.settings as SettingsItem;
-          let agreementText_ = receivedData.agreementText as string;
-          let agreementId_ = receivedData.agreementId as number
+          const user_ = receivedData.user as UserItem;
+          const token_ = receivedData.token as string;
+          const team_ = receivedData.team as TeamItem;
+          const settings_ = receivedData.settings as SettingsItem;
+          const agreementText_ = receivedData.agreementText as string;
+          const agreementId_ = receivedData.agreementId as number
 
           //   Обновим настройки
           dispatch(setUser(user_));
@@ -326,8 +339,15 @@ export default function Index({ }: IndexProps) {
         } else setMessageRegister(receivedData.error);
       }
 
-    } catch (e: any) {
-      // setMessage(t('service.serverUnavailable') + e.message)            
+      // } catch (e: any) {
+      //   // setMessage(t('service.serverUnavailable') + e.message)            
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
 
 
@@ -348,7 +368,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         setMessage(t('service.serverUnavailable') + error);
@@ -356,15 +376,22 @@ export default function Index({ }: IndexProps) {
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let uoms_ = receivedData.uoms as UOMItem[]
+          const uoms_ = receivedData.uoms as UOMItem[]
           dispatch(setUOMs(uoms_));
           // setMessage("Загружены единицы измерения")
           setMessage(t('index.downloadUoms'))
         }
         else setMessage(receivedData.error);
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+       setMessage(message);
     }
   }
   const downloadActions = async () => {
@@ -381,7 +408,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         setMessage(t('service.serverUnavailable') + error);
@@ -389,17 +416,23 @@ export default function Index({ }: IndexProps) {
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let actions_ = receivedData.actions as ActionItem[]
+          const actions_ = receivedData.actions as ActionItem[]
           dispatch(setActions(actions_));
           // setMessage("Загружены действия")
           setMessage(t('index.downloadActions'))
         }
         else setMessage(receivedData.error);
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
-
   }
   const downloadTemplates = async () => {
     // Загружаем классификатор действий
@@ -415,7 +448,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         setMessage(t('service.serverUnavailable') + error);
@@ -423,16 +456,24 @@ export default function Index({ }: IndexProps) {
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let templates_ = receivedData.templates as TemplateItem[]
+          const templates_ = receivedData.templates as TemplateItem[]
           dispatch(setTemplates(templates_));
           // setMessage("Загружены шаблоны")
           setMessage(t('index.downloadTemplates'))
         }
         else setMessage(receivedData.error);
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
 
   }
 
@@ -450,7 +491,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         setMessage(t('service.serverUnavailable') + error);
@@ -458,7 +499,7 @@ export default function Index({ }: IndexProps) {
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let units_ = receivedData.units as UnitItem[]
+          const units_ = receivedData.units as UnitItem[]
           // сортируем          
           units_.sort((a, b) => {
             // Проверка на undefined
@@ -473,9 +514,17 @@ export default function Index({ }: IndexProps) {
         }
         else setMessage(receivedData.error);
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
 
   }
   const downloadUnutsExceptions = async () => {
@@ -492,7 +541,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         setMessage(t('service.serverUnavailable') + error);
@@ -500,16 +549,24 @@ export default function Index({ }: IndexProps) {
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let exceptions = receivedData.exceptions as UnitExceptionItem[]
+          const exceptions = receivedData.exceptions as UnitExceptionItem[]
           dispatch(setUnitExceptions(exceptions)); // Это ме надо?
           // setMessage("Загружены исключения юнитов")
           setMessage(t('index.downloadUnutsExceptions'))
         }
         else setMessage(receivedData.error);
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
 
   }
   const downloadUnutsActions = async () => {
@@ -526,23 +583,31 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let unitActions = receivedData.actions as UnitActionItem[]
+          const unitActions = receivedData.actions as UnitActionItem[]
           dispatch(setUnitActions(unitActions));
           // setMessage("Загружены действия юнитов")
           setMessage(t('index.downloadUnutsActions'))
         }
         else setMessage(receivedData.error);
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
 
   }
 
@@ -560,25 +625,33 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         setMessage(t('service.serverUnavailable') + error);
       } else {
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
-          let tCards = receivedData.tCards as TCardItem[]
+          const tCards = receivedData.tCards as TCardItem[]
           // Сортируем tCards по номеру (если number это число)
-          let tCards_ = tCards.sort((a, b) => a.idc - b.idc);
-          let tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
+          const tCards_ = tCards.sort((a, b) => a.idc - b.idc);
+          const tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
           dispatch(setTCards(tCardsUpdated));
           // setMessage("Загружены карты");
           setMessage(t('index.downloadTCards'))
         }
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
   };
   // загружает настройки отображения календаря
   const downloadSettings = async () => {
@@ -594,14 +667,14 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let settings = receivedData.schedule as SettingsItem
+          const settings = receivedData.schedule as SettingsItem
           dispatch(setSettings(settings));
           // setMessage("Загружены настройки календаря");
           setMessage(t('index.downloadSettings'))
@@ -610,9 +683,17 @@ export default function Index({ }: IndexProps) {
         else
           setMessage(receivedData.error);
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
   }
 
   // загружает  расписание работы компании
@@ -629,23 +710,31 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         setMessage(t('service.serverUnavailable') + error);
 
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let schedule = receivedData.schedule as ScheduleItem
+          const schedule = receivedData.schedule as ScheduleItem
           dispatch(setSchedule(schedule));
           // setMessage("Загружено расписание")
           setMessage(t('index.downloadSchedule'))
         }
         else setMessage(receivedData.error);
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
   }
   // запрос Загрузки
   const downloadLoads = async () => {
@@ -662,7 +751,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         setMessage(t('service.serverUnavailable') + error);
       } else {
@@ -670,20 +759,28 @@ export default function Index({ }: IndexProps) {
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
           //  массив юнитов с загрузками
-          let unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
+          const unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
 
           dispatch(setUnitLoads(unitsLoads));
           // setMessage("Загружены планы и история ")
           setMessage(t('index.downloadLoads'))
         }
       }
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
 
   };
 
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadDataAndRedirect = async () => {
       // Если юзер залогинен и получен токен
@@ -732,7 +829,7 @@ export default function Index({ }: IndexProps) {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessageLogin(error);
         //  console.log(t('service.serverUnavailable') + res.status);
         setMessageLogin(t('service.serverUnavailable') + res.status);
@@ -742,15 +839,22 @@ export default function Index({ }: IndexProps) {
 
         if (receivedData.success) {
 
-          let signed_ = receivedData.signed as boolean;
+          const signed_ = receivedData.signed as boolean;
           //   Обновим настройки          
           dispatch(setSignedAgreement(signed_));
           setStep(4);
         } else setMessageLogin(receivedData.message);
       }
 
-    } catch (e: any) {
-      // setMessageLogin(t('service.serverUnavailable') + e.message)            
+    // } catch (e: any) {
+    //   // setMessageLogin(t('service.serverUnavailable') + e.message)            
+    // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
     setLoaderButtonLogin(false)
 
@@ -963,7 +1067,7 @@ export default function Index({ }: IndexProps) {
           setMessage={(message: string) => { }}
         />}
       </div>
-     
+
     </Layout>
   )
 }

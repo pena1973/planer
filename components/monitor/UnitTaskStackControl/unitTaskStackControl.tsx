@@ -1,12 +1,13 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./unitTaskStackControl.module.scss";
-import { CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum } from "@/types";
+import { UnitLoadItem, UnitItem, TCardItem, TCardOperationItem, StatusEnum } from "@/types";
 import LoadMonitorControl from "./LoadMonitorControl/loadMonitorControl";
 import LoadOperControl from "./LoadOperControl/loadOperControl";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
+import { useTranslation } from 'react-i18next';
 
-import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/utils"
+import { padNumberToFourDigits } from "@/utils"
 
 interface UnitTaskStackProcessProps {
   unit: UnitItem,
@@ -24,7 +25,7 @@ interface UnitTaskStackProcessProps {
   setStatusLoadsHandler: (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => void,
   teamId: number,
   userId: number,
-  token:string
+  token: string
 }
 
 const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
@@ -41,6 +42,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   userId,
   token
 }) => {
+   const { t, i18n } = useTranslation();
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
 
   const [operView, setOperView] = useState(false);
@@ -85,7 +87,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
         setMessage(receivedData.message);
         if (receivedData.success) {
           //   Обновим текущую карту
-          let tCard = receivedData.tCard as TCardItem
+          const tCard = receivedData.tCard as TCardItem
           setCurrentTCard(tCard);
           const oper = tCard.tCardOperations?.find((oper) => oper.id === id_oper);
           if (!oper) return
@@ -95,9 +97,17 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
         }
       }
 
-    } catch (e: any) {
-      // setMessage(t('service.serverUnavailable') + e.message)            
+      // } catch (e: any) {
+      //   // setMessage(t('service.serverUnavailable') + e.message)            
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
   }
   // Закрываем операцию без изменения по нажатию кенопки юнитом 
   const closeOperHandler = (): void => {
@@ -151,9 +161,17 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
         }
       }
 
-    } catch (e: any) {
-      // setMessage(t('service.serverUnavailable') + e.message)            
+      // } catch (e: any) {
+      //   // setMessage(t('service.serverUnavailable') + e.message)            
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
 
     setCurrentOper({} as TCardOperationItem);
     setCurrentTCard({} as TCardItem);
@@ -196,6 +214,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
 
     return <LoadMonitorControl
+      key={index}
       loadHeight={40}
       showTitle={true}
       load={load}
@@ -211,7 +230,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   const terms = getStartFinishOper(currentLoad);
 
   // статистика работы юнита в этот день
-  let work = Math.round((statistic.current.busyTime / statistic.current.workTime) * 100);
+  const work = Math.round((statistic.current.busyTime / statistic.current.workTime) * 100);
   let result = 0;
   let defect = 0;
   if (statistic.current.busyTime !== 0) {

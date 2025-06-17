@@ -13,7 +13,7 @@ interface ReportUnitsKPIProps {
   teamId: number,
   userId: number,
   units: UnitItem[],
-  token:string
+  token: string
 }
 
 interface ExpandKey {
@@ -44,13 +44,13 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
 
- 
+
 
   const [expandKeyValue, setExpandKeyValue] = useState([] as ExpandKey[]); // ключ expand
   const [unitsKPIValue, setUnitsKPIValue] = useState([] as UnitKPIItem[]); // массив kpi по дням
   const [showLoader, setShowLoader] = useState(false);
 
-  let today = new Date();
+  const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const getUnitKPI = async (
@@ -70,10 +70,10 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
     if (useUnit && unitId) filter = filter.concat(`&unitId=${unitId}`)
 
     if (useDate) {
-      let dateFrom1 = (dateFrom?.length === 0) ? '0001-01-01' : dateFrom;
+      const dateFrom1 = (dateFrom?.length === 0) ? '0001-01-01' : dateFrom;
       filter = filter.concat(`&dateFrom=${dateFrom1}`)
-      
-      let dateTo1 = (dateTo?.length === 0) ? '3000-01-01' : dateTo;
+
+      const dateTo1 = (dateTo?.length === 0) ? '3000-01-01' : dateTo;
       filter = filter.concat(`&dateTo=${dateTo1}`)
     }
 
@@ -105,9 +105,17 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         }
       }
 
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
     setShowLoader(false);
   }
 
@@ -143,7 +151,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
 
 
   // дерево отчета
-  let unitsReactNodes = uniqueUnits.map((unitKey, index) => {
+  const unitsReactNodes = uniqueUnits.map((unitKey, index) => {
 
 
     let unitProductionTime = 0
@@ -196,7 +204,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
                 <td className={styles.date_title}> {dateKey.date}</td>
                 <td> {(dateProductionTime > 0) ? convertMinutesToTime1(dateProductionTime) : ""} </td>
                 <td> {(dateLoadind > 0) ? `${dateLoadind} %` : ""}</td>
-                <td> {(dateOccupiedTime > 0) ? convertMinutesToTime1(dateOccupiedTime) : ""} </td>                
+                <td> {(dateOccupiedTime > 0) ? convertMinutesToTime1(dateOccupiedTime) : ""} </td>
                 <td> {(dateResult > 0) ? `${dateResult} %` : ""}</td>
                 <td> {(datePlan > 0) ? `${datePlan} %` : ""}</td>
                 <td> {(dateDefect > 0) ? `${dateDefect} %` : ""}</td>
@@ -226,7 +234,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
             <td className={styles.month_title}> {monthNames[monthKey.month] || ""}</td>
             <td> {(monthProductionTime > 0) ? convertMinutesToTime1(monthProductionTime) : ""} </td>
             <td> {(monthLoadind > 0) ? `${monthLoadind} %` : ""}</td>
-            <td> {(monthOccupiedTime > 0) ? convertMinutesToTime1(monthOccupiedTime) : ""} </td>          
+            <td> {(monthOccupiedTime > 0) ? convertMinutesToTime1(monthOccupiedTime) : ""} </td>
             <td> {(monthPlan > 0) ? `${monthPlan} %` : ""}</td>
             <td> {(monthResult > 0) ? `${monthResult} %` : ""}</td>
             <td> {(monthDefect > 0) ? `${monthDefect} %` : ""}</td>
@@ -259,7 +267,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         <td> </td>
         <td> {(unitProductionTime > 0) ? convertMinutesToTime1(unitProductionTime) : ""} </td>
         <td> {(unitLoadind > 0) ? `${unitLoadind} %` : ""}</td>
-        <td> {(unitOccupiedTime > 0) ? convertMinutesToTime1(unitOccupiedTime) : ""} </td>        
+        <td> {(unitOccupiedTime > 0) ? convertMinutesToTime1(unitOccupiedTime) : ""} </td>
         <td> {(unitPlan > 0) ? `${unitPlan} %` : ""}</td>
         <td> {(unitResult > 0) ? `${unitResult} %` : ""}</td>
         <td> {(unitDefect > 0) ? `${unitDefect} %` : ""}</td>
@@ -321,7 +329,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
               <th className={styles.unit_top}>{t('reportUnitsKPI.date')}</th>
               <th>{t('reportUnitsKPI.workTime')}</th>
               <th>{t('reportUnitsKPI.loading')}</th>
-              <th>{t('reportUnitsKPI.busyTime')}</th>              
+              <th>{t('reportUnitsKPI.busyTime')}</th>
               <th>{t('reportUnitsKPI.plan')}</th>
               <th>{t('reportUnitsKPI.result')}</th>
               <th>{t('reportUnitsKPI.defect')}</th>

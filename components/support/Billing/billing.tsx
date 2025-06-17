@@ -13,7 +13,7 @@ interface BillingProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
-  token:string
+  token: string
 }
 
 export const Billing: React.FC<BillingProps> = ({
@@ -56,13 +56,21 @@ export const Billing: React.FC<BillingProps> = ({
         }
       }
 
-    } catch (e: any) {
-      setMessage(t('service.serverUnavailable') + e.message)
+      // } catch (e: any) {
+      //   setMessage(t('service.serverUnavailable') + e.message)
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
   }
   const downloadFile = (bill: BillItem) => { }
 
-  let billsReactNodes = billsValue.map((bill, index) => {
+  const billsReactNodes = billsValue.map((bill, index) => {
     return (<tr key={index}>
       <td> {bill.date}</td>
       <td> {bill.title}</td>
@@ -75,6 +83,7 @@ export const Billing: React.FC<BillingProps> = ({
     </tr>)
   })
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     getBills();
   }, []);

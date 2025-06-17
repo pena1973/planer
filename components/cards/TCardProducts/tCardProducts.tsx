@@ -76,16 +76,16 @@ export default function TCardProducts({
 
     // колбеки кнопки
     const deleteProductHandler = (indexToRemove: number) => {
-        let tProductsValueUpdated = [...tProductsValue]
+        const tProductsValueUpdated = [...tProductsValue]
         tProductsValueUpdated.splice(indexToRemove, 1)
         setTProductsValue(tProductsValueUpdated)
         // setCartEdited();
     };
 
     const changeProductHandler = (indexToChange: number, id: number, title: string, qtu: number, uom: UOMItem | null) => {
-        let product = tProductsValue[indexToChange];
-        let updatedProduct = { ...product, title: title, qtu: qtu, uom: uom ?? product.uom }
-        let tProductsValueUpdated = [...tProductsValue]
+        const product = tProductsValue[indexToChange];
+        const updatedProduct = { ...product, title: title, qtu: qtu, uom: uom ?? product.uom }
+        const tProductsValueUpdated = [...tProductsValue]
         tProductsValueUpdated.splice(indexToChange, 1, updatedProduct)
         setTProductsValue(tProductsValueUpdated)
         // setCartEdited();
@@ -120,12 +120,12 @@ export default function TCardProducts({
         if (isOK) {
             saveProductsHandler(tProductsValue);
             setEdited(!isOK);
-        }        
+        }
     };
 
     const addProductHandler = () => {
         const idc = maxIdc + 1;
-        let newProduct = {
+        const newProduct = {
             idc: idc,
             code: "",
             title: "Продукт",
@@ -133,12 +133,12 @@ export default function TCardProducts({
             uom: {} as UOMItem,
             mode: true,
         } as TCardProductItem;
-        setTProductsValue([...tProductsValue, newProduct])        
+        setTProductsValue([...tProductsValue, newProduct])
         setMaxIdc(idc);
 
     };
 
-    let tCardProductsReactNodes = tProductsValue.map((elem, index) => {
+    const tCardProductsReactNodes = tProductsValue.map((elem, index) => {
 
         const regex = /^([A-Z])(\d+)([IO])(\d+)/; // Регулярное выражение для извлечения компонентов
         const match = elem.code.match(regex);
@@ -160,6 +160,7 @@ export default function TCardProducts({
                 />}
             {!edited &&
                 <TCardProduct
+                    key={'products' + index}
                     idc={elem.idc}
                     code={elem.code}
                     title={elem.title}
@@ -186,7 +187,8 @@ export default function TCardProducts({
 
     return (
 
-        <div className={styles.container}
+        <div
+            className={styles.container}
             onDragOver={(e) => dragOverHandler(e)}
             onDrop={(e) => {
                 handleDrop(e, prefix)
@@ -219,7 +221,7 @@ export default function TCardProducts({
                             src={save}
                             alt="arrow" width={20} height={20}
                             onClick={() => { saveProducts() }}
-                        />                       
+                        />
                     </div>
                 </div>}
             </>}

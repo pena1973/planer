@@ -21,11 +21,8 @@ _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 import { setSuportPoint } from '@/store/slices';
 
-interface SupportProps {
 
-}
-
-export default function Support({ }: SupportProps) {
+export default function Support() {
   const { t, i18n } = useTranslation();
   const { push } = useRouter();
   const dispatch = useAppDispatch();

@@ -12,7 +12,7 @@ export async function fetchWithRefresh(input: RequestInfo, init: RequestInit = {
     throw new Error('Token access not configured')
   }
 
-  let token = tokenGetter()
+  const token = tokenGetter()
   let res = await fetch(input, {
     ...init,
     headers: {

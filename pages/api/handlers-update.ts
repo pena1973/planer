@@ -302,8 +302,8 @@ export async function updateActions(
   const updatedActions = actionToUpdate.map(action => {
     const existingAction = existingActions.find(existingAction => existingAction.id === action.id);
     if (existingAction) {
-      existingAction.code = action.code,
-        existingAction.title = action.title; // Обновляем нужные поля
+      existingAction.code = action.code;
+      existingAction.title = action.title; // Обновляем нужные поля
       existingAction.interruptible = action.interruptible; // Обновляем нужные поля
       return actionsRepository.create(existingAction);
     }
@@ -1468,20 +1468,20 @@ export async function updateStatusOperationByTCardId(
       return { success: false, message: "Операции не были обновлены" };
     }
 
-  // } catch (error: any) {
-  //   console.error("Ошибка обновления операций:", error);
-  //   return { success: false, message: error.message || "Ошибка обновления операций" };
-  // }
+    // } catch (error: any) {
+    //   console.error("Ошибка обновления операций:", error);
+    //   return { success: false, message: error.message || "Ошибка обновления операций" };
+    // }
   } catch (error: unknown) {
-  let message = "Ошибка обновления операций";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка обновления операций:", error);
-  } else {
-    console.error("Неизвестная ошибка обновления операций:", error);
+    let message = "Ошибка обновления операций";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка обновления операций:", error);
+    } else {
+      console.error("Неизвестная ошибка обновления операций:", error);
+    }
+    return { success: false, message };
   }
-  return { success: false, message };
-}
 
 }
 
@@ -1498,20 +1498,20 @@ export async function updateStatusOperationByOperId(
     } else {
       return { success: false, message: "Операция не обновлена" };
     }
-  // } catch (error: any) {
-  //   console.error("Ошибка обновления операции:", error);
-  //   return { success: false, message: error.message || "Ошибка обновления операции" };
-  // }
+    // } catch (error: any) {
+    //   console.error("Ошибка обновления операции:", error);
+    //   return { success: false, message: error.message || "Ошибка обновления операции" };
+    // }
   } catch (error: unknown) {
-  let message = "Ошибка обновления операции";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка обновления операции:", error);
-  } else {
-    console.error("Неизвестная ошибка обновления операции:", error);
+    let message = "Ошибка обновления операции";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка обновления операции:", error);
+    } else {
+      console.error("Неизвестная ошибка обновления операции:", error);
+    }
+    return { success: false, message };
   }
-  return { success: false, message };
-}
 
 }
 
@@ -1537,18 +1537,18 @@ export async function updateStatusOperationsByOperIds(
       // console.error(error);
       return { success: false, message: error };
     }
-  // } catch (error: any) {
-  //   // console.error("Ошибка при обновлении операций:", error);
-  //   return { success: false, message: error.message || "Ошибка при обновлении операций." };
-  // }
+    // } catch (error: any) {
+    //   // console.error("Ошибка при обновлении операций:", error);
+    //   return { success: false, message: error.message || "Ошибка при обновлении операций." };
+    // }
   } catch (error: unknown) {
-  let message = "Ошибка при обновлении операций.";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка при обновлении операций:", error);
+    let message = "Ошибка при обновлении операций.";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка при обновлении операций:", error);
+    }
+    return { success: false, message };
   }
-  return { success: false, message };
-}
 
 }
 
@@ -1579,20 +1579,20 @@ export async function updateStatusLoads(
     } else {
       return { success: false, message: "Ни одна загрузка не обновлена" };
     }
-  // } catch (error: any) {
-  //   console.error("Ошибка обновления статусов загрузок:", error);
-  //   return { success: false, message: error.message || "Ошибка обновления статусов загрузок" };
-  // }
+    // } catch (error: any) {
+    //   console.error("Ошибка обновления статусов загрузок:", error);
+    //   return { success: false, message: error.message || "Ошибка обновления статусов загрузок" };
+    // }
   } catch (error: unknown) {
-  let message = "Ошибка обновления статусов загрузок";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка обновления статусов загрузок:", error);
-  } else {
-    console.error("Неизвестная ошибка обновления статусов загрузок:", error);
+    let message = "Ошибка обновления статусов загрузок";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка обновления статусов загрузок:", error);
+    } else {
+      console.error("Неизвестная ошибка обновления статусов загрузок:", error);
+    }
+    return { success: false, message };
   }
-  return { success: false, message };
-}
 
 }
 
@@ -1616,20 +1616,20 @@ export async function updateStatusTCard(
     } else {
       return { success: false, message: "Не удалось обновить карту" };
     }
-  // } catch (error: any) {
-  //   console.error("Ошибка обновления статуса карты:", error);
-  //   return { success: false, message: error.message || "Ошибка обновления статуса карты" };
-  // }
+    // } catch (error: any) {
+    //   console.error("Ошибка обновления статуса карты:", error);
+    //   return { success: false, message: error.message || "Ошибка обновления статуса карты" };
+    // }
   } catch (error: unknown) {
-  let message = "Ошибка обновления статуса карты";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка обновления статуса карты:", error);
-  } else {
-    console.error("Неизвестная ошибка обновления статуса карты:", error);
+    let message = "Ошибка обновления статуса карты";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка обновления статуса карты:", error);
+    } else {
+      console.error("Неизвестная ошибка обновления статуса карты:", error);
+    }
+    return { success: false, message };
   }
-  return { success: false, message };
-}
 
 }
 
@@ -1641,7 +1641,7 @@ export async function updateSupportMessage(
   userId: number,
   supportMessage: SupportMessageItem,
   supportRepository: Repository<SupportTable>
-): Promise<{ success: boolean, message: string, savedMessage: SupportTable}> {
+): Promise<{ success: boolean, message: string, savedMessage: SupportTable }> {
   try {
     // Создание нового сообщения для базы данных
     const newSupportMessage = supportRepository.create({
@@ -1649,7 +1649,7 @@ export async function updateSupportMessage(
       title: supportMessage.title,
       body: supportMessage.body,
       fromUser: supportMessage.fromUser,
-      basedOn: supportMessage.basedOn,      
+      basedOn: supportMessage.basedOn,
       user_id: userId,
       team_id: teamId,
     });
@@ -1662,29 +1662,29 @@ export async function updateSupportMessage(
       success: true,
       message: "Сообщение успешно сохранено.",
       savedMessage: savedMessage,
-      
+
     };
-  // } catch (error: any) {
-  //   console.error("Ошибка при сохранении сообщения:", error);
-  //   return {
-  //     success: false,
-  //     message: error.message || "Ошибка при сохранении сообщения.",
-  //     savedMessage: {} as SupportTable,      
-  //   };
-  // }
+    // } catch (error: any) {
+    //   console.error("Ошибка при сохранении сообщения:", error);
+    //   return {
+    //     success: false,
+    //     message: error.message || "Ошибка при сохранении сообщения.",
+    //     savedMessage: {} as SupportTable,      
+    //   };
+    // }
   } catch (error: unknown) {
-  let message = "Ошибка при сохранении сообщения.";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка при сохранении сообщения:", error);
-  } else {
-    console.error("Неизвестная ошибка при сохранении сообщения:", error);
+    let message = "Ошибка при сохранении сообщения.";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка при сохранении сообщения:", error);
+    } else {
+      console.error("Неизвестная ошибка при сохранении сообщения:", error);
+    }
+    return {
+      success: false,
+      message,
+      savedMessage: {} as SupportTable,
+    };
   }
-  return {
-    success: false,
-    message,
-    savedMessage: {} as SupportTable,
-  };
-}
 
 }

@@ -29,11 +29,8 @@ import { setResourcePoint } from '@/store/slices';
 // let _url = String(URL);
 // _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
-interface ResourcesProps {
 
-}
-
-export default function Resources({ }: ResourcesProps) {
+export default function Resources() {
   const { t, i18n } = useTranslation();
   const { push } = useRouter();
   const dispatch = useAppDispatch();

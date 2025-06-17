@@ -56,6 +56,7 @@ export default function TeamSchedule({
     const [weekendsValue, setWeekendsValue] = useState([] as (DaysOfWeek | null)[]);
     const [workdaysValue, setWorkdaysValue] = useState([] as { date: string, timeStart: number, timeFinish: number }[]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         //    если есть расписание 
         if (schedule.team) {
@@ -69,13 +70,13 @@ export default function TeamSchedule({
             setWorkdaysValue(schedule.workdays);
             setTimeZoneValue(schedule.timeZone);
         }
-    }, []);
+    },[] );
 
     // колбеки кнопки
 
     const saveScheduleHandler = async () => {
         setMessage("");
-        let schedule = {
+        const schedule = {
             team: team as TeamItem,
             timeStartWork: timeStartWorkValue,
             timeFinishWork: timeFinishWorkValue,
@@ -105,7 +106,7 @@ export default function TeamSchedule({
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                let error = receivedData.error;
+                const error = receivedData.error;
                 // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
                 setMessage(t('service.serverUnavailable') + error);
@@ -115,7 +116,7 @@ export default function TeamSchedule({
 
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let schedule = receivedData.schedule as ScheduleItem
+                    const schedule = receivedData.schedule as ScheduleItem
                     dispatch(setSchedule(schedule));
                     // setTeamValue(schedule.team.title);
                     // setPrefixValue(schedule.team.prefix)
@@ -133,9 +134,17 @@ export default function TeamSchedule({
                 } else setMessage(receivedData.error);
             }
 
-        } catch (e: any) {
-            // setMessage(t('service.serverUnavailable') + e.message)            
-        }
+        // } catch (e: any) {
+        //     // setMessage(t('service.serverUnavailable') + e.message)            
+        // }
+        } catch (e: unknown) {
+  let message = t('service.serverUnavailable');
+  if (e instanceof Error) {
+    message += e.message;
+  }
+  setMessage(message);
+}
+
 
         setModified(false);
     };
@@ -181,10 +190,10 @@ export default function TeamSchedule({
             case "workDayDate":
                 {
                     if (value) {
-                        let workday = workdaysValue[indexToChange];
-                        let updatedworkday = { ...workday, date: value as string }
+                        const workday = workdaysValue[indexToChange];
+                        const updatedworkday = { ...workday, date: value as string }
                         // let updatedworkday = { ...workday, date: value.toLocaleString().split(',')[0] }
-                        let workdaysValueUpdated = [...workdaysValue]
+                        const workdaysValueUpdated = [...workdaysValue]
                         workdaysValueUpdated.splice(indexToChange, 1, updatedworkday)
                         setWorkdaysValue(workdaysValueUpdated)
                     }
@@ -192,9 +201,9 @@ export default function TeamSchedule({
                 break;
             case "workTimeStart":
                 {
-                    let workday = workdaysValue[indexToChange];
-                    let updatedworkday = { ...workday, timeStart: value as number }
-                    let workdaysValueUpdated = [...workdaysValue]
+                    const workday = workdaysValue[indexToChange];
+                    const updatedworkday = { ...workday, timeStart: value as number }
+                    const workdaysValueUpdated = [...workdaysValue]
                     workdaysValueUpdated.splice(indexToChange, 1, updatedworkday)
                     setWorkdaysValue(workdaysValueUpdated)
 
@@ -202,9 +211,9 @@ export default function TeamSchedule({
                 break;
             case "workTimeFinish":
                 {
-                    let workday = workdaysValue[indexToChange];
-                    let updatedworkday = { ...workday, timeFinish: value as number }
-                    let workdaysValueUpdated = [...workdaysValue]
+                    const workday = workdaysValue[indexToChange];
+                    const updatedworkday = { ...workday, timeFinish: value as number }
+                    const workdaysValueUpdated = [...workdaysValue]
                     workdaysValueUpdated.splice(indexToChange, 1, updatedworkday)
                     setWorkdaysValue(workdaysValueUpdated)
 
@@ -214,8 +223,8 @@ export default function TeamSchedule({
             case "weekDay":
                 {
                     // let weekend = weekendsValue[indexToChange];
-                    let weekend = value as DaysOfWeek | null;
-                    let weekendsValueUpdated = [...weekendsValue]
+                    const weekend = value as DaysOfWeek | null;
+                    const weekendsValueUpdated = [...weekendsValue]
                     weekendsValueUpdated.splice(indexToChange, 1, weekend)
                     setWeekendsValue(weekendsValueUpdated)
                 }
@@ -223,9 +232,9 @@ export default function TeamSchedule({
             // Перерывы рабочих дней                
             case "breakTimeStart":
                 {
-                    let break_ = breaksValue[indexToChange];
-                    let updatedbreak = { ...break_, timeStart: value as number }
-                    let breaksValueUpdated = [...breaksValue]
+                    const break_ = breaksValue[indexToChange];
+                    const updatedbreak = { ...break_, timeStart: value as number }
+                    const breaksValueUpdated = [...breaksValue]
                     breaksValueUpdated.splice(indexToChange, 1, updatedbreak)
                     setBreaksValue(breaksValueUpdated)
 
@@ -233,9 +242,9 @@ export default function TeamSchedule({
                 break;
             case "breakTimeFinish":
                 {
-                    let break_ = breaksValue[indexToChange];
-                    let updatedbreak = { ...break_, timeFinish: value as number }
-                    let breaksValueUpdated = [...breaksValue]
+                    const break_ = breaksValue[indexToChange];
+                    const updatedbreak = { ...break_, timeFinish: value as number }
+                    const breaksValueUpdated = [...breaksValue]
                     breaksValueUpdated.splice(indexToChange, 1, updatedbreak)
                     setBreaksValue(breaksValueUpdated)
 
@@ -245,7 +254,7 @@ export default function TeamSchedule({
                 {
                     if (value) {
                         // let updatedholiday = value.toLocaleString().split(',')[0];
-                        let holidaysValueUpdated = [...holidaysValue]
+                        const holidaysValueUpdated = [...holidaysValue]
                         holidaysValueUpdated.splice(indexToChange, 1, value as string)
                         setHolidaysValue(holidaysValueUpdated)
                     }
@@ -260,25 +269,25 @@ export default function TeamSchedule({
     };
 
     const deleteBreakHandler = (indexToRemove: number) => {
-        let breaksValueUpdated = [...breaksValue]
+        const breaksValueUpdated = [...breaksValue]
         breaksValueUpdated.splice(indexToRemove, 1)
         setBreaksValue(breaksValueUpdated)
         setModified(true);
     };
     const deleteWeekendHandler = (indexToRemove: number) => {
-        let weekendsValueUpdated = [...weekendsValue]
+        const weekendsValueUpdated = [...weekendsValue]
         weekendsValueUpdated.splice(indexToRemove, 1)
         setWeekendsValue(weekendsValueUpdated)
         setModified(true);
     };
     const deleteWorkdayHandler = (indexToRemove: number) => {
-        let workdaysValueUpdated = [...workdaysValue]
+        const workdaysValueUpdated = [...workdaysValue]
         workdaysValueUpdated.splice(indexToRemove, 1)
         setWorkdaysValue(workdaysValueUpdated)
         setModified(true);
     };
     const deleteHolidayHandler = (indexToRemove: number) => {
-        let holidaysValueUpdated = [...holidaysValue]
+        const holidaysValueUpdated = [...holidaysValue]
         holidaysValueUpdated.splice(indexToRemove, 1)
         setHolidaysValue(holidaysValueUpdated)
         setModified(true);
@@ -286,7 +295,7 @@ export default function TeamSchedule({
 
 
     const addBreakHandler = () => {
-        let newBreak = { timeStart: 0, timeFinish: 0 } as { timeStart: number, timeFinish: number };
+        const newBreak = { timeStart: 0, timeFinish: 0 } as { timeStart: number, timeFinish: number };
         setBreaksValue([...breaksValue, newBreak])
         setModified(true);
     };
@@ -295,18 +304,18 @@ export default function TeamSchedule({
         setModified(true);
     };
     const addHolidayHandler = () => {
-        let newHoliday = new Date().toLocaleDateString("en-CA").split(',')[0];
+        const newHoliday = new Date().toLocaleDateString("en-CA").split(',')[0];
         setHolidaysValue([...holidaysValue, newHoliday])
         setModified(true);
     };
     const addWorkdayHandler = () => {
-        let newWorkday = { date: "", timeStart: 0, timeFinish: 0 } as { date: string, timeStart: number, timeFinish: number };
+        const newWorkday = { date: "", timeStart: 0, timeFinish: 0 } as { date: string, timeStart: number, timeFinish: number };
         setWorkdaysValue([...workdaysValue, newWorkday])
         setModified(true);
     };
 
 
-    let breaksValueReactNodes = breaksValue.map((elem, index) => (
+    const breaksValueReactNodes = breaksValue.map((elem, index) => (
         (
             <tr key={index}>
                 <td>
@@ -355,9 +364,9 @@ export default function TeamSchedule({
         )
     ))
 
-    let selectedValues: DaysOfWeek[] = weekendsValue.filter(elem => elem !== null) as DaysOfWeek[];
+    const selectedValues: DaysOfWeek[] = weekendsValue.filter(elem => elem !== null) as DaysOfWeek[];
 
-    let weekendsValueReactNodes = weekendsValue.map((elem, index) => (
+    const weekendsValueReactNodes = weekendsValue.map((elem, index) => (
         (
             <tr key={index}>
                 <td   >
@@ -381,7 +390,7 @@ export default function TeamSchedule({
 
         )
     ))
-    let workdaysValueReactNodes = workdaysValue.map((elem, index) => (
+    const workdaysValueReactNodes = workdaysValue.map((elem, index) => (
         (
             <tr key={index}>
                 <td>
@@ -442,7 +451,7 @@ export default function TeamSchedule({
 
         )
     ))
-    let holidaysValueReactNodes = holidaysValue.map((elem, index) => (
+    const holidaysValueReactNodes = holidaysValue.map((elem, index) => (
         (
             <tr key={index}>
                 <td>

@@ -2,7 +2,7 @@ import Layout from "@/components/Layout/layout";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import PlanScaleContainer from "@/components/plan/PlanScaleContainer/planScaleContainer";
 
-import { useState,  } from "react";
+import { useState, } from "react";
 import Link from 'next/link';
 
 import Image from 'next/image';
@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
 import { formatDate, padNumberToFourDigits, } from "@/utils"
 
 import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum, } from "@/types";
-import { setUnitLoads,  setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
+import { setUnitLoads, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
 import { } from '@/store/slices';
 
 import { useTranslation } from 'react-i18next';
@@ -42,8 +42,8 @@ export default function Planing() {
   const [droploaderCard, setDropLoaderCard] = useState(NaN); // состояние это id категории  
 
   const [saveLoaderCard, setSaveLoaderCard] = useState(NaN); // состояние это id категории  
- 
-  
+
+
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;
   })
@@ -84,7 +84,7 @@ export default function Planing() {
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
 
-  let today = new Date();
+  const today = new Date();
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
 
   // Выбор запланированной карты
@@ -97,10 +97,10 @@ export default function Planing() {
   const saveCardHandler = async () => {
     setSaveLoaderCard(tCardPrepared.id);
     // Фильтруем загрузку по карте  и все что драфт и сохраняем  
-    let tCardLoadsPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === StatusEnum.prepared) })
-    let tCardLoadsWithoutPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status !== StatusEnum.prepared) })
-    let unitLoadsWithoutCard = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id) })
-    
+    const tCardLoadsPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === StatusEnum.prepared) })
+    const tCardLoadsWithoutPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status !== StatusEnum.prepared) })
+    const unitLoadsWithoutCard = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id) })
+
     if (tCardLoadsPrepared.length === 0) {
       setMessage("");
       setSaveLoaderCard(NaN);
@@ -125,24 +125,24 @@ export default function Planing() {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
         // console.log("receivedData", receivedData)        
         if (receivedData.success) {
-           const tCardStatus = receivedData.tCardStatus;
+          const tCardStatus = receivedData.tCardStatus;
           // удалим массив загрузок предварительный и добавим массив загрузок запланированный
           // let _loads = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id && load.status !== 'draft') })
-          let savedUnitLoads = receivedData.savedUnitLoads as UnitLoadItem[];
-          let updatedLoads = [...unitLoadsWithoutCard, ...tCardLoadsWithoutPrepared, ...savedUnitLoads]
+          const savedUnitLoads = receivedData.savedUnitLoads as UnitLoadItem[];
+          const updatedLoads = [...unitLoadsWithoutCard, ...tCardLoadsWithoutPrepared, ...savedUnitLoads]
           dispatch(setUnitLoads(updatedLoads))
 
           //  поменяем статус карты  и после этого она перерисуется в запланированные
           //  и статус операций
 
-          let index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
+          const index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
 
           // idc операций в которых меняем статус
           const operIdc = [...new Set(savedUnitLoads.map(load => load.idc_oper))];
@@ -155,8 +155,8 @@ export default function Planing() {
           });
 
           // статус карты меняем только тогда когда все операции будут не ниже этого статуса
-          let updatedTCard = { ...tCards[index], status: tCardStatus, tCardOperations: tCardOperations }
-          let _tCards = [...tCards]
+          const updatedTCard = { ...tCards[index], status: tCardStatus, tCardOperations: tCardOperations }
+          const _tCards = [...tCards]
           _tCards.splice(index, 1, updatedTCard);
           dispatch(setTCardLighted(updatedTCard))
           dispatch(setTCardPrepared({} as TCardItem));
@@ -164,17 +164,25 @@ export default function Planing() {
           setMessage("Планировка карты успешно записана");
         }
       }
-    } catch (e: any) {
-      // setMessage(t('service.serverUnavailable') + e.message)            
+      // } catch (e: any) {
+      //   // setMessage(t('service.serverUnavailable') + e.message)            
+      // }
+    } catch (e: unknown) {
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
     }
+
     setSaveLoaderCard(NaN);
   };
 
   // Затираем планирование карты только шкалу вперед  - все что прошло уже необратимо
   const erazCardHandler = async (tCardId: number) => {
     setErazLoaderCard(tCardId)
-    let tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
-    let unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
+    const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
+    const unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
     try {
       const res = await fetch(`/api/eraze-card-plan-api`,
         {
@@ -194,7 +202,7 @@ export default function Planing() {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
@@ -207,10 +215,10 @@ export default function Planing() {
           dispatch(setUnitLoads(updatedLoads));
 
           //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
-          let index = tCards.findIndex(tCard => tCard.id === tCardLighted.id);
+          const index = tCards.findIndex(tCard => tCard.id === tCardLighted.id);
           if (tCards[index].status !== tCardStatus) {
-            let updatedTCard = { ...tCards[index], status: tCardStatus }
-            let _tCards = [...tCards]
+            const updatedTCard = { ...tCards[index], status: tCardStatus }
+            const _tCards = [...tCards]
             _tCards.splice(index, 1, updatedTCard);
             dispatch(setTCardPrepared(updatedTCard))
             dispatch(setTCardLighted({} as TCardItem));
@@ -220,21 +228,29 @@ export default function Planing() {
           }
         }
       }
-    } catch (e: any) {
-      // setMessage(t('service.serverUnavailable') + e.message)            
-      // }
+    // } catch (e: any) {
+    //   // setMessage(t('service.serverUnavailable') + e.message)            
+    //   // }
 
-    }
+    // }
+    } catch (e: unknown) {
+  let message = t('service.serverUnavailable');
+  if (e instanceof Error) {
+    message += e.message;
+  }
+  setMessage(message);
+}
+
     setErazLoaderCard(NaN)
   };
 
   // удаление лоада из контекстного меню для сторонних юнитов
   const erazLoadHandler = async (load_idc: number) => {
-    let erazload = unitLoads.find(load => load.idc === load_idc)
-    let tCardLoads = unitLoads.filter(load => load.id_tCard === erazload?.id_tCard)
-    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== erazload?.id_tCard)
+    const erazload = unitLoads.find(load => load.idc === load_idc)
+    const tCardLoads = unitLoads.filter(load => load.id_tCard === erazload?.id_tCard)
+    const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== erazload?.id_tCard)
 
-    let index = tCards.findIndex(tCard => tCard.id === erazload?.id_tCard);
+    const index = tCards.findIndex(tCard => tCard.id === erazload?.id_tCard);
 
     if (erazload) {
 
@@ -258,20 +274,20 @@ export default function Planing() {
 
         if (res.status !== 200) {
           const receivedData = await res.json();
-          let error = receivedData.error;
+          const error = receivedData.error;
           setMessage(error);
           // setMessage(t('service.serverUnavailable') + res.status);
         } else {
           const receivedData = await res.json();
 
-          let updatedTCard = (receivedData.tCard as TCardItem)
-          let tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
+          const updatedTCard = (receivedData.tCard as TCardItem)
+          const tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
 
           // обновляем лоады
-          let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+          const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
           dispatch(setUnitLoads(updatedLoads));
           // меняем карту в списке
-          let _tCards = [...tCards]
+          const _tCards = [...tCards]
           _tCards.splice(index, 1, updatedTCard);
           dispatch(setTCards(_tCards));
           // // меняем статус карты
@@ -284,9 +300,17 @@ export default function Planing() {
             setMessage(receivedData.message);
           }
         }
-      } catch (e: any) {
-        // setMessage(t('service.serverUnavailable') + e.message)            
-      }
+      // } catch (e: any) {
+      //   // setMessage(t('service.serverUnavailable') + e.message)            
+      // }
+      } catch (e: unknown) {
+  let message = t('service.serverUnavailable');
+  if (e instanceof Error) {
+    message += e.message;
+  }
+  setMessage(message);
+}
+
 
     }
 
@@ -295,8 +319,8 @@ export default function Planing() {
   // перетаскивание лоада на шкале  возвращает измененное планирование карты
   const moveLoadHandler = async (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => {
 
-    let tCardLoads = unitLoads.filter(load => load.id_tCard === tCardPrepared.id)
-    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== tCardPrepared.id)
+    const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardPrepared.id)
+    const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== tCardPrepared.id)
     //  перетаскивать лоады можем только на этапе prepared
     if (load) {
       if (load.status === StatusEnum.prepared) {
@@ -326,23 +350,31 @@ export default function Planing() {
 
           if (res.status !== 200) {
             const receivedData = await res.json();
-            let error = receivedData.error;
+            const error = receivedData.error;
             setMessage(error);
             // setMessage(t('service.serverUnavailable') + res.status);
           } else {
             const receivedData = await res.json();
             if (receivedData.success) {
-              let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
-              let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+              const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+              const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
               dispatch(setUnitLoads(updatedLoads));
               setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
             } else {
               setMessage(receivedData.message);
             }
           }
-        } catch (e: any) {
-          // setMessage(t('service.serverUnavailable') + e.message)            
-        }
+        // } catch (e: any) {
+        //   // setMessage(t('service.serverUnavailable') + e.message)            
+        // }
+        } catch (e: unknown) {
+  let message = t('service.serverUnavailable');
+  if (e instanceof Error) {
+    message += e.message;
+  }
+  setMessage(message);
+}
+
       }
     }
   }
@@ -350,7 +382,7 @@ export default function Planing() {
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
   const pinLoadHandler = async (oper_id: number) => {
 
-    let tCardLoads_ = unitLoads.map(load => {
+    const tCardLoads_ = unitLoads.map(load => {
       return (load.id_oper === oper_id) ? { ...load, isPinned: true } : load
     })
     dispatch(setUnitLoads(tCardLoads_))
@@ -361,8 +393,8 @@ export default function Planing() {
 
 
     //  последующее перепланирование
-    let tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
-    let tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
+    const tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
+    const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
     //  перетаскивать лоады можем только на этапе prepared
 
 
@@ -389,23 +421,31 @@ export default function Planing() {
 
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
         if (receivedData.success) {
-          let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
-          let updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+          const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+          const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
           dispatch(setUnitLoads(updatedLoads));
           setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
         } else {
           setMessage(receivedData.message);
         }
       }
-    } catch (e: any) {
-      // setMessage(t('service.serverUnavailable') + e.message)            
-    }
+    // } catch (e: any) {
+    //   // setMessage(t('service.serverUnavailable') + e.message)            
+    // }
+    } catch (e: unknown) {
+  let message = t('service.serverUnavailable');
+  if (e instanceof Error) {
+    message += e.message;
+  }
+  setMessage(message);
+}
+
   }
 
 
@@ -443,7 +483,7 @@ export default function Planing() {
     event.preventDefault();
     // Получаем id перетаскиваемого элемента в строковом виде и это будет id карты
     const itemId = event.dataTransfer.getData("itemId");
-    let tCard_ = tCards.find(tCard => tCard.id === Number(itemId))
+    const tCard_ = tCards.find(tCard => tCard.id === Number(itemId))
     if (!tCard_) return
     dispatch(setTCardPrepared(tCard_));
 
@@ -452,10 +492,10 @@ export default function Planing() {
     //!!!!!!!!!! отправляем на сервер  карту  и там планируем
     //  в базу пока не пишем это предварительный расчет
     // чистим все лоады в статусе prepared (предыдущее несохраненное планирование)
-    let unitLoads_ = unitLoads.filter(lo => lo.status !== StatusEnum.prepared)
+    const unitLoads_ = unitLoads.filter(lo => lo.status !== StatusEnum.prepared)
 
-    let tCardLoadsPlaned = unitLoads_.filter(load => load.id_tCard === tCard_.id && load.status !== StatusEnum.prepared)
-    let tCardLoadsWithout = unitLoads_.filter(lo => lo.id_tCard !== tCard_.id)
+    const tCardLoadsPlaned = unitLoads_.filter(load => load.id_tCard === tCard_.id && load.status !== StatusEnum.prepared)
+    const tCardLoadsWithout = unitLoads_.filter(lo => lo.id_tCard !== tCard_.id)
 
     try {
       const res = await fetch(`/api/pre-fullcardplan-api?userId=${user.id}&teamId=${team.id}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
@@ -469,14 +509,14 @@ export default function Planing() {
       );
       if (res.status !== 200) {
         const receivedData = await res.json();
-        let error = receivedData.error;
+        const error = receivedData.error;
         setMessage(error);
         // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
 
-        let tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
-        let updatedLoads = [...tCardLoadsWithout, ...tCardLoadsPlaned, ...tCardLoads_]
+        const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+        const updatedLoads = [...tCardLoadsWithout, ...tCardLoadsPlaned, ...tCardLoads_]
         dispatch(setUnitLoads(updatedLoads));
         if (receivedData.success) {
           setMessage("Карта успешно предварительно запланирована НО НЕЗАПИСАНА! Если все в порядке ЗАПИШИ!");
@@ -484,9 +524,17 @@ export default function Planing() {
           setMessage(receivedData.message);
         }
       }
-    } catch (e: any) {
-      // setMessage(t('service.serverUnavailable') + e.message)            
-    }
+    // } catch (e: any) {
+    //   // setMessage(t('service.serverUnavailable') + e.message)            
+    // }
+    } catch (e: unknown) {
+  let message = t('service.serverUnavailable');
+  if (e instanceof Error) {
+    message += e.message;
+  }
+  setMessage(message);
+}
+
 
     setDropLoaderCard(NaN)
   };
@@ -495,16 +543,16 @@ export default function Planing() {
 
   /// ВИЗУАЛИЗАЦИЯ СПИСКА КАРТ
   // временно уберу фильтр  нужен признак по которому я пойму какая карта запланирована а какая нет
-  let tCardsToPlan = tCards.filter(tCard => (tCard.status === StatusEnum.prepared && !tCard.modified)) // подготовлен
+  const tCardsToPlan = tCards.filter(tCard => (tCard.status === StatusEnum.prepared && !tCard.modified)) // подготовлен
 
-  let tCardsPlaned = tCards.filter(tCard => (
+  const tCardsPlaned = tCards.filter(tCard => (
     tCard.status === StatusEnum.planed
     || tCard.status === StatusEnum.ready
     || tCard.status === StatusEnum.performed)) // запланирован
 
-  let tCardsDefective = tCards.filter(tCard => (tCard.status === StatusEnum.defective)) // запланирован
+  const tCardsDefective = tCards.filter(tCard => (tCard.status === StatusEnum.defective)) // запланирован
   // Карты
-  let tCardsPlanedReactNodes = tCardsPlaned.map((elem, index4) => {
+  const tCardsPlanedReactNodes = tCardsPlaned.map((elem, index4) => {
     let date = "";
     if (elem.date)
       date = formatDate(new Date(elem.date));
@@ -537,7 +585,7 @@ export default function Planing() {
     );
   })
   // Карты
-  let tCardsToPlanReactNodes = tCardsToPlan.map((elem, index) => {
+  const tCardsToPlanReactNodes = tCardsToPlan.map((elem, index) => {
     let date = "";
     if (elem.date) date = formatDate(new Date(elem.date));
 
@@ -584,7 +632,7 @@ export default function Planing() {
     );
   })
   // Карты
-  let tCardsDefectiveReactNodes = tCardsDefective.map((elem, index4) => {
+  const tCardsDefectiveReactNodes = tCardsDefective.map((elem, index4) => {
     let date = "";
     if (elem.date)
       date = formatDate(new Date(elem.date));

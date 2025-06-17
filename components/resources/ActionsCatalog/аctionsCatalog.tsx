@@ -18,7 +18,7 @@ import add from "@/public/add-rem.png";
 
 export interface ActionsCatalogProps {
     setMessage: (message: string) => void,
-    token:string
+    token: string
 }
 
 export default function ActionsCatalog({
@@ -42,26 +42,27 @@ export default function ActionsCatalog({
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [actionsValue, setActionsValue] = useState([] as ActionItem[]);
-   
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        setActionsValue(actions);        
-    }, []);
+        setActionsValue(actions);
+    },[]);
 
     // колбеки кнопки
     const deleteActionHandler = (indexToRemove: number) => {
-        let actionsValueUpdated = [...actionsValue]
+        const actionsValueUpdated = [...actionsValue]
         actionsValueUpdated.splice(indexToRemove, 1)
         setActionsValue(actionsValueUpdated)
         setModified(true);
     };
 
     const changeActionHandler = (indexToChange: number, value: string | boolean, field: string) => {
-        let action = actionsValue[indexToChange];
+        const action = actionsValue[indexToChange];
         let updatedAction = action;
         switch (field) {
             case "code":
                 updatedAction = { ...action, code: value as string }
-                break;            
+                break;
             case "interruptible":
                 updatedAction = { ...action, interruptible: value as boolean }
                 break;
@@ -71,7 +72,7 @@ export default function ActionsCatalog({
             default:
                 break;
         }
-        let actionsValueUpdated = [...actionsValue]
+        const actionsValueUpdated = [...actionsValue]
         actionsValueUpdated.splice(indexToChange, 1, updatedAction)
         setActionsValue(actionsValueUpdated)
         setModified(true);
@@ -106,36 +107,44 @@ export default function ActionsCatalog({
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                let error = receivedData.error;
+                const error = receivedData.error;
                 // setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                 setMessage(t('service.serverUnavailable') + error);
+                setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
 
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let actions_ = receivedData.actions as ActionItem[]
+                    const actions_ = receivedData.actions as ActionItem[]
                     dispatch(setActions(actions_));
                     setActionsValue(actions_)
                     setModified(false);
                     // setMessage("Обновлен список Действий");
                     setMessage(t('actionsCatalog.listUpdated'));
-                    
+
                 } else setMessage(receivedData.error);
             }
 
-        } catch (e: any) {
-             setMessage(t('service.serverUnavailable') + e.message)            
+            // } catch (e: any) {
+            //      setMessage(t('service.serverUnavailable') + e.message)            
+            // }
+        } catch (e: unknown) {
+            let message = t('service.serverUnavailable');
+            if (e instanceof Error) {
+                message += e.message;
+            }
+            setMessage(message);
         }
+
 
         setModified(false);
     };
 
     const addActionHandler = () => {
 
-        let newAction = {} as ActionItem;
+        const newAction = {} as ActionItem;
         setActionsValue([...actionsValue, newAction])
         setModified(true);
     };
@@ -144,12 +153,12 @@ export default function ActionsCatalog({
         setModified(false)
     };
 
-    let unitFocusActionValueReactNodes = actionsValue.map((action, index) => (
+    const unitFocusActionValueReactNodes = actionsValue.map((action, index) => (
         (
             <tr key={index}>
                 <td>
                     <Image
-                    //  className={styles.icon_del}
+                        //  className={styles.icon_del}
                         src={del} alt="del" width={20} height={20}
                         onClick={() => deleteActionHandler(index)}
                     />
@@ -167,9 +176,9 @@ export default function ActionsCatalog({
                         }} />
                 </td>
                 <td>
-                    <input 
-                    className={styles.actions_input}
-                    // className={styles.actions_title}
+                    <input
+                        className={styles.actions_input}
+                        // className={styles.actions_title}
                         id={"title" + action.id}
                         autoComplete="off"
                         value={action.title} type="text"
@@ -180,8 +189,8 @@ export default function ActionsCatalog({
 
                 </td>
                 <td className={styles.actions_td}>
-                    <input 
-                    // className={styles.actions_interruptible}
+                    <input
+                        // className={styles.actions_interruptible}
                         id={"interruptible" + action.id}
                         autoComplete="off"
                         checked={action.interruptible}

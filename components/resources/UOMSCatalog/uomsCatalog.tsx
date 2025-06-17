@@ -3,6 +3,7 @@ import styles from "./uomsCatalog.module.scss";
 
 import { UOMItem } from '@/types'
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 
 import { useEffect, useState, useRef } from "react";
 
@@ -25,6 +26,9 @@ export interface UOMSCatalogProps {
 }
 
 export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
+
+    const { t, i18n } = useTranslation();
+
     const dispatch = useAppDispatch();
 
     const token = useSelector((state: RootState) => {
@@ -46,16 +50,15 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [uomsValue, setUomsValue] = useState([] as UOMItem[]);
 
-
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setUomsValue(uoms);
-        // downloadUoms();
+       
     }, []);
 
     // колбеки кнопки
     const deleteUOMSHandler = (indexToRemove: number) => {
-        let uomsValueUpdated = [...uomsValue]
+        const uomsValueUpdated = [...uomsValue]
         uomsValueUpdated.splice(indexToRemove, 1)
         setUomsValue(uomsValueUpdated)
         setModified(true);
@@ -76,7 +79,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
             default:
                 break;
         }
-        let uomsValueUpdated = [...uomsValue]
+        const uomsValueUpdated = [...uomsValue]
         uomsValueUpdated.splice(indexToChange, 1, updatedUOM)
         setUomsValue(uomsValueUpdated)
 
@@ -109,17 +112,17 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                let error = receivedData.error;
+                const error = receivedData.error;
                 setMessage(error);
                 //  console.log(t('service.serverUnavailable') + res.status);
-                // setMessage(t('service.serverUnavailable') + res.status);
+                setMessage(t('service.serverUnavailable') + error);
             } else {
                 const receivedData = await res.json();
                 // console.log("receivedData", receivedData)
 
                 if (receivedData.success) {
                     //   Обновим текущую карту
-                    let uoms_ = receivedData.uoms as UOMItem[]
+                    const uoms_ = receivedData.uoms as UOMItem[]
                     dispatch(setUOMs(uoms_));
                     setUomsValue(uoms_);
                     setModified(false);
@@ -127,8 +130,16 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                 } else setMessage(receivedData.error);
             }
 
-        } catch (e: any) {
-            // setMessage(t('service.serverUnavailable') + e.message)            
+            // } catch (e: any) {
+            //     // setMessage(t('service.serverUnavailable') + e.message)            
+            // }
+
+        } catch (e: unknown) {
+            let message = t('service.serverUnavailable');
+            if (e instanceof Error) {
+                message += e.message;
+            }
+            setMessage(message);
         }
 
         setModified(false);
@@ -136,7 +147,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
     const addUOMtHandler = () => {
 
-        let newUOM = {} as UOMItem;
+        const newUOM = {} as UOMItem;
         setUomsValue([...uomsValue, newUOM])
         setModified(true);
     };
@@ -148,7 +159,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
 
 
-    let uomsValueReactNodes = uomsValue.map((uom, index) => (
+    const uomsValueReactNodes = uomsValue.map((uom, index) => (
         (
             <tr key={index}>
                 <td>

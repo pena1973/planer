@@ -52,11 +52,11 @@ export default function LoadInner({
     unPinLoadHandler
 }: LoadProps) {
 
-    let blockwidth = dayWidth / quants; //это ширина блока на 5 минут
-    let shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
+    const blockwidth = dayWidth / quants; //это ширина блока на 5 минут
+    const shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
-    let left = blockwidth / 5 * shift; // тот же схвиг в пикселях
-    let width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
+    const left = blockwidth / 5 * shift; // тот же схвиг в пикселях
+    const width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
 

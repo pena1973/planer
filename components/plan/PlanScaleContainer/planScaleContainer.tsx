@@ -94,7 +94,7 @@ export default function PlanScaleContainer({
   unPinLoadHandler
 
 }: PlanScaleContainerProps) {
-  
+
   const { t, i18n } = useTranslation();
 
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
@@ -103,8 +103,8 @@ export default function PlanScaleContainer({
 
   const [dayWidth, setDayWidth] = useState(0); // ширина дня на шкале
   const [shift, setShift] = useState(0); // Сдвиг шкалы от левого края и старт день сегодня
-  let calendarPlus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что можно планировать
-  let calendarMinus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что уже история
+  const calendarPlus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что можно планировать
+  const calendarMinus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что уже история
   const [calendarViewPlus, setCalendarViewPlus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени планирование при изменении]
   const [calendarViewMinus, setCalendarViewMinus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени история при изменении]
   // Прорисовка соединительных линий лоадов аутсорта
@@ -113,16 +113,16 @@ export default function PlanScaleContainer({
   const [scale, setScale] = useState(50); // содержит Масштаб (10% - 500%)  
   const [isDraggingScale, setIsDraggingScale] = useState(false); // Состояние для отслеживания перетаскивания
   const [draggingLoad, setDraggingLoad] = useState(undefined as UnitLoadItem | undefined); // перетаскиваемый лоад
-  let scaleRestart = useRef(false as boolean); // запускает useEffect прорисовки
+  const scaleRestart = useRef(false as boolean); // запускает useEffect прорисовки
 
   const [contectMenuShow, setContectMenuShow] = useState(0); // содержит operation.id и показывает контекстное меню 
   // const [stopCloseMenu, setStopCloseMenu] = useState(0); // содержит operation.id и показывает контекстное меню 
 
-  let unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
-  let unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
+  const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
+  const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
   let stopCloseMenu = 0;
 
-  let today = new Date();
+  const today = new Date();
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
 
   // если  день приходится на выходные  и в настройках указано что мы скрываем выходные но нет доп часов на это время
@@ -148,7 +148,7 @@ export default function PlanScaleContainer({
     // let unitsView = unitLoads.map(elem => { return elem.unit })
     unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.inner);
     unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.outer);
-  
+
 
     // Стартовый масштаб всегда 100% и в нем помещается один день  
     // реализуем ленивую загрузку   
@@ -258,13 +258,13 @@ export default function PlanScaleContainer({
     // если shift>0 тоэто сдвиг вперед
     // если shift<0 тоэто сдвиг назад
 
-    let _visibleItems = [] as string[] // ID дней которые видны
+    const _visibleItems = [] as string[] // ID дней которые видны
 
     // определяем оставшуюся шкалу с учетом сдвига от сегодня
     //  если был положительный сдвиг она уменьшится а если отрицательный увеличится 
     // дни надо сгенерить на всю шкалу
     let _timelineWidth = timelineWidth - shift;
-    let _day = startDay; // временная переменная для дней  буду ее инкрементировать
+    const _day = startDay; // временная переменная для дней  буду ее инкрементировать
 
     while (_timelineWidth > 0) {
 
@@ -293,7 +293,7 @@ export default function PlanScaleContainer({
         continue
       }
 
-      let id_day = idDay(_day);
+      const id_day = idDay(_day);
       if (!calendarPlus.current.find(elem => elem.idDay === id_day)) {
         calendarPlus.current = [...calendarPlus.current, generateCalendarItem(_day, schedule)];
       }
@@ -317,7 +317,7 @@ export default function PlanScaleContainer({
     //  буду сдвиг отсчитывать от сегодня
     if (shift >= 0) {
       let _shift = shift; // сдвег в прошлое     
-      let _dayPast = new Date(startDay); // временная переменная для дней  буду ее инкрементировать  
+      const _dayPast = new Date(startDay); // временная переменная для дней  буду ее инкрементировать  
       _dayPast.setDate(today.getDate() - 1);
 
       while (_shift > 0) {
@@ -333,7 +333,7 @@ export default function PlanScaleContainer({
           _dayPast.setDate(_dayPast.getDate() - 1);
         }
 
-        let id_day = idDay(_dayPast); //  сгенерили
+        const id_day = idDay(_dayPast); //  сгенерили
         if (!calendarMinus.current.find(elem => elem.idDay === id_day)) {
           //  если его нет добавили в массив
           calendarMinus.current = [...calendarMinus.current, generateCalendarItem(_dayPast, schedule)];
@@ -435,13 +435,13 @@ export default function PlanScaleContainer({
     // 288 5 минуток в дне (24 часа * 60/5 минут)  если показывать полные сутки
 
     // Округляем время начала работы до целого числа
-    let startQuant = Math.floor(settings.timeStartWork / 5);
+    const startQuant = Math.floor(settings.timeStartWork / 5);
     // Если время завершения работы равно 0, присваиваем значение 1440
     const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
     // Округляем время завершения работы до целого числа и добавляем 1
-    let finishQuant = Math.ceil(timeFinishWork / 5);
+    const finishQuant = Math.ceil(timeFinishWork / 5);
     // Рассчитываем количество промежуточных значений
-    let quants = finishQuant - startQuant;
+    const quants = finishQuant - startQuant;
 
 
     const dayScale = [];
@@ -453,7 +453,7 @@ export default function PlanScaleContainer({
       );
 
       //  расписание предприятия
-      let timeStyle = isBreakTime
+      const timeStyle = isBreakTime
         ? styles.breakTime  // Если время перерыв, применяем стиль для перерыва
         : isWorkTime
           ? styles.workTime  // Если это рабочее время, применяем стиль для рабочего времени
@@ -504,9 +504,9 @@ export default function PlanScaleContainer({
 
       //  вычисление визуализации загруза юнитов
       // Внутренние   
-      let unitLoadBlockseReactNodesInner = unitsViewInner.current.map(unitView => {
+      const unitLoadBlockseReactNodesInner = unitsViewInner.current.map(unitView => {
         let unit_unloadEx = "";
-        let exs = unitExceptions.filter(ex => ex.unitId === unitView.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
+        const exs = unitExceptions.filter(ex => ex.unitId === unitView.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
 
         if (exs.length > 0) {
           // Если есть исключения устанавливатся новое время работы  индивидуально юниту
@@ -514,14 +514,14 @@ export default function PlanScaleContainer({
           //  также устанавливаютсядругие перерывы на эту дату если изменилось время работы
           // либо может быть установлено не работа
 
-          let exNotWork = exs.find(ex =>
+          const exNotWork = exs.find(ex =>
             ex.type === TimeTypeEnum.notWork && intervTime >= ex.timeStart && intervTime < ex.timeFinish)
           if (exNotWork) unit_unloadEx = styles.nonWorkTime
 
-          let exWork = exs.find(ex => ex.type === TimeTypeEnum.work)
+          const exWork = exs.find(ex => ex.type === TimeTypeEnum.work)
           if (exWork) { unit_unloadEx = (intervTime >= exWork.timeStart && intervTime < exWork.timeFinish) ? styles.workTime : styles.nonWorkTime }
 
-          let exBreack = exs.filter(ex => ex.type === TimeTypeEnum.breack)
+          const exBreack = exs.filter(ex => ex.type === TimeTypeEnum.breack)
           const isBreakTimeEx = exBreack.some(breakPeriod =>
             intervTime >= breakPeriod.timeStart && intervTime < breakPeriod.timeFinish
           );
@@ -530,7 +530,7 @@ export default function PlanScaleContainer({
           // console.log("unit_unloadEx", unit_unloadEx);
 
         }
-        let dateLoad = unitLoads.filter(lo => {
+        const dateLoad = unitLoads.filter(lo => {
           return (lo.unit.id === unitView.id &&
             lo.date === new Date(calendarItem.date).toLocaleDateString("en-CA"))
         });
@@ -543,6 +543,7 @@ export default function PlanScaleContainer({
           // Расставляем блоки интервалов на шкале
           const operBlocksReactNodes = operBlocks.map((load, index) => {
             return <LoadInner
+              key={index}
               dayWidth={dayWidth}
               quants={quants}
               intervTime={intervTime}
@@ -564,21 +565,21 @@ export default function PlanScaleContainer({
           })
 
           // Это прорисовка загрузок 
-          return (<div
+          return (<div key={unitView.id}
             onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
             onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
             className={`${styles.unit_unload} ${unit_unloadEx}`}>{operBlocksReactNodes}</div>)
         }
         // Это пустые сюда кидаем
-        return (<div
+        return (<div key={unitView.id}
           onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
           onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
           className={`${styles.unit_unload} ${unit_unloadEx}`}></div>); // Если нет совпадений
       });
 
       //  внешние
-      let unitLoadBlockseReactNodesOuter = unitsViewOuter.current.map(unitView => {
-        let dateLoad = unitLoads.filter(elem => {
+      const unitLoadBlockseReactNodesOuter = unitsViewOuter.current.map(unitView => {
+        const dateLoad = unitLoads.filter(elem => {
           return (
             // ВРЕМЕННО для настройки внешнего лоада
             elem.unit.id === unitView.id &&
@@ -593,6 +594,7 @@ export default function PlanScaleContainer({
           // Расставляем блоки интервалов на шкале
           const operBlocksReactNodes = operBlocks.map((load, index) => {
             return <LoadOuter
+              key={index}
               dayWidth={dayWidth}
               quants={quants}
               intervTime={intervTime}
@@ -612,12 +614,12 @@ export default function PlanScaleContainer({
 
 
           })
-          return (<div
+          return (<div key={unitView.id}
             onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
             onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
             className={styles.unit_unload}>{operBlocksReactNodes}</div>)
         }
-        return (<div
+        return (<div key={unitView.id}
           onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
           onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
           className={styles.unit_unload}></div>); // Если нет совпадений
@@ -663,12 +665,12 @@ export default function PlanScaleContainer({
   };
 
 
-  let timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
+  const timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
 
     const hoursScaleReactNodes = generateTimeScalePlan(elem)
 
     return (
-      <div 
+      <div
         className={styles.day_scale}
         style={{ width: `${dayWidth}px` }} key={`day-${index}`}>
 
@@ -681,7 +683,7 @@ export default function PlanScaleContainer({
     )
   });
 
-  let timeScaleReactNodesPlus = calendarViewPlus.map((elem, index) => {
+  const timeScaleReactNodesPlus = calendarViewPlus.map((elem, index) => {
 
     const hoursScaleReactNodes = generateTimeScalePlan(elem)
     return (
@@ -701,20 +703,20 @@ export default function PlanScaleContainer({
     )
   });
   const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
-  let linesPlusReactNodes = linesPlus.map((elem,index) => {
-    return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefPlus.current} index={index} />
+  const linesPlusReactNodes = linesPlus.map((elem, index) => {
+    return <DottedLine key={index} startId={elem.startId} endId={elem.endId} container={divRefPlus.current} index={index} />
   })
   const linesMinus = createLines("Minus", today.toLocaleDateString("en-CA"), unitLoads)
-  let linesMinusReactNodes = linesMinus.map((elem,index) => {
-    return <DottedLine startId={elem.startId} endId={elem.endId} container={divRefMinus.current} index={index} />
+  const linesMinusReactNodes = linesMinus.map((elem, index) => {
+    return <DottedLine key={index} startId={elem.startId} endId={elem.endId} container={divRefMinus.current} index={index} />
   })
 
-  let unitsReactNodesInner = unitsViewInner.current.map(elem => {
+  const unitsReactNodesInner = unitsViewInner.current.map(elem => {
     return (
       <div key={elem.id} className={styles.unit_name}> {elem.title}</div>
     )
   });
-  let unitsReactNodesOuter = unitsViewOuter.current.map(elem => {
+  const unitsReactNodesOuter = unitsViewOuter.current.map(elem => {
     return (
       <div key={elem.id} className={styles.unit_name}> {elem.title}</div>
     )

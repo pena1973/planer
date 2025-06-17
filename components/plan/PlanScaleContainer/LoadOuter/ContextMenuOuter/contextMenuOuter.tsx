@@ -41,6 +41,8 @@ export default function ContexMenuOuter({
     const [isModified, setIsModified] = useState(false);
 
     const width = 10; // в случае внешнего исполнителя лоад просто точка    
+  
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setTimeFinishValue(load.timeFinish)
         setTimeStartValue(load.timeStart);
@@ -54,7 +56,7 @@ export default function ContexMenuOuter({
     }
     // const dur1 = load.isRetool ? retool : load.loadInfo.duration;
 
-    let dur = Math.round(load.loadInfo.duration);
+    const dur = Math.round(load.loadInfo.duration);
 
     const time = convertMinutes(dur);
 
