@@ -1,6 +1,6 @@
 
 import styles from "./loadInner.module.scss";
-
+import React from 'react';
 import Image from 'next/image';
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
 
@@ -32,7 +32,7 @@ export interface LoadProps {
 
 }
 
-export default function LoadInner({
+  function LoadInner({
     dayWidth,
     quants,
     intervTime,
@@ -145,3 +145,18 @@ export default function LoadInner({
         </>
     )
 }
+
+function areEqualLoadInner(prev: LoadProps, next: LoadProps) {
+  return (
+    prev.load.idc === next.load.idc &&
+    prev.load.status === next.load.status &&
+    prev.dayWidth === next.dayWidth &&
+    prev.draggingLoad?.idc === next.draggingLoad?.idc &&
+    prev.contectMenuShow === next.contectMenuShow &&
+    prev.tCardLighted.id === next.tCardLighted.id &&
+    prev.unitView.id === next.unitView.id &&
+    prev.intervTime === next.intervTime
+  );
+}
+
+export default React.memo(LoadInner, areEqualLoadInner);

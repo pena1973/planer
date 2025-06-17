@@ -1,5 +1,6 @@
 
 import styles from "./loadOuter.module.scss";
+import React from 'react';
 import ContexMenu from "./ContextMenuOuter/contextMenuOuter";
 
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
@@ -16,13 +17,13 @@ export interface LoadProps {
     erazLoadHandler: (load_idc: number) => void,
     handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,
     handleMouseUpOper: () => void,
-    handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,   
+    handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
     stopCloseMenu: (idc: number) => void,
     moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
 
 }
 
-export default function LoadOuter({
+function LoadOuter({
     dayWidth,
     quants,
     intervTime,
@@ -41,35 +42,35 @@ export default function LoadOuter({
     moveLoadHandler,
 
 }: LoadProps) {
-  
+
     // старт и финиш -маленькимй треугольничек сверху ли снизу и другое контекстноке меню
     //  ширина лоада 5 минут  -  стандартная для сьтарта и ждля финиша
     const blockwidth = dayWidth / quants; //это ширина блока на 5 минут
     const shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
-    const left = blockwidth / 5 * shift+ (load.isOuterFinish?-26:0); // тот же схвиг в пикселях
+    const left = blockwidth / 5 * shift + (load.isOuterFinish ? -26 : 0); // тот же схвиг в пикселях
     const width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
-     const triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
-     const triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
+    const triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
+    const triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
 
     switch (load.status) {
         case StatusEnum.planed:
             intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
             // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPlaned}`; // Класс по умолчанию
             // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPlaned}`; // Класс по умолчанию                
-             break;
+            break;
         case StatusEnum.prepared:
             intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
             // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPrepared}`; // Класс по умолчанию
             // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPrepared}`; // Класс по умолчанию                
-             break;
+            break;
         case StatusEnum.defective:
             intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
             // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDefected}`; // Класс по умолчанию
             // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDefected}`; // Класс по умолчанию                
-             break;
+            break;
         case StatusEnum.ready:
             intervalClass = `${styles.interval} ${styles.ready}`; // готовый
             // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightReady}`; // Класс по умолчанию
@@ -110,7 +111,7 @@ export default function LoadOuter({
     return (
         <>
             {/* Треугольник (стрелка) */}
-            
+
             {load.isOuterFinish && <div className={triangleLeftClass} />}
             {load.isOuterStart && <div className={triangleRightClass} />}
             <div className={intervalClass}
@@ -130,7 +131,7 @@ export default function LoadOuter({
                 <ContexMenu
                     tCard={tCard}
                     load={load}
-                    left={left}                    
+                    left={left}
                     erazLoadHandler={erazLoadHandler}
                     retool={unitView.retool}
                     stopCloseMenu={stopCloseMenu}
@@ -139,3 +140,17 @@ export default function LoadOuter({
         </>
     )
 }
+
+function areEqualLoadOuter(prev: LoadProps, next: LoadProps) {
+    return (
+        prev.load.idc === next.load.idc &&
+        prev.load.status === next.load.status &&
+        prev.dayWidth === next.dayWidth &&
+        prev.draggingLoad?.idc === next.draggingLoad?.idc &&
+        prev.contectMenuShow === next.contectMenuShow &&
+        prev.tCardLighted.id === next.tCardLighted.id &&
+        prev.unitView.id === next.unitView.id &&
+        prev.intervTime === next.intervTime
+    );
+}
+export default React.memo(LoadOuter, areEqualLoadOuter);
