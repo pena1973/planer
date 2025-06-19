@@ -4,13 +4,16 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styles from "./planScaleContainer.module.scss";
 import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types/types";
 
-import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/utils";
+import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/utils";
+
 
 import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
 import DottedLine from "./DottedLine/dottedLine";
 
 import { useTranslation } from 'react-i18next';
+
+import { useResizeObserver } from './useResizeObserver'; // Хук отслеживания расмеров окна
 
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
@@ -62,6 +65,7 @@ const createLines = (part: string, date: string, unitLoads: UnitLoadItem[]): Lin
 };
 
 
+
 export interface PlanScaleContainerProps {
   tCards: TCardItem[],
   units: UnitItem[],
@@ -97,6 +101,7 @@ export default function PlanScaleContainer({
 
   const { t, i18n } = useTranslation();
 
+
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
   const divRefPlus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором планирование
   const divRefMinus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором История
@@ -105,22 +110,25 @@ export default function PlanScaleContainer({
   const [shift, setShift] = useState(0); // Сдвиг шкалы от левого края и старт день сегодня
   const calendarPlus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что можно планировать
   const calendarMinus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что уже история
+  const visibleItemsPlus = useRef([] as string[]); // хранение дней шкалы времени то что уже история
+  const visibleItemsMinus = useRef([] as string[]); // хранение дней шкалы времени то что уже история
+
   const [calendarViewPlus, setCalendarViewPlus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени планирование при изменении]
   const [calendarViewMinus, setCalendarViewMinus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени история при изменении]
   // Прорисовка соединительных линий лоадов аутсорта
 
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
-  const [scale, setScale] = useState(50); // содержит Масштаб (10% - 500%)  
+  const [scale, setScale] = useState(50); // содержит Масштаб (10% - 100%)  
   const [isDraggingScale, setIsDraggingScale] = useState(false); // Состояние для отслеживания перетаскивания
   const [draggingLoad, setDraggingLoad] = useState(undefined as UnitLoadItem | undefined); // перетаскиваемый лоад
   const scaleRestart = useRef(false as boolean); // запускает useEffect прорисовки
 
   const [contectMenuShow, setContectMenuShow] = useState(0); // содержит operation.id и показывает контекстное меню 
-  // const [stopCloseMenu, setStopCloseMenu] = useState(0); // содержит operation.id и показывает контекстное меню 
 
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
-  let stopCloseMenu = 0;
+
+
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
@@ -141,48 +149,9 @@ export default function PlanScaleContainer({
     todayDateRef.current = idDay(today);
   }
 
-  // изменение при смене массива загрузки, может прорисоватся и при сохранении и при накидывании драфта
-  useEffect(() => {
-    //  получаем  планировку юнитов
-    // Из загрузки вытаскиваем список юнитов и делим его на свой чужой;
-    // let unitsView = unitLoads.map(elem => { return elem.unit })
-    unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.inner);
-    unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.outer);
+  // ШКАЛА
 
-
-    // Стартовый масштаб всегда 100% и в нем помещается один день  
-    // реализуем ленивую загрузку   
-    // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно    
-    if (!calendarPlus.current.find(elem => elem.idDay === idDay(today))) {
-      calendarPlus.current = [...calendarPlus.current, generateCalendarItem(today, schedule)];
-    }
-    //  Исторические данные не показываем при начале работы
-    // задаю размер контейнера
-    const updateSize = () => {
-      if (divRef.current) {
-        const rect = divRef.current.getBoundingClientRect();
-        setTimelineWidth(rect.width - 40); //учитываю padding 20 с обоих сторон
-        setDayWidth(calculateWidthDay(rect.width - 40, scale))
-      }
-    };
-    // Изначально проверяем размер
-    updateSize();
-    //  прорисовываем шкалу планирования
-    // и убираем все что меньше текущей даты если случайно попали на смену дат
-    const filteredCalendar = calendarPlus.current.filter(item => item.date >= today);
-    setCalendarViewPlus(filteredCalendar);
-
-    // Обновляем размеры при изменении размера окна
-    window.addEventListener('resize', updateSize);
-
-    // Убираем обработчик при размонтировании компонента
-    return () => {
-      window.removeEventListener('resize', updateSize);
-    };
-
-  }, [unitLoads]);
-
-  //// ШКАЛА
+  // сброс шкалы
   const scaleReset = () => {
     setShift(0);
     setScale(50);
@@ -191,7 +160,7 @@ export default function PlanScaleContainer({
     calendarMinus.current = [] as CalendarItem[];
     setCalendarViewPlus([] as CalendarItem[]);
     setCalendarViewMinus([] as CalendarItem[]);
-    setTimelineWidth(0);
+    // setTimelineWidth(0); // убираю лишний рендер
     scaleRestart.current = true;
 
     // реализуем ленивую загрузку
@@ -199,49 +168,125 @@ export default function PlanScaleContainer({
     if (!calendarPlus.current.find(elem => elem.idDay === idDay(today))) {
       calendarPlus.current = [...calendarPlus.current, generateCalendarItem(today, schedule)];
     }
-    //  Исторические данные не показываем при начале работы
-    // задаю размер контейнера
-    const updateSize = () => {
-      if (divRef.current) {
-        const rect = divRef.current.getBoundingClientRect();
-        setTimelineWidth(rect.width - 40); //учитываю padding 20 с обоих сторон
-        setDayWidth(calculateWidthDay(rect.width - 40, scale))
-      }
-    };
-    // Изначально проверяем размер
-    updateSize();
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
     const filteredCalendar = calendarPlus.current.filter(item => item.date >= today);
     setCalendarViewPlus(filteredCalendar);
-    // Обновляем размеры при изменении размера окна
-    window.addEventListener('resize', updateSize);
-    // Убираем обработчик при размонтировании компонента
-    return () => {
-      window.removeEventListener('resize', updateSize);
-    };
-
   }
 
-  // Функция для изменения масштаба
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newScale = Number(event.target.value);
     setScale(newScale);
   };
+  // динамический расчет сдвига при изменении масштаба
+  const computeDynamicShift = (
+    oldShift: number,
+    oldDayWidth: number,
+    newDayWidth: number,
+    timelineWidth: number
+  ): number => {
+    const focusPointPx = timelineWidth / 2;
+    const dayIndexAtFocus = (focusPointPx - oldShift) / oldDayWidth;
+    return Math.round(focusPointPx - dayIndexAtFocus * newDayWidth);
+  };
 
-  // Обработка визуализации сдвига при изменении шкалы и размера окна и сдвига от левого края
+  const updateSize = () => {
+    if (!divRef.current) return;
+
+    const rect = divRef.current.getBoundingClientRect();
+    const newTimelineWidth = rect.width;
+    const newDayWidth = calculateWidthDay(newTimelineWidth, scale);
+
+    // Пересчёт shift, только если размеры уже есть
+    if (timelineWidth > 0 && dayWidth > 0 && dayWidth !== newDayWidth) {
+      const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, newTimelineWidth);
+      setShift(newShift);
+    }
+
+    setTimelineWidth(newTimelineWidth);
+    setDayWidth(newDayWidth);
+  };
+
+  // хук отслеживания изменеия размера видимой части шкалы
+  useResizeObserver(divRef, () => {
+    // твой пересчёт при изменении размеров контейнера
+    updateSize();
+  }, 200); // дебаунс 300мс
+
+  let stopCloseMenu = 0;
+
+
+  // // изменения масштаба шкалы
+  // const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newScale = Number(event.target.value);
+  //   setScale(newScale);
+
+
+  //   const oldDayWidth = dayWidth;
+  //   const newDayWidth = calculateWidthDay(timelineWidth, newScale);
+
+  //   const computeNewShiftOnScaleChange = (
+  //     oldShift: number,
+  //     oldDayWidth: number,
+  //     newDayWidth: number
+  //   ): number => {
+  //     // today визуально находится на координате `shift`
+  //     // при изменении масштаба нужно сохранить эту координату в новом масштабе
+
+  //     const scaleRatio = newDayWidth / oldDayWidth;
+  //     const newShift = Math.round(oldShift * scaleRatio);
+  //     return newShift;
+  //   };
+
+
+
+  //   // // ⬇️ пересчёт shift
+  //    const newShift = computeNewShiftOnScaleChange(shift, oldDayWidth, newDayWidth); 
+
+  //   setShift(newShift);
+
+
+
+
+  // };
+
+
+  // .........
+  // изменение при смене массива загрузки, может прорисоватся и при сохранении и при накидывании драфта
   useEffect(() => {
-    scaleRestart.current = false;
+    //  получаем  планировку юнитов
+    // Из загрузки вытаскиваем список юнитов и делим его на свой чужой;
+    unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.inner);
+    unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.outer);
+
+    // Стартовый масштаб всегда 100% и в нем помещается один день  
+    // реализуем ленивую загрузку   
+    // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно    
+    if (!calendarPlus.current.find(elem => elem.idDay === idDay(today))) {
+      calendarPlus.current = [...calendarPlus.current, generateCalendarItem(today, schedule)];
+    }
+
+    //  прорисовываем шкалу планирования
+    // и убираем все что меньше текущей даты если случайно попали на смену дат
+    const filteredCalendar = calendarPlus.current.filter(item => item.date >= today);
+    setCalendarViewPlus(filteredCalendar);
+
+  }, [unitLoads]);
+
+  // Обработка визуализации сдвига при изменении шкалы  и сдвига от левого края
+  useEffect(() => {
+    // scaleRestart.current = false;
     if (timelineWidth === 0) return
+
     // Вычисляем ширину дня при изменении scale
     const _dayWidth = calculateWidthDay(timelineWidth, scale)
     setDayWidth(calculateWidthDay(timelineWidth, scale)) // //padding 20 с обоих сторон уже учтен в timelineWidth
 
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
-    calculateVisibleItemsPlus(new Date(today), timelineWidth, _dayWidth, shift)
+    visibleItemsPlus.current = calculateVisibleItemsPlus(new Date(today), timelineWidth, _dayWidth, shift)
 
     // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный  
-    calculateVisibleItemsMinus(new Date(today), timelineWidth, _dayWidth, shift)
+    visibleItemsMinus.current = calculateVisibleItemsMinus(new Date(today), timelineWidth, _dayWidth, shift)
 
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
@@ -251,26 +296,43 @@ export default function PlanScaleContainer({
     //  прорисовываем шкалу истории
     setCalendarViewMinus(calendarMinus.current);
 
+    // }, [timelineWidth, shift, todayDateRef, scaleRestart.current]);  // Пересчитываем при изменении размераб сдвига, даты или масштаба
+  }, [timelineWidth, shift, todayDateRef]);  // Пересчитываем при изменении размераб сдвига, даты или масштаба
+  // timelineWidth-изменение размеров экрана
+  //shift  -сдвиг временной шкалы
+  //scale  - изменение масштаба
+  //todayDateRef  - изменение текущей даты
+  //scaleRestart.current  - принудительный рестарт
 
-  }, [timelineWidth, shift, scale, todayDateRef, scaleRestart.current]);  // Пересчитываем при изменении размераб сдвига, даты или масштаба
 
   const calculateVisibleItemsPlus = (startDay: Date, timelineWidth: number, dayWidth: number, shift: number) => {
     // если shift>0 тоэто сдвиг вперед
     // если shift<0 тоэто сдвиг назад
 
-    const _visibleItems = [] as string[] // ID дней которые видны
+    // // начало отсчета дней от today
+    // const starttimeline = shift;
+    // видимые координаты на шкале
+    const visibleleft = shift > 0 ? 0 : - shift;
+    const visibleright = timelineWidth - shift
 
+    // console.log('✅ left', visibleleft);
+    // console.log('✅ right', visibleright);
+
+
+    let _visibleItems = [] as string[] // ID дней которые видны
     // определяем оставшуюся шкалу с учетом сдвига от сегодня
     //  если был положительный сдвиг она уменьшится а если отрицательный увеличится 
     // дни надо сгенерить на всю шкалу
+
     let _timelineWidth = timelineWidth - shift;
+    // console.log('✅ _timelineWidth', _timelineWidth);
     const _day = startDay; // временная переменная для дней  буду ее инкрементировать
+    let countDay = 0;
 
     while (_timelineWidth > 0) {
 
       // Если этот день входит в дополнительные часы работы (isAdditionalTime) то проверку на выходной пропускаем
       //  его по любому надо рисовать в шкале
-
 
       // если  день приходится на выходные  и в настройках указано что мы скрываем выходные
       // крутим до первого буднего дня
@@ -283,9 +345,10 @@ export default function PlanScaleContainer({
         _day.setDate(_day.getDate() + 1);
       }
 
-
       // уменьшаем ширину на ширину дня
       _timelineWidth = _timelineWidth - dayWidth
+
+
 
       // обрабатываем только в том случае если день попадает в видимый диапазон       
       if (_timelineWidth + shift > timelineWidth) {
@@ -294,25 +357,50 @@ export default function PlanScaleContainer({
       }
 
       const id_day = idDay(_day);
+
       if (!calendarPlus.current.find(elem => elem.idDay === id_day)) {
         calendarPlus.current = [...calendarPlus.current, generateCalendarItem(_day, schedule)];
       }
-      // if (!_visibleItems.find(elem => elem === id_day)) {
-      //   _visibleItems.push(id_day)
-      // }
+
+      // координаты дня  на временной шкале
+      const dayLeft = dayWidth * countDay;
+      countDay++;
+      const dayRight = dayWidth * countDay;
+
+      // console.log('✅ dayLeft', dayLeft, countDay);
+      // console.log('✅ dayRight', dayRight, countDay);
+
+      if (dayRight > visibleleft && dayLeft < visibleright) {
+        if (!_visibleItems.find(elem => elem === id_day)) {
+          _visibleItems.push(id_day)
+        }
+
+      }
+
       // Добавляем один день
       _day.setDate(_day.getDate() + 1);
 
     }
     // setVisibleItems(_visibleItems)
     calendarPlus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
+    // console.log('✅ _visibleItems', _visibleItems);
+    return _visibleItems;
   };
+
   const calculateVisibleItemsMinus = (startDay: Date, timelineWidth: number, dayWidth: number, shift: number) => {
     // если shift>0 тоэто сдвиг вперед
     // если shift<0 тоэто сдвиг назад
 
-    // let _visibleItems = [] as string[] // ID дней которые видны
+    // видимые координаты на шкале
+    const visibleleft = 0 - shift;
+    const visibleright = (shift > timelineWidth) ? -(shift - timelineWidth) : 0;
 
+    console.log('✅ visibleleft', visibleleft);
+    console.log('✅ visibleright', visibleright);
+
+    let _visibleItems = [] as string[] // ID дней которые видны
+
+    let countDay = 0;
     // если сдвиг положительный то нужно отстроить дни в прошлое
     //  буду сдвиг отсчитывать от сегодня
     if (shift >= 0) {
@@ -338,17 +426,31 @@ export default function PlanScaleContainer({
           //  если его нет добавили в массив
           calendarMinus.current = [...calendarMinus.current, generateCalendarItem(_dayPast, schedule)];
         }
-        // // определили его видимость
-        // if (Math.abs(_shift) <= timelineWidth && !_visibleItems.find(elem => elem === id_day)) {
-        //   _visibleItems.push(id_day)
-        // }
+
         _shift = _shift - dayWidth; // инкрементировали сдвиг
+
+        // координаты дня  на временной шкале
+        const dayRight = dayWidth * countDay;;
+        countDay++;
+        const dayLeft = -(dayWidth * countDay)
+
+        console.log('✅ dayLeft', dayLeft, countDay);
+        console.log('✅ dayRight', dayRight, countDay);
+
+        if (dayRight > visibleleft && dayLeft < visibleright) {
+          if (!_visibleItems.find(elem => elem === id_day)) {
+            _visibleItems.push(id_day)
+          }
+
+        }
 
         _dayPast.setDate(_dayPast.getDate() - 1) // от сегодня сдвинули в прошлое день
       }
     }
 
     calendarMinus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
+    console.log('✅ _visibleItems', _visibleItems);
+    return _visibleItems;
   };
 
   // ПЕРЕТАСКИВАНИЕ ЛОАДА
@@ -362,11 +464,7 @@ export default function PlanScaleContainer({
     setDraggingLoad(undefined);
 
   };
-  const handleMouseMoveOper = (e: React.MouseEvent<HTMLDivElement>) => {
-    // НЕ ПОЛУЧИЛОСЬ цепляем все сегменты операции и сдвигаем синхронно
-    if (draggingLoad) {
-    }
-  };
+
 
   const handleMouseLeaveOper = () => {
     // Если курсор покинул шкалу, завершаем перетаскивание
@@ -429,7 +527,6 @@ export default function PlanScaleContainer({
     window.addEventListener('mouseup', onMouseUp); // Обработчик отпускания кнопки мыши
 
   };
-  
 
   // Функция для генерации шкалы времени  и загруза юнитов для одного дня
   const generateTimeScalePlan = (calendarItem: CalendarItem) => {
@@ -468,8 +565,8 @@ export default function PlanScaleContainer({
         // // Вычисление высоты интервалов в зависимости от масштаба
         const show5Min = scale >= 200;  // Показывать интервал 5 минут, если масштаб >= 200%
         const show30Min = scale >= 80;  // Показывать интервал 30 минут, если масштаб >= 80%
-        const show1Hour = scale >= 50; // Показывать часовые интервалы, если масштаб >= 30%
-        const show4Hour = scale < 50; // Показывать интервалы для 4 часов, если масштаб <30%
+        const show1Hour = scale >= 30; // Показывать часовые интервалы, если масштаб >= 30%
+        const show4Hour = scale < 30; // Показывать интервалы для 4 часов, если масштаб <30%
 
         {/* Визуализация интервалов */ }
 
@@ -668,7 +765,9 @@ export default function PlanScaleContainer({
 
   const timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
 
-    const hoursScaleReactNodes = generateTimeScalePlan(elem)
+    // const hoursScaleReactNodes = generateTimeScalePlan(elem)
+    const isVisible = visibleItemsMinus.current.includes(elem.idDay);
+    const hoursScaleReactNodes = isVisible ? generateTimeScalePlan(elem) : <div style={{ width: `${dayWidth}px` }} />;
 
     return (
       <div
@@ -685,8 +784,9 @@ export default function PlanScaleContainer({
   });
 
   const timeScaleReactNodesPlus = calendarViewPlus.map((elem, index) => {
+    const isVisible = visibleItemsPlus.current.includes(elem.idDay);
+    const hoursScaleReactNodes = isVisible ? generateTimeScalePlan(elem) : <div style={{ width: `${dayWidth}px` }} />;
 
-    const hoursScaleReactNodes = generateTimeScalePlan(elem)
     return (
       <div
         className={styles.day_scale}
@@ -703,6 +803,7 @@ export default function PlanScaleContainer({
       </div>
     )
   });
+
   const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
   const linesPlusReactNodes = linesPlus.map((elem, index) => {
     return <DottedLine key={index} startId={elem.startId} endId={elem.endId} container={divRefPlus.current} index={index} />
@@ -723,7 +824,7 @@ export default function PlanScaleContainer({
     )
   });
   return (
-    <div ref={divRef} className={styles.plan_scale_container}
+    <div className={styles.plan_scale_container}
 
       onContextMenu={handleRightClick}
       onClick={handleRightClick}>
@@ -743,13 +844,13 @@ export default function PlanScaleContainer({
         {unitsReactNodesOuter}
         <div className={styles.plug2}></div>
       </div>
-      <div className={styles.plan_scale_container_left}>
+      <div ref={divRef} className={styles.plan_scale_container_left}>
         <div className={styles.scale_header}>
           <div className={styles.scale_controls}>
             <input
               className={styles.rangeSlider}
               type="range"
-              min="10"
+              min="30"
               max="500"
               step="1"
               value={scale}

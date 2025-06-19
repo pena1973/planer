@@ -1,7 +1,7 @@
 
 import styles from "./unitsCatalog.module.scss";
 import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types/types';
-import { generateUniqueIdc } from '@/utils'
+import { generateUniqueIdc } from '@/lib/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';

@@ -2,7 +2,7 @@
 import styles from "./contextMenuInner.module.scss";
 import { useState } from "react";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import { padNumberToFourDigits, } from "@/utils"
+import { padNumberToFourDigits, } from "@/lib/utils"
 import Image from 'next/image';
 import eraz from "@/public/erazer1-rem.png";
 import { TCardItem, UnitLoadItem } from "@/types/types";

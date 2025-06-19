@@ -4,7 +4,7 @@ import connectDb from '@/db/database'; // Подключение к базе д�
 import { TemplateTable } from '@/db/models/catalogs/templates';
 import { TCardItem, TemplateItem } from '@/types/types'; // Ваш тип TCardItem для работы с шаблонами
 
-import { padNumberToFourDigits } from "@/utils"
+import { padNumberToFourDigits } from "@/lib/utils"
 
 interface RequestBody {
     teamId: number,

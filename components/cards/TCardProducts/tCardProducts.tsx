@@ -148,6 +148,7 @@ export default function TCardProducts({
         return (<>
             {edited &&
                 <TCardProductNew
+                     key={'products' + index}
                     idc={elem.idc}
                     prefix={prefix}
                     code={elem.code}

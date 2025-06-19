@@ -14,7 +14,7 @@ import { updateStatusOperationByOperId, updateStatusLoads,
   import { getTCard, getTCardOperationsByCardId, 
   getTCardOperationLoads } from '@/handlers/handlers-get';
 
-  import { getStatusPriority } from "@/utils"
+  import { getStatusPriority } from "@/lib/utils"
 
 interface RequestBody {
   tCardId: number,

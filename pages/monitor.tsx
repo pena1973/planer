@@ -18,7 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
-import { isWeekend, isHoliday, isAdditionalTime } from "@/utils";
+import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/utils";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
 
 export default function Monitor() {

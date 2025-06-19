@@ -5,7 +5,7 @@ import { UnitKPIItem, StatusEnum, TCardTermsItem, UnitItem,UserItem } from "@/ty
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
-import { padNumberToFourDigits, convertMinutesToTime1 } from "@/utils"
+import { padNumberToFourDigits, convertMinutesToTime1 } from "@/lib/utils"
 import { useTranslation } from 'react-i18next';
 import { text } from 'stream/consumers';
 

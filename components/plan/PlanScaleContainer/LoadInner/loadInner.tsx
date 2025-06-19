@@ -9,7 +9,7 @@ import pinon from "@/public/point-rem.png";
 import pinof from "@/public/pin_of-rem.png";
 import ContextMenuInner from "./ContextMenuInner/contextMenuInner";
 import { relative } from "path";
-import { padNumberToFourDigits } from "@/utils"
+import { padNumberToFourDigits } from "@/lib/utils"
 
 export interface LoadProps {
     dayWidth: number,

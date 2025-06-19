@@ -7,7 +7,7 @@ import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
 import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 
-import { formatDate, padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/utils"
+import { formatDate, padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/utils"
 import { useEffect, useState, useRef } from "react";
 
 import Image from 'next/image';

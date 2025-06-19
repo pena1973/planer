@@ -6,7 +6,7 @@ import { UnitKPIItem, UnitItem } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { useTranslation } from 'react-i18next';
 
-import { convertMinutesToTime1 } from "@/utils"
+import { convertMinutesToTime1 } from "@/lib/utils"
 
 interface ReportUnitsKPIProps {
   setMessage: (message: string) => void,

@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
-import { formatDate, padNumberToFourDigits, } from "@/utils"
+import { formatDate, padNumberToFourDigits, } from "@/lib/utils"
 
 import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum, } from "@/types/types";
 import { setUnitLoads, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'

@@ -8,7 +8,7 @@ import Filter from "./Filter/filter";
 import { useTranslation } from 'react-i18next';
 
 
-import { padNumberToFourDigits, convertMinutesToTime } from "@/utils"
+import { padNumberToFourDigits, convertMinutesToTime } from "@/lib/utils"
 
 interface ReportTCardStateProps {
   setMessage: (message: string) => void,

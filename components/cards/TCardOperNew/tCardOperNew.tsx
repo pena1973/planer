@@ -4,7 +4,7 @@ import { RootState } from "@/pages/_app";
 import styles from "./tCardOperNew.module.scss";
 import { TCardOperationItem, TCardProductItem, ActionItem,  } from '@/types/types'
 import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
-import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/utils'
+import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/lib/utils'
 
 import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM'; // Путь к вашему компоненту
 import DropdownSelectOper from '@/components/DropdownSelectOper/dropdownSelectOper'; // Путь к вашему компоненту

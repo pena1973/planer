@@ -18,7 +18,7 @@ import { UnitTable } from '@/db/models/catalogs/units'
 import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '@/db/models/data/t_card_operations'
 import { TCardProductTable } from '@/db/models/data/t_card_products'
-import {getStatusPriority} from "@/utils"
+import {getStatusPriority} from "@/lib/utils"
 
 import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "@/types/types";
 

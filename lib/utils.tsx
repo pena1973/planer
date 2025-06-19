@@ -1,29 +1,6 @@
 
 import { CalendarItem, TCardContent, StatusEnum,  ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types/types";
 
-export const fillGaps = (dataStart: number, loading: { name: string, start: number, finish: number }[]) => {
-  let timeLScale = [] as { loaded: boolean, name: string, start: number, finish: number }[]
-  // заполним пропуски
-  // let dataStart = 0;
-  for (let index = 0; index < loading.length; index++) {
-    const element = loading[index];
-    if (dataStart < element.start) {
-      timeLScale.push({ loaded: false, name: "", start: dataStart, finish: element.start - 1 })
-      dataStart = element.start;
-      timeLScale.push({ loaded: true, name: element.name, start: dataStart, finish: element.finish })
-      dataStart = element.finish + 1;
-    } else if (dataStart = element.start) {
-      timeLScale.push({ loaded: true, name: "", start: dataStart, finish: element.finish })
-      dataStart = element.finish + 1;
-    } else if (dataStart > element.start) {
-      // Колизия
-      timeLScale.push({ loaded: true, name: "Конфликт:" + element.name, start: dataStart, finish: element.finish })
-      dataStart = element.finish + 1;
-    }
-
-  }
-  return timeLScale;
-}
 
 export const ISOStringToLocalDateTime = (isoDate: string) => {
   const date = new Date(isoDate);
@@ -204,15 +181,19 @@ export const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean =>
     ); else return false
 }
 
+// // генерация привычной нам даты - ее использую как id дня
+// export const idDay = (date: Date): string => {
+//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
+//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
+//   const year = date.getFullYear();  // Год
+
+//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
+// };
+
 // генерация привычной нам даты - ее использую как id дня
 export const idDay = (date: Date): string => {
-  const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-  const year = date.getFullYear();  // Год
-
-  return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
+  return date.toLocaleDateString('en-CA');  // Возвращаем строку в формате "день.месяц.год"
 };
-
 
 // генерация одного дня на шкале
 export const generateCalendarItem = (day: string|Date, schedule: ScheduleItem): CalendarItem => {
@@ -222,8 +203,8 @@ export const generateCalendarItem = (day: string|Date, schedule: ScheduleItem): 
 
   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
-  const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
-
+  const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // 
+  
   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
   let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];

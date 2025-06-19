@@ -5,7 +5,7 @@ import { UnitLoadItem, TCardItem, StatusEnum } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 
 
-import { padNumberToFourDigits, convertMinutesToTime1 } from "@/utils"
+import { padNumberToFourDigits, convertMinutesToTime1 } from "@/lib/utils"
 
 
 interface UnitTaskStackOutsourceProps {

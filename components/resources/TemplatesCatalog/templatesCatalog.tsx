@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { setTemplates } from '@/store/slices'
 
-import { validateFileContent } from "@/utils"
+import { validateFileContent } from "@/lib/utils"
 
 import { useTranslation } from 'react-i18next';
 

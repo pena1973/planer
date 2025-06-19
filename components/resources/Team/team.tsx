@@ -2,7 +2,7 @@
 import styles from "./team.module.scss";
 
 import { TeamItem, UserItem } from '@/types/types'
-import { generateTeamNumber } from '@/utils'
+import { generateTeamNumber } from '@/lib/utils'
 
 import Image from 'next/image';
 import { useEffect, useState } from "react";

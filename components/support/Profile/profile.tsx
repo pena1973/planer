@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import styles from "./profile.module.scss";
 import { UserItem, TeamItem, UnitItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
-import { generateTeamNumber } from '@/utils'
+import { generateTeamNumber } from '@/lib/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import { useAppDispatch } from "@/pages/_app";

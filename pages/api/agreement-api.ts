@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { generateTeamNumber, extractIdFromTeamNumber } from '@/utils';
+import { generateTeamNumber, extractIdFromTeamNumber } from '@/lib/utils';
 
 import { UserTable } from '@/db/models/catalogs/users';
 import { TeamTable } from '@/db/models/catalogs/teams';

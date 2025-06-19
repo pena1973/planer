@@ -2,7 +2,7 @@
 import styles from "./loadOperProcess.module.scss";
 import Image from 'next/image';
 import { StatusEnum,  TCardOperationItem, TCardItem } from "@/types/types";
-import { padNumberToFourDigits, } from "@/utils"
+import { padNumberToFourDigits, } from "@/lib/utils"
 
 import cancel from "@/public/cancel.png";
 
