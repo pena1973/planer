@@ -65,4 +65,5 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }
+
 export default withAuth(handler)

@@ -228,18 +228,18 @@ export default function Planing() {
           }
         }
       }
-    // } catch (e: any) {
-    //   // setMessage(t('service.serverUnavailable') + e.message)            
-    //   // }
+      // } catch (e: any) {
+      //   // setMessage(t('service.serverUnavailable') + e.message)            
+      //   // }
 
-    // }
+      // }
     } catch (e: unknown) {
-  let message = t('service.serverUnavailable');
-  if (e instanceof Error) {
-    message += e.message;
-  }
-  setMessage(message);
-}
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
+    }
 
     setErazLoaderCard(NaN)
   };
@@ -300,20 +300,17 @@ export default function Planing() {
             setMessage(receivedData.message);
           }
         }
-      // } catch (e: any) {
-      //   // setMessage(t('service.serverUnavailable') + e.message)            
-      // }
+        // } catch (e: any) {
+        //   // setMessage(t('service.serverUnavailable') + e.message)            
+        // }
       } catch (e: unknown) {
-  let message = t('service.serverUnavailable');
-  if (e instanceof Error) {
-    message += e.message;
-  }
-  setMessage(message);
-}
-
-
+        let message = t('service.serverUnavailable');
+        if (e instanceof Error) {
+          message += e.message;
+        }
+        setMessage(message);
+      }
     }
-
   }
 
   // перетаскивание лоада на шкале  возвращает измененное планирование карты
@@ -364,16 +361,16 @@ export default function Planing() {
               setMessage(receivedData.message);
             }
           }
-        // } catch (e: any) {
-        //   // setMessage(t('service.serverUnavailable') + e.message)            
-        // }
+          // } catch (e: any) {
+          //   // setMessage(t('service.serverUnavailable') + e.message)            
+          // }
         } catch (e: unknown) {
-  let message = t('service.serverUnavailable');
-  if (e instanceof Error) {
-    message += e.message;
-  }
-  setMessage(message);
-}
+          let message = t('service.serverUnavailable');
+          if (e instanceof Error) {
+            message += e.message;
+          }
+          setMessage(message);
+        }
 
       }
     }
@@ -435,21 +432,18 @@ export default function Planing() {
           setMessage(receivedData.message);
         }
       }
-    // } catch (e: any) {
-    //   // setMessage(t('service.serverUnavailable') + e.message)            
-    // }
+      // } catch (e: any) {
+      //   // setMessage(t('service.serverUnavailable') + e.message)            
+      // }
     } catch (e: unknown) {
-  let message = t('service.serverUnavailable');
-  if (e instanceof Error) {
-    message += e.message;
-  }
-  setMessage(message);
-}
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
+    }
 
   }
-
-
-
 
   /// ПЕРЕТАСКИВАНИЕ КАРТЫ НА ПОЛЕ ПЛАНИРОВАНИЯ
   // Для изменения курсора
@@ -524,16 +518,16 @@ export default function Planing() {
           setMessage(receivedData.message);
         }
       }
-    // } catch (e: any) {
-    //   // setMessage(t('service.serverUnavailable') + e.message)            
-    // }
+      // } catch (e: any) {
+      //   // setMessage(t('service.serverUnavailable') + e.message)            
+      // }
     } catch (e: unknown) {
-  let message = t('service.serverUnavailable');
-  if (e instanceof Error) {
-    message += e.message;
-  }
-  setMessage(message);
-}
+      let message = t('service.serverUnavailable');
+      if (e instanceof Error) {
+        message += e.message;
+      }
+      setMessage(message);
+    }
 
 
     setDropLoaderCard(NaN)

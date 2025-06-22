@@ -74,7 +74,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
         const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
         //  уберем из нее лоады нашей карты
-        const unitLoadItemsFull = unitLoadItemsBD.filter(lo => tCardId !== lo.id)
+        const unitLoadItemsFull = unitLoadItemsBD.filter(lo => Number(tCardId) !== lo.id_tCard)
         // в этих лоадах нет операций в статусе prepared
 
 

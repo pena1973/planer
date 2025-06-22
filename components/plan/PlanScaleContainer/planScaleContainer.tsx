@@ -1,11 +1,11 @@
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import styles from "./planScaleContainer.module.scss";
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types/types";
+
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem,  TCardItem, TimeTypeEnum } from "@/types/types";
 
 import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/utils";
-
 
 import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
@@ -14,7 +14,6 @@ import DottedLine from "./DottedLine/dottedLine";
 import { useTranslation } from 'react-i18next';
 
 import { useResizeObserver } from './useResizeObserver'; // Хук отслеживания расмеров окна
-import { useDropTargetDate } from './useDropTargetDate'; // Хук перетаскивания лоада
 
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
@@ -22,7 +21,6 @@ const calculateWidthDay = (totalWidth: number, scale: number): number => {
   // Если scale 10%, widthDay = totalWidth / 100
   return (totalWidth * scale) / 100;
 };
-
 
 // вычисление связующих линий оутсорта
 interface Line { startId: string, endId: string }
@@ -65,8 +63,6 @@ const createLines = (part: string, date: string, unitLoads: UnitLoadItem[]): Lin
   return linesArray;
 };
 
-
-
 export interface PlanScaleContainerProps {
   tCards: TCardItem[],
   units: UnitItem[],
@@ -77,8 +73,7 @@ export interface PlanScaleContainerProps {
   tCardLighted: TCardItem,
   unitExceptions: UnitExceptionItem[],
   erazLoadHandler: (load_idc: number) => void,
-  // changeDurationLoadHandler: (idc: number) => void,
-  moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
+  moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => Promise<void>,
   pinLoadHandler: (oper_id: number) => void,
   unPinLoadHandler: (oper_id: number, tCardId: number) => void
 }
@@ -89,11 +84,9 @@ export default function PlanScaleContainer({
   unitLoads,
   settings,
   schedule,
-  tCardPrepared,
   tCardLighted,
   unitExceptions,
   erazLoadHandler,
-  // changeDurationLoadHandler,
   moveLoadHandler,
   pinLoadHandler,
   unPinLoadHandler
@@ -116,6 +109,9 @@ export default function PlanScaleContainer({
 
   const [calendarViewPlus, setCalendarViewPlus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени планирование при изменении]
   const [calendarViewMinus, setCalendarViewMinus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени история при изменении]
+
+  const [isLoadingDrop, setIsLoadingDrop] = useState(false); // для отработки задержки при перетаскивании 
+
   // Прорисовка соединительных линий лоадов аутсорта
 
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
@@ -129,7 +125,6 @@ export default function PlanScaleContainer({
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
 
-  // const { onDragStart, getDropDate } = useDropTargetDate(days, containerRef);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
@@ -151,7 +146,6 @@ export default function PlanScaleContainer({
   }
 
   // ШКАЛА
-
   // сброс шкалы
   const scaleReset = () => {
     setShift(0);
@@ -215,44 +209,7 @@ export default function PlanScaleContainer({
   }, 200); // дебаунс 300мс
 
   let stopCloseMenu = 0;
-
-
-  // // изменения масштаба шкалы
-  // const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const newScale = Number(event.target.value);
-  //   setScale(newScale);
-
-
-  //   const oldDayWidth = dayWidth;
-  //   const newDayWidth = calculateWidthDay(timelineWidth, newScale);
-
-  //   const computeNewShiftOnScaleChange = (
-  //     oldShift: number,
-  //     oldDayWidth: number,
-  //     newDayWidth: number
-  //   ): number => {
-  //     // today визуально находится на координате `shift`
-  //     // при изменении масштаба нужно сохранить эту координату в новом масштабе
-
-  //     const scaleRatio = newDayWidth / oldDayWidth;
-  //     const newShift = Math.round(oldShift * scaleRatio);
-  //     return newShift;
-  //   };
-
-
-
-  //   // // ⬇️ пересчёт shift
-  //    const newShift = computeNewShiftOnScaleChange(shift, oldDayWidth, newDayWidth); 
-
-  //   setShift(newShift);
-
-
-
-
-  // };
-
-
-  // .........
+  
   // изменение при смене массива загрузки, может прорисоватся и при сохранении и при накидывании драфта
   useEffect(() => {
     //  получаем  планировку юнитов
@@ -454,7 +411,6 @@ export default function PlanScaleContainer({
     return _visibleItems;
   };
 
-
   // ПЕРЕТАСКИВАНИЕ ЛОАДА
 
   // Для изменения курсора
@@ -467,13 +423,16 @@ export default function PlanScaleContainer({
       setDraggingLoad(load);
     }
   };
-  // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
+
+   // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
   const handleDropOper = async (
     event: React.DragEvent,
     toUnitView: UnitItem
   ) => {
     event.preventDefault();
     if (!draggingLoad || !divRefPlus.current) return;
+
+    setIsLoadingDrop(true);
 
     const containerRect = divRefPlus.current.getBoundingClientRect();
 
@@ -512,7 +471,7 @@ export default function PlanScaleContainer({
     const timeFinish = timeStart + 5;
 
     // 🧩 4. Перемещаем
-    moveLoadHandler(
+    await moveLoadHandler(
       draggingLoad,
       toUnitView,
       calendarItem.date.toLocaleDateString("en-CA"),
@@ -521,6 +480,7 @@ export default function PlanScaleContainer({
     );
 
     setDraggingLoad(undefined);
+    setIsLoadingDrop(false);
   };
 
   const handleMouseDownOper = (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => {
@@ -696,16 +656,18 @@ export default function PlanScaleContainer({
               contectMenuShow={contectMenuShow}
               unitView={unitView}
               erazLoadHandler={erazLoadHandler}
-              // handleMouseDownOper={handleMouseDownOper}  
               handleDragStart={handleDragStart}
               handleMouseUpOper={handleMouseUpOper}
               handleRightClickMenu={handleRightClickMenu}
               index={index}
-              moveLoadHandler={moveLoadHandler}
+              // moveLoadHandler={moveLoadHandler}
               pinLoadHandler={pinLoadHandler}
               unPinLoadHandler={unPinLoadHandler}
+              isLoadingDrop={isLoadingDrop}
             />
           })
+
+
 
           // Это прорисовка загрузок 
           return (<div key={unitView.id}

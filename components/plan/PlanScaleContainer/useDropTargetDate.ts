@@ -1,8 +1,4 @@
-type TimelineDay = {
-  startDate: Date;
-  left: number;     // позиция в пикселях
-  width: number;    // ширина дня
-};
+
 
 import { useRef } from "react";
 

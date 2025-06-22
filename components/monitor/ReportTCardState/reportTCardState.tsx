@@ -92,97 +92,10 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     setShowLoader(false);
   }
 
-  // const getTCardsTerms = useCallback(async (params?: {
-  //   useNumber?: boolean;
-  //   useDate?: boolean;
-  //   useStatus?: boolean;
-  //   tCardNumber?: number;
-  //   tCardDateFrom?: string;
-  //   tCardDateTo?: string;
-  //   tCardStatus?: StatusEnum | "";
-  // }) => {
-  //   setShowLoader(true);
 
-  //   const {
-  //     useNumber = false,
-  //     useDate = false,
-  //     useStatus = false,
-  //     tCardNumber,
-  //     tCardDateFrom,
-  //     tCardDateTo,
-  //     tCardStatus,
-  //   } = params || {};
-
-  //   let filter = "";
-  //   if (useNumber && tCardNumber) filter += `&tCardNumber=${tCardNumber}`;
-  //   if (useDate && tCardDateFrom) filter += `&tCardDateFrom=${tCardDateFrom}`;
-  //   if (useDate && tCardDateTo) filter += `&tCardDateTo=${tCardDateTo}`;
-  //   if (useStatus) filter += `&tCardStatus=${tCardStatus}`;
-
-  //   try {
-  //     const res = await fetch(
-  //       `api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
-  //       {
-  //         method: "get",
-  //         headers: new Headers({
-  //           Authorization: "Basic " + token,
-  //           "Content-Type": "application/json",
-  //         }),
-  //       }
-  //     );
-
-  //     const data = await res.json();
-
-  //     if (res.status !== 200) {
-  //       setMessage(t("service.serverUnavailable") + data.error);
-  //     } else if (data.success) {
-  //       setUnitLoadsValue(data.unitLoadItems as UnitLoadItem[]);
-  //       setTCardsValue(data.tCards as TCardTermsItem[]);
-  //       setMessage(data.message);
-  //     }
-  //   } catch (e: unknown) {
-  //     let message = t("service.serverUnavailable");
-  //     if (e instanceof Error) message += e.message;
-  //     setMessage(message);
-  //   }
-
-  //   setShowLoader(false);
-  // }, [
-  //   userId,
-  //   teamId,
-  //   token,
-  //   t,
-  //   setMessage,
-  //   setShowLoader,
-  //   setUnitLoadsValue,
-  //   setTCardsValue,
-  // ]);
-  // // Адаптер — создаём совместимую с <Filter /> обёртку:
-  // const callGetTCardsTermsLegacy = useCallback((
-  //   useNumber: boolean,
-  //   useDate: boolean,
-  //   useStatus: boolean,
-  //   tCardNumber: number,
-  //   tCardDateFrom: string,
-  //   tCardDateTo: string,
-  //   tCardStatus: StatusEnum | ""
-  // ) => {
-  //   getTCardsTerms({
-  //     useNumber,
-  //     useDate,
-  //     useStatus,
-  //     tCardNumber,
-  //     tCardDateFrom,
-  //     tCardDateTo,
-  //     tCardStatus,
-  //   });
-  // }, [getTCardsTerms]);
-
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     getTCardsTerms();
-  }, [getTCardsTerms]);
+  }, []);
 
   const getStyleStatus = (status: StatusEnum): string => {
 
