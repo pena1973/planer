@@ -14,6 +14,7 @@ import DottedLine from "./DottedLine/dottedLine";
 import { useTranslation } from 'react-i18next';
 
 import { useResizeObserver } from './useResizeObserver'; // Хук отслеживания расмеров окна
+import { useDropTargetDate } from './useDropTargetDate'; // Хук перетаскивания лоада
 
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
@@ -128,7 +129,7 @@ export default function PlanScaleContainer({
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
 
-
+  // const { onDragStart, getDropDate } = useDropTargetDate(days, containerRef);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
@@ -453,9 +454,75 @@ export default function PlanScaleContainer({
     return _visibleItems;
   };
 
+
   // ПЕРЕТАСКИВАНИЕ ЛОАДА
 
   // Для изменения курсора
+  const dragOffsetX = useRef<number>(0);
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, load: UnitLoadItem) => {
+    if (e.currentTarget) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      dragOffsetX.current = e.clientX - rect.left;
+      setDraggingLoad(load);
+    }
+  };
+  // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
+  const handleDropOper = async (
+    event: React.DragEvent,
+    toUnitView: UnitItem
+  ) => {
+    event.preventDefault();
+    if (!draggingLoad || !divRefPlus.current) return;
+
+    const containerRect = divRefPlus.current.getBoundingClientRect();
+
+    const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
+    const startQuant = Math.floor(settings.timeStartWork / 5);
+    const finishQuant = Math.ceil(timeFinishWork / 5);
+    const quants = finishQuant - startQuant;
+
+    const fullDayWidth = dayWidth;
+    const pxPerQuant = fullDayWidth / quants;
+    const pxPerMinute = pxPerQuant / 5;
+
+    const isDraggingRetul = draggingLoad.isRetool === true;
+
+    // 🧩 Если тащим саму операцию, смещаем влево на toUnitView.retool
+    const retoolDurationPx = !isDraggingRetul && toUnitView.retool
+      ? toUnitView.retool * pxPerMinute
+      : 0;
+
+    const adjustedOffset = dragOffsetX.current + retoolDurationPx;
+
+    const leftEdgeX = event.clientX - adjustedOffset;
+    const relativeX = leftEdgeX - containerRect.left + divRefPlus.current.scrollLeft;
+
+    // 🧩 3. Определим день
+    const dayIndex = Math.floor(relativeX / fullDayWidth);
+    const calendarItem = calendarViewPlus[dayIndex];
+    if (!calendarItem) return;
+
+    const dayLeft = dayIndex * fullDayWidth;
+    const offsetWithinDay = relativeX - dayLeft;
+
+    const quantWidth = fullDayWidth / quants;
+    const quantIndex = Math.floor(offsetWithinDay / quantWidth);
+    const timeStart = (startQuant + quantIndex) * 5;
+    const timeFinish = timeStart + 5;
+
+    // 🧩 4. Перемещаем
+    moveLoadHandler(
+      draggingLoad,
+      toUnitView,
+      calendarItem.date.toLocaleDateString("en-CA"),
+      timeStart,
+      timeFinish
+    );
+
+    setDraggingLoad(undefined);
+  };
+
   const handleMouseDownOper = (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => {
     setDraggingLoad(load);
   };
@@ -465,35 +532,12 @@ export default function PlanScaleContainer({
 
   };
 
-
   const handleMouseLeaveOper = () => {
     // Если курсор покинул шкалу, завершаем перетаскивание
     setDraggingLoad(undefined);
 
   };
 
-  // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
-  const handleDropOper = async (
-    event: React.DragEvent,
-    toUnitView: UnitItem,
-    i: number,
-    calendarItem: CalendarItem,
-    isWorkTime: boolean,
-    isBreakTime: boolean) => {
-    event.preventDefault();
-    // setIsDragging(false); // Завершаем перетаскивание
-
-    // load: UnitLoadItem,date:string,timeStart:number
-    if (draggingLoad) {
-
-      // отправляю лоад, и куда переместить -> юнит, день и время старта
-      moveLoadHandler(draggingLoad, toUnitView, calendarItem.date.toLocaleDateString("en-CA"), (i * 5), (i * 5) + 5)
-      // console.log(draggingLoad);
-    }
-    // setDraggbleElemId("");
-    setDraggingLoad(undefined);
-
-  };
 
 
   //// ШКАЛА
@@ -652,7 +696,8 @@ export default function PlanScaleContainer({
               contectMenuShow={contectMenuShow}
               unitView={unitView}
               erazLoadHandler={erazLoadHandler}
-              handleMouseDownOper={handleMouseDownOper}
+              // handleMouseDownOper={handleMouseDownOper}  
+              handleDragStart={handleDragStart}
               handleMouseUpOper={handleMouseUpOper}
               handleRightClickMenu={handleRightClickMenu}
               index={index}
@@ -665,13 +710,15 @@ export default function PlanScaleContainer({
           // Это прорисовка загрузок 
           return (<div key={unitView.id}
             onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
-            onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+            // onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+            onDrop={e => handleDropOper(e, unitView)}
             className={`${styles.unit_unload} ${unit_unloadEx}`}>{operBlocksReactNodes}</div>)
         }
         // Это пустые сюда кидаем
         return (<div key={unitView.id}
           onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
-          onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+          // onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+          onDrop={e => handleDropOper(e, unitView)}
           className={`${styles.unit_unload} ${unit_unloadEx}`}></div>); // Если нет совпадений
       });
 
@@ -714,12 +761,14 @@ export default function PlanScaleContainer({
           })
           return (<div key={unitView.id}
             onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
-            onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+            // onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+            onDrop={e => handleDropOper(e, unitView)}
             className={styles.unit_unload}>{operBlocksReactNodes}</div>)
         }
         return (<div key={unitView.id}
           onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
-          onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+          // onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+          onDrop={e => handleDropOper(e, unitView)}
           className={styles.unit_unload}></div>); // Если нет совпадений
       });
 

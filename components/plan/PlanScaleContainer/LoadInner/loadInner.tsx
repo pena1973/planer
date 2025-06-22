@@ -22,7 +22,8 @@ export interface LoadProps {
     contectMenuShow: number,
     unitView: UnitItem,
     erazLoadHandler: (load_idc: number) => void,
-    handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,
+    // handleMouseDownOper: (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => void,    
+    handleDragStart: (e: React.DragEvent<HTMLDivElement>, load: UnitLoadItem) => void;     
     handleMouseUpOper: () => void,
     handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
     index: number,
@@ -43,7 +44,8 @@ export interface LoadProps {
     contectMenuShow,
     unitView,
     erazLoadHandler,
-    handleMouseDownOper,
+    // handleMouseDownOper,
+    handleDragStart,
     handleMouseUpOper,
     handleRightClickMenu,
     index,
@@ -104,7 +106,8 @@ export interface LoadProps {
     return (
         <>
             <div className={intervalClass}
-                onMouseDown={e => handleMouseDownOper(e, load)}
+                // onMouseDown={e => handleMouseDownOper(e, load)}
+                onDragStart={(e) => handleDragStart(e, load)}                
                 onMouseUp={e => handleMouseUpOper()}
                 draggable={true}
                 id={String(load.idc + "_" + index)}
