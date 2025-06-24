@@ -4,7 +4,7 @@ import TCardOperNew from "@/components/cards/TCardOperNew/tCardOperNew";
 import TCardProducts from "@/components/cards/TCardProducts/tCardProducts";
 import TCardComent from "@/components/cards/TCardComent/tCardComent";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
+import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 
 import { formatDate, padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/utils"

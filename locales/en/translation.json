@@ -306,7 +306,8 @@
     "new": "New",
     "reply": "Reply",
     "send": "Send",
-    "cookie": "Cookie policy"
+    "cookie": "Cookie policy",
+    "docs": "Documentation"
   },
   "bills": {
     "date": "Date",

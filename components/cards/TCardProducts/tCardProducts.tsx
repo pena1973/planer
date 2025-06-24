@@ -5,7 +5,6 @@ import Image from 'next/image';
 
 import TCardProduct from "@/components/cards/TCardProduct/tCardProduct";
 import TCardProductNew from "@/components/cards/TCardProductNew/tCardProductNew";
-import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
 
 import { useEffect, useState, useRef } from "react";
 

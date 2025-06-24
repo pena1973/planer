@@ -73,13 +73,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const exceptionItems = await getExceptions(Number(teamId), unitExceptionsRepository)
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
         const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
-        //  уберем из нее лоады нашей карты
-        const unitLoadItemsFull = unitLoadItemsBD.filter(lo => Number(tCardId) !== lo.id_tCard)
+        //  уберем из нее лоады нашей карты 
+         const unitLoadItemsFull = unitLoadItemsBD.filter(lo => Number(tCardId) !== lo.id_tCard)
         // в этих лоадах нет операций в статусе prepared
 
 
         // Планируем карту все операции статуса prepared
-        const resultPlaningNextOper = planTCardFromOperINC(allPreparedOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, String(today))
+        // const resultPlaningNextOper = planTCardFromOperINC(allPreparedOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, String(today))
+        const resultPlaningNextOper = planTCardFromOperINC(allPreparedOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsBD, exceptionItems, String(today))
+        
         //  Если не удалось запланировать
         if (!resultPlaningNextOper.success) {
           res.status(200).json({

@@ -1,33 +1,22 @@
 import Layout from "@/components/Layout/layout";
-import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import PlanScaleContainer from "@/components/plan/PlanScaleContainer/planScaleContainer";
 
+import PlanedCardRow from "@/components/plan/PlanedCardRow/planedCardRow";
+import ToPlanCardRow from "@/components/plan/ToPlanCardRow/toPlanCardRow";
+import DefectiveCardRow from "@/components/plan/DefectiveCardRow/defectiveCardRow";
+
 import { useState, } from "react";
-import Link from 'next/link';
-
-import Image from 'next/image';
-
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
-import { formatDate, padNumberToFourDigits, } from "@/lib/utils"
+import { formatDate,} from "@/lib/utils"
 
 import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum, } from "@/types/types";
 import { setUnitLoads, setTCardLighted, setTCardPrepared, setTCards } from '@/store/slices'
+
 import { } from '@/store/slices';
 
 import { useTranslation } from 'react-i18next';
-
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
-
-import save from "@/public/save-rem.png";
-import eraz from "@/public/erazer1-rem.png";
-import light from "@/public/light-rem.png";
-import lighton from "@/public/light-on-rem.png";
-
 
 export default function Planing() {
 
@@ -40,7 +29,6 @@ export default function Planing() {
 
   const [erazLoaderCard, setErazLoaderCard] = useState(NaN); // состояние это id категории  
   const [droploaderCard, setDropLoaderCard] = useState(NaN); // состояние это id категории  
-
   const [saveLoaderCard, setSaveLoaderCard] = useState(NaN); // состояние это id категории  
 
 
@@ -215,7 +203,7 @@ export default function Planing() {
           dispatch(setUnitLoads(updatedLoads));
 
           //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
-          const index = tCards.findIndex(tCard => tCard.id === tCardLighted.id);
+          const index = tCards.findIndex(tCard => tCard.id === tCardId);
           if (tCards[index].status !== tCardStatus) {
             const updatedTCard = { ...tCards[index], status: tCardStatus }
             const _tCards = [...tCards]
@@ -377,21 +365,22 @@ export default function Planing() {
   }
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
-  const pinLoadHandler = async (oper_id: number) => {
-
+  const pinLoadHandler = async (oper_id: number, version:number) => {
+    // unitLoads.filter(load => load.id_oper ===oper_id )
     const tCardLoads_ = unitLoads.map(load => {
-      return (load.id_oper === oper_id) ? { ...load, isPinned: true } : load
+      return (load.id_oper === oper_id && load.version===version) ? { ...load, isPinned: true } : load
     })
-    dispatch(setUnitLoads(tCardLoads_))
+    // tCardLoads_.filter(load => load.id_oper ===oper_id )     
+    dispatch(setUnitLoads([...tCardLoads_]))
   }
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
-  const unPinLoadHandler = async (operId: number, tCardId: number) => {
+  const unPinLoadHandler = async (operId: number, tCardId: number, version:number) => {
 
 
     //  последующее перепланирование
-    const tCardLoads = unitLoads.filter(load => load.id_tCard === load?.id_tCard)
-    const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== load.id_tCard)
+    const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
+    const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== tCardId)
     //  перетаскивать лоады можем только на этапе prepared
 
 
@@ -505,7 +494,6 @@ export default function Planing() {
         const receivedData = await res.json();
         const error = receivedData.error;
         setMessage(error);
-        // setMessage(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
 
@@ -518,9 +506,6 @@ export default function Planing() {
           setMessage(receivedData.message);
         }
       }
-      // } catch (e: any) {
-      //   // setMessage(t('service.serverUnavailable') + e.message)            
-      // }
     } catch (e: unknown) {
       let message = t('service.serverUnavailable');
       if (e instanceof Error) {
@@ -546,117 +531,52 @@ export default function Planing() {
 
   const tCardsDefective = tCards.filter(tCard => (tCard.status === StatusEnum.defective)) // запланирован
   // Карты
-  const tCardsPlanedReactNodes = tCardsPlaned.map((elem, index4) => {
-    let date = "";
-    if (elem.date)
-      date = formatDate(new Date(elem.date));
-
-    return (
-      <div key={index4} className="container_plan_card_planed">
-        <div className="container_plan_card_icon_light">
-          {droploaderCard === elem.id && <ButtonLoader />}
-          {droploaderCard !== elem.id &&
-            (elem.id === tCardLighted.id ?
-              <Image className="icon_edit_save" src={lighton} alt="lighton"
-                width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
-              : <Image className="icon_edit_save" src={light} alt="light"
-                width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
-          }
-          <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.idc)} -  {date}</div>
-        </div>
-
-        <div className="container_icon_edit_save">
-          {erazLoaderCard === elem.id && <ButtonLoader />}
-          {erazLoaderCard !== elem.id &&
-            <Image className="icon_edit_save"
-              src={eraz}
-              alt="eraz" width={20} height={20}
-              onClick={() => erazCardHandler(elem.id)}
-            />}
-          {tCardLighted?.id === elem.id}
-        </div>
-      </div>
-    );
+  const tCardsPlanedReactNodes = tCardsPlaned.map((elem, index) => {
+    return (<PlanedCardRow
+      key={"planed" + index}
+      elem={elem}
+      droploaderCard={droploaderCard}
+      erazLoaderCard={erazLoaderCard}
+      tCardLighted={tCardLighted}
+      lightTCardHandler={lightTCardHandler}
+      erazCardHandler={erazCardHandler}
+      formatDate={formatDate}
+    />)
   })
   // Карты
   const tCardsToPlanReactNodes = tCardsToPlan.map((elem, index) => {
-    let date = "";
-    if (elem.date) date = formatDate(new Date(elem.date));
 
-    return (
-      <div key={index}
-        className="container_plan_card_prepared">
+    return (<ToPlanCardRow
+      key={"toPlan" + index}
+      elem={elem}
+      tCardPrepared={tCardPrepared}
+      droploaderCard={droploaderCard}
+      saveLoaderCard={saveLoaderCard}
+      erazLoaderCard={erazLoaderCard}
+      tCardLighted={tCardLighted}
+      isDragging={isDragging}
+      formatDate={formatDate}
+      lightTCardHandler={lightTCardHandler}
+      saveCardHandler={saveCardHandler}
+      erazCardHandler={erazCardHandler}
+      handleMouseDownTCard={handleMouseDownTCard}
+      handleDragStartTCard={handleDragStartTCard}
+    />)
 
-        <div className={`container_plan_card_icon_light ${elem.id === tCardPrepared?.id ? "container_plan_edit" : ""}`}>
-          {droploaderCard === elem.id && <ButtonLoader />}
-          {droploaderCard !== elem.id &&
-            (elem.id === tCardLighted.id ?
-              <Image className="icon_edit_save" src={lighton} alt="lighton"
-                width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
-              : <Image className="icon_edit_save" src={light} alt="light"
-                width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
-          }
-          <div className="container_plan_card_prepared_title draggable-item"
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-            onMouseDown={handleMouseDownTCard} // Добавляем обработчик нажатия мыши при перетаскивании        
-            draggable
-            onDragStart={(e) => handleDragStartTCard(e, elem.id)}
-          >{padNumberToFourDigits(elem.idc)} - {date}</div>
-        </div>
-
-        <div className="container_icon_edit_save">
-
-          {tCardPrepared?.id === elem.id && saveLoaderCard === elem.id && <ButtonLoader />}
-          {tCardPrepared?.id === elem.id && saveLoaderCard !== elem.id &&
-            <Image className="icon_edit_save"
-              src={save}
-              alt="arrow" width={20} height={20}
-              onClick={() => saveCardHandler()}
-            />}
-
-          {erazLoaderCard === elem.id && <ButtonLoader />}
-          {erazLoaderCard !== elem.id &&
-            <Image className="icon_edit_save"
-              src={eraz}
-              alt="eraz" width={20} height={20}
-              onClick={() => erazCardHandler(elem.id)}
-            />}
-        </div>
-      </div>
-    );
   })
   // Карты
-  const tCardsDefectiveReactNodes = tCardsDefective.map((elem, index4) => {
-    let date = "";
-    if (elem.date)
-      date = formatDate(new Date(elem.date));
+  const tCardsDefectiveReactNodes = tCardsDefective.map((elem, index) => {
+    return (<DefectiveCardRow
+      key={"defective" + index}
+      elem={elem}
+      droploaderCard={droploaderCard}
+      erazLoaderCard={erazLoaderCard}
+      tCardLighted={tCardLighted}
+      formatDate={formatDate}
+      lightTCardHandler={lightTCardHandler}
+      erazCardHandler={erazCardHandler}
+    />)
 
-    return (
-      <div key={index4} className="container_plan_card_planed">
-        <div className="container_plan_card_icon_light">
-          {droploaderCard === elem.id && <ButtonLoader />}
-          {droploaderCard !== elem.id &&
-            (elem.id === tCardLighted.id ?
-              <Image className="icon_edit_save" src={lighton} alt="lighton"
-                width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
-              : <Image className="icon_edit_save" src={light} alt="light"
-                width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
-          }
-          <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.idc)} -  {date}</div>
-        </div>
-
-        <div className="container_icon_edit_save">
-          {erazLoaderCard === elem.id && <ButtonLoader />}
-          {erazLoaderCard !== elem.id &&
-            <Image className="icon_edit_save"
-              src={eraz}
-              alt="eraz" width={20} height={20}
-              onClick={() => erazCardHandler(elem.id)}
-            />}
-          {tCardLighted?.id === elem.id}
-        </div>
-      </div>
-    );
   })
   return (
     <Layout>
@@ -692,8 +612,7 @@ export default function Planing() {
             tCardPrepared={tCardPrepared}
             tCardLighted={tCardLighted}
             unitExceptions={unitExceptions}
-            erazLoadHandler={erazLoadHandler}
-            // changeDurationLoadHandler={changeDurationLoadHandler}
+            erazLoadHandler={erazLoadHandler}            
             moveLoadHandler={moveLoadHandler}
             pinLoadHandler={pinLoadHandler}
             unPinLoadHandler={unPinLoadHandler}

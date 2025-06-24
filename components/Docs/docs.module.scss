@@ -1,0 +1,77 @@
+// helpTree.module.scss
+
+.treeContainer {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #222;
+  padding: 1rem;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.treeNode {
+  margin-bottom: 0.5rem;
+}
+
+.nodeHeader {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.nodeHeader:hover {
+  background-color: #f5f5f5;
+}
+
+.toggle {
+  display: inline-block;
+  width: 1.2rem;
+  text-align: center;
+  margin-right: 0.4rem;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #007acc;
+}
+
+.title {
+  font-weight: 500;
+  color: #333;
+}
+
+.nodeContent {
+  margin-left: 1.6rem;
+  padding-top: 0.25rem;
+}
+
+.content {
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  color: #555;
+  border-left: 2px solid #007acc;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.level0 .title {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.level1 .title {
+  font-size: 1rem;
+}
+
+.level2 .title {
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.level3 .title {
+  font-size: 0.9rem;
+  color: #666;
+}

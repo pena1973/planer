@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 
 import styles from "./planScaleContainer.module.scss";
 
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem,  TCardItem, TimeTypeEnum } from "@/types/types";
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum } from "@/types/types";
 
 import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/utils";
 
@@ -74,8 +74,8 @@ export interface PlanScaleContainerProps {
   unitExceptions: UnitExceptionItem[],
   erazLoadHandler: (load_idc: number) => void,
   moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => Promise<void>,
-  pinLoadHandler: (oper_id: number) => void,
-  unPinLoadHandler: (oper_id: number, tCardId: number) => void
+  pinLoadHandler: (oper_id: number, version: number) => void,
+  unPinLoadHandler: (oper_id: number, tCardId: number, version: number) => void
 }
 
 export default function PlanScaleContainer({
@@ -209,7 +209,7 @@ export default function PlanScaleContainer({
   }, 200); // дебаунс 300мс
 
   let stopCloseMenu = 0;
-  
+
   // изменение при смене массива загрузки, может прорисоватся и при сохранении и при накидывании драфта
   useEffect(() => {
     //  получаем  планировку юнитов
@@ -230,6 +230,7 @@ export default function PlanScaleContainer({
     setCalendarViewPlus(filteredCalendar);
 
   }, [unitLoads]);
+
 
   // Обработка визуализации сдвига при изменении шкалы  и сдвига от левого края
   useEffect(() => {
@@ -253,6 +254,8 @@ export default function PlanScaleContainer({
 
     //  прорисовываем шкалу истории
     setCalendarViewMinus(calendarMinus.current);
+    // // 🔧 Важное добавление — "касание" unitLoads
+    // console.log("unitLoads length:", unitLoads.length);
 
     // }, [timelineWidth, shift, todayDateRef, scaleRestart.current]);  // Пересчитываем при изменении размераб сдвига, даты или масштаба
   }, [timelineWidth, shift, todayDateRef]);  // Пересчитываем при изменении размераб сдвига, даты или масштаба
@@ -353,8 +356,8 @@ export default function PlanScaleContainer({
     const visibleleft = 0 - shift;
     const visibleright = (shift > timelineWidth) ? -(shift - timelineWidth) : 0;
 
-    console.log('✅ visibleleft', visibleleft);
-    console.log('✅ visibleright', visibleright);
+    // console.log('✅ visibleleft', visibleleft);
+    // console.log('✅ visibleright', visibleright);
 
     let _visibleItems = [] as string[] // ID дней которые видны
 
@@ -392,8 +395,8 @@ export default function PlanScaleContainer({
         countDay++;
         const dayLeft = -(dayWidth * countDay)
 
-        console.log('✅ dayLeft', dayLeft, countDay);
-        console.log('✅ dayRight', dayRight, countDay);
+        // console.log('✅ dayLeft', dayLeft, countDay);
+        // console.log('✅ dayRight', dayRight, countDay);
 
         if (dayRight > visibleleft && dayLeft < visibleright) {
           if (!_visibleItems.find(elem => elem === id_day)) {
@@ -407,7 +410,7 @@ export default function PlanScaleContainer({
     }
 
     calendarMinus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
-    console.log('✅ _visibleItems', _visibleItems);
+    // console.log('✅ _visibleItems', _visibleItems);
     return _visibleItems;
   };
 
@@ -424,7 +427,7 @@ export default function PlanScaleContainer({
     }
   };
 
-   // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
+  // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
   const handleDropOper = async (
     event: React.DragEvent,
     toUnitView: UnitItem
@@ -532,7 +535,7 @@ export default function PlanScaleContainer({
 
   };
 
-  // Функция для генерации шкалы времени  и загруза юнитов для одного дня
+  // Функция ПРОРИСОВКИ  шкалы времени для одного дня  и загруза юнитов для одного дня
   const generateTimeScalePlan = (calendarItem: CalendarItem) => {
     // 288 5 минуток в дне (24 часа * 60/5 минут)  если показывать полные сутки
 
@@ -606,7 +609,9 @@ export default function PlanScaleContainer({
 
       //  вычисление визуализации загруза юнитов
       // Внутренние   
+      // console.log("Внутренние")
       const unitLoadBlockseReactNodesInner = unitsViewInner.current.map(unitView => {
+        // console.log("unit", unitView)
         let unit_unloadEx = "";
         const exs = unitExceptions.filter(ex => ex.unitId === unitView.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
 
@@ -632,10 +637,13 @@ export default function PlanScaleContainer({
           // console.log("unit_unloadEx", unit_unloadEx);
 
         }
+        // unitLoads.filter(lo=>lo.idc_oper===52)
+
         const dateLoad = unitLoads.filter(lo => {
           return (lo.unit.id === unitView.id &&
             lo.date === new Date(calendarItem.date).toLocaleDateString("en-CA"))
         });
+        // console.log("render2", dateLoad)
         if (dateLoad.length > 0) {
           // ищем позиции которые начинаются а этом интервале
           const operBlocks = dateLoad.filter(lo => {
@@ -685,6 +693,7 @@ export default function PlanScaleContainer({
       });
 
       //  внешние
+      // console.log("внешние", unitsViewOuter.current)
       const unitLoadBlockseReactNodesOuter = unitsViewOuter.current.map(unitView => {
         const dateLoad = unitLoads.filter(elem => {
           return (
@@ -775,8 +784,7 @@ export default function PlanScaleContainer({
 
 
   const timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
-
-    // const hoursScaleReactNodes = generateTimeScalePlan(elem)
+    // console.log("render день минус", elem.date);
     const isVisible = visibleItemsMinus.current.includes(elem.idDay);
     const hoursScaleReactNodes = isVisible ? generateTimeScalePlan(elem) : <div style={{ width: `${dayWidth}px` }} />;
 
@@ -795,6 +803,7 @@ export default function PlanScaleContainer({
   });
 
   const timeScaleReactNodesPlus = calendarViewPlus.map((elem, index) => {
+    // console.log("render день плюс", elem.date);
     const isVisible = visibleItemsPlus.current.includes(elem.idDay);
     const hoursScaleReactNodes = isVisible ? generateTimeScalePlan(elem) : <div style={{ width: `${dayWidth}px` }} />;
 

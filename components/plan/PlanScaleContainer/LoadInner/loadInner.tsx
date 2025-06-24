@@ -24,8 +24,8 @@ export interface LoadProps {
     handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
     index: number,
     //   moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
-    pinLoadHandler: (oper_id: number) => void,
-    unPinLoadHandler: (oper_id: number, tCardId: number) => void,
+    pinLoadHandler: (oper_id: number, version:number) => void,
+    unPinLoadHandler: (oper_id: number, tCardId: number, version:number) => void,
     isLoadingDrop?: boolean
 }
 
@@ -94,9 +94,9 @@ function LoadInner({
 
     return (
         <>
-            {(isLoadingDrop) && !load.isRetool &&(
+            {(isLoadingDrop) && !load.isRetool && (
                 <div className={styles.loadingOverlay}>
-                    <ButtonLoader width={10} height={10} /> Проверка возможности... 
+                    <ButtonLoader width={10} height={10} /> Проверка возможности...
                 </div>
             )}
 
@@ -117,25 +117,28 @@ function LoadInner({
             >
                 {!load.isRetool && (
                     <div style={{ position: 'relative', width: '100%', maxWidth: '7px', height: '17px', marginTop: '-5px' }}>
-                        {load.status === StatusEnum.prepared && (load.isPinned ? (
+
+                        {load.status === StatusEnum.prepared && load.isPinned &&
                             <Image
                                 className={styles.icon_pinon}
                                 src={pinon}
                                 alt="pinon"
                                 width={15}
                                 height={15}
-                                onClick={() => unPinLoadHandler(load.id_oper, load.id_tCard)}
-                            />
-                        ) : (
+                                onClick={() => unPinLoadHandler(load.id_oper, load.id_tCard, load.version)}
+                            />}
+
+
+                        {load.status === StatusEnum.prepared && !load.isPinned &&
                             <Image
                                 className={styles.icon_pinof}
                                 src={pinof}
                                 alt="pinof"
                                 width={15}
                                 height={15}
-                                onClick={() => pinLoadHandler(load.id_oper)}
-                            />
-                        ))}
+                                onClick={() => pinLoadHandler(load.id_oper, load.version)}
+                            />}
+
                     </div>
                 )}
                 {!load.isRetool && load.isFirst && <div className={styles.first}></div>}
@@ -167,7 +170,8 @@ function areEqualLoadInner(prev: LoadProps, next: LoadProps) {
         prev.contectMenuShow === next.contectMenuShow &&
         prev.tCardLighted.id === next.tCardLighted.id &&
         prev.unitView.id === next.unitView.id &&
-        prev.intervTime === next.intervTime
+        prev.intervTime === next.intervTime &&
+        prev.load.isPinned === next.load.isPinned
     );
 }
 

@@ -35,7 +35,7 @@ interface UnitTaskStackProcessProps {
   schedule: ScheduleItem,
   unitExceptions: UnitExceptionItem[],
   containerHeight?: number; // высота контейнера в пикселях, например, 600
-  isQualControl?: boolean // существует отдельно контроль качества
+  // isQualControl: boolean // существует отдельно контроль качества
   setMessage: (message: string) => void,
   getStartFinishOper: (load: UnitLoadItem) => {
     start: { date: string, time: number },
@@ -55,8 +55,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   settings,
   schedule,
   unitExceptions,
-  containerHeight = 600,
-  isQualControl = false,
+  containerHeight = 600,  
   setMessage,
   getStartFinishOper,
   setStatusLoadsHandler,
@@ -74,6 +73,9 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   const statistic = useRef({} as { workTime: number, busyTime: number, defectedTime: number, resultTime: number });
 
   let hoursScaleReactNodes = [] as JSX.Element[];
+  
+  // существует ли контроль качества?
+  const isQualControl = settings.isQualControl;
 
   // Округляем время начала работы до целого числа
   const startQuant = Math.floor(settings.timeStartWork / 5);

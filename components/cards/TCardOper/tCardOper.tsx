@@ -2,7 +2,7 @@ import { useAppDispatch } from "@/pages/_app";
 import styles from "./tCardOper.module.scss";
 import { TCardOperationItem, StatusEnum } from '@/types/types'
 import { convertMillisecondsToTime} from '@/lib/utils'
-import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
+import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 
 import Image from 'next/image';
 

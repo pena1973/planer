@@ -877,7 +877,7 @@ export const planTCardFromOperINC = (
         });
 
         // Ищем лоады на эту операцию если есть
-        const operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.id_oper === operation.id);
+        const operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.id_oper === operation.id && load.status !== "cancelled");
 
         // вытаскиваем последний лоад операции соответствующий статусу самой операции (для позиционирования во времени)
         const { dateFinish, timeFinish, } = dateResultLoad(operLoads, operation.status);

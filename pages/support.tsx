@@ -5,6 +5,7 @@ import { SupportMessages } from "@/components/support/SupportMessages/supportMes
 import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
+import  Docs  from "@/components/Docs/docs";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
@@ -62,6 +63,7 @@ export default function Support() {
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(2))}>{t('support.billing')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(3))}>{t('support.profile')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(4))}>{t('support.cookie')}</div>
+            <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(5))}>{t('support.docs')}</div>
           </div>
           <div className="container_cards_title">{t('support.notes')}</div>
           <div className="container_global_message">{message}</div>
@@ -103,6 +105,12 @@ export default function Support() {
           {suportPoint === 4 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.cookie')}</div>
             <CookiePolicyBlock />
+
+          </div>}
+          {/* Документация */}
+          {suportPoint === 5 && <div className="contaitainer_catalog">
+            <div className="catalog_title">{t('support.docs')}</div>
+            <Docs />
 
           </div>}
         </div>

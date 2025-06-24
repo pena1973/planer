@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from "@/pages/_app";
 import styles from "./tCardOperNew.module.scss";
 import { TCardOperationItem, TCardProductItem, ActionItem,  } from '@/types/types'
-import { StatusCircle } from "@/components/cards/StatusCircle/statusCircle";
+import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/lib/utils'
 
 import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM'; // Путь к вашему компоненту

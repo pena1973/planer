@@ -165,7 +165,7 @@ export default function Monitor() {
           tCards={tCards}
           day={day.toLocaleDateString("en-CA")}
           unitLoads={unitLoads_}
-          containerHeight={400}
+          containerHeight={400}          
           settings={settings}
           schedule={schedule}
           unitExceptions={unitExceptions_}
