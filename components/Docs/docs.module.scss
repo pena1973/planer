@@ -1,4 +1,6 @@
 // helpTree.module.scss
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .treeContainer {
   font-family: Arial, sans-serif;
@@ -40,7 +42,7 @@
 
 .title {
   font-weight: 500;
-  color: #333;
+  color: $second_text_color;
 }
 
 .nodeContent {

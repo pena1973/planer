@@ -100,6 +100,7 @@ export default function Cards() {
     return state.dataSlice.tCardIndex;
   })
 
+  const readonlyCardStatuses = [StatusEnum.closed,StatusEnum.cancelled,StatusEnum.performed,StatusEnum.ready]
 
   const updateIdc = (currentId: number) => {
     // setTCardCurrentValue({ ...tCardCurrentValue, maxIdc: currentId }); // обновляем состояние карты
@@ -1798,12 +1799,13 @@ export default function Cards() {
                 positionX={position.x}
                 positionY={position.y}
                 handleDrop={handleDrop}
-                possibleEdit={true}
+                possibleEdit={!readonlyCardStatuses.includes(tCards[tCardIndex].status)}
                 prefix={"P"}
                 updateIdc={updateIdc}
                 maxIdc={tCards[tCardIndex].maxIdc}
                 setMaxIdc={setMaxIdc}
                 lightProduct={lightProduct}
+                
               />
               {/* Отходы */}
               <div className="container_stage_title">
@@ -1828,7 +1830,7 @@ export default function Cards() {
                 updateIdc={updateIdc}
                 maxIdc={tCards[tCardIndex].maxIdc}
                 setMaxIdc={setMaxIdc}
-                lightProduct={lightProduct}
+                lightProduct={lightProduct}                
               />
               <div className="container_stage_title">
                 {t('cards.comment')}
@@ -1864,7 +1866,7 @@ export default function Cards() {
                   updateIdc={updateIdc}
                   maxIdc={tCards[tCardIndex].maxIdc}
                   setMaxIdc={setMaxIdc}
-                  lightProduct={lightProduct}
+                  lightProduct={lightProduct}                  
                 />
               </div>}
           </div >

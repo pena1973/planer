@@ -56,24 +56,7 @@
     width: 40px;
 }
 
-// .container_tCardOper {
-//     display: flex;
-//     flex-direction: column;
-//     width: 400px;
-//     height: auto;
-//     margin: 5px;
-//     border-radius: 10px; /* Скругленные углы */
-//     background-color: #f0f0f0; /* Светло-серый фон */
-//     border: 1px solid #ccc; /* Равномерная серая граница */
-//     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень для глубины */
-//     transition: box-shadow 0.3s ease; /* Плавный переход для эффекта при наведении */
-//     position: relative;
-// }
 
-// .tCardOper_id{
-//     position: absolute;
-//     margin: 5px;
-// }
 .icon_cancel {
     border-radius: 10px;
     position: absolute;
@@ -85,37 +68,30 @@
 }
 
 
-// .container_tCardOper:hover {
-//     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
-// }
-
-// .container_tCardOper > .content {
-//     flex: 1; /* Разделяет пространство для содержимого */
-//     padding: 10px; /* Отступы для содержимого */
-//     color: #333; /* Темно-серый цвет текста */
-//     font-weight: normal; /* Обычный текст */
-//     font-family: Arial, sans-serif; /* Шрифт для офисного стиля */
-// }
-
-// .container_tCardOper {
-//     display: flex; /* Используем Flexbox для расположения блоков в ряд */
-//     justify-content: space-between; /* Равномерное распределение пространства между блоками */
-//     width: 100%; /* Ширина контейнера */
-// }
-
 .container_out,
 .container_in {
     flex: 1;
     display: flex;
     flex-direction: column;
+    border-bottom: $border;
+    padding: 5px 0;
 }
 
 .container_action {
     display: flex;
     flex-direction: column;
     width: auto;
+    border-bottom: $border;
+    padding: 5px 0;
 }
 
+.container_coment
+{
+    flex: 1;
+    display: flex;
+    flex-direction: column;    
+    padding-top: 5px;
+}
 ._out,
 ._in,
 ._action,
@@ -134,15 +110,6 @@
     align-items: center;
 }
 
-// ._action {
-//     flex: 1;
-//     margin: 0 3px;
-//     padding: 1px 1px;
-//     background-color: $second_container_background_color;
-//     border: $border;
-//     border-radius: $border-radius;
-//     height: auto;
-// }
 
 .coment_input {
     flex: 1;
@@ -160,22 +127,22 @@
 }
 
 
-.tCardOper_out,
-.tCardOper_action,
-.tCardOper_in {
-    flex: 1;
-    margin: 3px;
-    padding: 2px 2px;
-    background-color: #ffffff;
-    /* Белый фон для блоков */
-    border: 1px solid #ccc;
-    /* Серая граница */
-    border-radius: 5px;
-    /* Скругленные углы */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    /* Легкая тень для блоков */
-    height: auto;
-}
+// .tCardOper_out,
+// .tCardOper_action,
+// .tCardOper_in {
+//     flex: 1;
+//     margin: 3px;
+//     padding: 2px 2px;
+//     background-color: #ffffff;
+//     /* Белый фон для блоков */
+//     border: 1px solid #ccc;
+//     /* Серая граница */
+//     border-radius: 5px;
+//     /* Скругленные углы */
+//     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+//     /* Легкая тень для блоков */
+//     height: auto;
+// }
 
 // .tCardOper_action{
 //     display: flex;
@@ -192,6 +159,9 @@
     text-align: center;
     height: auto;
     font-size: $header4_font_size;
+    // border-top: $border;
+    // padding: 5px 0;
+    // margin-top: 3px;
 }
 
 ._oper_title,
@@ -207,7 +177,7 @@
 .tCardOper_in_title {
     font-weight: bold;
     /* Жирный текст для заголовков */
-    color: #333;
+    color: $second_text_color;
     /* Темно-серый цвет текста */
     text-align: center;
     height: auto;
@@ -350,36 +320,14 @@
     /* Убираем стрелки для числового инпута в Chrome */
 }
 
-// /* Стили для выпадающего списка */
-// .in_out_item_select {
-//     flex: 1; /* Для выпадающего списка тоже задаем равное пространство */
-//     margin: 0 5px; /* Отступы между инпутами */
-//     padding: 8px; /* Внутренние отступы для выпадающего списка */
-//     border: 1px solid #ccc; /* Серая граница для выпадающего списка */
-//     border-radius: 4px; /* Скругленные углы */
-//     font-size: 14px; /* Размер шрифта */
-//     background-color: #ffffff; /* Белый фон для выпадающего списка */
-//     width: 10%;
-// }
-
-// .in_out_item_select:focus {
-//     // border-color: #007bff; /* Синий цвет границы при фокусе */
-//     outline: none; /* Убираем стандартное выделение */
-// }
-
-
-
-
 
 
 .container_icon_edit_save {
     display: flex;
     flex-direction: row;
-    // position: absolute;
-    // top: 0;
-    // left: 0;
+  
     cursor: pointer;
-    // border-top-left-radius: 5px;
+  
 }
 
 .icon_edit_save {
@@ -403,15 +351,11 @@
     align-items: flex-end;
     justify-content: flex-end;
     border-top: 1px solid #ccc;
-    /* Серая граница */
-    // background-color: aquamarine;
+   
     width: calc(100% - 4px);
-    // position: absolute;
-    // right: 0;
-    // top: 0;
+    
     overflow: hidden;
-    // border-top: $border;
-    // padding-top: 2px;
+   
 }
 
 .message {

@@ -1,42 +1,62 @@
 
-import React from 'react';
-import styles from './dropdownSelectOper.module.scss'; 
+import React, { useState } from 'react';
+import styles from './dropdownSelectOper.module.scss';
 import { useTranslation } from 'react-i18next';
-// Определение типа для опций
+
 interface Option {
     id: number;
-    title: string;    
+    title: string;
 }
 
-// Определение типов для пропсов компонента
 interface DropdownSelectOperProps {
-
-    options: {id:number, title:string}[];
-    onSelect: (option: Option | null) => void; // Колбэк для обработки выбора
-    selectedValue: number | null; // Текущее выбранное значение
+    options: Option[];
+    onSelect: (option: Option | null) => void;
+    selectedValue: number | null;
 }
 
 const DropdownSelectOper: React.FC<DropdownSelectOperProps> = ({ options, onSelect, selectedValue }) => {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleDropdown = () => setIsOpen(!isOpen);
+
+    const handleSelect = (option: Option | null) => {
+        onSelect(option);
+        setIsOpen(false);
+    };
+
+    const selectedTitle = selectedValue !== null
+        ? options.find(opt => opt.id === selectedValue)?.title
+        : t('dropdownselectoper.select');
+
     return (
-        <select 
-            // className={styles.oper_select} 
-            className= {(selectedValue !== null)? styles.oper_select:styles.oper_select_placeholder}
-            value={selectedValue !== null ? selectedValue : ''} 
-            onChange={e => {
-                const selectedOption = options.find(option => option.id === Number(e.target.value)) || null;
-                onSelect(selectedOption); // Вызываем колбэк с выбранной опцией
-            }}
-        >
-            {/* Плейсхолдер */}
-            <option className={styles.placeholder} value="" disabled>{t('dropdownselectoper.select')}</option> 
-            {/* <option value="" disabled></option> */}
-            {options.map(option => (
-                <option key={option.id} value={option.id}>
-                    {option.title}
-                </option>
-            ))}
-        </select>
+        <div className={styles.dropdownContainer}>
+            <div className={styles.select} onClick={toggleDropdown}>
+                <div className={styles.selectedItem}>{selectedTitle}</div>
+                <div className={styles.arrow}>&#9662;</div>
+            </div>
+
+            {isOpen && (
+                <ul className={styles.dropdownList}>
+                    <li
+                        key="null"
+                        className={`${styles.dropdownItem} ${selectedValue === null ? styles.selected : ''}`}
+                        onClick={() => handleSelect(null)}
+                    >
+                        -
+                    </li>
+                    {options.map((option) => (
+                        <li
+                            key={option.id}
+                            className={`${styles.dropdownItem} ${option.id === selectedValue ? styles.selected : ''}`}
+                            onClick={() => handleSelect(option)}
+                        >
+                            {option.title}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
     );
 };
 

@@ -14,11 +14,11 @@ let _url = String(URL);
 _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 import edit from "@/public/edit-rem.png";
-// import del from "@/public/del2.png";
+
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
-export interface TCardProductProps {
+export interface TCardProductsProps {
     tCardProducts: TCardProductItem[],
     tCardOperations?: TCardOperationItem[], // для прорисовки статусов
     saveProductsHandler: (tProductsValue: TCardProductItem[]) => void;
@@ -39,6 +39,7 @@ export interface TCardProductProps {
     maxIdc: number,
     setMaxIdc: (maxIdc: number) => void,
     lightProduct: number,  // idc  продукта который нужно выделить цветом  
+    
 }
 
 export default function TCardProducts({
@@ -56,13 +57,12 @@ export default function TCardProducts({
     positionY,
     handleDrop,
     possibleEdit,
-    prefix,
-    updateIdc,
-    // setCartEdited,
+    prefix,    
     maxIdc,
     setMaxIdc,
-    lightProduct
-}: TCardProductProps) {
+    lightProduct,
+    
+}: TCardProductsProps) {
 
     const [edited, setEdited] = useState(false);
     // const [modified, setModified] = useState(false); // при установке состояния происходит смена формы

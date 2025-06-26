@@ -1,11 +1,11 @@
 
 import styles from "./loadOperControl.module.scss";
 import Image from 'next/image';
-import { StatusEnum, UnitLoadItem, TCardOperationItem, UnitItem, TCardItem } from "@/types/types";
-import { formatDate, padNumberToFourDigits, ISOStringToLocalDateTime } from "@/lib/utils"
+import { StatusEnum, TCardOperationItem, TCardItem } from "@/types/types";
+import { padNumberToFourDigits } from "@/lib/utils"
 
 import cancel from "@/public/cancel.png";
-
+import { useTranslation } from 'react-i18next';
 export interface LoadOperControlProps {
     containerHeight: number,
     oper: TCardOperationItem,
@@ -19,7 +19,7 @@ export interface LoadOperControlProps {
         start: { date: string, time: number },
         finish: { date: string, time: number }
     },
-    setOperStatusHandler: (status:StatusEnum) => void,    
+    setOperStatusHandler: (status: StatusEnum) => void,
     closeOperHandler: () => void,
 
 }
@@ -30,11 +30,11 @@ export default function LoadOperControl({
     isQualControl,
     tCard,
     operInfo,
-    setOperStatusHandler,   
+    setOperStatusHandler,
     closeOperHandler,
 
 }: LoadOperControlProps) {
-
+    const { t, i18n } = useTranslation();
     const formatMinutes = (totalMinutes: number | undefined): string => {
         if (!totalMinutes) return "00-00";
         const hours = Math.floor(totalMinutes / 60);
@@ -77,33 +77,33 @@ export default function LoadOperControl({
             />
             {/* Здесь будет отображаться информация о загруженной операции */}
             <div className={styles.oper_content_container}>
-                <div className={styles.oper_title}>Card: {titleCard}</div>
-                <div className={styles.oper_title}>Oper: C{oper.idc}, {operInfo?.title}, {oper.status}, {operInfo?.duration} мин</div>
-                <div className={styles.oper_title}>Start: {operInfo?.start.date}: {formatMinutes(operInfo?.start.time)}</div>
-                <div className={styles.oper_title}>Finish: {operInfo?.finish.date}: {formatMinutes(operInfo?.finish.time)}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.card')}: {titleCard}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.oper')}: A{oper.idc}, {operInfo?.title}, {oper.status}, {operInfo?.duration} {t('loadOperProcess.min')}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.start')}: {operInfo?.start.date}: {formatMinutes(operInfo?.start.time)}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.finish')}: {operInfo?.finish.date}: {formatMinutes(operInfo?.finish.time)}</div>
             </div>
 
             <div className={styles.oper_content}>
 
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Result</span></div>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperControl.result')}</span></div>
                     {outReactNodes}
                 </div>
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Task</span></div>
-                    <div className={styles.oper_coment}>{(oper.coment) ? oper.coment : "нет коментариев"}</div>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperControl.task')}</span></div>
+                    <div className={styles.oper_coment}>{(oper.coment) ? oper.coment : t('loadOperControl.noComents')}</div>
                 </div>
 
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>Source</span></div>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperControl.source')}</span></div>
                     {innReactNodes}
                 </div>
 
             </div>
 
-            <div className={styles.button_container}>                
-                {isQualControl && <button onClick={() => setOperStatusHandler(StatusEnum.ready)}>Готов</button>}
-                {isQualControl && <button onClick={() => setOperStatusHandler(StatusEnum.defective)}>Брак</button>}                
+            <div className={styles.button_container}>
+                {isQualControl && <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(StatusEnum.ready)}>{t('loadOperControl.ready')}</button>}
+                {isQualControl && <button className={styles.button_defected_top} onClick={() => setOperStatusHandler(StatusEnum.defective)}>{t('loadOperControl.defective')}</button>}
             </div>
         </div>
 

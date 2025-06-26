@@ -1,38 +1,61 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './dropdownSelectUOM.module.scss';
 
-// Определение типа для опций
 interface Option {
     id: number;
     title: string;
-    code: string
+    code: string;
 }
 
-// Определение типов для пропсов компонента
 interface DropdownSelectUOMProps {
-    options: { id: number, title: string, code: string }[];
-    onSelect: (option: Option | null) => void; // Колбэк для обработки выбора
-    selectedValue: number | null; // Текущее выбранное значение
+    options: Option[];
+    onSelect: (option: Option | null) => void;
+    selectedValue: number | null;
 }
 
 const DropdownSelectUOM: React.FC<DropdownSelectUOMProps> = ({ options, onSelect, selectedValue }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleDropdown = () => setIsOpen(!isOpen);
+
+    const handleSelect = (option: Option | null) => {
+        onSelect(option);
+        setIsOpen(false);
+    };
+
+    const selectedTitle = selectedValue !== null
+        ? options.find(opt => opt.id === selectedValue)?.title
+        : '-';
+
     return (
-        <select
-            className={styles.in_out_item_select}
-            value={selectedValue !== null ? selectedValue : ''}
-            onChange={e => {
-                const selectedOption = options.find(option => option.id === Number(e.target.value)) || null;
-                onSelect(selectedOption); // Вызываем колбэк с выбранной опцией
-            }}
-        >
-            <option value="" disabled></option> {/* Плейсхолдер */}
-            {options.map(option => (
-                <option key={option.id} value={option.id}>
-                    {option.title}
-                </option>
-            ))}
-        </select>
+        <div className={styles.dropdownContainer}>
+            <div className={styles.select} onClick={toggleDropdown}>
+                <div className={styles.selectedItem}>{selectedTitle}</div>
+                <div className={styles.arrow}>&#9662;</div>
+            </div>
+
+            {isOpen && (
+                <ul className={styles.dropdownList}>
+                    <li
+                        key="null"
+                        className={`${styles.dropdownItem} ${selectedValue === null ? styles.selected : ''}`}
+                        onClick={() => handleSelect(null)}
+                    >
+                        -
+                    </li>
+                    {options.map(option => (
+                        <li
+                            key={option.id}
+                            className={`${styles.dropdownItem} ${option.id === selectedValue ? styles.selected : ''}`}
+                            onClick={() => handleSelect(option)}
+                        >
+                            {option.title}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
     );
 };
 

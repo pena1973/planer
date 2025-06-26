@@ -5,11 +5,10 @@ import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { padNumberToFourDigits, } from "@/lib/utils"
 import Image from 'next/image';
 import eraz from "@/public/erazer1-rem.png";
-import { TCardItem, UnitLoadItem } from "@/types/types";
+import { UnitLoadItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 
 export interface ContexMenuInnerProps {
-    tCard: TCardItem,
     load: UnitLoadItem,
     left: number,
     width: number,
@@ -18,8 +17,7 @@ export interface ContexMenuInnerProps {
     blocked: boolean
 }
 
-export default function ContexMenuInner({
-    tCard,
+export default function ContexMenuInner({    
     load,
     left,
     width,
@@ -50,7 +48,7 @@ export default function ContexMenuInner({
             <div className={styles.contextMenuTriangle} />
 
             <div className={styles.coment}>
-                <span className={styles.title}> {t('contexMenuI.card')}</span> {`: ${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")}`}
+                <span className={styles.title}> {t('contexMenuI.card')}</span> {`: ${padNumberToFourDigits(load.loadInfo.tCardIdc)} - ${new Date(load.loadInfo.tCardDate).toLocaleDateString("en-CA")}`}
             </div>
 
             <div className={styles.coment}>

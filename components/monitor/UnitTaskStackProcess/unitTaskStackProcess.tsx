@@ -424,7 +424,6 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       <div className={styles.bottom_container}>
         <div className={styles.bottom_line}>{t('unitTaskStackProcess.loading')} {work}% {t('unitTaskStackProcess.time')}</div>
         <div className={styles.bottom_line}>{t('unitTaskStackProcess.result')} {result}% : {t('unitTaskStackProcess.defect')} {defect}%</div>
-
       </div>
     </div>
   );

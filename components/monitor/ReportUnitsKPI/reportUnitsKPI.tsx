@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./reportUnitsKPI.module.scss";
 import Filter from "./Filter/filter";
-import { UnitKPIItem, UnitItem } from "@/types/types";
+import { UnitKPIItem, UnitItem,UnitBelongEnum,UnitTypeEnum } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { useTranslation } from 'react-i18next';
 
@@ -128,7 +128,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   const uniqueUnits: UnitItem[] = [];
   unitsKPIValue.forEach(item => {
     // Предполагается, что у каждого юнита есть уникальное поле id
-    if (!uniqueUnits.some(u => u.id === item.unit.id)) {
+    if (!uniqueUnits.some(u => u.id === item.unit.id) && item.unit.belong===UnitBelongEnum.inner && item.unit.type ===UnitTypeEnum.process) {
       uniqueUnits.push(item.unit);
     }
   });
@@ -198,7 +198,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
             unitDefectTime = unitDefectTime + dateKey.defectTime;
 
             return (
-              <tr key={`${dateKey.unit.id}-${index}`}>
+              <tr key={`M-${dateKey.unit.id}-${index}`}>
                 <td></td>
                 <td></td>
                 <td className={styles.date_title}> {dateKey.date}</td>
@@ -218,7 +218,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         const monthDefect = (monthLoadind === 0) ? 0 : Math.round(monthDefectTime / monthOccupiedTime * 100)
 
         return (<>
-          <tr key={`${monthKey.unit.id}-${index}`}>
+          <tr key={`U-${monthKey.unit.id}-${index}`}>
             <td><div className={styles.expand_row}
               onClick={() => {
                 if (expandKeyValue.some(key => key.unitId === unitKey.id && key.month === monthKey.month)) {

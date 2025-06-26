@@ -133,11 +133,13 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
             'Content-Type': 'application/json'
           }),
           body: JSON.stringify({
+            tCardId:currentLoad.id_tCard,
             operId: currentOper.id,
-            loadsIds: operloadsIds,
+            // loadsIds: operloadsIds,
             status: status,
             teamId: teamId,
             userId: userId,
+            version:currentLoad.version,
           }),
         }
       );
@@ -156,14 +158,10 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
           const tCardStatus = receivedData.tCardStatus as StatusEnum
           //   Обновим статус лоадов
           setStatusLoadsHandler(tCardStatus, status, operloadsIds, Number(currentOper.id), currentTCard.id);
-
           setMessage(receivedData.message);
         }
       }
-
-      // } catch (e: any) {
-      //   // setMessage(t('service.serverUnavailable') + e.message)            
-      // }
+      
     } catch (e: unknown) {
       let message = t('service.serverUnavailable');
       if (e instanceof Error) {
@@ -281,9 +279,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       }
 
       <div className={styles.bottom_container}>
-        {/* <div className={styles.bottom_line}>Загрузка {work}% времени</div>
-        <div className={styles.bottom_line}>результат {result}% : брак {defect}%</div> */}
-
+       
       </div>
     </div>
   );

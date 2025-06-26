@@ -22,10 +22,10 @@
     border-radius: $border-radius; // Скругление углов
     padding: 0 2px;  // Отступы, похожие на input
     border: $border; // Цвет границы (можно заменить переменной)
-    color: #333; // Цвет текста
+    color: $second_text_color; // Цвет текста
     font-size: $header4_font_size;
     cursor: pointer; // Курсор при наведении
-    width: 100%; // Полная ширина контейнера
+    // width: 100%; // Полная ширина контейнера
     box-sizing: border-box; // Учет паддингов в ширине элемента
     width: 105px;
   

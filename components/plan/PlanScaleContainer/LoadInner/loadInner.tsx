@@ -35,8 +35,7 @@ function LoadInner({
     intervTime,
     load,
     tCardLighted,
-    tCards,
-    // draggingLoad,
+    tCards,    
     contectMenuShow,
     unitView,
     erazLoadHandler,
@@ -44,7 +43,6 @@ function LoadInner({
     handleMouseUpOper,
     handleRightClickMenu,
     index,
-    //   moveLoadHandler,
     pinLoadHandler,
     unPinLoadHandler,
     isLoadingDrop
@@ -147,8 +145,7 @@ function LoadInner({
             </div>
 
             {contectMenuShow === load.idc && (
-                <ContextMenuInner
-                    tCard={tCard}
+                <ContextMenuInner                    
                     load={load}
                     left={left}
                     width={width}

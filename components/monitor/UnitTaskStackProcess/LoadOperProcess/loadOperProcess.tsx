@@ -80,7 +80,7 @@ export default function LoadOperProcess({
             {/* Здесь будет отображаться информация о загруженной операции */}
             <div className={styles.oper_content_container}>
                 <div className={styles.oper_title}>{t('loadOperProcess.card')}: {titleCard}</div>
-                <div className={styles.oper_title}>{t('loadOperProcess.oper')}: C{oper.idc}, {operInfo?.title}, {oper.status}, {operInfo?.duration} {t('loadOperProcess.min')}</div>
+                <div className={styles.oper_title}>{t('loadOperProcess.oper')}: A{oper.idc}, {operInfo?.title}, {oper.status}, {operInfo?.duration} {t('loadOperProcess.min')}</div>
                 <div className={styles.oper_title}>{t('loadOperProcess.start')}: {operInfo?.start.date}: {formatMinutes(operInfo?.start.time)}</div>
                 <div className={styles.oper_title}>{t('loadOperProcess.finish')}: {operInfo?.finish.date}: {formatMinutes(operInfo?.finish.time)}</div>
             </div>
@@ -104,9 +104,9 @@ export default function LoadOperProcess({
             </div>
 
             <div className={styles.button_container}>
-                {isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_perfotmed_top} onClick={() => setOperStatusHandler(StatusEnum.performed,Number(oper.id),tCard.id)}>Выполнен</button>}
-                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(StatusEnum.ready,Number(oper.id),tCard.id)}>Готов</button>}
-                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_defected_top}onClick={() => setOperStatusHandler(StatusEnum.defective,Number(oper.id),tCard.id)}>Брак</button>}
+                {isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_perfotmed_top} onClick={() => setOperStatusHandler(StatusEnum.performed,Number(oper.id),tCard.id)}>{t('loadOperProcess.perfotmed')}</button>}
+                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(StatusEnum.ready,Number(oper.id),tCard.id)}>{t('loadOperProcess.ready')}</button>}
+                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_defected_top} onClick={() => setOperStatusHandler(StatusEnum.defective,Number(oper.id),tCard.id)}>{t('loadOperProcess.defective')}</button>}
                  </div>
         </div>
 

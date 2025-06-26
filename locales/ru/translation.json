@@ -257,7 +257,24 @@
     "result": "Результат",
     "task": "Задача",
     "noComents": "нет коментатирев",
-    "source": "Источник"
+    "source": "Источник",
+    "perfotmed": "Выполнен",
+    "ready": "Готов",
+    "defective": "Брак"
+  },  
+  "loadOperControl": {
+    "card": "Карта",
+    "oper": "Действие",
+    "start": "Старт",
+    "finish": "Финиш",
+    "min": "мин",
+    "result": "Результат",
+    "task": "Задача",
+    "noComents": "нет коментатирев",
+    "source": "Источник",
+     "perfotmed": "Выполнен",
+    "ready": "Готов",
+    "defective": "Брак"
   },
   "loadMonitorProcess": {
     "card": "Карта",

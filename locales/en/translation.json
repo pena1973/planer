@@ -14,7 +14,7 @@
   "cards": {
     "stage": "Stage",
     "addstage": "Add stage",
-    "tcards": "Process maps",
+    "tcards": "Process cards",
     "addtcard": "Add",
     "explanation": "Notes",
     "status": "Status",
@@ -51,7 +51,7 @@
     "ico5": "Automatically models your production center workload",
     "ico6": "Assigns tasks and monitors execution in real time",
     "wait": "Loading, please wait...",
-    "downloadTCards": "Process maps loaded"
+    "downloadTCards": "Process cards loaded"
   },
   "login": {
     "email": "Login(email)",
@@ -137,7 +137,7 @@
     "calendarsetting": "Calendar settings",
     "accauntingsetting": "Accounting settings",
     "templates": "Templates",
-    "cardtemplates": "Map templates",
+    "cardtemplates": "Card templates",
     "notes": "Notes"
   },
   "actionsCatalog": {
@@ -225,11 +225,11 @@
     "unitLoading": "Units loading",
     "outerActions": "External actions",
     "outerActions1": "Actions assigned to external performers",
-    "readiness": "Map readiness",
+    "readiness": "Card readiness",
     "kpi": "Units KPIs",
     "kpi1": "KPIs of working units",
     "syncCodes": "Sync codes",
-    "syncCodes1": "Product sync codes from maps",
+    "syncCodes1": "Product sync codes from cards",
     "notes": "Notes"
   },
   "unitTaskStackProcess": {
@@ -257,7 +257,24 @@
     "result": "Result",
     "task": "Task",
     "noComents": "no comments",
-    "source": "Source"
+    "source": "Source",
+    "perfotmed": "Perfotmed",
+    "ready": "Ready",
+    "defective": "Defective"
+  },
+  "loadOperControl": {
+    "card": "Card",
+    "oper": "Action",
+    "start": "Start",
+    "finish": "Finish",
+    "min": "min",
+    "result": "Result",
+    "task": "Task",
+    "noComents": "no comments",
+    "source": "Source",
+    "perfotmed": "Perfotmed",
+    "ready": "Ready",
+    "defective": "Defective"
   },
   "loadMonitorProcess": {
     "card": "Card",
