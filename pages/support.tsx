@@ -5,7 +5,7 @@ import { SupportMessages } from "@/components/support/SupportMessages/supportMes
 import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
-import  Docs  from "@/components/Docs/docs";
+import  Docs  from "@/components/support/Docs/docs";
 import { useEffect, useState, useRef } from "react";
 import Link from 'next/link';
 import Image from 'next/image';

@@ -1,23 +1,24 @@
 
 import i18n from "i18next";
 import detector from "i18next-browser-languagedetector";
-import backend from "i18next-http-backend";
+import HttpBackend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
-import resourcesToBackend from 'i18next-resources-to-backend';
 
 i18n
-    .use(backend)
-    .use(detector)
-    .use(initReactI18next)
-    .use(resourcesToBackend((language:string, namespace:string) => import(`./locales/${language}/${namespace}.json`)))
-    .init({
-        // debug: true,
-         fallbackLng: 'en',
-        returnEmptyString:false,
-        interpolation: {
-            escapeValue: false // react already safes from xss
-        }
-    });
-
+  .use(HttpBackend) // ✅ грузит переводы через HTTP
+  .use(detector)
+  .use(initReactI18next)
+  .init({
+    debug: true,
+    fallbackLng: "en",
+    ns: ["translation", "help","cookies","ui"],
+    defaultNS: "translation",
+    interpolation: {
+      escapeValue: false,
+    },
+    backend: {
+      loadPath: "/locales/{{lng}}/{{ns}}.json", // ✅ путь к public
+    },
+  });
 
 export default i18n;
