@@ -9,7 +9,7 @@ i18n
   .use(detector)
   .use(initReactI18next)
   .init({
-    debug: true,
+    // debug: true,
     fallbackLng: "en",
     ns: ["translation", "help","cookies","ui"],
     defaultNS: "translation",

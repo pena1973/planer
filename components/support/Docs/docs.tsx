@@ -1,27 +1,14 @@
 
-
-
 export const items = [
-  {
-    title: 'general.title', // переводим через i18n
-    content: 'general.content',
-  },
-  {
-    title: 'cards.title', // переводим через i18n
-    content: 'cards.content',
-  },
-  {
-    title: 'plan.title', // переводим через i18n
-    content: 'plan.content',
-  },
-  {
-    title: 'resources.title', // переводим через i18n
-    content: 'resources.content',
-  },
-  {
-    title: 'mohitor.title', // переводим через i18n
-    content: 'mohitor.content',
-  },
+  { title: 'general.title', content: 'general.content' },
+  { title: 'cards.title', content: 'cards.content' },
+  { title: 'plan.title', content: 'plan.content' },
+  { title: 'defects.title', content: 'defects.content' },
+  { title: 'mohitor.title', content: 'mohitor.content' },
+  { title: 'outsourcing.title', content: 'outsourcing.content' },
+  { title: 'resources.title', content: 'resources.content' },  
+  { title: 'quickstart.title', content: 'quickstart.content' },
+
 ];
 
 import React, { useState } from "react";
@@ -68,7 +55,18 @@ const TreeNode: React.FC<{ item: HelpItem; level: number }> = ({ item, level }) 
         <div className={styles.nodeContent}>
           {item.content && (
             <div className={styles.content}>
-              <Trans i18nKey={item.content} t={t} components={{ p: <p />, ul: <ul />, li: <li />, strong: <strong /> }} />
+              <Trans i18nKey={item.content} 
+              t={t} 
+              components={{ 
+                p: <p />, 
+                ul: <ul />, 
+                li: <li />, 
+                strong: <strong />,
+                h4:<h4 />, 
+                h3:<h3 />, 
+                code:<code />,
+                
+                }} />
             </div>
           )}
           
