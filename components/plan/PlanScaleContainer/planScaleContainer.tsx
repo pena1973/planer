@@ -110,7 +110,7 @@ export default function PlanScaleContainer({
   const [calendarViewPlus, setCalendarViewPlus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени планирование при изменении]
   const [calendarViewMinus, setCalendarViewMinus] = useState([] as CalendarItem[]); // [прорисовка шкалы времени история при изменении]
 
-  const [isLoadingDrop, setIsLoadingDrop] = useState(false); // для отработки задержки при перетаскивании 
+  const [isLoadingDrop, setIsLoadingDrop] = useState(NaN); // для отработки задержки при перетаскивании 
 
   // Прорисовка соединительных линий лоадов аутсорта
 
@@ -435,7 +435,7 @@ export default function PlanScaleContainer({
     event.preventDefault();
     if (!draggingLoad || !divRefPlus.current) return;
 
-    setIsLoadingDrop(true);
+    setIsLoadingDrop(draggingLoad.version);
 
     const containerRect = divRefPlus.current.getBoundingClientRect();
 
@@ -463,7 +463,10 @@ export default function PlanScaleContainer({
     // 🧩 3. Определим день
     const dayIndex = Math.floor(relativeX / fullDayWidth);
     const calendarItem = calendarViewPlus[dayIndex];
-    if (!calendarItem) return;
+    if (!calendarItem) {
+      setIsLoadingDrop(NaN); 
+      return
+    };
 
     const dayLeft = dayIndex * fullDayWidth;
     const offsetWithinDay = relativeX - dayLeft;
@@ -483,7 +486,7 @@ export default function PlanScaleContainer({
     );
 
     setDraggingLoad(undefined);
-    setIsLoadingDrop(false);
+    setIsLoadingDrop(NaN);
   };
 
   const handleMouseDownOper = (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => {
@@ -671,7 +674,7 @@ export default function PlanScaleContainer({
               // moveLoadHandler={moveLoadHandler}
               pinLoadHandler={pinLoadHandler}
               unPinLoadHandler={unPinLoadHandler}
-              isLoadingDrop={isLoadingDrop}
+              isLoadingDrop={isLoadingDrop===load.version && !load.isRetool}
             />
           })
 
