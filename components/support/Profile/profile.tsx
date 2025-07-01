@@ -89,9 +89,6 @@ export const Profile: React.FC<ProfileProps> = ({
         } else setMessage(receivedData.error);
       }
 
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
     } catch (e: unknown) {
       let message = t('service.serverUnavailable');
       if (e instanceof Error) {
@@ -142,9 +139,6 @@ export const Profile: React.FC<ProfileProps> = ({
         } else setMessage(receivedData.error);
       }
 
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
     } catch (e: unknown) {
       let message = t('service.serverUnavailable');
       if (e instanceof Error) {

@@ -1,7 +1,7 @@
 
 import styles from "./loadOperProcess.module.scss";
 import Image from 'next/image';
-import { StatusEnum,  TCardOperationItem, TCardItem } from "@/types/types";
+import { StatusEnum, TCardOperationItem, TCardItem } from "@/types/types";
 import { padNumberToFourDigits, } from "@/lib/utils"
 
 import cancel from "@/public/cancel.png";
@@ -21,7 +21,7 @@ export interface LoadOperProcessProps {
         start: { date: string, time: number },
         finish: { date: string, time: number }
     },
-    setOperStatusHandler: (status: StatusEnum,operId:number,tCardId:number) => void,    
+    setOperStatusHandler: (status: StatusEnum, operId: number, tCardId: number) => void,
     closeOperHandler: () => void,
 
 }
@@ -32,11 +32,11 @@ export default function LoadOperProcess({
     isQualControl,
     tCard,
     operInfo,
-    setOperStatusHandler,   
+    setOperStatusHandler,
     closeOperHandler,
 
 }: LoadOperProcessProps) {
-  const { t, i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const formatMinutes = (totalMinutes: number | undefined): string => {
         if (!totalMinutes) return "00-00";
         const hours = Math.floor(totalMinutes / 60);
@@ -86,28 +86,29 @@ export default function LoadOperProcess({
             </div>
 
             <div className={styles.oper_content}>
-
+                {/* результат */}
                 <div className={styles.oper_content_container}>
                     <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperProcess.result')}</span></div>
                     {outReactNodes}
                 </div>
+                {/* источник */}
+                <div className={styles.oper_content_container}>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperProcess.source')}</span></div>
+                    {innReactNodes}
+                </div>
+                {/* задача */}
                 <div className={styles.oper_content_container}>
                     <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperProcess.task')}</span></div>
                     <div className={styles.oper_coment}>{(oper.coment) ? oper.coment : t('loadOperProcess.noComents')}</div>
                 </div>
 
-                <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperProcess.source')}</span></div>
-                    {innReactNodes}
-                </div>
-
             </div>
 
             <div className={styles.button_container}>
-                {isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_perfotmed_top} onClick={() => setOperStatusHandler(StatusEnum.performed,Number(oper.id),tCard.id)}>{t('loadOperProcess.perfotmed')}</button>}
-                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(StatusEnum.ready,Number(oper.id),tCard.id)}>{t('loadOperProcess.ready')}</button>}
-                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_defected_top} onClick={() => setOperStatusHandler(StatusEnum.defective,Number(oper.id),tCard.id)}>{t('loadOperProcess.defective')}</button>}
-                 </div>
+                {isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_perfotmed_top} onClick={() => setOperStatusHandler(StatusEnum.performed, Number(oper.id), tCard.id)}>{t('loadOperProcess.perfotmed')}</button>}
+                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(StatusEnum.ready, Number(oper.id), tCard.id)}>{t('loadOperProcess.ready')}</button>}
+                {!isQualControl && oper.status === StatusEnum.planed && <button className={styles.button_defected_top} onClick={() => setOperStatusHandler(StatusEnum.defective, Number(oper.id), tCard.id)}>{t('loadOperProcess.defective')}</button>}
+            </div>
         </div>
 
     )

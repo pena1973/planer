@@ -7,6 +7,7 @@ import '@/styles/resources.scss';
 import '@/styles/monitor.scss';
 import '@/styles/support.scss';
 import '@/styles/cookies-policy.scss';
+import '@/styles/unit-interface.scss';
 
 
 import { store, persistor } from '@/store'  // теперь работает

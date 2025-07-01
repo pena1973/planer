@@ -1,0 +1,25 @@
+// helpTree.module.scss
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+.сontainer {
+
+  font-size: $header3_font_size;
+  color: $second_text_color;
+  padding: 1rem;
+  background-color: $main_body_background_color;
+  border: $border;
+  border-radius: $border-radius;
+  width: 80%;
+
+  @media screen and (max-width: 650px) {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 10px;
+    width: 100%;
+    max-height: calc(95vh - 40px);
+    overflow-y: auto;
+  }
+
+}

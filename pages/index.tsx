@@ -2,24 +2,32 @@ import Layout from "@/components/Layout/layout";
 import { useEffect, useState, useRef, use } from "react";
 import { configureTokenAccess } from '@/lib/fetchWithRefresh'
 
+import { downloadUoms } from '@/services/initial/downloadUoms';
+import { downloadActions } from '@/services/initial/downloadActions';
+import { downloadTemplates } from '@/services/initial/downloadTemplates';
+import { downloadLoads } from '@/services/initial/downloadLoads';
+import { downloadSchedule } from '@/services/initial/downloadSchedule';
+import { downloadSettings } from '@/services/initial/downloadSettings';
+import { downloadTCards } from '@/services/initial/downloadTCards';
+import { downloadUnits } from '@/services/initial/downloadUnits';
+import { downloadUnutsActions } from '@/services/initial/downloadUnutsActions';
+import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExceptions';
+
+import { downloadUnutActions } from '@/services/initial/downloadUnut-Actions';
+import { downloadUnutExceptions } from '@/services/initial/downloadUnut-Exceptions';
+import { downloadUnitLoads } from '@/services/initial/downloadUnit-Loads';
+
+import { loginHandler } from '@/services/login/loginHandler';
+import { registerHandler } from '@/services/login/registerHandler';
 
 import { store } from '@/store' // путь к твоему Redux store
 import Link from 'next/link';
 
 import {
   UnitItem,
-  UOMItem,
-  ActionItem,
-  TCardItem,
   UserItem,
   SettingsItem,
-  ScheduleItem,
-  UnitActionItem,
-  UnitExceptionItem,
-  UnitLoadItem,
   TeamItem,
-  TemplateItem,
-
 } from "@/types/types";
 
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
@@ -34,12 +42,8 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 
 import {
   setTeam, setToken, setUser,
-  setUnitExceptions, setUnitActions,
-  setActions,
-  setUOMs, setUnits, setTCards,
-  setSettings, setSchedule,
-  setUnitLoads, setSignedAgreement,
-  setTemplates, setUnit, setLoadingComplete
+  setSettings, setSignedAgreement,
+  setUnit, setLoadingComplete
 } from '@/store/slices'
 
 import ico1 from "@/public/ico1.png";
@@ -106,11 +110,6 @@ export default function Index() {
   const unit = useSelector((state: RootState) => {
     return state.authSlice.unit;
   })
-
-  const loadingComplete = useSelector((state: RootState) => {
-    return state.viewSlice.loadingComplete;
-  })
-
   const signedAgreement = useSelector((state: RootState) => {
     return state.authSlice.signedAgreement;
   })
@@ -130,72 +129,24 @@ export default function Index() {
       return
     }
 
-    try {
-
-      const res = await fetch(`api/login-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            login: loginValue,
-            pass: passValue,
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessageLogin(error);
-        setMessageLogin(t('service.serverUnavailable') + res.status);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-
-        if (receivedData.success) {
-          const user_ = receivedData.user as UserItem;
-          const token_ = receivedData.token as string;
-          const team_ = receivedData.team as TeamItem;
-          const settings_ = receivedData.settings as SettingsItem;
-          const agreementText_ = receivedData.agreementText as string;
-          const signed_ = receivedData.signed as boolean;
-          const agreementId_ = receivedData.agreementId as number
-          const unit_ = receivedData.unit as UnitItem
-
-          //   Обновим настройки
-          dispatch(setUser(user_));
-          dispatch(setToken(token_));
-
-          configureTokenAccess(
-            () => store.getState().authSlice.token, // или твой точный селектор
-            (newToken: string) => dispatch(setToken(newToken))
-          )
-
-          dispatch(setTeam(team_));
-          dispatch(setSettings(settings_));
-          dispatch(setSignedAgreement(signed_));
-          dispatch(setUnit(unit_));
-          agreementId.current = agreementId_;
-          textAgreement.current = agreementText_;
-          setStep(3);
-        } else setMessageLogin(receivedData.message);
-      }
-
-      // } catch (e: any) {
-      //   // setMessageLogin(t('service.serverUnavailable') + e.message)            
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
+    loginHandler({
+      login: loginValue,
+      pass: passValue,
+      token,
+      t,
+      setMessage: setMessage,
+      setMessageLogin: setMessageLogin,
+      dispatch,
+      setStep,
+      agreementIdRef: agreementId,
+      agreementTextRef: textAgreement,
+      configureTokenAccess,
+      store,
+    });
 
     setLoaderButtonLogin(false)
   }
+  // не сделана
   const loginRecovery = async (e: React.MouseEvent<HTMLElement>) => {
 
     if (loginValue.length < 5) {
@@ -286,521 +237,65 @@ export default function Index() {
     //  далее адресуем на страницу соглашения и после этого регистрируем, 
     // загружаем начальное состояние а потом на мастер настроек
 
-
-    try {
-
-      const res = await fetch(`api/register-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            login: loginValue,
-            pass: pass1Value,
-            teamNumber: teamNumberValue,
-            createTeam: createTeamValue,
-            nickname: nicknameValue,
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessageRegister(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        // setMessageRegister(t('service.serverUnavailable') + res.status);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-
-        if (receivedData.success) {
-
-          const user_ = receivedData.user as UserItem;
-          const token_ = receivedData.token as string;
-          const team_ = receivedData.team as TeamItem;
-          const settings_ = receivedData.settings as SettingsItem;
-          const agreementText_ = receivedData.agreementText as string;
-          const agreementId_ = receivedData.agreementId as number
-
-          //   Обновим настройки
-          dispatch(setUser(user_));
-          dispatch(setToken(token_));
-          dispatch(setTeam(team_));
-          dispatch(setSettings(settings_));
-          dispatch(setSignedAgreement(false));
-          // setTextAgreementValue(agreementText_);
-          agreementId.current = agreementId_;
-          textAgreement.current = agreementText_
-          //  далее адресуем на страницу соглашения и после этого переправляем на страницу настроек
-          setStep(3);
-          // setMessageRegister("Обновлены настройки");
-        } else setMessageRegister(receivedData.error);
-      }
-
-      // } catch (e: any) {
-      //   // setMessage(t('service.serverUnavailable') + e.message)            
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
+    registerHandler({
+      login: loginValue,
+      pass: pass1Value,
+      teamNumber: teamNumberValue,
+      createTeam: createTeamValue,
+      nickname: nicknameValue,
+      token,
+      t,
+      setMessage: setMessage,
+      setMessageRegister: setMessageRegister,
+      dispatch,
+      setStep,
+      agreementIdRef: agreementId,
+      agreementTextRef: textAgreement,
+    });
 
 
     setLoaderButtonRegister(false)
   }
 
-  // НАЧАЛЬАЯ ЗАГРУЗКА
-  const downloadUoms = async () => {
-    try {
-      const res = await fetch(`api/uoms-api?userId=${user.id}&teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
 
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const uoms_ = receivedData.uoms as UOMItem[]
-          dispatch(setUOMs(uoms_));
-          // setMessage("Загружены единицы измерения")
-          setMessage(t('index.downloadUoms'))
-        }
-        else setMessage(receivedData.error);
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-       setMessage(message);
-    }
-  }
-  const downloadActions = async () => {
-    // Загружаем классификатор действий
-    try {
-      const res = await fetch(`api/actions-api?userId=${user.id}&teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
-
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const actions_ = receivedData.actions as ActionItem[]
-          dispatch(setActions(actions_));
-          // setMessage("Загружены действия")
-          setMessage(t('index.downloadActions'))
-        }
-        else setMessage(receivedData.error);
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-  }
-  const downloadTemplates = async () => {
-    // Загружаем классификатор действий
-    try {
-      const res = await fetch(`api/templates-api?userId=${user.id}&teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
-
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const templates_ = receivedData.templates as TemplateItem[]
-          dispatch(setTemplates(templates_));
-          // setMessage("Загружены шаблоны")
-          setMessage(t('index.downloadTemplates'))
-        }
-        else setMessage(receivedData.error);
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-
-  }
-
-  const downloadUnits = async () => {
-    // Загружаем классификатор действий
-    try {
-      const res = await fetch(`api/units-api?userId=${user.id}&teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
-
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const units_ = receivedData.units as UnitItem[]
-          // сортируем          
-          units_.sort((a, b) => {
-            // Проверка на undefined
-            const idA = a.id ?? 0; // Если id a не существует, считаем его 0
-            const idB = b.id ?? 0; // Если id b не существует, считаем его 0          
-            return idA - idB; // Сравниваем id
-          });
-          dispatch(setUnits(units_));
-          // setMessage("Загружены юниты")
-          setMessage(t('index.downloadUnits'))
-
-        }
-        else setMessage(receivedData.error);
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-
-  }
-  const downloadUnutsExceptions = async () => {
-    // Загружаем классификатор действий
-    try {
-      const res = await fetch(`api/exceptions-api?userId=${user.id}&teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
-
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const exceptions = receivedData.exceptions as UnitExceptionItem[]
-          dispatch(setUnitExceptions(exceptions)); // Это ме надо?
-          // setMessage("Загружены исключения юнитов")
-          setMessage(t('index.downloadUnutsExceptions'))
-        }
-        else setMessage(receivedData.error);
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-
-  }
-  const downloadUnutsActions = async () => {
-    // Загружаем классификатор действий
-    try {
-      const res = await fetch(`api/unit-actions-api?userId=${user.id}&teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        setMessage(t('service.serverUnavailable') + error);
-
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const unitActions = receivedData.actions as UnitActionItem[]
-          dispatch(setUnitActions(unitActions));
-          // setMessage("Загружены действия юнитов")
-          setMessage(t('index.downloadUnutsActions'))
-        }
-        else setMessage(receivedData.error);
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-
-  }
-
-  // загружает активные карты  
-  const downloadTCards = async () => {
-    try {
-      const res = await fetch(`/api/tcards-api?teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        setMessage(t('service.serverUnavailable') + error);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)        
-        if (receivedData.success) {
-          const tCards = receivedData.tCards as TCardItem[]
-          // Сортируем tCards по номеру (если number это число)
-          const tCards_ = tCards.sort((a, b) => a.idc - b.idc);
-          const tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
-          dispatch(setTCards(tCardsUpdated));
-          // setMessage("Загружены карты");
-          setMessage(t('index.downloadTCards'))
-        }
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-  };
-  // загружает настройки отображения календаря
-  const downloadSettings = async () => {
-    try {
-      const res = await fetch(`api/settings-api?teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        setMessage(t('service.serverUnavailable') + error);
-
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const settings = receivedData.schedule as SettingsItem
-          dispatch(setSettings(settings));
-          // setMessage("Загружены настройки календаря");
-          setMessage(t('index.downloadSettings'))
-
-        }
-        else
-          setMessage(receivedData.error);
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-  }
-
-  // загружает  расписание работы компании
-  const downloadSchedule = async () => {
-    try {
-      const res = await fetch(`api/schedule-api?userId=${user.id}&teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        setMessage(t('service.serverUnavailable') + error);
-
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const schedule = receivedData.schedule as ScheduleItem
-          dispatch(setSchedule(schedule));
-          // setMessage("Загружено расписание")
-          setMessage(t('index.downloadSchedule'))
-        }
-        else setMessage(receivedData.error);
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-  }
-  // запрос Загрузки
-  const downloadLoads = async () => {
-
-    try {
-      const res = await fetch(`/api/loads-api?userId=${user.id}&teamId=${team.id}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        setMessage(t('service.serverUnavailable') + error);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)        
-        if (receivedData.success) {
-          //  массив юнитов с загрузками
-          const unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
-
-          dispatch(setUnitLoads(unitsLoads));
-          // setMessage("Загружены планы и история ")
-          setMessage(t('index.downloadLoads'))
-        }
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-
-  };
-
-// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadDataAndRedirect = async () => {
+      dispatch(setLoadingComplete(false))
       // Если юзер залогинен и получен токен
       if (team && user && token.trim() !== "" && signedAgreement) {
         setStep(4);
-        // setShowLoader(true);
-        await downloadUoms();
-        await downloadActions();
-        await downloadTemplates();
-        await downloadUnits();
-        await downloadUnutsActions();
-        await downloadUnutsExceptions();
-        await downloadSettings();
-        await downloadSchedule();
-        await downloadTCards();
-        await downloadLoads();
-        // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
-        setStep(5);
-        // Переходим на страницу "cards"
-        push("/cards");
+        if (user.isAdmin) {
+          await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadTemplates(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnits(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnutsActions(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnutsExceptions(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadLoads(user.id, team.id, token, t, setMessage, dispatch);
+          // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
+          setStep(5);
+          // Переходим на страницу "cards"
+          push("/cards");
+        }
+        else {
+          // Только для одного юнита 
+          await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnutActions(unit.id, user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnutExceptions(unit.id, user.id, team.id, token, t, setMessage, dispatch);
+          await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
+          // await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnitLoads(unit.id, user.id, team.id, token, t, setMessage, dispatch);
+          // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
+          setStep(5);
+          // Переходим на страницу "cards"
+          push("/unit-interface");
+        }
+
         dispatch(setLoadingComplete(true))
       }
     };
@@ -846,9 +341,9 @@ export default function Index() {
         } else setMessageLogin(receivedData.message);
       }
 
-    // } catch (e: any) {
-    //   // setMessageLogin(t('service.serverUnavailable') + e.message)            
-    // }
+      // } catch (e: any) {
+      //   // setMessageLogin(t('service.serverUnavailable') + e.message)            
+      // }
     } catch (e: unknown) {
       let message = t('service.serverUnavailable');
       if (e instanceof Error) {
@@ -864,7 +359,6 @@ export default function Index() {
   const cancelSignAgreement = () => {
     setStep(2);
   }
-
 
   return (
     <Layout>

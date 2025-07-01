@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         const user = resUser.user as UserItem;
 
-        const resTeam = await getTeam(user.id, teamsRepository)
+        const resTeam = await getTeam(user.teamId, teamsRepository)
 
         if (!resTeam.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUser.message });
@@ -98,13 +98,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ;
         }
 
-        const unit = (resUserUnits_.userUnits.length > 0) ? resUserUnits_.userUnits[0].unit : undefined
+        const userunit = resUserUnits_.userUnits.find((uu) => { return uu.userId === user.id; })
+
+        const unit = (userunit) ? userunit.unit : undefined;
+        
+        // const unit = (resUserUnits_.userUnits.length > 0) ? resUserUnits_.userUnits[0].unit : undefined
 
         // отправляем ответ
         res.status(200).json({
           success: true,
           team: team,
-          token: accessToken ,
+          token: accessToken,
           user: user,
           agreementText: agreementText,
           agreementId: agreementId,

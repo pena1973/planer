@@ -3,16 +3,16 @@
 .container_index {
     display: flex;
     flex-direction: row;
-    // width: 80%;
     justify-content: center;
-    // align-items: baseline;
     height: inherit;
     padding-top: 40px;
 
     @media screen and (max-width: 650px) {
         flex-direction: column;
-        width: 95%;
+        justify-content: flex-start;
         align-items: center;
+        align-items: center;
+        padding-top: 10px;
     }
 }
 
@@ -22,10 +22,14 @@
     justify-content: center;
     height: calc(100vh - 400px);
     width: 40%;
-    // background-color: beige;
+    //  background-color: beige;
 
     @media screen and (max-width: 650px) {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
         width: 95%;
+        height: auto;
     }
 }
 
@@ -35,18 +39,27 @@
     justify-content: center;
     height: calc(100vh - 400px);
     width: 40%;
-    // background-color: beige;    
+    // background-color: rgb(190, 190, 100);    
     align-items: center;
+
     @media screen and (max-width: 650px) {
         width: 95%;
+        height: auto;
     }
 }
 
 .index_title {
+    display: flex;
+    flex-direction: column;
     // color: $dark_text;
     font-size: 44px;
     font-weight: 700;
     padding: 10px 0;
+
+    @media screen and (max-width: 650px) {
+        align-items: center;
+         text-align: center;
+    }
 }
 
 .index_describtion {
@@ -55,6 +68,11 @@
     // color: $dark_text;
     font-size: 20px;
     font-weight: 400;
+
+    @media screen and (max-width: 650px) {
+        align-items: center;
+        text-align: center;
+    }
 }
 
 .index_line {
@@ -66,19 +84,19 @@
     // background: $dark_background;
 }
 
-// .img_ {
-//     width: 50px;
-//     height: 50px;
-//     margin: 10px 20px 0 0;
-// }
+
 
 .ads {
-    display: flex;
+    display: none;
     flex-direction: row;
     align-items: center;
     padding: 5px;
     font-size: 16px;
+
     // color: $dark_text;
+    @media screen and (min-width: 650px) {
+        display: flex;
+    }
 }
 
 .img_ {
@@ -94,18 +112,10 @@
     margin: 30px;
     padding: 15px;
     max-width: 242px;
-    border-radius: 20px;
-    border-radius: 10px;
-    /* Скругленные углы */
-    // background-color: #f0f0f0; /* Светло-серый фон */
+    border-radius: $border_radius;
     background-color: $main_container_background_color;
-    // border: 1px solid #ccc; /* Равномерная серая граница */
     border: $border;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    /* Легкая тень для глубины */
-
-    // background: $light_background;
-    // box-shadow: 0px 4px 7.5px 0px rgba(0, 0, 0, 0.25), 0px -3px 6.5px 0px rgba(0, 0, 0, 0.25) inset, 0px 4px 8.4px 0px rgba(88, 87, 87, 0.25) inset;
 }
 
 .login_input_container {
@@ -136,7 +146,7 @@
 .login_input {
     border-radius: 10px;
     padding: 5px;
-    border: $border;    
+    border: $border;
     width: 100%;
 }
 
@@ -172,14 +182,16 @@
 /// регистрация
 
 .register_container {
-    margin: 50px 30px 10px;
+    margin: 30px;
     padding: 15px;
+    // margin: 50px 30px 10px;
+    // padding: 15px;
     max-width: 242px;
     min-width: 242px;
-    border-radius: 6px;
+    border-radius: $border_radius;
     background-color: $main_container_background_color;
     border: $border;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     color: $second_text_color;
 }
 
@@ -221,7 +233,7 @@
     padding: 5px;
     border: $border;
     width: 100%;
-    
+
 }
 
 .register_link {

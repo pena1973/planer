@@ -93,12 +93,17 @@ export async function getActions(
 export async function getUnits(
   teamId: number,
   unitRepository: Repository<UnitTable>,
-  // unitActionsRepository: Repository<UnitActionTable>
+  unitId?: number,
 ): Promise<UnitItem[]> {
+
   // Строим фильтр для поиска
   const filter: Partial<UnitActionTable> = {};
   if (teamId) {
     filter.team_id = teamId;
+  }
+
+  if (unitId) {
+    filter.id = unitId;
   }
 
   // Выполняем запрос с фильтрацией
@@ -106,41 +111,13 @@ export async function getUnits(
     where: filter,  // Применяем фильтр к запросу
   });
 
-  // if (!receivedUnits) return [] as UnitItem[]
-
-  // const unitIds = receivedUnits.map(unit => unit.id);
-
-  // const filter1: any = {};
-  // if (unitIds.length > 0) {
-  //   filter1.unit_id = In(unitIds);  // Используем In() для фильтрации по массиву ID
-  // }
-
-  // // Выполняем запрос с фильтрацией
-  // const receivedActionsUnit = await unitActionsRepository.find({
-  //   where: filter1,  // Применяем фильтр к запросу
-  // });
-
-  // console.log(receivedUnits);
-
   const units = receivedUnits
     .map(unit => {
-
-      // const actions: UnitActionItem[] = receivedActionsUnit
-      //   .filter(unitAction => unitAction.unit_id === unit.id)
-      //   .map(unitAction => {
-      //     return ({
-      //       id: unitAction.id,
-      //       action: unitAction.action,
-      //       koef: unitAction.koef
-      //     })
-      //   })
-
       return {
         id: unit.id,
         idc: unit.idc,
         title: unit.title,
         code: unit.code,
-        // actions: actions,
         retool: unit.retool,
         modified: false,
         belong: unit.belong as UnitBelongEnum,
@@ -534,8 +511,8 @@ export async function getTCardsTerms(
   unitLoadRepository: Repository<UnitLoadTable>
 ): Promise<{ terms: TCardTermsItem[], loads: UnitLoadItem[] }> {
 
-  
-    const where: FindOptionsWhere<TCardTable> = {
+
+  const where: FindOptionsWhere<TCardTable> = {
     team_id: teamId,
   };
 
@@ -562,9 +539,9 @@ export async function getTCardsTerms(
 
   // Создаем объект фильтра для карты
   const tCardFilter: FindManyOptions<TCardTable> = {
-  where,
-  relations: ['team', 'user'],
-};
+    where,
+    relations: ['team', 'user'],
+  };
 
   // Получаем все карты для заданной компании с фильтрацией
   const tCards = await tCardRepository.find(tCardFilter);
@@ -711,11 +688,18 @@ export async function getTCardsTerms(
 // исключения расписания команды
 export async function getExceptions(
   teamId: number,
-  unitExceptionsRepository: Repository<UnitExceptionTable>): Promise<UnitExceptionItem[]> {
+  unitExceptionsRepository: Repository<UnitExceptionTable>,
+  unitId?: number
+): Promise<UnitExceptionItem[]> {
+
   // Строим фильтр для поиска
   const filter: Partial<UnitExceptionTable> = {};
   if (teamId) {
     filter.team_id = teamId;
+  }
+
+  if (unitId) {
+    filter.unit_id = unitId;
   }
 
   const receivedExceptions = await unitExceptionsRepository.find({
@@ -744,12 +728,19 @@ export async function getExceptions(
 // возможные операции юнита
 export async function getUnitActions(
   teamId: number,
-  unitActionsRepository: Repository<UnitActionTable>): Promise<UnitActionItem[]> {
+  unitActionsRepository: Repository<UnitActionTable>,
+  unitId?: number
+): Promise<UnitActionItem[]> {
 
   // Строим фильтр для поиска
   const filter: Partial<UnitActionTable> = {};
+
   if (teamId) {
     filter.team_id = teamId;
+  }
+
+  if (unitId) {
+    filter.unit_id = unitId;
   }
 
   const receivedUnitActions = await unitActionsRepository.find({

@@ -12,7 +12,7 @@ interface RequestBody {
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -23,11 +23,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
 
     // userId, teamId в любом случае
-    const { userId, teamId } = req.query;
+
+    const { userId, teamId, unitId } = req.query;
+
+    const unitIdNumber = Array.isArray(unitId)
+      ? Number(unitId[0])
+      : unitId !== undefined
+        ? Number(unitId)
+        : undefined;
 
     switch (req.method) {
       case 'GET':
-        const actions_ = await getUnitActions(Number(teamId), unitActionsRepository)
+        const actions_ = await getUnitActions(Number(teamId), unitActionsRepository,unitIdNumber)
         // отправляем ответ
         res.status(200).json({
           success: true,

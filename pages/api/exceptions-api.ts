@@ -6,13 +6,14 @@ import { getExceptions } from '@/handlers/handlers-get';  // расчеты
 import { TeamTable } from '@/db/models/catalogs/teams'
 import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions'
 
-import {  UnitExceptionItem } from '@/types/types';
+import { UnitExceptionItem } from '@/types/types';
 
 interface RequestBody {
   exceptions: UnitExceptionItem
 }
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -23,18 +24,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 
     // userId, teamId в любом случае
-    const { userId, teamId } = req.query;
+    const { userId, teamId, unitId } = req.query;
+
+    const unitIdNumber = Array.isArray(unitId)
+      ? Number(unitId[0])
+      : unitId !== undefined
+        ? Number(unitId)
+        : undefined;
 
     switch (req.method) {
       case 'GET':
-        const exceptions_ = await getExceptions(Number(teamId), unitExceptionsRepository)
+        const exceptions_ = await getExceptions(Number(teamId), unitExceptionsRepository,unitIdNumber,)
 
         exceptions_.sort((a, b) => {
           // Проверяем, что даты определены
           if (a.date === undefined || b.date === undefined) {
             return 0; // Если дата не определена, оставляем элементы на своих местах
           }
-          
+
           // Сортируем по дате (по возрастанию)
           return new Date(a.date).getTime() - new Date(b.date).getTime();
         });

@@ -5,8 +5,10 @@
 .container {
   display: flex;
   flex-direction: column;
-  width: 250px;
-  height: auto;
+  // width: 250px;
+  width: 100%;
+  // max-width: 450px;
+  // height: auto;  
   margin: 5px;
   border-radius: 10px;
   background-color: $main_container_background_color;

@@ -16,6 +16,7 @@ interface UnitTaskStackProcessProps {
   performedLoads: UnitLoadItem[]; // Все которые ждут проверки
 
   containerHeight?: number; // высота контейнера в пикселях, например, 600
+   containerWidth?: number; // ширина контейнера в пикселях, например, 250
   isQualControl?: boolean // существует отдельно контроль качества
   setMessage: (message: string) => void,
   getStartFinishOper: (load: UnitLoadItem) => {
@@ -34,6 +35,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   day,
   performedLoads,
   containerHeight = 600,
+  containerWidth = 250, 
   isQualControl = false,
   setMessage,
   getStartFinishOper,
@@ -237,8 +239,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   }
 
   return (
-    <div className={styles.container}
-      style={{ minHeight: `${containerHeight}px` }} >
+    <div className={styles.container}      
+      style={{ minHeight: `${containerHeight}px`, height: `${containerHeight+120}px`,maxWidth: `${containerWidth}px`} } >
       <div className={styles.title_container}>
         <div className={styles.title}>{unit.title}</div>
         <div className={styles.title}>{day}</div>

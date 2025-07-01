@@ -12,7 +12,7 @@ import { UnitActionTable } from '../../db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '../../db/models/data/t_card_operations'
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
 
     // Убедимся, что подключение установлено    
@@ -23,22 +23,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
     const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
 
-
-    // const unitCalendarRepository = dbConnection.getRepository(UnitCalendarTable);
-
     // userId, teamId в любом случае
-    const { userId, teamId, tcardId } = req.query;
+    const { userId, teamId, unitId } = req.query;
+
+    const unitIdNumber = Array.isArray(unitId)
+      ? Number(unitId[0])
+      : unitId !== undefined
+        ? Number(unitId)
+        : undefined;
 
     switch (req.method) {
       case 'GET':
+
         // запросим юниты
-        const units = await getUnits(Number(teamId), unitRepository)
-        // Используем репозиторий для работы с сущностью TCardTable
-        const actionsRepository = dbConnection.getRepository(ActionTable);
+        const units = await getUnits(Number(teamId), unitRepository,unitIdNumber )
 
 
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository)
+        const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository,unitIdNumber)
 
         //  получим юниты с загрузкой  до планирования новой карты         
         const unitsLoads = await getUnitLoads(units, unitLoadRepository)

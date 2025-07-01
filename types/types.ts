@@ -153,6 +153,7 @@ export interface UserItem {
     locale: string,
     isAdmin: boolean,
     active?: boolean,
+    teamId: number, // если не указан то юзер не в команде
 }
 
 //  users-units

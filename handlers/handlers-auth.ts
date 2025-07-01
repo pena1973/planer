@@ -103,6 +103,7 @@ export async function createNewUser(
       name: newUser.name,
       locale: newUser.locale,
       isAdmin: Boolean(newUser.isAdmin),
+      teamId: newUser.team_id, // Добавляем teamId, если нужно
     },
     message: 'Пользователь успешно создан.',
   };
@@ -164,6 +165,7 @@ export async function updateUser(
         name: savedUser.name,
         locale: savedUser.locale,
         isAdmin: Boolean(savedUser.isAdmin),
+        teamId: savedUser.team_id, 
       },
       message: 'Пользователь успешно обновлен.',
     };
@@ -223,7 +225,9 @@ export async function getUser(
     pass: userRecord.pass, // Можно исключить, если не хотите передавать пароль
     name: userRecord.name, // Или другое поле, которое представляет собой никнейм
     locale: userRecord.locale,
-    isAdmin: userRecord.isAdmin // Конвертируем строку в булево значение
+    isAdmin: userRecord.isAdmin, // Конвертируем строку в булево значение
+    teamId: userRecord.team_id, // Добавляем teamId, если нужно
+
   };
 
   // Возвращаем результат

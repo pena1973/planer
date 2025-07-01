@@ -6,6 +6,8 @@ import { logout } from '@/lib/logout'
 import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
 import CookieBanner from '@/components/CookieBanner/сookieBanner'
 
+import home from "@/public/home1.png";
+
 import Head from "next/head";
 import Image from 'next/image';
 import Link from 'next/link';
@@ -41,23 +43,7 @@ export default function Layout({ children }: PropsWithChildren) {
         setDropdownOpen(false);
         i18n.changeLanguage(locale);
     }
-    // const exit = () => {
-    //     dispatch(setToken(""));
-    //     dispatch(setUser({} as UserItem));
-    //     dispatch(setTeam({} as TeamItem));
-    //     dispatch(setUnitExceptions([] as UnitExceptionItem[]));
-    //     dispatch(setActions([] as ActionItem[]));
-    //     dispatch(setUOMs([] as UOMItem[]));
-    //     dispatch(setUnits([] as UnitItem[]));
-    //     dispatch(setTCards([] as TCardItem[]));
-    //     dispatch(setTCardIndex(0 as number));
-    //     dispatch(setSettings({} as SettingsItem));
-    //     dispatch(setSchedule({} as ScheduleItem));
-    //     dispatch(setUnitLoads([] as UnitLoadItem[]));
-
-    //     push("/");
-    // };
-
+    
     const exit = () => {
         logout('/')
     }
@@ -75,12 +61,17 @@ export default function Layout({ children }: PropsWithChildren) {
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
 
-                        {(!user.id) && !loadingComplete && <Link className={styles.header_menu_item} href="/"></Link>}
-                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
-                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
-                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
-                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
-                        {(user.id) && loadingComplete && <Link className={styles.header_menu_item} href="/support">{t('layout.support')}</Link>}
+                        {(!user.id) && !loadingComplete && <Link className={styles.header_menu_item} href="/">
+                        <Image className={styles.img} src={home} alt="home" />
+                        </Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/support">{t('layout.support')}</Link>}
+                        {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-interface">{t('layout.unit-interface')}</Link>}
+                        {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-docs">{t('layout.unit-docs')}</Link>}
+                        {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-profile">{t('layout.unit-profile')}</Link>}
 
                     </ul>
                 </div>

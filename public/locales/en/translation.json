@@ -9,7 +9,10 @@
     "monitor": "Monitor",
     "support": "Support",
     "profile": "Profile",
-    "exit": "Log out"
+    "exit": "Log out",
+    "unit-interface": "Plan",
+    "unit-docs": "Docs",
+    "unit-profile": "Profile"
   },
   "cards": {
     "stage": "Stage",
@@ -223,6 +226,7 @@
   },
   "monitor": {
     "unitLoading": "Units loading",
+    "unit1Loading": "Unit loading",
     "outerActions": "External actions",
     "outerActions1": "Actions assigned to external performers",
     "readiness": "Card readiness",
@@ -346,5 +350,26 @@
     "teamNumber": "Team number",
     "admin": "administrator",
     "unitCode": "Unit code"
+  },
+  "manual": {
+    "section1Title": "1. Plan",
+    "section1Text1": "This section displays today's work plan, including scheduled times for each task.",
+    "section1Text2": "To view task details, click on the task. Inside, you'll see:",
+    "result": "Result — what you should get after completing the task.",
+    "source": "Source — materials and tools needed to complete the task.",
+    "codesExplanation": "Each source and result is assigned a unique code:",
+    "codeM": "Code starting with 'M' — a material taken from the warehouse.",
+    "codeA": "Code starting with 'A' — a result of another task.",
+    "taskDescription": "The task description contains instructions for execution.",
+    "roleDependant": "Depending on your role:",
+    "executorOneOrTwoButtons": "Executor sees one button “Completed”, or two — “Ready” and “Defect” if there's no controller.",
+    "executorWithControl": "If the team has a controller, the executor only sees “Completed”, and the task is forwarded to the controller.",
+    "controllerDecision": "The controller then chooses either “Ready” or “Defect”.",
+    "noController": "If there’s no controller, the executor decides the task result.",
+    "section2Title": "2. Help",
+    "section2Text": "This section contains guidance on how to work with the app.",
+    "section3Title": "3. Profile",
+    "section3Text1": "This section stores user information. You can change your name and password.",
+    "section3Text2": "Important: You can't change your email or login here. Only the team admin can delete your account."
   }
 }
