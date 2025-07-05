@@ -8,7 +8,7 @@ export const downloadTCards = async (
     token: string,
     t: (key: string) => string,
     setMessage: (msg: string) => void,
-    dispatch: Dispatch
+    dispatch: Dispatch,   
 ) => {
     try {
         const res = await fetch(`/api/tcards-api?userId=${userId}&teamId=${teamId}`,
@@ -24,17 +24,15 @@ export const downloadTCards = async (
             const receivedData = await res.json();
             const error = receivedData.error;
             setMessage(error);
-            setMessage(t('service.serverUnavailable') + error);
+            
         } else {
             const receivedData = await res.json();
-            // console.log("receivedData", receivedData)        
             if (receivedData.success) {
                 const tCards = receivedData.tCards as TCardItem[]
                 // Сортируем tCards по номеру (если number это число)
                 const tCards_ = tCards.sort((a, b) => a.idc - b.idc);
                 const tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
-                dispatch(setTCards(tCardsUpdated));
-                // setMessage("Загружены карты");
+                dispatch(setTCards(tCardsUpdated));                
                 setMessage(t('index.downloadTCards'))
             }
         }

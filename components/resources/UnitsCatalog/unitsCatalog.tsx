@@ -1,5 +1,6 @@
 
 import styles from "./unitsCatalog.module.scss";
+import { saveUnits } from '@/services/resources/saveUnits';
 import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types/types';
 import { generateUniqueIdc } from '@/lib/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
@@ -14,7 +15,6 @@ import DropdownSelectTimeType from "@/components/resources/UnitsCatalog/Dropdown
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setUnits, setUnitExceptions, setUnitActions } from '@/store/slices'
 
 import { useTranslation } from 'react-i18next';
 
@@ -38,7 +38,6 @@ function generateUniqueCode(units: UnitItem[]): string {
 
     return newCode;
 }
-
 
 export interface UnitsCatalogProps {
     setMessage: (message: string) => void
@@ -75,25 +74,24 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     const [exceptionsValue, setExceptionsValue] = useState([] as UnitExceptionItem[]); //отклонения распиания юнитов от общего расписания
     const [actionsValue, setActionsValue] = useState([] as UnitActionItem[]); //действия юнитов
 
-    // const [message, setMessage] = useState("");
     const [focusIndexUnit, setFocusIndexUnit] = useState(NaN); // Юнит на мкотором стоит курсор 
-
     const [buttonLoader, setButtonLoader] = useState(false);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setExceptionsValue(unitExceptions)
         setActionsValue(unitActions)
         setUnitsValue(units)
-    },[] );
+    }, []);
 
-    // Таблица Юнитов   
+
+    // На клиенте    
     const deleteUnitHandler = (indexToRemove: number) => {
         const unitsValueUpdated = [...unitsValue]
         unitsValueUpdated.splice(indexToRemove, 1)
         setUnitsValue(unitsValueUpdated)
         setFocusIndexUnit(indexToRemove - 1);
     };
+    // На клиенте
     const changeHandler = (indexToChange: number, value: string | null | UnitBelongEnum | UnitTypeEnum, field: string) => {
         const unit = unitsValue[indexToChange];
         let updatedUnit = unit;
@@ -126,6 +124,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         setFocusIndexUnit(indexToChange);
     };
 
+    // На сервере  // На клиенте
     const saveUnitsHandler = async () => {
         setButtonLoader(true)
         setMessage("");
@@ -206,78 +205,14 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             setMessage(message);
             return
         };
-
-        // запрос на сохранение
-        try {
-
-            const res = await fetch(`api/units-api`,
-                {
-                    method: 'post',
-                    headers: new Headers({
-                        'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify({
-                        userId: user.id,
-                        teamId: team.id,
-                        units: unitsValue,
-                        actions: actionsValue,
-                        exceptions: exceptionsValue
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                const error = receivedData.error;
-                // setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                setMessage(t('service.serverUnavailable') + error);
-            } else {
-                const receivedData = await res.json();
-                // console.log("receivedData", receivedData)
-                // setMessage(receivedData.error);
-                if (receivedData.success) {
-                    //   Обновим список юнитов
-                    const units_ = receivedData.units as UnitItem[]
-                    units_.sort((a, b) => {
-                        // Проверка на undefined
-                        const idA = a.id ?? 0; // Если id a не существует, считаем его 0
-                        const idB = b.id ?? 0; // Если id b не существует, считаем его 0          
-                        return idA - idB; // Сравниваем id
-                    });
-
-                    const exceptions_ = receivedData.exceptions as UnitExceptionItem[]
-                    const actions_ = receivedData.actions as UnitActionItem[]
-                    // временное хранилище                  
-                    setUnitsValue(units_);
-                    // сеансовое хранилище                  
-                    dispatch(setUnits(units_));
-                    // отклонения                    
-                    setExceptionsValue(exceptions_)
-                    dispatch(setUnitExceptions(exceptions_));
-                    // отклонения                    
-                    setActionsValue(actions_)
-                    dispatch(setUnitActions(actions_));
-                    setMessage(receivedData.error)
-                    // setMessage("Обновлен список юнитов, их действий и отклонений расписания");
-                    setMessage(t('units.unitsUpdated'));
-                } else setMessage(receivedData.error);
-            }
-
-            // } catch (e: any) {
-            //     setMessage(t('service.serverUnavailable') + e.message)
-            // }
-        } catch (e: unknown) {
-            let message = t('service.serverUnavailable');
-            if (e instanceof Error) {
-                message += e.message;
-            }
-            setMessage(message);
-        }
-
+       await saveUnits(unitsValue, actionsValue, exceptionsValue,
+            user, team, token, dispatch, t,
+            setMessage, setUnitsValue, setActionsValue, setExceptionsValue,);
 
         setButtonLoader(false)
     };
+
+    // На клиенте
     const addUnitHandler = () => {
         const newUnit = {
             title: "Юнит",
@@ -292,12 +227,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     };
 
     // Отмена изменений
+    // На клиенте
     const cancelHandler = () => {
         setExceptionsValue(unitExceptions)
         setActionsValue(unitActions)
         setUnitsValue(units)
     };
-
+    // На клиенте
     function unitModified() {
         // укажу что юнит модифицирован
         const unit = unitsValue[focusIndexUnit]
@@ -307,7 +243,8 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         setUnitsValue(unitsValueUpdated)
     }
 
-    // для операций юнита
+    ////////// для операций юнита
+    // На клиенте
     const changeUnitActionHandler = (idToChange: number | undefined, idcToChange: number, value: number | null | { id: number, title: string }, field: string) => {
         unitModified();
         // отклонения
@@ -345,12 +282,14 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         actionsValueUpdated.splice(indexToChange, 1, unitaction)
         setActionsValue(actionsValueUpdated)
     }
+    // На клиенте
     const addUnitActionHandler = () => {
         unitModified();
         const unit = unitsValue[focusIndexUnit];
         const actionsValueUpdated = [...actionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, koef: 1 } as UnitActionItem]
         setActionsValue(actionsValueUpdated);
     };
+    // На клиенте
     const deleteUnitActionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
         unitModified();
         let indexToRemove = -1;
@@ -367,12 +306,11 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         setActionsValue(actionsValueUpdated);
     };
 
-    // для отклонений расписания юнита
+    ///////// для отклонений расписания юнита
+    // На клиенте
     const changeExceptionHandler = (idToChange: number | undefined, idcToChange: number, value: string | number | null | TimeTypeEnum, field: string) => {
         unitModified();
 
-
-        // отклонения
         const exceptionsValueUpdated = [...exceptionsValue]
         let indexToChange = -1;
 
@@ -407,12 +345,14 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         exceptionsValueUpdated.splice(indexToChange, 1, exception)
         setExceptionsValue(exceptionsValueUpdated)
     }
+    // На клиенте
     const addExceptionHandler = () => {
         unitModified();
         const unit = unitsValue[focusIndexUnit];
         const exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
         setExceptionsValue(exceptionsValueUpdated);
     };
+    // На клиенте
     const deleteExceptionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
         unitModified();
         let indexToRemove = -1;
@@ -637,7 +577,6 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         ))
 
     return (
-
         <div className={styles.units}>
             <div className={`${styles.contaitainer_catalog_left} ${styles.container} ${styles._units}`}>
                 <Image className={styles.icon_cancel}

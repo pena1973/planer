@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./billing.module.scss";
+import { getBills } from '@/services/suport/getBills';
 import { BillItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
@@ -17,7 +18,6 @@ interface BillingProps {
 }
 
 export const Billing: React.FC<BillingProps> = ({
-  // messages,
   setMessage,
   teamId,
   userId,
@@ -27,45 +27,10 @@ export const Billing: React.FC<BillingProps> = ({
   const { t, i18n } = useTranslation();
   const [billsValue, setBillsValue] = useState([] as BillItem[]); // переключатель между каталогами
 
+  // На сервере
   // Меняем статус операции по нажатию кенопки юнитом 
-  const getBills = async () => {
-
-    try {
-      const res = await fetch(`api/billing-api?userId=${userId}&teamId=${teamId}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + receivedData.message);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-        setMessage(receivedData.message);
-
-        if (receivedData.success) {
-          // проверили и вернули общий статус карты
-          const bills = receivedData.bills as BillItem[];
-          setBillsValue(bills);
-        }
-      }
-
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
+  const getBillsHandler = async () => {
+    await getBills(userId, teamId, token, t, setMessage, setBillsValue);
 
   }
   const downloadFile = (bill: BillItem) => { }
@@ -83,9 +48,9 @@ export const Billing: React.FC<BillingProps> = ({
     </tr>)
   })
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   useEffect(() => {
-    getBills();
+    getBillsHandler();
   }, []);
 
   return (

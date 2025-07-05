@@ -17,6 +17,7 @@
   "cards": {
     "stage": "Stage",
     "addstage": "Add stage",
+    "addOper": "Add action",
     "tcards": "Process cards",
     "addtcard": "Add",
     "explanation": "Notes",

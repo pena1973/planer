@@ -12,9 +12,7 @@ import { useEffect, useState } from "react";
 
 import { UnitBelongEnum, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types/types'
 
-import Image from 'next/image';
 
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
@@ -24,11 +22,9 @@ import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
 export default function Monitor() {
 
   const { t, i18n } = useTranslation();
-
-  const { push } = useRouter();
+  
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-  // const [resource, setResource] = useState(1); // 1 - загрузка юнитов, 2 - KPI, отчеты
 
   const [day, setDay] = useState(() => {
     const date = new Date();
@@ -69,7 +65,7 @@ export default function Monitor() {
     return state.dataSlice.tCards;
   })
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,
     // продолжаем увеличивать дату.
@@ -82,6 +78,7 @@ export default function Monitor() {
   }, []);
 
   //  меняем статус карты (если нужно) и операции и лоадов по событию
+   // На клиенте
   const setStatusLoadsHandler = (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => {
 
     const cardIndex = tCards.findIndex(card => card.id === tCardId);
@@ -108,8 +105,8 @@ export default function Monitor() {
     dispatch(setTCards(_tCards));
   }
 
-
   //  временные границы операции по лоаду
+   // На клиенте
   const getStartFinishOper = (load: UnitLoadItem)
     : { start: { date: string, time: number }, finish: { date: string, time: number } } => {
 

@@ -3,10 +3,6 @@ import styles from "./tCardProduct.module.scss";
 import { UOMItem, StatusEnum } from '@/types/types'
 
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
-// import Image from 'next/image';
-
-// import del from "@/public/del2.png";
-// import edit from "@/public/edit-rem.png";
 
 const URL = process.env.NEXT_PUBLIC_URL;
 let _url = String(URL);

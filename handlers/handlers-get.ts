@@ -136,20 +136,37 @@ export async function getUnits(
 export async function getUnitLoads(
   units: UnitItem[],
   unitLoadRepository: Repository<UnitLoadTable>,
+  isControler: boolean = false, 
 
 ): Promise<UnitLoadItem[]> {
 
-  const unitIds = units.map(unit => unit.id); // Получаем массив идентификаторов
+  // const unitIds = units.map(unit => unit.id); // Получаем массив идентификаторов
 
-  if (unitIds.length === 0) {
-    // Если нет юнитов, можно вернуть пустой результат или обработать ошибку
-    return [];
+  // if (unitIds.length === 0) {
+  //   // Если нет юнитов, можно вернуть пустой результат или обработать ошибку
+  //   return [];
+  // }
+
+  // const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
+  //   .andWhere('unitLoad.unit_id IN (:...unitIds)', { unitIds }) // Фильтруем по unitIds
+  //   .leftJoinAndSelect('unitLoad.tCard', 'tCard') // Добавляем связь с таблицей tCard
+  //   .getMany();
+
+  const unitIds = units.map(unit => unit.id);
+
+  // Если нет юнитов, можно вернуть пустой результат или обработать ошибку
+  if (unitIds.length === 0) return [];
+
+  const query = unitLoadRepository
+    .createQueryBuilder('unitLoad')
+    .leftJoinAndSelect('unitLoad.tCard', 'tCard')
+    .where('unitLoad.unit_id IN (:...unitIds)', { unitIds });
+
+  if (isControler) {
+    query.andWhere('unitLoad.status = :status', { status: 'performed' });
   }
 
-  const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
-    .andWhere('unitLoad.unit_id IN (:...unitIds)', { unitIds }) // Фильтруем по unitIds
-    .leftJoinAndSelect('unitLoad.tCard', 'tCard') // Добавляем связь с таблицей tCard
-    .getMany();
+  const unitLoads = await query.getMany();
 
   const unitLoadItems: UnitLoadItem[] = unitLoads.map(unitLoad => {
 

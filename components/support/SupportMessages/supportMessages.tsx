@@ -2,6 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from "./supportMessages.module.scss";
+import { getSupportMessages } from '@/services/suport/getSupportMessages';
+import { sendMessage } from '@/services/suport/sendMessage';
+
+
 import { SupportMessageItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import { SupportMessage } from './SupportMessage/supportMessage';
@@ -24,44 +28,18 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
   const [supportMessagesValue, setSupportMessagesValue] = useState([] as SupportMessageItem[]);
   const [expandValue, setExpandValue] = useState([] as number[]);
 
+  // На сервере
   // Получаем сообщения
-  const getSupportMessages = async () => {
-    try {
-      const res = await fetch(`api/support-api?userId=${userId}&teamId=${teamId}`, {
-        method: 'get',
-        headers: new Headers({
-          'Authorization': 'Basic ' + token,
-          'Content-Type': 'application/json'
-        }),
-      });
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        setMessage(t('service.serverUnavailable') + receivedData.message);
-      } else {
-        const receivedData = await res.json();
-        setMessage(receivedData.message);
-        if (receivedData.success) {
-          const messages = receivedData.supportMessages as SupportMessageItem[];
-          setSupportMessagesValue(messages);
-        }
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
+  const getSupportMessagesHandler = async () => {
+    await getSupportMessages(userId, teamId, token, t, setMessage, setSupportMessagesValue);
+   
   };
-// eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    getSupportMessages();
-  },[] );
 
+  useEffect(() => {
+    getSupportMessagesHandler();
+  }, []);
+
+  // На клиенте
   const addSupportMessage = () => {
     const newMes = {
       id: -Math.abs(Math.random()), // Используем отрицательное значение для нового сообщения
@@ -76,11 +54,13 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
     setExpand(newMes.id);
   };
 
+  // На клиенте
   const delMessage = (id: number) => {
     const updatedMessages = supportMessagesValue.filter(message => message.id !== id);
     setSupportMessagesValue(updatedMessages);
   };
 
+  // На клиенте
   const answerMessage = (basedOn: number) => {
     const basedOnMessage = supportMessagesValue.find(mes => mes.id === basedOn);
     if (!basedOnMessage) return;
@@ -98,61 +78,16 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
     setExpand(newMes.id);
   };
 
-
+  // На сервере
   //  отправляем сообщение
-  const sendMessage = async (supportMessage: SupportMessageItem) => {
-    const index = supportMessagesValue.findIndex(mes => mes.id = supportMessage.id)
-    if (index < 0) return;
+  const sendMessageHandler = async (supportMessage: SupportMessageItem) => {
 
-    try {
-      const res = await fetch(`api/support-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            userId: userId,
-            teamId: teamId,
-            supportMessage: supportMessage
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + receivedData.error);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-        setMessage(receivedData.message);
-        if (receivedData.success) {
-          // проверили и вернули общий статус карты
-          const message = receivedData.supportMessage as SupportMessageItem;
-          const messages = [...supportMessagesValue]
-          messages.splice(index, 1, message)
-          setSupportMessagesValue(messages);
-          setExpand(message.id)
-        }
-      }
-
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
-
+    await sendMessage(supportMessage, supportMessagesValue, setSupportMessagesValue,
+      userId, teamId, token, t, setMessage, setExpand)
 
   }
 
-
+  // На клиенте
   const setExpand = (id: number) => {
     setExpandValue(prevState => {
       if (prevState.includes(id)) {
@@ -163,6 +98,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
     });
   };
 
+  // На клиенте
   // Функция для поиска всех сообщений, относящихся к текущему (по basedOn) и с добавлением сдвига
   const findMessagesInChain = (baseMessageId: number, shift: number = 0) => {
     const messages = supportMessagesValue.filter(mes => mes.basedOn === baseMessageId);
@@ -177,7 +113,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
             setMessage={setMessage}
             delMessage={delMessage}
             answerMessage={answerMessage}
-            sendMessage={sendMessage}
+            sendMessage={sendMessageHandler}
             setExpand={setExpand}
             teamId={teamId}
             userId={userId}
@@ -210,7 +146,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
           setMessage={setMessage}
           delMessage={delMessage}
           answerMessage={answerMessage}
-          sendMessage={sendMessage}
+          sendMessage={sendMessageHandler}
           setExpand={setExpand}
           teamId={teamId}
           userId={userId}

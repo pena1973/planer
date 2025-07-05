@@ -35,6 +35,8 @@ export default function LoadOperControl({
 
 }: LoadOperControlProps) {
     const { t, i18n } = useTranslation();
+    
+    // На клиенте
     const formatMinutes = (totalMinutes: number | undefined): string => {
         if (!totalMinutes) return "00-00";
         const hours = Math.floor(totalMinutes / 60);

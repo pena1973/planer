@@ -1,6 +1,6 @@
 
 import styles from "./team.module.scss";
-
+import { saveTeam } from '@/services/resources/saveTeam';
 import { TeamItem, UserItem } from '@/types/types'
 import { generateTeamNumber } from '@/lib/utils'
 
@@ -38,7 +38,6 @@ export default function Team({
 
     const teamNumberValue = generateTeamNumber(team.prefix, team.id);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (team) {
             setTitleValue(team.title);
@@ -46,14 +45,14 @@ export default function Team({
         }
     }, []);
 
-
+    // На клиенте
     const cancelHandler = () => {
         setTitleValue(team.title);
         setComentValue(team.coment)
         setModified(false);
     };
 
-
+    // На клиенте
     const changeHandler = (value: string, field: string) => {
 
         switch (field) {
@@ -68,59 +67,10 @@ export default function Team({
         setModified(true);
     };
 
+    // На сервере
     const saveTeamHandler = async () => {
         setMessage("");
-
-        // запрос на сохранение
-        try {
-            const res = await fetch(`api/team-api?userId=${user.id}&teamId=${team.id}`,
-                {
-                    method: 'post',
-                    headers: new Headers({
-                        'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify({
-                        title: titleValue,
-                        coment: comentValue,
-                        teamId: team.id
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                const error = receivedData.error;
-                // setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                setMessage(t('service.serverUnavailable') + error);
-            } else {
-                const receivedData = await res.json();
-                // console.log("receivedData", receivedData)
-
-                if (receivedData.success) {
-                    //   Обновим текущую карту
-                    const team_ = receivedData.team as TeamItem
-                    dispatch(setTeam(team_));
-                    setModified(false);
-                    // setMessage("Обновлены настройки");
-                    setMessage(t('team.settingUpdated'));
-
-                } else setMessage(receivedData.error);
-            }
-
-            // } catch (e: any) {
-            //     // setMessage(t('service.serverUnavailable') + e.message)            
-            // }
-        } catch (e: unknown) {
-            let message = t('service.serverUnavailable');
-            if (e instanceof Error) {
-                message += e.message;
-            }
-            setMessage(message);
-        }
-
-
-        setModified(false);
+        await saveTeam(titleValue, comentValue, user, team, token, dispatch, t, setMessage, setModified);
     };
 
 

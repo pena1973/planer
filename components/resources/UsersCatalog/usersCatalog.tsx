@@ -1,5 +1,7 @@
 
 import styles from "./usersCatalog.module.scss";
+import { saveUsersUnits } from '@/services/resources/saveUsersUnits';
+import { getUsersUnits } from '@/services/resources/getUsersUnits';
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import DropdownSelectUnit from "./DropdownSelectUnit/dropdownSelectUnit";
 
@@ -48,108 +50,33 @@ export default function UsersCatalog({
         .map((u) => u.unit)
         .filter((unit) => unit !== undefined && unit !== null);  // Фильтруем null и undefined
 
-    const getUsersUnits = async () => {
+    // На сервере
+    const getUsersUnitsHandler = async () => {
         setShowLoader(true);
-        try {
-            const res = await fetch(`api/users-units-api?userId=${user.id}&teamId=${team.id}`,
-                {
-                    method: 'get',
-                    headers: new Headers({
-                        'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                // setMessage(receivedData.message);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                setMessage(t('service.serverUnavailable') + receivedData.message);
-            } else {
-                const receivedData = await res.json();
-                // console.log("receivedData", receivedData)
-
-                if (receivedData.success) {
-                    const users_units_ = receivedData.users_units as UserUnitItem[];
-                    setUsersUnits(users_units_);
-                    users_units_old.current = users_units_;
-                    // setMessage(receivedData.message);
-                }
-            }
-
-            // } catch (e: any) {
-            //     setMessage(t('service.serverUnavailable') + e.message)            
-            // }
-        } catch (error: unknown) {
-            let message = t('service.serverUnavailable');
-            if (error instanceof Error) {
-                message += error.message;
-            }
-            setMessage(message);
-        }
+        await getUsersUnits(user, team, token, t,
+            setMessage, setUsersUnits, users_units_old,);
 
         setShowLoader(false);
     }
-// eslint-disable-next-line react-hooks/exhaustive-deps
+
     useEffect(() => {
-        getUsersUnits();
+        getUsersUnitsHandler();
     }, []);
 
+    // На сервере
     const saveUsersUnitsHandler = async () => {
         setButtonLoader(true);
+        await saveUsersUnits(users_units, user, team, token, t,
+            setMessage, setUsersUnits, users_units_old, setModified);
 
-        try {
-            const res = await fetch(`api/users-units-api`,
-                {
-                    method: 'post',
-                    headers: new Headers({
-                        'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify({
-                        userId: user.id,
-                        teamId: team.id,
-                        users_units: users_units
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                const error = receivedData.error;
-                setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                setMessage(t('service.serverUnavailable') + error);
-            } else {
-                const receivedData = await res.json();
-                // console.log("receivedData", receivedData)
-
-                if (receivedData.success) {
-                    //   Обновим текущую карту
-                    const users_units_ = receivedData.users_units as UserUnitItem[]
-                    setUsersUnits(users_units_)
-                    users_units_old.current = users_units_;
-                    setModified(false);
-                    // setMessage("Обновлен список пользователей");
-                    setMessage(t('users.usersUpdated'));
-                } else setMessage(receivedData.error);
-            }
-            // } catch (e: any) {
-            //     setMessage(t('service.serverUnavailable') + e.message)
-            // }
-        } catch (e: unknown) {
-            let message = t('service.serverUnavailable');
-            if (e instanceof Error) {
-                message += e.message;
-            }
-            setMessage(message);
-        }
         setButtonLoader(false);
     };
+    // На клиенте
     const cancelHandler = () => {
         setUsersUnits(users_units_old.current);
         setModified(false);
     };
-
+    // На клиенте
     const changeRowHandler = (indexToChange: number, value: boolean | number | null, field: string) => {
 
         switch (field) {
@@ -184,6 +111,7 @@ export default function UsersCatalog({
         setModified(true);
 
     };
+    // На клиенте
     const deleteRowHandler = (indexToRemove: number) => {
         const users_unitsUpdated = [...users_units]
         users_unitsUpdated.splice(indexToRemove, 1)
@@ -208,7 +136,7 @@ export default function UsersCatalog({
                             changeRowHandler(index, value, "units");
                         }}
                         selectedValue={user.unit?.id || null}
-                        units={units.filter(u=>u.belong===UnitBelongEnum.inner)}
+                        units={units.filter(u => u.belong === UnitBelongEnum.inner)}
                         selectedUnits={selectedUnits}  // Передаем массив выбранных юнитов
                     />
                 </td>

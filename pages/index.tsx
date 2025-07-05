@@ -288,7 +288,7 @@ export default function Index() {
           await downloadUnutExceptions(unit.id, user.id, team.id, token, t, setMessage, dispatch);
           await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
           await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
-          // await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
           await downloadUnitLoads(unit.id, user.id, team.id, token, t, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           setStep(5);

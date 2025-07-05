@@ -8,7 +8,7 @@ import { UnitBelongEnum, UnitItem, UnitTypeEnum } from "@/types/types";
 interface FilterComponentProps {
     monthNames: string[];
     units: UnitItem[]; // Принимаем список юнитов
-    getUnitKPI: (
+    getUnitKPIHandler: (
         useUnit: boolean,
         useDate: boolean,
         useMonth: boolean,
@@ -21,7 +21,7 @@ interface FilterComponentProps {
 
 const FilterComponent: React.FC<FilterComponentProps> = ({
     monthNames,
-    getUnitKPI,
+    getUnitKPIHandler,
     units
 }) => {
     const { t } = useTranslation();
@@ -178,7 +178,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
                 className={styles.button_filter}
                 onClick={() => {
 
-                    getUnitKPI(
+                    getUnitKPIHandler(
                         useUnitFilter,
                         useDateFilter,
                         useMonthFilter,

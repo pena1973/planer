@@ -5,7 +5,7 @@ import { StatusEnum } from "@/types/types";
 
 
 interface FilterComponentProps {
-    getTCardsTerms: (
+    getTCardsTermsHandler: (
         useNumber: boolean,
         useDate: boolean,
         useStatus: boolean,
@@ -19,7 +19,7 @@ interface FilterComponentProps {
 }
 
 const FilterComponent: React.FC<FilterComponentProps> = (
-    { getTCardsTerms,
+    { getTCardsTermsHandler,
         teamId,
         userId }
 ) => {
@@ -149,7 +149,7 @@ const FilterComponent: React.FC<FilterComponentProps> = (
 
             </div>
             <button className={styles.button_filter}
-                onClick={() => getTCardsTerms( 
+                onClick={() => getTCardsTermsHandler( 
                     useTCardNumberFilter,
                     useTCardDateFilter,
                     useTCardStatusFilter,

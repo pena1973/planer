@@ -5,7 +5,7 @@ import PlanedCardRow from "@/components/plan/PlanedCardRow/planedCardRow";
 import ToPlanCardRow from "@/components/plan/ToPlanCardRow/toPlanCardRow";
 import DefectiveCardRow from "@/components/plan/DefectiveCardRow/defectiveCardRow";
 
-import { useState, } from "react";
+import { useState, useCallback} from "react";
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { useRouter } from 'next/navigation';
@@ -76,10 +76,10 @@ export default function Planing() {
   today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
 
   // Выбор запланированной карты
-  const lightTCardHandler = async (selectedTCard: TCardItem, on: boolean) => {
+  const lightTCardHandler = useCallback(async (selectedTCard: TCardItem, on: boolean) => {
     if (on) dispatch(setTCardLighted(selectedTCard))
     else dispatch(setTCardLighted({} as TCardItem))
-  }
+  }, [dispatch]);
 
   // Запись запланированной карты
   const saveCardHandler = async () => {

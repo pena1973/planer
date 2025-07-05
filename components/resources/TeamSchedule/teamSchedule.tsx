@@ -1,6 +1,6 @@
 
 import styles from "./teamSchedule.module.scss";
-
+import { saveSchedule } from '@/services/resources/saveSchedule';
 import DropdownSelectWeekDay from "./DropdownSelectWeekDay/dropdownSelectWeekDay";
 import DropdownSelectTimeZone from "./DropdownSelectTimeZone/dropdownSelectTimeZone";
 
@@ -8,10 +8,8 @@ import { DaysOfWeek, TeamItem, ScheduleItem, TimeZoneEnum } from '@/types/types'
 import Image from 'next/image';
 
 import { useEffect, useState } from "react";
-
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setSchedule, } from '@/store/slices'
 
 import { useTranslation } from 'react-i18next';
 
@@ -22,13 +20,13 @@ import add from "@/public/add-rem.png";
 
 export interface TeamScheduleProps {
     setMessage: (message: string) => void,
-    token:string
+    token: string
 }
 
-export default function TeamSchedule({ 
+export default function TeamSchedule({
     setMessage,
     token
- }: TeamScheduleProps) {
+}: TeamScheduleProps) {
 
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
@@ -46,8 +44,6 @@ export default function TeamSchedule({
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
 
-    // const [teamValue, setTeamValue] = useState("");
-    // const [prefixValue, setPrefixValue] = useState("");
     const [timeZoneValue, setTimeZoneValue] = useState("");
     const [timeStartWorkValue, setTimeStartWorkValue] = useState(0);
     const [timeFinishWorkValue, setTimeFinishWorkValue] = useState(0);
@@ -56,12 +52,9 @@ export default function TeamSchedule({
     const [weekendsValue, setWeekendsValue] = useState([] as (DaysOfWeek | null)[]);
     const [workdaysValue, setWorkdaysValue] = useState([] as { date: string, timeStart: number, timeFinish: number }[]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         //    если есть расписание 
         if (schedule.team) {
-            // setTeamValue(schedule.team.title);
-            // setPrefixValue(schedule.team.prefix)
             setTimeStartWorkValue(schedule.timeStartWork);
             setTimeFinishWorkValue(schedule.timeFinishWork);
             setBreaksValue(schedule.breaks);
@@ -70,12 +63,12 @@ export default function TeamSchedule({
             setWorkdaysValue(schedule.workdays);
             setTimeZoneValue(schedule.timeZone);
         }
-    },[] );
+    }, []);
 
-    // колбеки кнопки
-
+    // На сервере  // На клиенте
     const saveScheduleHandler = async () => {
         setMessage("");
+
         const schedule = {
             team: team as TeamItem,
             timeStartWork: timeStartWorkValue,
@@ -85,70 +78,14 @@ export default function TeamSchedule({
             weekends: weekendsValue,
             workdays: workdaysValue,
             timeZone: timeZoneValue
-        }
+        } as ScheduleItem;
 
-        // запрос на сохранение
-        try {
-            // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/schedule-api`,
-                {
-                    method: 'post',
-                    headers: new Headers({
-                        'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify({
-                        schedule: schedule,
-                        userId: user.id,
-                        teamId: team.id,
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                const error = receivedData.error;
-                // setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                setMessage(t('service.serverUnavailable') + error);
-            } else {
-                const receivedData = await res.json();
-                // console.log("receivedData", receivedData)
-
-                if (receivedData.success) {
-                    //   Обновим текущую карту
-                    const schedule = receivedData.schedule as ScheduleItem
-                    dispatch(setSchedule(schedule));
-                    // setTeamValue(schedule.team.title);
-                    // setPrefixValue(schedule.team.prefix)
-                    setTimeStartWorkValue(schedule.timeStartWork);
-                    setTimeFinishWorkValue(schedule.timeFinishWork);
-                    setBreaksValue(schedule.breaks);
-                    setHolidaysValue(schedule.holidays);
-                    setWeekendsValue(schedule.weekends);
-                    setWorkdaysValue(schedule.workdays);
-                    setTimeZoneValue(schedule.timeZone);
-                    setModified(false);
-                    // setMessage("Обновлено расписание");
-                    setMessage( t('teamSchedule.schedueUpdated'));
-                    
-                } else setMessage(receivedData.error);
-            }
-
-        // } catch (e: any) {
-        //     // setMessage(t('service.serverUnavailable') + e.message)            
-        // }
-        } catch (e: unknown) {
-  let message = t('service.serverUnavailable');
-  if (e instanceof Error) {
-    message += e.message;
-  }
-  setMessage(message);
-}
-
-
-        setModified(false);
+        await saveSchedule(schedule, team, user, token, dispatch, t, setMessage,
+            setTimeStartWorkValue, setTimeFinishWorkValue, setBreaksValue,
+            setHolidaysValue, setWeekendsValue, setWorkdaysValue,
+            setTimeZoneValue, setModified);
     };
-
+    // На клиенте
     const cancelScheduleHandler = () => {
         // setTeamValue(schedule.team.title);
         // setPrefixValue(schedule.team.prefix)
@@ -162,18 +99,18 @@ export default function TeamSchedule({
         setModified(false);
     };
 
-
+    // На клиенте
     const changeHandler = (value: string | number | TimeZoneEnum | null, field: string) => {
 
         switch (field) {
-            
+
             case "timeStart":
                 setTimeStartWorkValue(value as number);
                 break;
             case "timeFinish":
                 setTimeFinishWorkValue(value as number);
                 break;
-            
+
             case "timeZone":
                 setTimeZoneValue(value as TimeZoneEnum);
                 break;
@@ -183,6 +120,7 @@ export default function TeamSchedule({
 
         setModified(true);
     };
+    // На клиенте
     const changeRowHandler = (indexToChange: number, value: string | number | DaysOfWeek | null, field: string) => {
 
         switch (field) {
@@ -267,25 +205,28 @@ export default function TeamSchedule({
         setModified(true);
 
     };
-
+    // На клиенте
     const deleteBreakHandler = (indexToRemove: number) => {
         const breaksValueUpdated = [...breaksValue]
         breaksValueUpdated.splice(indexToRemove, 1)
         setBreaksValue(breaksValueUpdated)
         setModified(true);
     };
+    // На клиенте
     const deleteWeekendHandler = (indexToRemove: number) => {
         const weekendsValueUpdated = [...weekendsValue]
         weekendsValueUpdated.splice(indexToRemove, 1)
         setWeekendsValue(weekendsValueUpdated)
         setModified(true);
     };
+    // На клиенте
     const deleteWorkdayHandler = (indexToRemove: number) => {
         const workdaysValueUpdated = [...workdaysValue]
         workdaysValueUpdated.splice(indexToRemove, 1)
         setWorkdaysValue(workdaysValueUpdated)
         setModified(true);
     };
+    // На клиенте
     const deleteHolidayHandler = (indexToRemove: number) => {
         const holidaysValueUpdated = [...holidaysValue]
         holidaysValueUpdated.splice(indexToRemove, 1)
@@ -293,27 +234,29 @@ export default function TeamSchedule({
         setModified(true);
     };
 
-
+    // На клиенте
     const addBreakHandler = () => {
         const newBreak = { timeStart: 0, timeFinish: 0 } as { timeStart: number, timeFinish: number };
         setBreaksValue([...breaksValue, newBreak])
         setModified(true);
     };
+    // На клиенте
     const addWeekendHandler = () => {
         setWeekendsValue([...weekendsValue, null])
         setModified(true);
     };
+    // На клиенте
     const addHolidayHandler = () => {
         const newHoliday = new Date().toLocaleDateString("en-CA").split(',')[0];
         setHolidaysValue([...holidaysValue, newHoliday])
         setModified(true);
     };
+    // На клиенте
     const addWorkdayHandler = () => {
         const newWorkday = { date: "", timeStart: 0, timeFinish: 0 } as { date: string, timeStart: number, timeFinish: number };
         setWorkdaysValue([...workdaysValue, newWorkday])
         setModified(true);
     };
-
 
     const breaksValueReactNodes = breaksValue.map((elem, index) => (
         (

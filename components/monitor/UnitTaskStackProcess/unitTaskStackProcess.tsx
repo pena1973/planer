@@ -1,6 +1,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./unitTaskStackProcess.module.scss";
+import { openOperation } from '@/services/monitor/openOperation';
+import { setOperationStatus } from '@/services/monitor/unitProcess/setOperationStatus';
 
 import {
   CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem,
@@ -16,10 +18,12 @@ import { padNumberToFourDigits } from "@/lib/utils"
 import { useTranslation } from 'react-i18next';
 
 // Функция определяет что интервал в 5 минут является началом часа
+// На клиенте
 function isStartOfHour(intervTime: number): boolean {
   return intervTime % 60 === 0;
 }
 // Функция для визуализации времени для юзера
+// На клиенте
 function formatIntervTime(intervTime: number): string {
   const hours = Math.floor(intervTime / 60);
   const minutes = intervTime % 60;
@@ -55,8 +59,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   settings,
   schedule,
   unitExceptions,
-  containerHeight = 600, 
-  containerWidth = 250, 
+  containerHeight = 600,
+  containerWidth = 250,
   setMessage,
   getStartFinishOper,
   setStatusLoadsHandler,
@@ -74,7 +78,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   const statistic = useRef({} as { workTime: number, busyTime: number, defectedTime: number, resultTime: number });
 
   let hoursScaleReactNodes = [] as JSX.Element[];
-  
+
   // существует ли контроль качества?
   const isQualControl = settings.isQualControl;
 
@@ -85,7 +89,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // Округляем время завершения работы до целого числа и добавляем 1
   const finishQuant = Math.ceil(timeFinishWork / 5);
   // Рассчитываем количество промежуточных значений
-  const quants = finishQuant - startQuant;
+  // const quants = finishQuant - startQuant;
   const intervalHeight = containerHeight / ((finishQuant - startQuant) / 1); // x интервалов по 5 минут в дне
   // }
 
@@ -100,56 +104,15 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     setCurrentLoad({} as UnitLoadItem);
   }, [day, schedule])
 
+  // На сервере
   // Открываем операцию по нажатию кнопки юнитом 
   const openOperHandler = async (load: UnitLoadItem, id_oper: number, id_tCard: number) => {
     setOperView(true);
-
-    // получаем полную операцию и разворачиваем
-    // Запрос на сервер
-
-    try {
-      const res = await fetch(`api/tcard-api?userId=${userId}&teamId=${teamId}&tCardId=${id_tCard}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        // setMessage(receivedData.message);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + receivedData.message);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-        setMessage(receivedData.message);
-        if (receivedData.success) {
-          //   Обновим текущую карту
-          const tCard = receivedData.tCard as TCardItem
-          setCurrentTCard(tCard);
-          const oper = tCard.tCardOperations?.find((oper) => oper.id === id_oper);
-          if (!oper) return
-          setCurrentOper(oper as TCardOperationItem);
-          setCurrentLoad(load as UnitLoadItem);
-          setMessage(receivedData.message);
-        }
-      }
-
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)            
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
+    await openOperation(load, id_oper, id_tCard, userId, teamId, token, t, setMessage,
+      setCurrentTCard, setCurrentOper, setCurrentLoad);
   }
+
+  // На клиенте
   // Закрываем операцию без изменения по нажатию кенопки юнитом 
   const closeOperHandler = (): void => {
     setOperView(false);
@@ -159,64 +122,11 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
 
   }
 
-  // 
-
+  // На сервере
   // Меняем статус операции по нажатию кнопки юнитом 
   const setOperStatusHandler = async (status: StatusEnum, operId: number, tCardId: number) => {
-
-
-    try {
-      const res = await fetch(`api/tcard-oper-status-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            tCardId: tCardId,
-            operId: operId,
-            version: currentLoad.version,
-            // loadsIds: operloadsIds,
-            status: status,
-            teamId: teamId,
-            userId: userId,
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        // setMessage(receivedData.message);
-
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + receivedData.message);
-      } else {
-        const receivedData = await res.json();
-
-
-        setMessage(receivedData.message);
-        if (receivedData.success) {
-          // проверили и вернули общий статус карты
-          const tCardStatus = receivedData.tCardStatus as StatusEnum
-          const operLoadsIds = receivedData.operLoadsIds as number[]
-          //   Обновим статус лоадов
-          setStatusLoadsHandler(tCardStatus, status, operLoadsIds, operId, tCardId);
-
-          setMessage(receivedData.message);
-        }
-      }
-
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
+    await setOperationStatus(status, operId, tCardId, currentLoad.version, teamId, userId, token, t,
+      setMessage, setStatusLoadsHandler);
 
     setCurrentOper({} as TCardOperationItem);
     setCurrentTCard({} as TCardItem);
@@ -225,6 +135,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     setOperView(false);
   }
 
+  // На клиенте
   // Функция для генерации шкалы времени  и загруза юнитов для одного дня
   const generateTimeScaleMonitor = (calendarItem: CalendarItem): JSX.Element[] => {
     const intervalsReactNodes = [] as JSX.Element[];
@@ -343,7 +254,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
             titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
 
           return <LoadMonitorProcess
-            key={'quant'+i}
+            key={'quant' + i}
             loadHeight={loadHeight}
             showTitle={isFirstLoadForOperation(load, unitLoads)}
             load={load}
@@ -357,7 +268,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       //  
       // Это пустые сюда кидаем
       intervalsReactNodes.push(
-        <div key={'quant'+i}
+        <div key={'quant' + i}
           className={`${styles.unit_unload} ${unit_unloadEx} ${timeStyle} `}
           style={{ height: intervalHeight }}>
           {isStartOfHour(intervTime) && <div className={styles.timeLabel}>
@@ -386,8 +297,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   }
 
   return (
-    <div key={unit.id} className={styles.container} 
-      style={{ minHeight: `${containerHeight}px`, height: `${containerHeight+120}px`,maxWidth: `${containerWidth}px`} } >
+    <div key={unit.id} className={styles.container}
+      style={{ minHeight: `${containerHeight}px`, height: `${containerHeight + 120}px`, maxWidth: `${containerWidth}px` }} >
       <div className={styles.title_container}>
         <div className={styles.title}>{unit.title}</div>
         <div className={styles.title}>{day}</div>

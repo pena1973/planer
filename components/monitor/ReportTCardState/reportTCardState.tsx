@@ -1,6 +1,8 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from "./reportTCardState.module.scss";
+import { getTCardsTerms } from '@/services/monitor/getTCardsTerms';
+
 import { StatusEnum, TCardTermsItem, UnitLoadItem } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import Filter from "./Filter/filter";
@@ -34,7 +36,8 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
 
   const [showLoader, setShowLoader] = useState(false);
 
-  const getTCardsTerms = async (
+  // На сервере
+  const getTCardsTermsHandler = async (
     useNumber?: boolean,
     useDate?: boolean,
     useStatus?: boolean,
@@ -52,51 +55,17 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     if ((useDate) && (tCardDateTo)) filter = filter.concat(`&tCardDateTo=${tCardDateTo}`)
     if (useStatus) filter = filter.concat(`&tCardStatus=${tCardStatus}`)
 
-    try {
-      const res = await fetch(`api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-
-        if (receivedData.success) {
-          setUnitLoadsValue(receivedData.unitLoadItems as UnitLoadItem[]); // лоады по операциям
-          setTCardsValue(receivedData.tCards as TCardTermsItem[]); //  получаем карту с операциями
-          setMessage(receivedData.message);
-        }
-      }
-
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
+    await getTCardsTerms(userId, teamId, token, t, setMessage,
+      setUnitLoadsValue, setTCardsValue, filter,);
 
     setShowLoader(false);
   }
 
-
   useEffect(() => {
-    getTCardsTerms();
+    getTCardsTermsHandler();
   }, []);
 
+  // На клиенте
   const getStyleStatus = (status: StatusEnum): string => {
 
     switch (status) {
@@ -277,7 +246,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   return (
     <div className={styles.container}>
       <Filter
-        getTCardsTerms={getTCardsTerms}
+        getTCardsTermsHandler={getTCardsTermsHandler}
         teamId={teamId}
         userId={userId}
       />

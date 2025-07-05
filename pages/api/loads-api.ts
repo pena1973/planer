@@ -10,6 +10,7 @@ import { UnitTable } from '../../db/models/catalogs/units'
 import { ActionTable } from '../../db/models/catalogs/actions';
 import { UnitActionTable } from '../../db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '../../db/models/data/t_card_operations'
+import { UnitTypeEnum } from '@/types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -35,15 +36,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
       case 'GET':
 
-        // запросим юниты
+        // запросим юнита        
         const units = await getUnits(Number(teamId), unitRepository,unitIdNumber )
+        // если отбор по юниту и jy gjkexty то проверим может это контролер
+        let isControler = (unitIdNumber && units.length > 0)? (units[0].type === UnitTypeEnum.control):false
+        
 
+    // если это контролер то запросим всех юнитов поскольку проверяем его лоады а иначе оставим старый массив 
+        
+     const allunits = (isControler)? await getUnits(Number(teamId), unitRepository):units
+        
 
         // запросим действия юнитов
         const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository,unitIdNumber)
 
         //  получим юниты с загрузкой  до планирования новой карты         
-        const unitsLoads = await getUnitLoads(units, unitLoadRepository)
+        const unitsLoads = await getUnitLoads(allunits, unitLoadRepository,isControler)
         // запросим операции  чтобы дополнить информацию по лоадам
         const operIds = Array.from(new Set(unitsLoads.map(load => load.id_oper)));
 

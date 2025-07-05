@@ -1,13 +1,12 @@
 
 import styles from "./аctionsCatalog.module.scss";
+import { saveActions } from '@/services/resources/saveActions';
 import { ActionItem } from '@/types/types'
 import Image from 'next/image';
 import { useEffect, useState } from "react";
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-
-import { setActions, } from '@/store/slices'
 
 import { useTranslation } from 'react-i18next';
 
@@ -27,10 +26,10 @@ export default function ActionsCatalog({
 }: ActionsCatalogProps) {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
+
     const actions = useSelector((state: RootState) => {
         return state.catalogSlice.actions;
     })
-
 
     const team = useSelector((state: RootState) => {
         return state.catalogSlice.team;
@@ -43,12 +42,11 @@ export default function ActionsCatalog({
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [actionsValue, setActionsValue] = useState([] as ActionItem[]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setActionsValue(actions);
-    },[]);
+    }, []);
 
-    // колбеки кнопки
+    // На клиенте
     const deleteActionHandler = (indexToRemove: number) => {
         const actionsValueUpdated = [...actionsValue]
         actionsValueUpdated.splice(indexToRemove, 1)
@@ -56,6 +54,7 @@ export default function ActionsCatalog({
         setModified(true);
     };
 
+    // На клиенте
     const changeActionHandler = (indexToChange: number, value: string | boolean, field: string) => {
         const action = actionsValue[indexToChange];
         let updatedAction = action;
@@ -78,6 +77,7 @@ export default function ActionsCatalog({
         setModified(true);
     };
 
+    // На сервере  // На клиенте
     const saveActionHandler = async () => {
         setMessage("");
         actionsValue.forEach((elem) => {
@@ -87,67 +87,18 @@ export default function ActionsCatalog({
                 return;
             }
         })
-
-        // запрос на сохранение
-        try {
-            // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/actions-api`,
-                {
-                    method: 'post',
-                    headers: new Headers({
-                        'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify({
-                        userId: user.id,
-                        teamId: team.id,
-                        actions: actionsValue
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                const error = receivedData.error;
-                // setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                setMessage(t('service.serverUnavailable') + error);
-            } else {
-                const receivedData = await res.json();
-                // console.log("receivedData", receivedData)
-
-                if (receivedData.success) {
-                    //   Обновим текущую карту
-                    const actions_ = receivedData.actions as ActionItem[]
-                    dispatch(setActions(actions_));
-                    setActionsValue(actions_)
-                    setModified(false);
-                    // setMessage("Обновлен список Действий");
-                    setMessage(t('actionsCatalog.listUpdated'));
-
-                } else setMessage(receivedData.error);
-            }
-
-            // } catch (e: any) {
-            //      setMessage(t('service.serverUnavailable') + e.message)            
-            // }
-        } catch (e: unknown) {
-            let message = t('service.serverUnavailable');
-            if (e instanceof Error) {
-                message += e.message;
-            }
-            setMessage(message);
-        }
-
-
-        setModified(false);
+        saveActions(actionsValue, user, team, token, dispatch, t, setMessage, setActionsValue, setModified);
+      
     };
 
+    // На клиенте
     const addActionHandler = () => {
 
         const newAction = {} as ActionItem;
         setActionsValue([...actionsValue, newAction])
         setModified(true);
     };
+    // На клиенте
     const cancelActionsHandler = () => {
         setActionsValue([...actions]);
         setModified(false)

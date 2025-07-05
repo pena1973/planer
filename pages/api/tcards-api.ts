@@ -6,7 +6,7 @@ import { getTCards, } from '@/handlers/handlers-get';  //
 import { StatusEnum } from '@/types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) { 
+
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -15,7 +15,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const tCardRepository = dbConnection.getRepository(TCardTable);
    
     // Извлекаем параметры userId и teamId из строки запроса
-        const { userId, teamId:teamIdget } = req.query;
+        const { userId, teamId:teamIdget} = req.query;
     
     switch (req.method) {
       case 'GET':    

@@ -10,32 +10,19 @@ import Team from "@/components/resources/Team/team";
 import UsersCatalog from "@/components/resources/UsersCatalog/usersCatalog";
 
 import UnitsCatalog from "@/components/resources/UnitsCatalog/unitsCatalog";
-// import Arrow1 from "@/components/Arrow1/arrow1";
 import { useEffect, useState } from "react";
-import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 
-import Image from 'next/image';
-
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
-
 import { setResourcePoint } from '@/store/slices';
-
-
-// const URL = process.env.NEXT_PUBLIC_URL;
-// let _url = String(URL);
-// _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
 
 export default function Resources() {
   const { t, i18n } = useTranslation();
-  const { push } = useRouter();
+
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-
 
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;

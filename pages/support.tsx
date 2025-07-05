@@ -1,34 +1,22 @@
 import Layout from "@/components/Layout/layout";
-
-
 import { SupportMessages } from "@/components/support/SupportMessages/supportMessages";
 import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
 import  Docs  from "@/components/support/Docs/docs";
-import { useEffect, useState, useRef } from "react";
-import Link from 'next/link';
-import Image from 'next/image';
+import { useEffect, useState } from "react";
 
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { useTranslation } from 'react-i18next';
 import { } from '@/store/slices';
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
 import { setSuportPoint } from '@/store/slices';
-
 
 export default function Support() {
   const { t, i18n } = useTranslation();
-  const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-
 
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;
@@ -70,7 +58,7 @@ export default function Support() {
 
         </div>
         <div className="container_global_right">
-          {/* Настройки */}
+          {/* Сообщения тех поддержки */}
           {suportPoint === 1 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.messages1')}</div>
             <SupportMessages
@@ -80,7 +68,7 @@ export default function Support() {
               token={token}
             />
           </div>}
-          {/* Действия */}
+          {/* Счета */}
           {suportPoint === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.billing1')}</div>
             <Billing
@@ -90,7 +78,7 @@ export default function Support() {
               token={token}
             />
           </div>}
-          {/* Действия */}
+          {/* Профиль */}
           {suportPoint === 3 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.profile1')}</div>
             <Profile
@@ -101,7 +89,7 @@ export default function Support() {
               token={token}
             />
           </div>}
-          {/* политика куки */}
+          {/* Куки */}
           {suportPoint === 4 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.cookie')}</div>
             <CookiePolicyBlock />

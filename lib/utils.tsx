@@ -1,5 +1,5 @@
 
-import { CalendarItem, TCardContent, StatusEnum,  ScheduleItem, DaysOfWeek, TCardItem, TimeTypeEnum } from "@/types/types";
+import { CalendarItem, TCardContent, StatusEnum, ScheduleItem, DaysOfWeek } from "@/types/types";
 
 
 export const ISOStringToLocalDateTime = (isoDate: string) => {
@@ -51,7 +51,7 @@ export function formatDate(date: Date) {
 
 export function padNumberToFourDigits(number: number): string {
   if (!number) return "new";
-  if (number===0) return "new";
+  if (number === 0) return "new";
   return number.toString().padStart(4, '0');
 }
 
@@ -181,22 +181,13 @@ export const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean =>
     ); else return false
 }
 
-// // генерация привычной нам даты - ее использую как id дня
-// export const idDay = (date: Date): string => {
-//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-//   const year = date.getFullYear();  // Год
-
-//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-// };
-
 // генерация привычной нам даты - ее использую как id дня
 export const idDay = (date: Date): string => {
   return date.toLocaleDateString('en-CA');  // Возвращаем строку в формате "день.месяц.год"
 };
 
 // генерация одного дня на шкале
-export const generateCalendarItem = (day: string|Date, schedule: ScheduleItem): CalendarItem => {
+export const generateCalendarItem = (day: string | Date, schedule: ScheduleItem): CalendarItem => {
 
   const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
   currentDate.setHours(0, 0, 0, 0);
@@ -204,7 +195,7 @@ export const generateCalendarItem = (day: string|Date, schedule: ScheduleItem): 
   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
   const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // 
-  
+
   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
   let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
@@ -239,21 +230,20 @@ export const generateCalendarItem = (day: string|Date, schedule: ScheduleItem): 
   return calendarItem;  // Возвращаем один элемент календаря
 };
 
-
-    // Функция для получения числового приоритета статуса
-export  const getStatusPriority = (status: StatusEnum): number => {
-      switch (status) {
-        case StatusEnum.draft: return 100;
-        case StatusEnum.prepared: return 2;
-        case StatusEnum.planed: return 4;
-        case StatusEnum.defective: return 3;
-        case StatusEnum.performed: return 5;
-        case StatusEnum.ready: return 5;
-        case StatusEnum.cancelled: return 100;
-        case StatusEnum.closed: return 100;
-        default: return 100;
-      }
-    };
+// Функция для получения числового приоритета статуса
+export const getStatusPriority = (status: StatusEnum): number => {
+  switch (status) {
+    case StatusEnum.draft: return 100;
+    case StatusEnum.prepared: return 2;
+    case StatusEnum.planed: return 4;
+    case StatusEnum.defective: return 3;
+    case StatusEnum.performed: return 5;
+    case StatusEnum.ready: return 5;
+    case StatusEnum.cancelled: return 100;
+    case StatusEnum.closed: return 100;
+    default: return 100;
+  }
+};
 
 
 //  ЧТЕНИЕ КАРТЫ ИЗ ФАЙЛА
@@ -301,34 +291,34 @@ export const calculateMaxIdc = (content: TCardContent): number => {
 };
 
 export const validateFileContent = (content: TCardContent) => {
-    const missingFields: string[] = [];
-    const invalidFields: string[] = [];
+  const missingFields: string[] = [];
+  const invalidFields: string[] = [];
 
-    // Проверяем обязательные поля
-    if (!content.date) missingFields.push("date");
-    if (!content.idc) missingFields.push("idc");
-    if (!Array.isArray(content.tCardProducts)) missingFields.push("tCardProducts");
-    if (!Array.isArray(content.tCardOperations)) missingFields.push("tCardOperations");
-    if (!Array.isArray(content.tCardStages)) missingFields.push("tCardStages");
+  // Проверяем обязательные поля
+  if (!content.date) missingFields.push("date");
+  if (!content.idc) missingFields.push("idc");
+  if (!Array.isArray(content.tCardProducts)) missingFields.push("tCardProducts");
+  if (!Array.isArray(content.tCardOperations)) missingFields.push("tCardOperations");
+  if (!Array.isArray(content.tCardStages)) missingFields.push("tCardStages");
 
-    // Проверка на корректность значений
-    if (content.tCardProducts) {
-      content.tCardProducts.forEach((product, index) => {
-        if (!product.code) invalidFields.push(`tCardProducts[${index}].code`);
-        if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);
-        if (typeof product.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);
-        if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);
-      });
-    }
+  // Проверка на корректность значений
+  if (content.tCardProducts) {
+    content.tCardProducts.forEach((product, index) => {
+      if (!product.code) invalidFields.push(`tCardProducts[${index}].code`);
+      if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);
+      if (typeof product.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);
+      if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);
+    });
+  }
 
-    if (content.tCardOperations) {
-      content.tCardOperations.forEach((operation, index) => {
-        if (!operation.idc) invalidFields.push(`tCardOperations[${index}].idc`);
-        if (!operation.stage || !operation.stage.idc || !operation.stage.code) invalidFields.push(`tCardOperations[${index}].stage`);
-        if (!Array.isArray(operation.out)) invalidFields.push(`tCardOperations[${index}].out`);
-        if (!Array.isArray(operation.inn)) invalidFields.push(`tCardOperations[${index}].inn`);
-      });
-    }
+  if (content.tCardOperations) {
+    content.tCardOperations.forEach((operation, index) => {
+      if (!operation.idc) invalidFields.push(`tCardOperations[${index}].idc`);
+      if (!operation.stage || !operation.stage.idc || !operation.stage.code) invalidFields.push(`tCardOperations[${index}].stage`);
+      if (!Array.isArray(operation.out)) invalidFields.push(`tCardOperations[${index}].out`);
+      if (!Array.isArray(operation.inn)) invalidFields.push(`tCardOperations[${index}].inn`);
+    });
+  }
 
-    return { missingFields, invalidFields };
-  };
+  return { missingFields, invalidFields };
+};

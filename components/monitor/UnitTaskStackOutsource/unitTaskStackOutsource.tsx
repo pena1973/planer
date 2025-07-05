@@ -1,6 +1,7 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import styles from "./unitTaskStackOutsource.module.scss";
+import { setOperStatus } from '@/services/monitor/setOperStatus';
 import { UnitLoadItem, TCardItem, StatusEnum } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 
@@ -36,62 +37,13 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
   const { t, i18n } = useTranslation();
 
   // Меняем статус операции по нажатию кенопки юнитом 
+  // На сервере
   const setOperStatusHandler = async (currentLoad: UnitLoadItem, status: StatusEnum) => {
-
-    const operloadsIds = outerLoads
-      .filter(lo => lo.id_oper === currentLoad.id_oper && lo.version === currentLoad.version && lo.status === StatusEnum.planed)
-      .map(load => load.id as number); //  все лоады операции
-
-    try {
-      const res = await fetch(`api/tcard-oper-status-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            operId: currentLoad.id_oper,
-            loadsIds: operloadsIds,
-            status: status,
-            teamId: teamId,
-            userId: userId,
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + receivedData.message);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-        setMessage(receivedData.message);
-
-        if (receivedData.success) {
-          // проверили и вернули общий статус карты
-          const tCardStatus = receivedData.tCardStatus as StatusEnum
-          //   Обновим статус лоадов
-          setStatusLoadsHandler(tCardStatus, status, operloadsIds, currentLoad.id_oper, currentLoad.id_tCard);
-          setMessage(receivedData.message);
-        }
-      }
-
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
+    setOperStatus(currentLoad, outerLoads, status, teamId, userId, token, t, setMessage, setStatusLoadsHandler);
   }
 
-
-  function getFirstLoads(loads: UnitLoadItem[]): UnitLoadItem[] {
+  // На клиенте
+  const getFirstLoads = (loads: UnitLoadItem[]): UnitLoadItem[] => {
     // Группируем лоады по id_oper, исключая те, где isRetool === true
     const groups = new Map<number, UnitLoadItem[]>();
 
@@ -116,7 +68,6 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
 
     return firstLoads;
   }
-
 
   const outerLoads__ = getFirstLoads(outerLoads); //  отбираем только первые лоады для каждой операции 
 
@@ -147,7 +98,6 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
       </td>
     </tr>)
   })
-
 
   return (
     <div className={styles.container}>

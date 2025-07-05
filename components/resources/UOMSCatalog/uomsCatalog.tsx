@@ -1,16 +1,14 @@
 
 import styles from "./uomsCatalog.module.scss";
-
+import { saveUOMs } from '@/services/resources/saveUOMs';
 import { UOMItem } from '@/types/types'
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { setUOMs, } from '@/store/slices'
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
@@ -45,19 +43,20 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [uomsValue, setUomsValue] = useState([] as UOMItem[]);
-    
+
     useEffect(() => {
-        setUomsValue(uoms);       
+        setUomsValue(uoms);
     }, []);
 
-    // колбеки кнопки
+
+    // На клиенте
     const deleteUOMSHandler = (indexToRemove: number) => {
         const uomsValueUpdated = [...uomsValue]
         uomsValueUpdated.splice(indexToRemove, 1)
         setUomsValue(uomsValueUpdated)
         setModified(true);
     };
-
+    // На клиенте
     const changeUOMHandler = (indexToChange: number, value: string, field: string) => {
         setModified(true);
         let updatedUOM = uomsValue[indexToChange];
@@ -79,6 +78,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
     };
 
+    // На сервере  // На клиенте
     const saveUOMSHandler = async () => {
         setMessage("");
         uomsValue.forEach((elem, index) => {
@@ -87,64 +87,17 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                 return;
             }
         })
-        // запрос на сохранение
-        try {
-            // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/uoms-api`,
-                {
-                    method: 'post',
-                    headers: new Headers({
-                        'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify({
-                        userId: user.id,
-                        teamId: team.id,
-                        uoms: uomsValue
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                const error = receivedData.error;
-                setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                setMessage(t('service.serverUnavailable') + error);
-            } else {
-                const receivedData = await res.json();
-                // console.log("receivedData", receivedData)
-
-                if (receivedData.success) {
-                    //   Обновим текущую карту
-                    const uoms_ = receivedData.uoms as UOMItem[]
-                    dispatch(setUOMs(uoms_));
-                    setUomsValue(uoms_);
-                    setModified(false);
-                    setMessage("Обновлен список единиц измерения");
-                } else setMessage(receivedData.error);
-            }
-
-            // } catch (e: any) {
-            //     // setMessage(t('service.serverUnavailable') + e.message)            
-            // }
-
-        } catch (e: unknown) {
-            let message = t('service.serverUnavailable');
-            if (e instanceof Error) {
-                message += e.message;
-            }
-            setMessage(message);
-        }
-
-        setModified(false);
+        await saveUOMs(uomsValue, user, team, token, dispatch, t, setMessage, setUomsValue, setModified);
+        
     };
-
+    // На клиенте
     const addUOMtHandler = () => {
 
         const newUOM = {} as UOMItem;
         setUomsValue([...uomsValue, newUOM])
         setModified(true);
     };
+    // На клиенте
     const cancelUOMtHandler = () => {
         setUomsValue([...uoms]);
         setModified(false)
@@ -187,6 +140,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
             </tr>
         )
     ))
+
     return (
         <div className={styles.container}>
             <Image className={styles.icon_cancel}

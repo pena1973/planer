@@ -6,7 +6,7 @@ export const items = [
   { title: 'defects.title', content: 'defects.content' },
   { title: 'mohitor.title', content: 'mohitor.content' },
   { title: 'outsourcing.title', content: 'outsourcing.content' },
-  { title: 'resources.title', content: 'resources.content' },  
+  { title: 'resources.title', content: 'resources.content' },
   { title: 'quickstart.title', content: 'quickstart.content' },
 
 ];
@@ -37,7 +37,7 @@ const HelpTree: React.FC<HelpTreeProps> = ({ }) => {
   );
 };
 
-const TreeNode: React.FC<{ item: HelpItem; level: number }> = ({ item, level }) => {  
+const TreeNode: React.FC<{ item: HelpItem; level: number }> = ({ item, level }) => {
   const { t } = useTranslation('help');
   const [expanded, setExpanded] = useState(false);
 
@@ -55,22 +55,22 @@ const TreeNode: React.FC<{ item: HelpItem; level: number }> = ({ item, level }) 
         <div className={styles.nodeContent}>
           {item.content && (
             <div className={styles.content}>
-              <Trans i18nKey={item.content} 
-              t={t} 
-              components={{ 
-                p: <p />, 
-                ul: <ul />, 
-                li: <li />, 
-                strong: <strong />,
-                h4:<h4 />, 
-                h3:<h3 />, 
-                code:<code />,
-                
+              <Trans i18nKey={item.content}
+                t={t}
+                components={{
+                  p: <p />,
+                  ul: <ul />,
+                  li: <li />,
+                  strong: <strong />,
+                  h4: <h4 />,
+                  h3: <h3 />,
+                  code: <code />,
+
                 }} />
             </div>
           )}
-          
-          {/* {item.content && <div className={styles.content}>{item.content}</div>} */}
+
+
           {hasChildren && item.children!.map((child, i) => (
             <TreeNode key={i} item={child} level={level + 1} />
           ))}

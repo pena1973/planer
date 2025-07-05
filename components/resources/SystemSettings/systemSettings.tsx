@@ -1,15 +1,12 @@
 
 import styles from "./systemSettings.module.scss";
+import { saveSystemSettings } from '@/services/resources/saveSystemSettings';
 
-import { SettingsItem } from '@/types/types'
 import Image from 'next/image';
 
 import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-
-
-import { setSettings } from '@/store/slices'
 
 import { useTranslation } from 'react-i18next';
 
@@ -40,73 +37,22 @@ export default function Settings({
     })
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [isQualControlValue, setIsQualControlValue] = useState(true);
-    // const [showHolidayValue, setShowHolidayValue] = useState(true);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     useEffect(() => {
         setIsQualControlValue(settings.isQualControl);
     }, []);
 
-    // колбеки кнопки
+    
 
-
+    // На сервере
     const saveSettingsHandler = async () => {
-        setMessage("");
-        const settings_ = { ...settings, isQualControl: isQualControlValue, }
-
-        // запрос на сохранение
-        try {
-            // запрос получение текста из БД вместе со словами     textId: number, userId:number
-            const res = await fetch(`api/settings-api`,
-                {
-                    method: 'post',
-                    headers: new Headers({
-                        'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify({
-                        userId: user.id,
-                        teamId: team.id,
-                        settings: settings_,
-                    }),
-                }
-            );
-            if (res.status !== 200) {
-                const receivedData = await res.json();
-                const error = receivedData.error;
-                // setMessage(error);
-                //  console.log(t('service.serverUnavailable') + res.status);
-                setMessage(t('service.serverUnavailable') + error);
-            } else {
-                const receivedData = await res.json();
-                // console.log("receivedData", receivedData)
-
-                if (receivedData.success) {
-                    //   Обновим настройки
-                    dispatch(setSettings(receivedData.settings as SettingsItem));
-                    setModified(false);
-                    // setMessage("Обновлены настройки");
-                    setMessage(t('settings.settingUpdated'));
-                } else setMessage(receivedData.error);
-            }
-
-            // } catch (e: any) {
-            //     setMessage(t('service.serverUnavailable') + e.message)
-            // }
-        } catch (e: unknown) {
-            let message = t('service.serverUnavailable');
-            if (e instanceof Error) {
-                message += e.message;
-            }
-            setMessage(message);
-        }
-
-
-        setModified(false);
+        await saveSystemSettings(settings, isQualControlValue, user, team, token, dispatch, t, setMessage, setModified);
+       
     };
 
+    // На клиенте
     const cancelScheduleHandler = () => {
-
         setModified(false)
     };
 

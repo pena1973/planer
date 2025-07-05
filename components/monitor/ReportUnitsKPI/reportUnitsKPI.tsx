@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./reportUnitsKPI.module.scss";
+import { getUnitsKPI } from '@/services/monitor/getUnitsKPI';
 import Filter from "./Filter/filter";
-import { UnitKPIItem, UnitItem,UnitBelongEnum,UnitTypeEnum } from "@/types/types";
+import { UnitKPIItem, UnitItem, UnitBelongEnum, UnitTypeEnum } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { useTranslation } from 'react-i18next';
 
@@ -53,7 +54,8 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const getUnitKPI = async (
+  // На сервере
+  const getUnitKPIHandler = async (
     useUnit?: boolean,
     useDate?: boolean,
     useMonth?: boolean,
@@ -78,49 +80,21 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
     }
 
     if (useMonth) filter = filter.concat(`&month=${monthIndex}`)
-
-    try {
-      const res = await fetch(`api/report-units-kpi-api?userId=${userId}&teamId=${teamId}&today=${today.toLocaleDateString('en-CA')}${filter}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        // setMessage(receivedData.message);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + receivedData.message);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-
-        if (receivedData.success) {
-
-          setUnitsKPIValue(receivedData.unitsKPI as UnitKPIItem[]); //  получаем карту с операциями
-          setMessage(receivedData.message);
-        }
-      }
-
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
+    await getUnitsKPI(
+      userId,
+      teamId,
+      token,
+      today,
+      t,
+      setMessage,
+      setUnitsKPIValue,
+      filter
+    );
     setShowLoader(false);
   }
 
   useEffect(() => {
-    getUnitKPI();
+    getUnitKPIHandler();
   }, []);
 
 
@@ -128,7 +102,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   const uniqueUnits: UnitItem[] = [];
   unitsKPIValue.forEach(item => {
     // Предполагается, что у каждого юнита есть уникальное поле id
-    if (!uniqueUnits.some(u => u.id === item.unit.id) && item.unit.belong===UnitBelongEnum.inner && item.unit.type ===UnitTypeEnum.process) {
+    if (!uniqueUnits.some(u => u.id === item.unit.id) && item.unit.belong === UnitBelongEnum.inner && item.unit.type === UnitTypeEnum.process) {
       uniqueUnits.push(item.unit);
     }
   });
@@ -148,7 +122,6 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
       unitMonthPairs.push({ unit, month });
     }
   });
-
 
   // дерево отчета
   const unitsReactNodes = uniqueUnits.map((unitKey, index) => {
@@ -277,13 +250,12 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
     )
   })
 
-
   return (
     <div className={styles.container}>
       <Filter
         monthNames={monthNames}
         units={units}
-        getUnitKPI={getUnitKPI}
+        getUnitKPIHandler={getUnitKPIHandler}
 
       />
       {showLoader &&

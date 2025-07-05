@@ -1,14 +1,14 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from "./profile.module.scss";
+import { changePassword, changeName } from "@/services/login/profileService";
+
 import { UserItem, TeamItem, UnitItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import { generateTeamNumber } from '@/lib/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import { useAppDispatch } from "@/pages/_app";
-
-import { setUser } from '@/store/slices'
 
 interface ProfileProps {
   setMessage: (message: string) => void,
@@ -19,7 +19,6 @@ interface ProfileProps {
 }
 
 export const Profile: React.FC<ProfileProps> = ({
-  // messages,
   setMessage,
   team,
   user,
@@ -45,112 +44,37 @@ export const Profile: React.FC<ProfileProps> = ({
   }, [user]);
 
 
-  const changePass = async () => {
+  // На сервере
+  const changePassHandler = async () => {
     setMessage("");
     setLoaderButtonPass(true)
-    if (newPass1Value !== newPass2Value)
-      return
-    // запрос на сохранение
-    try {
-      // запрос получение текста из БД вместе со словами     textId: number, userId:number
-      const res = await fetch(`api/profile-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            userId: user.id,
-            teamId: team.id,
-            oldpass: passValue,
-            newpass: newPass1Value,
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        // setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
+    if (newPass1Value !== newPass2Value) return
 
-        if (receivedData.success) {
-          //   Обновим текущую карту
-          const user_ = receivedData.user as UserItem
-          dispatch(setUser(user_));
-          setPassValue("");
-          setNewPass1Value("");
-          setNewPass2Value("");
-          setMessage(t('profile.passUpdated'));
-        } else setMessage(receivedData.error);
-      }
+    const res = await changePassword(passValue, newPass1Value, user.id, team.id, token, t, dispatch, setMessage);
 
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
+    if (res) {
+      setPassValue("");
+      setNewPass1Value("");
+      setNewPass2Value("");
     }
 
     setLoaderButtonPass(false)
   }
 
-  const changeName = async () => {
+  // На сервере
+  const changeNameHandler = async () => {
     setMessage("");
     setLoaderButtonName(true)
-    // запрос на сохранение
-    try {
-      // запрос получение текста из БД вместе со словами     textId: number, userId:number
-      const res = await fetch(`api/profile-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            userId: user.id,
-            teamId: team.id,
-            name: nameValue,
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        // setMessage(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessage(t('service.serverUnavailable') + error);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
 
-        if (receivedData.success) {
-          //   Обновим текущую карту
-          const user_ = receivedData.user as UserItem
-          dispatch(setUser(user_));
-          setNameValue("")
-          setMessage(t('profile.userUpdated'));
-        } else setMessage(receivedData.error);
-      }
+    const res = await changeName(nameValue, user.id, team.id, token, t, dispatch, setMessage);
 
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
+    if (res) setNameValue("");
 
     setLoaderButtonName(false)
   }
-
+ // На клиенте
   const teamNumberValue = generateTeamNumber(team.prefix, team.id);
+  
   return (
     <div className={styles.container}>
       <div className={styles.title}>
@@ -191,7 +115,7 @@ export const Profile: React.FC<ProfileProps> = ({
 
         {changeNameValue && <div className={styles._button_container}>
           <button className={styles.profile_button}
-            onClick={(e) => changeName()}>
+            onClick={(e) => changeNameHandler()}>
             {loaderButtonName && <ButtonLoader />}
             {!loaderButtonName && t('profile.buttonChangeName')}
           </button>
@@ -248,7 +172,7 @@ export const Profile: React.FC<ProfileProps> = ({
         </div>}
         {changePassValue && <div className={styles._button_container}>
           <button className={styles.profile_button}
-            onClick={(e) => changePass()}>
+            onClick={(e) => changePassHandler()}>
             {loaderButtonPass && <ButtonLoader />}
             {!loaderButtonPass && t('profile.buttonChangePass')}
           </button>
