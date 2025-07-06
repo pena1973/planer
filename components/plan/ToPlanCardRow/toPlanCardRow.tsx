@@ -3,7 +3,7 @@ import styles from "./planedCardRow.module.scss";
 import Image from 'next/image';
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
-import { StatusEnum } from "@/types/types";
+import { TCardItem } from "@/types/types";
 import save from "@/public/save-rem.png";
 import eraz from "@/public/erazer1-rem.png";
 import light from "@/public/light-rem.png";
@@ -12,15 +12,15 @@ import lighton from "@/public/light-on-rem.png";
 import { padNumberToFourDigits } from "@/lib/utils";
 
 interface ToPlanCardRowProps {
-  elem: any;
-  tCardPrepared: any;
+  elem: TCardItem;
+  tCardPrepared: TCardItem;
   droploaderCard: number | null;
   saveLoaderCard: number | null;
   erazLoaderCard: number | null;
-  tCardLighted: any;
+  tCardLighted: TCardItem;
   isDragging: boolean;
   formatDate: (date: Date) => string;
-  lightTCardHandler: (elem: any, lightOn: boolean) => void;
+  lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void;
   saveCardHandler: () => void;
   erazCardHandler: (id: number) => void;
   handleMouseDownTCard: (e: React.MouseEvent<HTMLDivElement>) => void;

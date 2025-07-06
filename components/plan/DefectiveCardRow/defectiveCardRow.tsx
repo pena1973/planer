@@ -1,10 +1,9 @@
 import React from 'react';
-import styles from "./planedCardRow.module.scss";
+ import styles from "./defectiveCardRow.module.scss";
 import Image from 'next/image';
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
-import { StatusEnum } from "@/types/types";
-import save from "@/public/save-rem.png";
+import { TCardItem } from "@/types/types";
 import eraz from "@/public/erazer1-rem.png";
 import light from "@/public/light-rem.png";
 import lighton from "@/public/light-on-rem.png";
@@ -12,12 +11,12 @@ import lighton from "@/public/light-on-rem.png";
 import { padNumberToFourDigits } from "@/lib/utils";
 
 interface DefectiveCardRowProps {
-  elem: any;
+  elem: TCardItem;
   droploaderCard: number | null;
   erazLoaderCard: number | null;
-  tCardLighted: any;
+  tCardLighted: TCardItem;
   formatDate: (date: Date) => string;
-  lightTCardHandler: (elem: any, lightOn: boolean) => void;
+  lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void;
   erazCardHandler: (id: number) => void;
 }
 

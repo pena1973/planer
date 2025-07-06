@@ -21,11 +21,8 @@ export interface HelpItem {
   children?: HelpItem[];
 }
 
-interface HelpTreeProps {
-  //  items: HelpItem[];
-}
 
-const HelpTree: React.FC<HelpTreeProps> = ({ }) => {
+const HelpTree: React.FC = ({ }) => {
   const { t } = useTranslation();
 
   return (

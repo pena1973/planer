@@ -85,7 +85,7 @@ function LoadInner({
     if (load.isRetool) intervalClass = `${intervalClass} ${styles.retool}`;
     if (tCardLighted.id === load.id_tCard) intervalClass = `${intervalClass} ${styles.lighted}`;
 
-    let tCard = tCards.find(tCard => tCard.id === load.id_tCard) || {} as TCardItem;
+    const tCard = tCards.find(tCard => tCard.id === load.id_tCard) || {} as TCardItem;
     const blocked = !(load.status === StatusEnum.prepared || load.status === StatusEnum.planed);
     const tCardIdc = load.loadInfo?.tCardIdc ?? 0;
     const tCardDate = load.loadInfo?.tCardDate ?? "";

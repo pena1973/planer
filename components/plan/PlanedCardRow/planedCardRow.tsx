@@ -3,18 +3,18 @@ import styles from "./planedCardRow.module.scss";
 import Image from 'next/image';
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
-import { StatusEnum } from "@/types/types";
+import { TCardItem } from "@/types/types";
 import eraz from "@/public/erazer1-rem.png";
 import light from "@/public/light-rem.png";
 import lighton from "@/public/light-on-rem.png";
 import { padNumberToFourDigits } from "@/lib/utils";
 
 interface PlanedCardRowProps {
-    elem: any; // Лучше задать точный тип вместо `any`
+    elem: TCardItem; // Лучше задать точный тип вместо `any`
     droploaderCard: number | null;
     erazLoaderCard: number | null;
-    tCardLighted: any;
-    lightTCardHandler: (elem: any, lightOn: boolean) => void;
+    tCardLighted: TCardItem;
+    lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void;
     erazCardHandler: (id: number) => void;
     formatDate: (date: Date) => string;
 }

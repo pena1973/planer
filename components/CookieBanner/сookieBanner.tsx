@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styles from './сookieBanner.module.scss'
+import Link from 'next/link';
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false)
@@ -21,7 +22,7 @@ export default function CookieBanner() {
   return (
     <div className={styles.banner}>
       <p className="text-sm">
-        {t('text')} <a href="/cookies-policy">{t('link')}</a>
+        {t('text')} <Link href="/cookies-policy">{t('link')}</Link>
       </p>
       
       <button onClick={acceptCookies} className={styles.button}>

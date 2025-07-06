@@ -39,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // запросим юнита        
         const units = await getUnits(Number(teamId), unitRepository,unitIdNumber )
         // если отбор по юниту и jy gjkexty то проверим может это контролер
-        let isControler = (unitIdNumber && units.length > 0)? (units[0].type === UnitTypeEnum.control):false
+        const isControler = (unitIdNumber && units.length > 0)? (units[0].type === UnitTypeEnum.control):false
         
 
     // если это контролер то запросим всех юнитов поскольку проверяем его лоады а иначе оставим старый массив 

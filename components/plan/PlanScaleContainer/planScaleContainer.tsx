@@ -280,7 +280,7 @@ export default function PlanScaleContainer({
     // console.log('✅ right', visibleright);
 
 
-    let _visibleItems = [] as string[] // ID дней которые видны
+    const _visibleItems = [] as string[] // ID дней которые видны
     // определяем оставшуюся шкалу с учетом сдвига от сегодня
     //  если был положительный сдвиг она уменьшится а если отрицательный увеличится 
     // дни надо сгенерить на всю шкалу
@@ -359,7 +359,7 @@ export default function PlanScaleContainer({
     // console.log('✅ visibleleft', visibleleft);
     // console.log('✅ visibleright', visibleright);
 
-    let _visibleItems = [] as string[] // ID дней которые видны
+    const _visibleItems = [] as string[] // ID дней которые видны
 
     let countDay = 0;
     // если сдвиг положительный то нужно отстроить дни в прошлое
