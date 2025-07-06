@@ -1,3 +1,10 @@
+
+import { unPinLoad } from '@/services/plan/unPinLoad';
+import { erazeLoad } from '@/services/plan/erazeLoad';
+import { erazeCard } from '@/services/plan/erazeCard';
+import { moveLoad } from '@/services/plan/moveLoad';
+import { saveCard } from '@/services/plan/saveCard';
+
 import Layout from "@/components/Layout/layout";
 import PlanScaleContainer from "@/components/plan/PlanScaleContainer/planScaleContainer";
 
@@ -5,10 +12,9 @@ import PlanedCardRow from "@/components/plan/PlanedCardRow/planedCardRow";
 import ToPlanCardRow from "@/components/plan/ToPlanCardRow/toPlanCardRow";
 import DefectiveCardRow from "@/components/plan/DefectiveCardRow/defectiveCardRow";
 
-import { useState, useCallback} from "react";
+import { useState, useCallback } from "react";
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { useRouter } from 'next/navigation';
 import { formatDate, } from "@/lib/utils"
 
 import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum, } from "@/types/types";
@@ -22,7 +28,6 @@ export default function Planing() {
 
   const { t, i18n } = useTranslation();
 
-  const { push } = useRouter();
   const dispatch = useAppDispatch();
 
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
@@ -35,18 +40,15 @@ export default function Planing() {
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;
   })
-
   const team = useSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
   const user = useSelector((state: RootState) => {
     return state.authSlice.user;
   })
-
   const tCards = useSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
-
   const units = useSelector((state: RootState) => {
     return state.catalogSlice.units;
   })
@@ -62,7 +64,6 @@ export default function Planing() {
   const unitExceptions = useSelector((state: RootState) => {
     return state.planSlice.unitExceptions;
   })
-
   const settings = useSelector((state: RootState) => {
     return state.catalogSlice.settings;
   })
@@ -81,336 +82,352 @@ export default function Planing() {
     else dispatch(setTCardLighted({} as TCardItem))
   }, [dispatch]);
 
+  // На сервере
   // Запись запланированной карты
   const saveCardHandler = async () => {
     setSaveLoaderCard(tCardPrepared.id);
-    // Фильтруем загрузку по карте  и все что драфт и сохраняем  
-    const tCardLoadsPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === StatusEnum.prepared) })
-    const tCardLoadsWithoutPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status !== StatusEnum.prepared) })
-    const unitLoadsWithoutCard = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id) })
+    await saveCard(tCardPrepared, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
+    // // Фильтруем загрузку по карте  и все что драфт и сохраняем  
+    // const tCardLoadsPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status === StatusEnum.prepared) })
+    // const tCardLoadsWithoutPrepared = unitLoads.filter(load => { return (load.id_tCard === tCardPrepared?.id && load.status !== StatusEnum.prepared) })
+    // const unitLoadsWithoutCard = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id) })
 
-    const index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
+    // const index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
 
-    // если ничего не запланировалось а карта prepared, надо утановить правильный статус карты по текущему состоянию
-    if (tCardLoadsPrepared.length === 0) {
+    // // если ничего не запланировалось а карта prepared, надо утановить правильный статус карты по текущему состоянию
+    // if (tCardLoadsPrepared.length === 0) {
 
-      try {
-        const res = await fetch(`api/tcard-status-api`,
-          {
-            method: 'post',
-            headers: new Headers({
-              'Authorization': 'Basic ' + token,
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify({
-              tCardId: tCardPrepared.id,
-              teamId: team.id,
-              userId: user.id,
-            }),
-          }
-        );
-        if (res.status !== 200) {
-          const receivedData = await res.json();
-          setMessage(receivedData.message);
-          //  console.log(t('service.serverUnavailable') + res.status);
-          // setMessage(t('service.serverUnavailable') + res.status);
-        } else {
-          const receivedData = await res.json();
-          setMessage(receivedData.message);
-          if (receivedData.success) {
-            // проверили и вернули общий статус карты
-            const tCardStatus = receivedData.tCardStatus as StatusEnum
+    //   try {
+    //     const res = await fetch(`api/tcard-status-api`,
+    //       {
+    //         method: 'post',
+    //         headers: new Headers({
+    //           'Authorization': 'Basic ' + token,
+    //           'Content-Type': 'application/json'
+    //         }),
+    //         body: JSON.stringify({
+    //           tCardId: tCardPrepared.id,
+    //           teamId: team.id,
+    //           userId: user.id,
+    //         }),
+    //       }
+    //     );
+    //     if (res.status !== 200) {
+    //       const receivedData = await res.json();
+    //       setMessage(receivedData.message);
+    //       //  console.log(t('service.serverUnavailable') + res.status);
+    //       // setMessage(t('service.serverUnavailable') + res.status);
+    //     } else {
+    //       const receivedData = await res.json();
+    //       setMessage(receivedData.message);
+    //       if (receivedData.success) {
+    //         // проверили и вернули общий статус карты
+    //         const tCardStatus = receivedData.tCardStatus as StatusEnum
 
-            // статус карты меняем только тогда когда все операции будут не ниже этого статуса
-            const updatedTCard = { ...tCards[index], status: tCardStatus }
-            const _tCards = [...tCards]
-            _tCards.splice(index, 1, updatedTCard);
-            dispatch(setTCards(_tCards));
-            setMessage(receivedData.message);
-          }
-        }
+    //         // статус карты меняем только тогда когда все операции будут не ниже этого статуса
+    //         const updatedTCard = { ...tCards[index], status: tCardStatus }
+    //         const _tCards = [...tCards]
+    //         _tCards.splice(index, 1, updatedTCard);
+    //         dispatch(setTCards(_tCards));
+    //         setMessage(receivedData.message);
+    //       }
+    //     }
 
-      } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
-        if (e instanceof Error) {
-          message += e.message;
-        }
-        setMessage(message);
-      }
+    //   } catch (e: unknown) {
+    //     let message = t('service.serverUnavailable');
+    //     if (e instanceof Error) {
+    //       message += e.message;
+    //     }
+    //     setMessage(message);
+    //   }
 
-      setSaveLoaderCard(NaN);
-      return;
-    }
-    // если запланировалось записываем запланированное
-    if (tCardLoadsPrepared.length > 0) {
-      try {
-        const res = await fetch(`/api/save-card-loads-api`,
-          {
-            method: 'post',
-            headers: new Headers({
-              'Authorization': 'Basic ' + token,
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify({
-              tCard: tCardPrepared,
-              tCardLoads: tCardLoadsPrepared,
-              teamId: team.id,
-              userId: user.id,
-            }),
-          }
-        );
-        if (res.status !== 200) {
-          const receivedData = await res.json();
-          const error = receivedData.error;
-          setMessage(error);
-          // setMessage(t('service.serverUnavailable') + res.status);
-        } else {
-          const receivedData = await res.json();
-          // console.log("receivedData", receivedData)        
-          if (receivedData.success) {
-            const tCardStatus = receivedData.tCardStatus;
-            // удалим массив загрузок предварительный и добавим массив загрузок запланированный
-            // let _loads = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id && load.status !== 'draft') })
-            const savedUnitLoads = receivedData.savedUnitLoads as UnitLoadItem[];
-            const updatedLoads = [...unitLoadsWithoutCard, ...tCardLoadsWithoutPrepared, ...savedUnitLoads]
-            dispatch(setUnitLoads(updatedLoads))
+    //   setSaveLoaderCard(NaN);
+    //   return;
+    // }
+    // // если запланировалось записываем запланированное
+    // if (tCardLoadsPrepared.length > 0) {
+    //   try {
+    //     const res = await fetch(`/api/save-card-loads-api`,
+    //       {
+    //         method: 'post',
+    //         headers: new Headers({
+    //           'Authorization': 'Basic ' + token,
+    //           'Content-Type': 'application/json'
+    //         }),
+    //         body: JSON.stringify({
+    //           tCard: tCardPrepared,
+    //           tCardLoads: tCardLoadsPrepared,
+    //           teamId: team.id,
+    //           userId: user.id,
+    //         }),
+    //       }
+    //     );
+    //     if (res.status !== 200) {
+    //       const receivedData = await res.json();
+    //       const error = receivedData.error;
+    //       setMessage(error);
+    //       // setMessage(t('service.serverUnavailable') + res.status);
+    //     } else {
+    //       const receivedData = await res.json();
+    //       // console.log("receivedData", receivedData)        
+    //       if (receivedData.success) {
+    //         const tCardStatus = receivedData.tCardStatus;
+    //         // удалим массив загрузок предварительный и добавим массив загрузок запланированный
+    //         // let _loads = unitLoads.filter(load => { return (load.id_tCard !== tCardPrepared?.id && load.status !== 'draft') })
+    //         const savedUnitLoads = receivedData.savedUnitLoads as UnitLoadItem[];
+    //         const updatedLoads = [...unitLoadsWithoutCard, ...tCardLoadsWithoutPrepared, ...savedUnitLoads]
+    //         dispatch(setUnitLoads(updatedLoads))
 
-            //  поменяем статус карты  и после этого она перерисуется в запланированные
-            //  и статус операций
+    //         //  поменяем статус карты  и после этого она перерисуется в запланированные
+    //         //  и статус операций
 
-            const index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
+    //         const index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
 
-            // idc операций в которых меняем статус
-            const operIdc = [...new Set(savedUnitLoads.map(load => load.idc_oper))];
+    //         // idc операций в которых меняем статус
+    //         const operIdc = [...new Set(savedUnitLoads.map(load => load.idc_oper))];
 
-            const tCardOperations = tCards[index].tCardOperations?.map(operation => {
-              if (operIdc.includes(operation.idc)) {
-                return { ...operation, status: StatusEnum.planed };
-              }
-              return operation;
-            });
+    //         const tCardOperations = tCards[index].tCardOperations?.map(operation => {
+    //           if (operIdc.includes(operation.idc)) {
+    //             return { ...operation, status: StatusEnum.planed };
+    //           }
+    //           return operation;
+    //         });
 
-            // статус карты меняем только тогда когда все операции будут не ниже этого статуса
-            const updatedTCard = { ...tCards[index], status: tCardStatus, tCardOperations: tCardOperations }
-            const _tCards = [...tCards]
-            _tCards.splice(index, 1, updatedTCard);
-            dispatch(setTCardLighted(updatedTCard))
-            dispatch(setTCardPrepared({} as TCardItem));
-            dispatch(setTCards(_tCards));
-            setMessage("Планировка карты успешно записана");
-          }
-        }
-        // } catch (e: any) {
-        //   // setMessage(t('service.serverUnavailable') + e.message)            
-        // }
-      } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
-        if (e instanceof Error) {
-          message += e.message;
-        }
-        setMessage(message);
-      }
+    //         // статус карты меняем только тогда когда все операции будут не ниже этого статуса
+    //         const updatedTCard = { ...tCards[index], status: tCardStatus, tCardOperations: tCardOperations }
+    //         const _tCards = [...tCards]
+    //         _tCards.splice(index, 1, updatedTCard);
+    //         dispatch(setTCardLighted(updatedTCard))
+    //         dispatch(setTCardPrepared({} as TCardItem));
+    //         dispatch(setTCards(_tCards));
+    //         setMessage("Планировка карты успешно записана");
+    //       }
+    //     }
+    //     // } catch (e: any) {
+    //     //   // setMessage(t('service.serverUnavailable') + e.message)            
+    //     // }
+    //   } catch (e: unknown) {
+    //     let message = t('service.serverUnavailable');
+    //     if (e instanceof Error) {
+    //       message += e.message;
+    //     }
+    //     setMessage(message);
+    //   }
 
-      setSaveLoaderCard(NaN);
-    };
+    //   setSaveLoaderCard(NaN);
+    // };
+
+    setSaveLoaderCard(NaN);
   }
-
+  // На сервере
   // Затираем планирование карты только шкалу вперед  - все что прошло уже необратимо
   const erazCardHandler = async (tCardId: number) => {
     setErazLoaderCard(tCardId)
-    const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
-    const unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
-    try {
-      const res = await fetch(`/api/eraze-card-plan-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            tCardLoads: tCardLoads,
-            tCardId: tCardId,
-            today: today.toLocaleDateString("en-CA"),
-            teamId: team.id,
-            userId: user.id,
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        // setMessage(t('service.serverUnavailable') + res.status);
-      } else {
-        const receivedData = await res.json();
-        // console.log("receivedData", receivedData)        
-        if (receivedData.success) {
-          // Если успешно меняем статусы карты и операций
-          const tCardStatus = receivedData.tCardStatus;
-          const updatedLoads = [...unitLoadsWithoutCard, ...receivedData.tCardLoads]
-          dispatch(setUnitLoads(updatedLoads));
+    await erazeCard(tCardId, unitLoads, tCards, token, user.id, team.id,
+      today.toLocaleDateString("en-CA"), dispatch, t, setMessage,);
 
-          //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
-          const index = tCards.findIndex(tCard => tCard.id === tCardId);
-          if (tCards[index].status !== tCardStatus) {
-            const updatedTCard = { ...tCards[index], status: tCardStatus }
-            const _tCards = [...tCards]
-            _tCards.splice(index, 1, updatedTCard);
-            dispatch(setTCardPrepared(updatedTCard))
-            dispatch(setTCardLighted({} as TCardItem));
-            dispatch(setTCards(_tCards));
-          } else {
-            setMessage("Карта уже выполнена и нет операций где статус меняется");
-          }
-        }
-      }
-      // } catch (e: any) {
-      //   // setMessage(t('service.serverUnavailable') + e.message)            
-      //   // }
+    // Перенесено в сервис
+    // const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
+    // const unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
+    // try {
+    //   const res = await fetch(`/api/eraze-card-plan-api`,
+    //     {
+    //       method: 'post',
+    //       headers: new Headers({
+    //         'Authorization': 'Basic ' + token,
+    //         'Content-Type': 'application/json'
+    //       }),
+    //       body: JSON.stringify({
+    //         tCardLoads: tCardLoads,
+    //         tCardId: tCardId,
+    //         today: today.toLocaleDateString("en-CA"),
+    //         teamId: team.id,
+    //         userId: user.id,
+    //       }),
+    //     }
+    //   );
+    //   if (res.status !== 200) {
+    //     const receivedData = await res.json();
+    //     const error = receivedData.error;
+    //     setMessage(error);
+    //     // setMessage(t('service.serverUnavailable') + res.status);
+    //   } else {
+    //     const receivedData = await res.json();
+    //     // console.log("receivedData", receivedData)        
+    //     if (receivedData.success) {
+    //       // Если успешно меняем статусы карты и операций
+    //       const tCardStatus = receivedData.tCardStatus;
+    //       const updatedLoads = [...unitLoadsWithoutCard, ...receivedData.tCardLoads]
+    //       dispatch(setUnitLoads(updatedLoads));
 
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
+    //       //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
+    //       const index = tCards.findIndex(tCard => tCard.id === tCardId);
+    //       if (tCards[index].status !== tCardStatus) {
+    //         const updatedTCard = { ...tCards[index], status: tCardStatus }
+    //         const _tCards = [...tCards]
+    //         _tCards.splice(index, 1, updatedTCard);
+    //         dispatch(setTCardPrepared(updatedTCard))
+    //         dispatch(setTCardLighted({} as TCardItem));
+    //         dispatch(setTCards(_tCards));
+    //       } else {
+    //         setMessage("Карта уже выполнена и нет операций где статус меняется");
+    //       }
+    //     }
+    //   }
+    //   // } catch (e: any) {
+    //   //   // setMessage(t('service.serverUnavailable') + e.message)            
+    //   //   // }
+
+    //   // }
+    // } catch (e: unknown) {
+    //   let message = t('service.serverUnavailable');
+    //   if (e instanceof Error) {
+    //     message += e.message;
+    //   }
+    //   setMessage(message);
+    // }
 
     setErazLoaderCard(NaN)
   };
-
+  // На сервере
   // удаление лоада из контекстного меню для сторонних юнитов
   const erazLoadHandler = async (load_idc: number) => {
-    const erazload = unitLoads.find(load => load.idc === load_idc)
-    const tCardLoads = unitLoads.filter(load => load.id_tCard === erazload?.id_tCard)
-    const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== erazload?.id_tCard)
 
-    const index = tCards.findIndex(tCard => tCard.id === erazload?.id_tCard);
+    await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
 
-    if (erazload) {
+    // Перенесено в сервис
 
-      try {
-        const res = await fetch(`/api/eraze-load-plan-api`,
-          {
-            method: 'post',
-            headers: new Headers({
-              'Authorization': 'Basic ' + token,
-              'Content-Type': 'application/json'
-            }),
-            body: JSON.stringify({
-              erazload: erazload,
-              tCardLoads: tCardLoads,
-              today: new Date().toLocaleDateString("en-CA"),
-              teamId: team.id,
-              userId: user.id,
-            }),
-          }
-        );
+    // const erazload = unitLoads.find(load => load.idc === load_idc)
+    // const tCardLoads = unitLoads.filter(load => load.id_tCard === erazload?.id_tCard)
+    // const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== erazload?.id_tCard)
 
-        if (res.status !== 200) {
-          const receivedData = await res.json();
-          const error = receivedData.error;
-          setMessage(error);
-          // setMessage(t('service.serverUnavailable') + res.status);
-        } else {
-          const receivedData = await res.json();
+    // const index = tCards.findIndex(tCard => tCard.id === erazload?.id_tCard);
 
-          const updatedTCard = (receivedData.tCard as TCardItem)
-          const tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
+    // if (erazload) {
 
-          // обновляем лоады
-          const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
-          dispatch(setUnitLoads(updatedLoads));
-          // меняем карту в списке
-          const _tCards = [...tCards]
-          _tCards.splice(index, 1, updatedTCard);
-          dispatch(setTCards(_tCards));
-          // // меняем статус карты
-          // const tCards_ = tCards.map(card => (card.id === erazload.id_tCard) ? { ...card, status: StatusEnum.prepared } : card)
-          // dispatch(setTCards(tCards_));
+    //   try {
+    //     const res = await fetch(`/api/eraze-load-plan-api`,
+    //       {
+    //         method: 'post',
+    //         headers: new Headers({
+    //           'Authorization': 'Basic ' + token,
+    //           'Content-Type': 'application/json'
+    //         }),
+    //         body: JSON.stringify({
+    //           erazload: erazload,
+    //           tCardLoads: tCardLoads,
+    //           today: new Date().toLocaleDateString("en-CA"),
+    //           teamId: team.id,
+    //           userId: user.id,
+    //         }),
+    //       }
+    //     );
 
-          if (receivedData.success) {
-            setMessage(" Успешно удалено планирование операции и все последующие зависимые планирования");
-          } else {
-            setMessage(receivedData.message);
-          }
-        }
-        // } catch (e: any) {
-        //   // setMessage(t('service.serverUnavailable') + e.message)            
-        // }
-      } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
-        if (e instanceof Error) {
-          message += e.message;
-        }
-        setMessage(message);
-      }
-    }
+    //     if (res.status !== 200) {
+    //       const receivedData = await res.json();
+    //       const error = receivedData.error;
+    //       setMessage(error);
+    //       // setMessage(t('service.serverUnavailable') + res.status);
+    //     } else {
+    //       const receivedData = await res.json();
+
+    //       const updatedTCard = (receivedData.tCard as TCardItem)
+    //       const tCardLoads_ = (receivedData.unitsLoads as UnitLoadItem[])
+
+    //       // обновляем лоады
+    //       const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+    //       dispatch(setUnitLoads(updatedLoads));
+    //       // меняем карту в списке
+    //       const _tCards = [...tCards]
+    //       _tCards.splice(index, 1, updatedTCard);
+    //       dispatch(setTCards(_tCards));
+    //       // // меняем статус карты
+    //       // const tCards_ = tCards.map(card => (card.id === erazload.id_tCard) ? { ...card, status: StatusEnum.prepared } : card)
+    //       // dispatch(setTCards(tCards_));
+
+    //       if (receivedData.success) {
+    //         setMessage(" Успешно удалено планирование операции и все последующие зависимые планирования");
+    //       } else {
+    //         setMessage(receivedData.message);
+    //       }
+    //     }
+    //     // } catch (e: any) {
+    //     //   // setMessage(t('service.serverUnavailable') + e.message)            
+    //     // }
+    //   } catch (e: unknown) {
+    //     let message = t('service.serverUnavailable');
+    //     if (e instanceof Error) {
+    //       message += e.message;
+    //     }
+    //     setMessage(message);
+    //   }
+    // }
   }
-
+  // На сервере
   // перетаскивание лоада на шкале  возвращает измененное планирование карты
   const moveLoadHandler = async (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => {
 
-    const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardPrepared.id)
-    const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== tCardPrepared.id)
-    //  перетаскивать лоады можем только на этапе prepared
-    if (load) {
-      if (load.status === StatusEnum.prepared) {
-        // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
-        // проверяем согласованность предыдущих и перепланируем последующие
-        try {
-          const res = await fetch(`/api/pre-moveload-api`,
-            {
-              method: 'post',
-              headers: new Headers({
-                'Authorization': 'Basic ' + token,
-                'Content-Type': 'application/json'
-              }),
-              body: JSON.stringify({
-                pinnedLoad: load,
-                tCardLoads: tCardLoads,
-                unit: unit,
-                date: date,
-                timeStart: timeStart,
-                timeFinish: timeFinish,
-                today: today.toLocaleDateString("en-CA"),
-                userId: user.id,
-                teamId: team.id,
-              }),
-            }
-          );
+    await moveLoad(load, unit, date, timeStart, timeFinish, unitLoads, tCardPrepared.id, token, user.id, team.id, today.toLocaleDateString("en-CA"), dispatch, t, setMessage);
 
-          if (res.status !== 200) {
-            const receivedData = await res.json();
-            const error = receivedData.error;
-            setMessage(error);
-            // setMessage(t('service.serverUnavailable') + res.status);
-          } else {
-            const receivedData = await res.json();
-            if (receivedData.success) {
-              const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
-              const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
-              dispatch(setUnitLoads(updatedLoads));
-              setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
-            } else {
-              setMessage(receivedData.message);
-            }
-          }
-          // } catch (e: any) {
-          //   // setMessage(t('service.serverUnavailable') + e.message)            
-          // }
-        } catch (e: unknown) {
-          let message = t('service.serverUnavailable');
-          if (e instanceof Error) {
-            message += e.message;
-          }
-          setMessage(message);
-        }
+    // Перенесено в сервис
+    // const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardPrepared.id)
+    // const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== tCardPrepared.id)
+    // //  перетаскивать лоады можем только на этапе prepared
+    // if (load) {
+    //   if (load.status === StatusEnum.prepared) {
+    //     // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
+    //     // проверяем согласованность предыдущих и перепланируем последующие
+    //     try {
+    //       const res = await fetch(`/api/pre-moveload-api`,
+    //         {
+    //           method: 'post',
+    //           headers: new Headers({
+    //             'Authorization': 'Basic ' + token,
+    //             'Content-Type': 'application/json'
+    //           }),
+    //           body: JSON.stringify({
+    //             pinnedLoad: load,
+    //             tCardLoads: tCardLoads,
+    //             unit: unit,
+    //             date: date,
+    //             timeStart: timeStart,
+    //             timeFinish: timeFinish,
+    //             today: today.toLocaleDateString("en-CA"),
+    //             userId: user.id,
+    //             teamId: team.id,
+    //           }),
+    //         }
+    //       );
 
-      }
-    }
+    //       if (res.status !== 200) {
+    //         const receivedData = await res.json();
+    //         const error = receivedData.error;
+    //         setMessage(error);
+    //         // setMessage(t('service.serverUnavailable') + res.status);
+    //       } else {
+    //         const receivedData = await res.json();
+    //         if (receivedData.success) {
+    //           const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+    //           const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+    //           dispatch(setUnitLoads(updatedLoads));
+    //           setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
+    //         } else {
+    //           setMessage(receivedData.message);
+    //         }
+    //       }
+    //       // } catch (e: any) {
+    //       //   // setMessage(t('service.serverUnavailable') + e.message)            
+    //       // }
+    //     } catch (e: unknown) {
+    //       let message = t('service.serverUnavailable');
+    //       if (e instanceof Error) {
+    //         message += e.message;
+    //       }
+    //       setMessage(message);
+    //     }
+
+    //   }
+    // }
   }
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
@@ -422,64 +439,67 @@ export default function Planing() {
     // tCardLoads_.filter(load => load.id_oper ===oper_id )     
     dispatch(setUnitLoads([...tCardLoads_]))
   }
-
+  // На сервере
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
   const unPinLoadHandler = async (operId: number, tCardId: number, version: number) => {
 
+    await unPinLoad(tCardId, operId, unitLoads, today.toLocaleDateString("en-CA"), version,
+      token, user.id, team.id, dispatch, t, setMessage);
 
-    //  последующее перепланирование
-    const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
-    const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== tCardId)
-    //  перетаскивать лоады можем только на этапе prepared
+    // Перенесено в сервис
+    // //  последующее перепланирование
+    // const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
+    // const tCardLoadsWithout = unitLoads.filter(load => load.id_tCard !== tCardId)
+    // //  перетаскивать лоады можем только на этапе prepared
 
 
-    // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
-    // проверяем согласованность предыдущих и перепланируем последующие
-    try {
-      const res = await fetch(`/api/pre-unpinload-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            userId: user.id,
-            teamId: team.id,
-            tCardId: tCardId,
-            operId: operId,
-            tCardLoads: tCardLoads,
-            today: today.toLocaleDateString("en-CA")
-          }),
-        }
-      );
+    // // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
+    // // проверяем согласованность предыдущих и перепланируем последующие
+    // try {
+    //   const res = await fetch(`/api/pre-unpinload-api`,
+    //     {
+    //       method: 'post',
+    //       headers: new Headers({
+    //         'Authorization': 'Basic ' + token,
+    //         'Content-Type': 'application/json'
+    //       }),
+    //       body: JSON.stringify({
+    //         userId: user.id,
+    //         teamId: team.id,
+    //         tCardId: tCardId,
+    //         operId: operId,
+    //         tCardLoads: tCardLoads,
+    //         today: today.toLocaleDateString("en-CA")
+    //       }),
+    //     }
+    //   );
 
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-        // setMessage(t('service.serverUnavailable') + res.status);
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
-          const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
-          dispatch(setUnitLoads(updatedLoads));
-          setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
-        } else {
-          setMessage(receivedData.message);
-        }
-      }
-      // } catch (e: any) {
-      //   // setMessage(t('service.serverUnavailable') + e.message)            
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
+    //   if (res.status !== 200) {
+    //     const receivedData = await res.json();
+    //     const error = receivedData.error;
+    //     setMessage(error);
+    //     // setMessage(t('service.serverUnavailable') + res.status);
+    //   } else {
+    //     const receivedData = await res.json();
+    //     if (receivedData.success) {
+    //       const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
+    //       const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
+    //       dispatch(setUnitLoads(updatedLoads));
+    //       setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
+    //     } else {
+    //       setMessage(receivedData.message);
+    //     }
+    //   }
+    //   // } catch (e: any) {
+    //   //   // setMessage(t('service.serverUnavailable') + e.message)            
+    //   // }
+    // } catch (e: unknown) {
+    //   let message = t('service.serverUnavailable');
+    //   if (e instanceof Error) {
+    //     message += e.message;
+    //   }
+    //   setMessage(message);
+    // }
 
   }
 
