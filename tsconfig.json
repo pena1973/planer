@@ -31,6 +31,7 @@
 //   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts","db/models/**/*"],
 //   "exclude": ["node_modules"]
 // }
+
 {
   "compilerOptions": {
     "target": "ESNext",
@@ -44,9 +45,6 @@
     "strict": true,
     "noEmit": true,
     "module": "esnext",
-    // "noEmit": false,                      // ⛳ ВАЖНО: разрешить генерацию .js
-    // "outDir": ".next/server",             // Куда класть .js
-    // "module": "commonjs",                 // Для совместимости с TypeORM
     "moduleResolution": "node", // Вместо bundler
     "esModuleInterop": true,
     "resolveJsonModule": true,

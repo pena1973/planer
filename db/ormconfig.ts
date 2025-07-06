@@ -25,19 +25,6 @@ import { SettingsTable } from './../db/models/plan/settings'
 import { SupportTable } from './../db/models/support/support'
 import { BillTable } from './../db/models/support/bills'
 
-import path from 'path'
-import fs from 'fs';
-// Пытаемся найти хотя бы один .ts-файл моделей
-// const tsModelPath = path.join(process.cwd(), 'db', 'models', 'catalogs', 'users.ts');
-// const useTsModels = fs.existsSync(tsModelPath);
-const isProd = String(process.env.NODE_ENV) === 'production';
- console.log('isProd:', isProd);
- console.log('NODE_ENV:', String(process.env.NODE_ENV));
-
-const useTsModels = !isProd && fs.existsSync(
-  path.join(process.cwd(), 'db/models/catalogs/users.ts')
-);
-
 const host = String(process.env.NEXT_PUBLIC_DB_HOST);
 const username = String(process.env.NEXT_PUBLIC_DB_USERNAME);
 const password = String(process.env.NEXT_PUBLIC_DB_PASSWORD);
@@ -54,15 +41,15 @@ const config: ConnectionOptions = {
   // logging: true, // Включите логирование SQL-запросов (можно отключить в продакшн-среде)
   logging: ["error", "warn"],
 
-  entities: useTsModels
-    ? [
+  entities: 
+     [
       TCardTable, TCardOperationTable, TCardProductTable, TCardStageTable,
       UOMsTable, ActionTable, TeamTable, UnitTable, UserTable, UnitActionTable,
       TeamScheduleTable, UnitExceptionTable, UnitLoadTable, SettingsTable,
       AgreementTable, UserAgreeTable, UserUnitTable, TemplateTable,
       SupportTable, BillTable
     ]
-    : [path.join(__dirname, '/db/models/**/*.js')],
+    ,
   
   migrations: ["/db/migrations/**/*.ts"],  // Путь к миграциям
   subscribers: [],
