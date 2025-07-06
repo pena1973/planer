@@ -1,20 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { extractIdFromTeamNumber } from '@/lib/utils';
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { extractIdFromTeamNumber } from './../../lib/utils';
 
-import { UserTable } from '@/db/models/catalogs/users';
-import { TeamTable } from '@/db/models/catalogs/teams';
-import { UserAgreeTable } from '@/db/models/catalogs/user_agree';
-import { AgreementTable } from '@/db/models/catalogs/agreements';
-import { SettingsTable } from '@/db/models/plan/settings'
+import { UserTable } from './../../db/models/catalogs/users';
+import { TeamTable } from './../../db/models/catalogs/teams';
+import { UserAgreeTable } from './../../db/models/catalogs/user_agree';
+import { AgreementTable } from './../../db/models/catalogs/agreements';
+import { SettingsTable } from './../../db/models/plan/settings'
 
-import { updateSettings } from '@/handlers/handlers-update';  // расчеты
+import { updateSettings } from './../../handlers/handlers-update';  // расчеты
 
-import { TeamItem, UserItem, SettingsItem} from '@/types/types';
+import { TeamItem, UserItem, SettingsItem} from './../../types/types';
 
 import { sign } from 'jsonwebtoken';
 import { createNewTeam, createNewUser, getTeam, 
-  isUserExist, getLastAgreement } from '@/handlers/handlers-auth';  // расчеты
+  isUserExist, getLastAgreement } from './../../handlers/handlers-auth';  // расчеты
 
 interface RequestBody {
   login: string,

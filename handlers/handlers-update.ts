@@ -1,30 +1,30 @@
 
-import { Repository, In, Any } from 'typeorm';
+import { Repository, In} from 'typeorm';
 // tables
-import { UnitTable } from '@/db/models/catalogs/units'
-import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
-import { TCardTable } from '@/db/models/data/t_cards'
-import { TCardStageTable } from '@/db/models/data/t_card_stages'
-import { TemplateTable } from '@/db/models/catalogs/templates'
+import { UnitTable } from './../db/models/catalogs/units'
+import { UnitActionTable } from './../db/models/catalogs/unit_actions'
+import { UnitLoadTable } from './../db/models/plan/unit_loads';
+import { TCardTable } from './../db/models/data/t_cards'
+import { TCardStageTable } from './../db/models/data/t_card_stages'
+import { TemplateTable } from './../db/models/catalogs/templates'
 
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TypeEnum } from '@/types/types';
-import { ActionTable } from '@/db/models/catalogs/actions';
-import { UOMsTable } from '@/db/models/catalogs/uoms';
-import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions';
-import { SettingsTable } from '@/db/models/plan/settings';
+import { TCardProductTable } from './../db/models/data/t_card_products'
+import { TCardOperationTable } from './../db/models/data/t_card_operations'
+import { TypeEnum } from './../types/types';
+import { ActionTable } from './../db/models/catalogs/actions';
+import { UOMsTable } from './../db/models/catalogs/uoms';
+import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
+import { SettingsTable } from './../db/models/plan/settings';
 
-import { UserTable } from '@/db/models/catalogs/users';
-import { UserUnitTable } from '@/db/models/catalogs/user_unit';
-import { SupportTable } from '@/db/models/support/support';
+import { UserTable } from './../db/models/catalogs/users';
+import { UserUnitTable } from './../db/models/catalogs/user_unit';
+import { SupportTable } from './../db/models/support/support';
 
 
 
 // types
-import { UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem, SupportMessageItem } from '@/types/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, SettingsItem, TemplateItem, StatusEnum } from '@/types/types';
+import { UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem, SupportMessageItem } from './../types/types';
+import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, SettingsItem, TemplateItem, StatusEnum } from './../types/types';
 
 
 // НАСТРОЙКИ

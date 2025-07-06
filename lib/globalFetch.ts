@@ -1,25 +1,8 @@
 // lib/globalFetch.ts
-import { store } from '@/store'
-import { setToken, setUser, setTeam, setSignedAgreement, setSettings, setUnit } from '@/store/slices'
-import { logout } from '@/lib/logout'
+import { store } from './../store'
+import { setToken } from './../store/slices'
+import { logout } from './../lib/logout'
 const originalFetch = global.fetch.bind(global)
-
-// function logout() {
-//   console.warn('[AUTH] 🚪 Logout — сбрасываем токен и данные')
-//   store.dispatch(setToken(null))
-//   store.dispatch(setUser(null))
-//   store.dispatch(setTeam(null))
-//   store.dispatch(setSettings(null))
-//   store.dispatch(setSignedAgreement(false))
-//   store.dispatch(setUnit(null))
-
-//   // можно показать сообщение:
-//   if (typeof window !== 'undefined') {
-//     alert('Сессия истекла. Пожалуйста, войдите снова.')
-//     // Перенаправить на логин:
-//     window.location.href = '/?session=expired'
-//   }
-// }
 
 global.fetch = async function (
     input: RequestInfo | URL,
@@ -60,7 +43,6 @@ global.fetch = async function (
         } else {
             console.error(`[AUTH] ❌ Refresh не сработал. Logout.`)
             logout('/?session=expired')
-            //   logout()
         }
     }
 

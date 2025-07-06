@@ -1,25 +1,22 @@
 
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getEarliestStart } from '@/handlers/handlers-plan';  // планирование карты
-import { Repository, In } from 'typeorm';
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getEarliestStart } from './../../handlers/handlers-plan';  // планирование карты
+import { Repository } from 'typeorm';
 
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
-import { TeamScheduleTable } from '@/db/models/plan/team_schedule';
-import { TCardTable } from '@/db/models/data/t_cards'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
+import { TCardTable } from './../../db/models/data/t_cards'
 
-import { UnitTable } from '@/db/models/catalogs/units'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { getTCardFull } from './../../handlers/handlers-get';  // 
+import { updateStatusTCard } from './../../handlers/handlers-update';  // 
 
-import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import { getTCard, getTCardFull } from '@/handlers/handlers-get';  // 
-import { updateStatusTCard } from '@/handlers/handlers-update';  // 
+import { TCardStageTable } from './../../db/models/data/t_card_stages'
 
-import { TCardStageTable } from '@/db/models/data/t_card_stages'
-
-import { TCardOperationItem, UnitLoadItem, StatusEnum } from "@/types/types";
+import { TCardOperationItem, UnitLoadItem, StatusEnum } from "./../../types/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
@@ -34,8 +31,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
 
-    const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
     const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
     const tCardRepository = dbConnection.getRepository(TCardTable);
     const tCardProductRepository = dbConnection.getRepository(TCardProductTable);

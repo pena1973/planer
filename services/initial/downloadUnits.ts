@@ -1,5 +1,5 @@
-import { UnitItem } from '@/types/types';
-import { setUnits } from '@/store/slices';
+import { UnitItem } from './../../types/types';
+import { setUnits } from './../../store/slices';
 import { Dispatch } from 'redux';
 
 export const downloadUnits = async (

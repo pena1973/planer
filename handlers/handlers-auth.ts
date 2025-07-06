@@ -1,13 +1,13 @@
 
-import { Repository, In, Any } from 'typeorm';
+import { Repository } from 'typeorm';
 // tables
-import { UserTable } from '@/db/models/catalogs/users'
-import { TeamTable } from '@/db/models/catalogs/teams'
-import { UserAgreeTable } from '@/db/models/catalogs/user_agree';
-import { AgreementTable } from '@/db/models/catalogs/agreements';
+import { UserTable } from './../db/models/catalogs/users'
+import { TeamTable } from './../db/models/catalogs/teams'
+import { UserAgreeTable } from './../db/models/catalogs/user_agree';
+import { AgreementTable } from './../db/models/catalogs/agreements';
 
 // types
-import { UserItem, TeamItem, } from '@/types/types';
+import { UserItem, TeamItem, } from './../types/types';
 
 // хеш функция 
 export const hashFoo = async (data: string) => {
@@ -233,36 +233,6 @@ export async function getUser(
   // Возвращаем результат
   return { success: true, user, message: '' };
 }
-
-// export async function getUserById(
-//   userId: number,
-//   usersRepository: Repository<UserTable>
-// ): Promise<{ success: boolean, user: UserItem, message?: string }> {
-
-//   // Строим фильтр для поиска пользователя по userId
-//   const filter = { id: userId };
-
-//   // Ищем пользователя в базе данных
-//   const userRecord = await usersRepository.findOne({ where: filter });
-
-//   // Если пользователь не найден
-//   if (!userRecord) {
-//     return { success: false, user: {} as UserItem, message: 'Пользователь не найден' };
-//   }
-
-//   // Преобразуем данные из сущности в формат UserItem
-//   const user: UserItem = {
-//     id: userRecord.id,
-//     login: userRecord.login,
-//     pass: userRecord.pass, // Можно исключить, если не хотите передавать пароль
-//     name: userRecord.name,
-//     locale: userRecord.locale,
-//     isAdmin: userRecord.isAdmin, // Конвертируем строку в булево значение
-//   };
-
-//   // Возвращаем результат
-//   return { success: true, user, message: '' };
-// }
 
 
 export async function isUserExist(

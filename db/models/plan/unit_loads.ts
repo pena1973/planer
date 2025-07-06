@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 't
 import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
 import { UnitTable } from '../catalogs/units'; // Подключаем сущность для связи
 import { TCardTable } from '../data/t_cards'; // Подключаем сущность для связи
-import { StatusEnum } from '@/types/types';
+import { StatusEnum } from './../../../types/types';
 
 @Entity("unit_loads")
 export class UnitLoadTable {

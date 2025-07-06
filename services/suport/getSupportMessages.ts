@@ -1,4 +1,4 @@
-import { SupportMessageItem } from "@/types/types";
+import { SupportMessageItem } from "./../../types/types";
 
 export const getSupportMessages = async (
     userId: number,

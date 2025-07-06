@@ -9,16 +9,32 @@ i18n
   .use(detector)
   .use(initReactI18next)
   .init({
-    // debug: true,
+    debug: false,
     fallbackLng: "en",
-    ns: ["translation", "help","cookies","ui"],
+    ns: ["translation", "help", "cookies", "ui"],
     defaultNS: "translation",
     interpolation: {
       escapeValue: false,
     },
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json", // ✅ путь к public
+      requestOptions: {
+        mode: 'no-cors',
+      },
+      silent: true,
     },
+
   });
+
+const originalConsoleLog = console.log;
+console.log = (...args: any[]) => {
+  if (
+    typeof args[0] === 'string' &&
+    args[0].includes('[FETCH] → /locales/')
+  ) {
+    return; // подавляем
+  }
+  originalConsoleLog(...args); // остальное оставляем
+};
 
 export default i18n;

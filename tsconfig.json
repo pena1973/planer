@@ -1,32 +1,79 @@
+// {
+//   "compilerOptions": {       
+//     "target": "ESNext",  // Устанавливаем стандарт ESNext
+//     "lib": ["dom", "dom.iterable", "esnext"],
+//     "allowJs": true,
+//     "skipLibCheck": true,
+//     "strict": true,
+//     "noEmit": false,   
+//    // "outDir": ".next/server", 
+//     "esModuleInterop": true,
+//     "module": "ESNext",
+//     "moduleResolution": "bundler",
+//     "resolveJsonModule": true,
+//     "isolatedModules": true,
+//     "jsx": "preserve",
+//     "incremental": true,    
+//      "experimentalDecorators": true,      // Включите поддержку декораторов
+//      "emitDecoratorMetadata": true,     // Включите эмитирование метаданных для декораторов
+//     "plugins": [
+//       {
+//         "name": "next"
+//       }
+//     ],
+//     "paths": {
+//       "@/*": ["./*"]
+//     },
+//     // "sourceMap": true,
+//     // "inlineSourceMap": true,
+//     // "outDir": "./.next" // для Next.js
+//   },
+//   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts","db/models/**/*"],
+//   "exclude": ["node_modules"]
+// }
 {
-  "compilerOptions": {       
-    "target": "ESNext",  // Устанавливаем стандарт ESNext
-    "lib": ["dom", "dom.iterable", "esnext"],
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    "module": "esnext",
+    // "noEmit": false,                      // ⛳ ВАЖНО: разрешить генерацию .js
+    // "outDir": ".next/server",             // Куда класть .js
+    // "module": "commonjs",                 // Для совместимости с TypeORM
+    "moduleResolution": "node", // Вместо bundler
     "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "incremental": true,    
-     "experimentalDecorators": true,      // Включите поддержку декораторов
-     "emitDecoratorMetadata": true,     // Включите эмитирование метаданных для декораторов
+    "incremental": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    },
-    // "sourceMap": true,
-    // "inlineSourceMap": true,
-    // "outDir": "./.next" // для Next.js
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "db/models/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

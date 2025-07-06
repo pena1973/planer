@@ -4,7 +4,7 @@ import {
   CalendarItem, TimeTypeEnum, StatusEnum,
   UnitItem, ScheduleItem, DaysOfWeek, UnitBelongEnum,
   UnitActionItem
-} from "@/types/types";
+} from "./../types/types";
 
 // функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
 const getLoadIdc = (
@@ -19,7 +19,7 @@ const getLoadIdc = (
   return Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`)
 }
 
-import { generateUniqueIdc } from '@/lib/utils'
+import { generateUniqueIdc } from './../lib/utils'
 // генерация привычной нам даты - ее использую как id дня
 const idDay = (date: Date): string => {
   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем

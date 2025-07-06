@@ -1,7 +1,7 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column,  ManyToOne, JoinColumn } from 'typeorm';
 import { TeamTable } from './teams'
-import { UnitTypeEnum, UnitBelongEnum } from '@/types/types';
+import { UnitTypeEnum, UnitBelongEnum } from './../../../types/types';
 
 @Entity("units")
 export class UnitTable {

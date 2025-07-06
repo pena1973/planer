@@ -1,7 +1,7 @@
 
 import { Dispatch } from "redux";
-import { UnitLoadItem } from "@/types/types";
-import { setUnitLoads } from "@/store/slices";
+import { UnitLoadItem } from "./../../types/types";
+import { setUnitLoads } from "./../../store/slices";
 
 export const unPinLoad = async (
     tCardId: number,

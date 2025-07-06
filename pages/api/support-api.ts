@@ -1,11 +1,11 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { updateSupportMessage } from '@/handlers/handlers-update';  // расчеты
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { updateSupportMessage } from './../../handlers/handlers-update';  // расчеты
 
-import { SupportTable } from '@/db/models/support/support';
-import { SupportMessageItem } from '@/types/types';
-import { getSuportMessages } from '@/handlers/handlers-get';
+import { SupportTable } from './../../db/models/support/support';
+import { SupportMessageItem } from './../../types/types';
+import { getSuportMessages } from './../../handlers/handlers-get';
 
 interface RequestBody {
   userId: number,

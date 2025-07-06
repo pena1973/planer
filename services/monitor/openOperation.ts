@@ -2,7 +2,7 @@ import {
   TCardItem,
   TCardOperationItem,
   UnitLoadItem
-} from "@/types/types";
+} from "./../../types/types";
 
 export const openOperation = async (
   load: UnitLoadItem,

@@ -1,29 +1,24 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 // Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from '@/handlers/handlers-get';  // 
-import {
-  planTCardFromOperINC, planOperOnUnit,
-  getDependentOperationsIds, getOperationReadyMoment
-} from '@/handlers/handlers-plan';  // 
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './../../handlers/handlers-get';  // 
 
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
-import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions';
-import { TeamScheduleTable } from '@/db/models/plan/team_schedule';
-import { TCardTable } from '@/db/models/data/t_cards'
+import {  planTCardFromOperINC, planOperOnUnit,  getDependentOperationsIds, getOperationReadyMoment} from './../../handlers/handlers-plan';  // 
 
-import { UnitTable } from '@/db/models/catalogs/units'
-import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import { TCardStageTable } from '@/db/models/data/t_card_stages'
-import { StatusEnum } from '@/types/types'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
+import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions';
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
+import { TCardTable } from './../../db/models/data/t_cards'
 
-import {
-  UnitItem, UnitLoadItem,
-  UnitBelongEnum,
-} from "@/types/types";
+import { UnitTable } from './../../db/models/catalogs/units'
+import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { TCardStageTable } from './../../db/models/data/t_card_stages'
+import { StatusEnum } from './../../types/types'
+
+import { UnitItem, UnitLoadItem,  UnitBelongEnum} from "./../../types/types";
 
 interface RequestBody {
   pinnedLoad: UnitLoadItem,

@@ -1,11 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, OneToMany, } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne } from 'typeorm';
 
 import { ActionTable } from '../../models/catalogs/actions'
 
-// import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+
 import { TCardTable } from './t_cards'; // Импортируем зависимую сущность
 import { TCardStageTable } from './t_card_stages'; // Импортируем зависимую сущность
-import { StatusEnum } from '@/types/types';
+import { StatusEnum } from './../../../types/types';
 
 
 @Entity('t_card_operations')

@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { TCardItem, UnitLoadItem, StatusEnum, TCardOperationItem } from "@/types/types";
-import { setTCardLighted, setTCardPrepared, setTCards, setUnitLoads } from "@/store/slices";
+import { TCardItem, UnitLoadItem, StatusEnum } from "./../../types/types";
+import { setTCardLighted, setTCardPrepared, setTCards, setUnitLoads } from "./../../store/slices";
 
 export const saveCard = async (
     tCardPrepared: TCardItem,

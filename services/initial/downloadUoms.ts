@@ -1,5 +1,5 @@
-import { UOMItem } from '@/types/types';
-import { setUOMs } from '@/store/slices';
+import { UOMItem } from './../../types/types';
+import { setUOMs } from './../../store/slices';
 import { Dispatch } from 'redux';
 
 export const downloadUoms = async (

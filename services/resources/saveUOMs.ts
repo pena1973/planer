@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { UOMItem, TeamItem, UserItem } from "@/types/types";
-import { setUOMs } from "@/store/slices";
+import { UOMItem, TeamItem, UserItem } from "./../../types/types";
+import { setUOMs } from "./../../store/slices";
 
 export const saveUOMs = async (
     uomsValue: UOMItem[],

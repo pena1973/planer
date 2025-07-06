@@ -1,22 +1,22 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 // Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from '@/handlers/handlers-get';  // 
-import { planTCardFromOperINC,  getDependentOperationsIds} from '@/handlers/handlers-plan';  // 
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './../../handlers/handlers-get';  // 
+import { planTCardFromOperINC,  getDependentOperationsIds} from './../../handlers/handlers-plan';  // 
 
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
-import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions';
-import { TeamScheduleTable } from '@/db/models/plan/team_schedule';
-import { TCardTable } from '@/db/models/data/t_cards'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
+import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions';
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
+import { TCardTable } from './../../db/models/data/t_cards'
 
-import { UnitTable } from '@/db/models/catalogs/units'
+import { UnitTable } from './../../db/models/catalogs/units'
 
-import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import { TCardStageTable } from '@/db/models/data/t_card_stages'
-import {UnitLoadItem,} from "@/types/types";
+import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { TCardStageTable } from './../../db/models/data/t_card_stages'
+import {UnitLoadItem,} from "./../../types/types";
 
 interface RequestBody {
   userId:number,

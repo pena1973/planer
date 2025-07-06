@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { TCardItem } from "@/types/types";
-import { setTCards } from "@/store/slices";
+import { TCardItem } from "./../../types/types";
+import { setTCards } from "./../../store/slices";
 
 export const resetTCardById = async (
     idToReset: number,

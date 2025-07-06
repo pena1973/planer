@@ -1,8 +1,8 @@
 
 
 import { Dispatch } from "redux";
-import { TCardItem, UnitLoadItem } from "@/types/types";
-import { setTCards, setUnitLoads } from "@/store/slices";
+import { TCardItem, UnitLoadItem } from "./../../types/types";
+import { setTCards, setUnitLoads } from "./../../store/slices";
 
 export const deleteTCardById = async (
     idToRemove: number,

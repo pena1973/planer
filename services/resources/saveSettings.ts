@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { SettingsItem, TeamItem, UserItem } from "@/types/types";
-import { setSettings } from "@/store/slices";
+import { SettingsItem, TeamItem, UserItem } from "./../../types/types";
+import { setSettings } from "./../../store/slices";
 
 export const saveSettings = async (
     timeStartWorkValue: number,

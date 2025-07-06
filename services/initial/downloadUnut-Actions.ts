@@ -1,5 +1,5 @@
-import { UnitActionItem } from '@/types/types';
-import { setUnitActions } from '@/store/slices';
+import { UnitActionItem } from './../../types/types';
+import { setUnitActions } from './../../store/slices';
 import { Dispatch } from 'redux';
 
 export const downloadUnutActions = async (

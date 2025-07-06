@@ -1,8 +1,8 @@
 
 import { Dispatch } from "redux";
-import { TCardItem, TeamItem, UserItem } from "@/types/types";
-import { setTCards } from "@/store/slices";
-import { StatusEnum } from "@/types/types";
+import { TCardItem, TeamItem, UserItem } from "./../../types/types";
+import { setTCards } from "./../../store/slices";
+import { StatusEnum } from "./../../types/types";
 
 export const saveTCardById = async (
     idToSave: number,

@@ -1,5 +1,5 @@
-import { SettingsItem } from '@/types/types';
-import { setSettings } from '@/store/slices';
+import { SettingsItem } from './../../types/types';
+import { setSettings } from './../../store/slices';
 import { Dispatch } from 'redux';
  
 export const downloadSettings = async (

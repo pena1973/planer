@@ -1,12 +1,12 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getExceptions } from '@/handlers/handlers-get';  // расчеты
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getExceptions } from './../../handlers/handlers-get';  // расчеты
 
-import { TeamTable } from '@/db/models/catalogs/teams'
-import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions'
+import { TeamTable } from './../../db/models/catalogs/teams'
+import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
 
-import { UnitExceptionItem } from '@/types/types';
+import { UnitExceptionItem } from './../../types/types';
 
 interface RequestBody {
   exceptions: UnitExceptionItem
@@ -19,7 +19,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const dbConnection = await connectDb();  // Получаем подключение
 
     // Используем репозиторий для работы с сущностью TCardTable
-    const companiesRepository = dbConnection.getRepository(TeamTable);
+    const teamRepository = dbConnection.getRepository(TeamTable);
     // const unitRepository = dbConnection.getRepository(UnitTable);
     const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
 

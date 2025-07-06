@@ -1,5 +1,5 @@
 import { Dispatch } from "redux";
-import { TeamItem, UserItem, UserUnitItem } from "@/types/types";
+import { TeamItem, UserItem, UserUnitItem } from "./../../types/types";
 
 export const getUsersUnits = async (
     user: UserItem,

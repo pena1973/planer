@@ -1,20 +1,18 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { TCardTable } from '@/db/models/data/t_cards'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { TCardTable } from './../../db/models/data/t_cards'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 
-import { TCardOperationItem, StatusEnum } from '@/types/types';
+import { TCardOperationItem, StatusEnum } from './../../types/types';
 
-import { updateStatusOperationByOperId, updateStatusLoads, 
-  updateStatusTCard } from '@/handlers/handlers-update';
+import { updateStatusOperationByOperId, updateStatusLoads, updateStatusTCard } from './../../handlers/handlers-update';
 
-  import { getTCard, getTCardOperationsByCardId, 
-  getTCardOperationLoads } from '@/handlers/handlers-get';
+import { getTCard, getTCardOperationsByCardId, getTCardOperationLoads } from './../../handlers/handlers-get';
 
-  import { getStatusPriority } from "@/lib/utils"
+import { getStatusPriority } from "./../../lib/utils"
 
 interface RequestBody {
   tCardId: number,
@@ -26,7 +24,7 @@ interface RequestBody {
 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -99,11 +97,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               return getStatusPriority(op.status) >= getStatusPriority(status);
             }
           };
-        
+
           // Применяем проверку для текущей операции
           return checkOperationStatus(operation);
         });
-       
+
         const tCardStatus = (isAllOperationsNotLowerThanStatus) ? status : tCard.status
 
         // обновим статус карты если изменился

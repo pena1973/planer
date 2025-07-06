@@ -5,12 +5,12 @@ import {
     UnitExceptionItem,
     TeamItem,
     UserItem
-} from "@/types/types";
+} from "./../../types/types";
 import {
     setUnits,
     setUnitActions,
     setUnitExceptions
-} from "@/store/slices";
+} from "./../../store/slices";
 
 export const saveUnits = async (
     unitsValue: UnitItem[],

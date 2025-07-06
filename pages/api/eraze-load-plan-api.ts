@@ -1,20 +1,19 @@
 
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getDependentOperationsIds } from '@/handlers/handlers-plan';  // планирование карты
-import { getTCardFull } from '@/handlers/handlers-get';  // 
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getDependentOperationsIds } from './../../handlers/handlers-plan';  // планирование карты
+import { getTCardFull } from './../../handlers/handlers-get';  // 
 
+import { TCardTable } from './../../db/models/data/t_cards'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { TCardStageTable } from './../../db/models/data/t_card_stages'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 
-import { TCardTable } from '@/db/models/data/t_cards'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import { TCardStageTable } from '@/db/models/data/t_card_stages'
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
+import { UnitLoadItem, StatusEnum, } from "./../../types/types";
 
-import { TCardProductItem, TCardOperationItem, UnitLoadItem, StatusEnum, } from "@/types/types";
-
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
@@ -185,33 +184,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 }
 
-
-// const cancelLoads = async (  
-//   cancellLoads: UnitLoadItem[],
-//   today: string, // "YYYY-MM-DD"
-//   unitLoadRepository: Repository<UnitLoadTable>
-// ): Promise<{ success: boolean, message: string }> => {
-//   if (cancellOperIds.length === 0) return { success: true, message: `Нет операций для отмены.` };
-//   try {
-//     const result = await unitLoadRepository.createQueryBuilder()
-//       .update(UnitLoadTable)
-//       .set({ status: StatusEnum.cancelled })
-//       .where("id_oper IN (:...cancellOperIds)", { cancellOperIds })
-//       .andWhere("status = :planed", { planed: StatusEnum.planed })
-//       .andWhere("date < :today", { today })
-//       .execute();
-
-//     if (result.affected && result.affected > 0) {
-//       return { success: true, message: `Обновлено ${result.affected} загрузок.` };
-//     } else {
-//       return { success: false, message: "Нет загрузок для отмены." };
-//     }
-//   } catch (error) {
-//     console.error("Ошибка при отмене загрузок:", error);
-//     return { success: false, message: "Ошибка при отмене загрузок." };
-//   }
-// };
-
 const cancelLoads = async (
   cancellLoads: UnitLoadItem[],
   today: string, // формат "YYYY-MM-DD"
@@ -241,10 +213,7 @@ const cancelLoads = async (
     } else {
       return { success: false, message: "Нет загрузок для отмены." };
     }
-    // } catch (error: any) {
-    //   console.error("Ошибка при отмене загрузок:", error);
-    //   return { success: false, message: error.message || "Ошибка при отмене загрузок." };
-    // }
+   
   } catch (error: unknown) {
     let message = "Ошибка при отмене загрузок.";
     if (error instanceof Error) {
@@ -283,10 +252,7 @@ const deleteLoads = async (
     } else {
       return { success: false, message: "Нет загрузок для удаления." };
     }
-  // } catch (error: any) {
-  //   console.error("Ошибка при удалении загрузок:", error);
-  //   return { success: false, message: error.message || "Ошибка при удалении загрузок." };
-  // }
+  
   } catch (error: unknown) {
   let message = "Ошибка при удалении загрузок.";
   if (error instanceof Error) {
@@ -317,10 +283,7 @@ const setOperStatus = async (
     } else {
       return { success: false, message: "Ни одна операция не обновлена." };
     }
-  // } catch (error: any) {
-  //   console.error("Ошибка обновления операций:", error);
-  //   return { success: false, message: error.message || "Ошибка обновления статуса операций." };
-  // }
+  
   } catch (error: unknown) {
   let message = "Ошибка обновления статуса операций.";
   if (error instanceof Error) {
@@ -351,10 +314,7 @@ const setTCardStatus = async (
     } else {
       return { success: false, message: "Карта не обновлена." };
     }
-  // } catch (error: any) {
-  //   console.error("Ошибка обновления карты:", error);
-  //   return { success: false, message: error.message || "Ошибка обновления статуса карты." };
-  // }
+  
   } catch (error: unknown) {
   let message = "Ошибка обновления статуса карты.";
   if (error instanceof Error) {

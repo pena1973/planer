@@ -1,4 +1,4 @@
-import { StatusEnum, TCardItem, TCardOperationItem, UnitLoadItem } from "@/types/types";
+import { StatusEnum, TCardItem, TCardOperationItem, UnitLoadItem } from "./../../../types/types";
 
 export const setOperationStatus = async (
     status: StatusEnum,

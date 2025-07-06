@@ -1,26 +1,23 @@
 
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getTCardOperationsByCardId } from '@/handlers/handlers-get';  // расчеты
-import { } from '@/handlers/handlers-plan';  // планирование карты
-import { updateStatusOperationsByOperIds,updateStatusTCard } from '@/handlers/handlers-update';  // 
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getTCardOperationsByCardId } from './../../handlers/handlers-get';  // расчеты
+import { } from './../../handlers/handlers-plan';  // планирование карты
+import { updateStatusOperationsByOperIds,updateStatusTCard } from './../../handlers/handlers-update';  // 
 
 
-import { Repository, In } from 'typeorm';
+import { Repository  } from 'typeorm';
 
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
-import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions';
-import { TeamScheduleTable } from '@/db/models/plan/team_schedule';
-import { TCardTable } from '@/db/models/data/t_cards'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
+import { TCardTable } from './../../db/models/data/t_cards'
 
-import { UnitTable } from '@/db/models/catalogs/units'
-import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import {getStatusPriority} from "@/lib/utils"
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 
-import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "@/types/types";
+import {getStatusPriority} from "./../../lib/utils"
+
+import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "./../../types/types";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[];  // запланированные лоады в статусе prepared  по данной карте

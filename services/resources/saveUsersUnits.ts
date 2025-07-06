@@ -1,5 +1,5 @@
 
-import { TeamItem, UserItem, UserUnitItem } from "@/types/types";
+import { TeamItem, UserItem, UserUnitItem } from "./../../types/types";
 
 export const saveUsersUnits = async (
     users_units: UserUnitItem[],

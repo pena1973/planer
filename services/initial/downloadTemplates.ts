@@ -1,5 +1,5 @@
-import { TemplateItem } from '@/types/types';
-import { setTemplates } from '@/store/slices';
+import { TemplateItem } from './../../types/types';
+import { setTemplates } from './../../store/slices';
 import { Dispatch } from 'redux';
 
 export const downloadTemplates = async (

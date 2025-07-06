@@ -1,21 +1,20 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
+import connectDb from './../../db/database';  // Импортируем функцию подключения
 
-import { getUnits, getUnitLoads, getTeamShedule, getExceptions } from '@/handlers/handlers-get';  // 
-import { getUnitsSchedule } from '@/handlers/handlers-schedule';  // 
+import { getUnits, getUnitLoads, getTeamShedule, getExceptions } from './../../handlers/handlers-get';  // 
+import { getUnitsSchedule } from './../../handlers/handlers-schedule';  // 
 
 
-import { TeamTable } from '@/db/models/catalogs/teams'
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
-import { UnitTable } from '@/db/models/catalogs/units'
-import { TeamScheduleTable } from '@/db/models/plan/team_schedule'
-import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions'
+import { TeamTable } from './../../db/models/catalogs/teams'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
+import { UnitTable } from './../../db/models/catalogs/units'
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
+import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
 
-import { UnitCalendarItem, UnitLoadItem, StatusEnum, UnitKPIItem } from "@/types/types";
+import { UnitCalendarItem, UnitLoadItem, StatusEnum, UnitKPIItem } from "./../../types/types";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение

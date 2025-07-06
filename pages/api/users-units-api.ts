@@ -1,14 +1,13 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
+import connectDb from './../../db/database';  // Импортируем функцию подключения
 
-import { UserTable } from '@/db/models/catalogs/users';
-import { TeamTable } from '@/db/models/catalogs/teams';
-import { UserUnitTable } from '@/db/models/catalogs/user_unit';
-import { UnitTable } from '@/db/models/catalogs/units';
-import { UserUnitItem, UserItem } from '@/types/types';
-import { getUsersUnits, getUsers } from '@/handlers/handlers-get';  // расчеты
-import { updateUsersUnits, updateUsers } from '@/handlers/handlers-update';  // расчеты
+import { UserTable } from './../../db/models/catalogs/users';
+import { TeamTable } from './../../db/models/catalogs/teams';
+import { UserUnitTable } from './../../db/models/catalogs/user_unit';
+import { UserUnitItem, UserItem } from './../../types/types';
+import { getUsersUnits, getUsers } from './../../handlers/handlers-get';  // расчеты
+import { updateUsersUnits, updateUsers } from './../../handlers/handlers-update';  // расчеты
 
 interface RequestBody {
   userId: number,

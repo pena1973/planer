@@ -1,25 +1,17 @@
 // Корректировка текущего статуса карты по ее состоянию в БД
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { TCardTable } from '@/db/models/data/t_cards'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { TCardTable } from './../../db/models/data/t_cards'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
+import { TCardOperationItem, StatusEnum } from './../../types/types';
 
-import { TCardOperationItem, StatusEnum } from '@/types/types';
+import { updateStatusTCard} from './../../handlers/handlers-update';
 
-import {
-  updateStatusOperationByOperId, updateStatusLoads,
-  updateStatusTCard
-} from '@/handlers/handlers-update';
+import { getTCard, getTCardOperationsByCardId} from './../../handlers/handlers-get';
 
-import {
-  getTCard, getTCardOperationsByCardId,
-  getTCardOperationLoads
-} from '@/handlers/handlers-get';
-
-import { getStatusPriority } from "@/lib/utils"
+import { getStatusPriority } from "./../../lib/utils"
 
 interface RequestBody {
   tCardId: number,

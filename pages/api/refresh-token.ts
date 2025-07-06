@@ -1,7 +1,7 @@
-import { verifyRefreshToken, createAccessToken } from '@/lib/auth'
-import type { NextApiRequest, NextApiResponse } from 'next'
 
-// types/auth.ts (или рядом)
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { verifyRefreshToken, createAccessToken } from './../../lib/auth'
+
 export interface TokenPayload {
   login: string;
   exp?: number;

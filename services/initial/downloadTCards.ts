@@ -1,5 +1,5 @@
-import { TCardItem } from '@/types/types';
-import { setTCards } from '@/store/slices';
+import { TCardItem } from './../../types/types';
+import { setTCards } from './../../store/slices';
 import { Dispatch } from 'redux';
 
 export const downloadTCards = async (

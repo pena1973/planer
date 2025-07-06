@@ -1,7 +1,7 @@
 // /lib/auth.ts — генерация и проверка токена
 import { sign, verify } from 'jsonwebtoken'
 
-import type { MyJwtPayload } from '@/types/auth-types';
+import type { MyJwtPayload } from './../types/auth-types';
 
 const ACCESS_SECRET = process.env.JWTSECRET!
 const REFRESH_SECRET = process.env.JWTREFRESHSECRET!  // добавь в .env

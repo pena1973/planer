@@ -1,6 +1,6 @@
 
 
-import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "@/types/types";
+import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "./../types/types";
 
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
 const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {

@@ -1,11 +1,11 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { UserTable } from '@/db/models/catalogs/users';
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { UserTable } from './../../db/models/catalogs/users';
 
-import { UserItem } from '@/types/types';
+import { UserItem } from './../../types/types';
 
-import { updateUser  } from '@/handlers/handlers-auth';  // расчеты
+import { updateUser  } from './../../handlers/handlers-auth';  // расчеты
 
 interface RequestBody {
   userId: number,
@@ -15,7 +15,6 @@ interface RequestBody {
   name: string
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение

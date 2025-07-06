@@ -1,13 +1,13 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getUnits } from '@/handlers/handlers-get';  
-import { updateUnits,updateUnitActions, updateExceptions} from '@/handlers/handlers-update';  
-import { UnitTable } from '@/db/models/catalogs/units'
-import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
-import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions'
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getUnits } from './../../handlers/handlers-get';  
+import { updateUnits,updateUnitActions, updateExceptions} from './../../handlers/handlers-update';  
+import { UnitTable } from './../../db/models/catalogs/units'
+import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
+import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
 
-import { UnitItem, UnitActionItem, UnitExceptionItem } from '@/types/types';
+import { UnitItem, UnitActionItem, UnitExceptionItem } from './../../types/types';
 
 interface RequestBody {
   userId: number,

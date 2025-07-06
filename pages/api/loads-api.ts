@@ -1,16 +1,16 @@
 
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getUnits, getUnitLoads, getTCardOperations, getActions, getUnitActions } from '@/handlers/handlers-get';  // расчеты
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getUnits, getUnitLoads, getTCardOperations, getUnitActions } from './../../handlers/handlers-get';  // расчеты
 
 import { UnitLoadTable } from '../../db/models/plan/unit_loads';
 
 import { UnitTable } from '../../db/models/catalogs/units'
-import { ActionTable } from '../../db/models/catalogs/actions';
+
 import { UnitActionTable } from '../../db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '../../db/models/data/t_card_operations'
-import { UnitTypeEnum } from '@/types/types';
+import { UnitTypeEnum } from './../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // export default async function handler(req: NextApiRequest, res: NextApiResponse) {

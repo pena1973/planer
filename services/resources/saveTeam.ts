@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { TeamItem, UserItem } from "@/types/types";
-import { setTeam } from "@/store/slices";
+import { TeamItem, UserItem } from "./../../types/types";
+import { setTeam } from "./../../store/slices";
 
 export const saveTeam = async (
     titleValue: string,

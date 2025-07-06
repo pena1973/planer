@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { ActionItem, TeamItem, UserItem } from "@/types/types";
-import { setActions } from "@/store/slices";
+import { ActionItem, TeamItem, UserItem } from "./../../types/types";
+import { setActions } from "./../../store/slices";
 
 export const saveActions = async (
     actionsValue: ActionItem[],

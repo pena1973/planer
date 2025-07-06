@@ -1,13 +1,13 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getTeamShedule } from '@/handlers/handlers-get';  // расчеты
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getTeamShedule } from './../../handlers/handlers-get';  // расчеты
 
 import { Repository  } from 'typeorm';
-import { TeamTable } from '@/db/models/catalogs/teams'
-import { TeamScheduleTable } from '@/db/models/plan/team_schedule'
+import { TeamTable } from './../../db/models/catalogs/teams'
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
 
-import { ScheduleItem} from '@/types/types';
+import { ScheduleItem} from './../../types/types';
 
 interface RequestBody {
   schedule: ScheduleItem,

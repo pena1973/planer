@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { UnitItem, UnitLoadItem, StatusEnum } from "@/types/types";
-import { setUnitLoads } from "@/store/slices";
+import { UnitItem, UnitLoadItem, StatusEnum } from "./../../types/types";
+import { setUnitLoads } from "./../../store/slices";
 
 export const moveLoad = async (
 

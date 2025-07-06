@@ -16,7 +16,7 @@ import "reflect-metadata"
 
 import type { AppProps } from 'next/app'
 import React, { StrictMode, Suspense} from 'react';
-import '@/lib/globalFetch'
+import '../lib/globalFetch'
 // это пакет редукс
 import { Provider, useDispatch } from 'react-redux';
 // это набор утилит для редукс облегчающий его настройку

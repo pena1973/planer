@@ -3,9 +3,9 @@ import {
     TCardItem, UnitLoadItem, ScheduleItem,
     UnitExceptionItem, UserItem,
     TeamItem
-} from '@/types/types'
+} from './../types/types'
 
-import { store } from '@/store'
+import { store } from './../store'
 import {
   setToken,
   setUser,
@@ -13,7 +13,7 @@ import {
   setSettings,
   setSignedAgreement,
   setUnit
-} from '@/store/slices'
+} from './../store/slices'
 
 import {
   setActions,
@@ -24,7 +24,7 @@ import {
   setSchedule,
   setUnitLoads,
   setUnitExceptions
-} from '@/store/slices'
+} from './../store/slices'
 
 import Router from 'next/router'
 

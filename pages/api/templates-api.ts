@@ -1,9 +1,9 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database'; // Подключение к базе данных
-import { TemplateTable } from '@/db/models/catalogs/templates';
-import { TemplateItem } from '@/types/types'; 
-import { updateTemplates } from '@/handlers/handlers-update';  
+import connectDb from './../../db/database'; // Подключение к базе данных
+import { TemplateTable } from './../../db/models/catalogs/templates';
+import { TemplateItem } from './../../types/types'; 
+import { updateTemplates } from './../../handlers/handlers-update';  
 
 
 

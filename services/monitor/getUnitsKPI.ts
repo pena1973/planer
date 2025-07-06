@@ -1,4 +1,4 @@
-import { UnitKPIItem } from "@/types/types";
+import { UnitKPIItem } from "./../../types/types";
 
 export const getUnitsKPI = async (
     userId: number,

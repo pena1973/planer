@@ -1,5 +1,5 @@
-import { UnitExceptionItem } from '@/types/types';
-import { setUnitExceptions } from '@/store/slices';
+import { UnitExceptionItem } from './../../types/types';
+import { setUnitExceptions } from './../../store/slices';
 import { Dispatch } from 'redux';
 
 export const downloadUnutsExceptions = async (

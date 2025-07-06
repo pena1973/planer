@@ -3,14 +3,14 @@ import {
     UserItem,
     TeamItem,
     SettingsItem,
-} from '@/types/types';
+} from './../../types/types';
 import {
     setUser,
     setToken,
     setTeam,
     setSettings,
     setSignedAgreement,
-} from '@/store/slices';
+} from './../../store/slices';
 
 interface RegisterPayload {
     login: string;

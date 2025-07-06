@@ -1,17 +1,15 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
+import connectDb from './../../db/database';  // Импортируем функцию подключения
 
-import { getTCardsTerms } from '@/handlers/handlers-get';  // 
-import { TCardTable } from '@/db/models/data/t_cards'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TeamTable } from '@/db/models/catalogs/teams'
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import { StatusEnum } from '@/types/types';
+import { getTCardsTerms } from './../../handlers/handlers-get';  // 
+import { TCardTable } from './../../db/models/data/t_cards'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { TeamTable } from './../../db/models/catalogs/teams'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
+import { StatusEnum } from './../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение

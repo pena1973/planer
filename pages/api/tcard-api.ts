@@ -1,15 +1,15 @@
 // Это вариант АПИ по обработке карты оптимизированный того что без 1 в имени, потом надо остальное переделать
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
+import connectDb from './../../db/database';  // Импортируем функцию подключения
 
-import { TCardTable } from '@/db/models/data/t_cards'
-import { TCardStageTable } from '@/db/models/data/t_card_stages'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import { TeamTable } from '@/db/models/catalogs/teams'
-import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
-import { UnitLoadTable } from '@/db/models/plan/unit_loads'
+import { TCardTable } from './../../db/models/data/t_cards'
+import { TCardStageTable } from './../../db/models/data/t_card_stages'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { TeamTable } from './../../db/models/catalogs/teams'
+import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads'
 
 import {
   TCardItem, TCardProductItem,
@@ -18,14 +18,14 @@ import {
   StatusEnum, UnitItem,
   UnitLoadItem,
   UnitTypeEnum,
-  UnitBelongEnum
-} from '@/types/types';
-import { getTCardFull, getTCardLoads, getUnitActions } from '@/handlers/handlers-get';  // 
+  UnitBelongEnum,
+  TypeEnum
+} from './../../types/types';
+import { getTCardFull, getTCardLoads, getUnitActions } from './../../handlers/handlers-get';  // 
 import { updateCard, updateStages, updateOperations, 
   updateProducts, updateTCardLoads, updateStatusTCard, 
-  updateStatusOperationByTCardId } from '@/handlers/handlers-update';  // 
+  updateStatusOperationByTCardId } from './../../handlers/handlers-update';  // 
 
-import { TypeEnum } from '@/types/types';
 // Определение перечисления
 
 interface RequestBody {

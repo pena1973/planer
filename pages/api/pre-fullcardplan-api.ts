@@ -1,28 +1,27 @@
 
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database';  // Импортируем функцию подключения
-import { getUnits, getUnitLoads } from '@/handlers/handlers-get';  // расчеты
-import { getAllPreparedOperationsIds, planTCardFromOperINC } from '@/handlers/handlers-plan';  // планирование карты
-import { getTeamShedule, getExceptions, getTCardFull, getUnitActions } from '@/handlers/handlers-get';  // 
+import connectDb from './../../db/database';  // Импортируем функцию подключения
+import { getUnits, getUnitLoads } from './../../handlers/handlers-get';  // расчеты
+import { getAllPreparedOperationsIds, planTCardFromOperINC } from './../../handlers/handlers-plan';  // планирование карты
+import { getTeamShedule, getExceptions, getTCardFull, getUnitActions } from './../../handlers/handlers-get';  // 
 
-import { UnitLoadTable } from '@/db/models/plan/unit_loads';
-import { UnitExceptionTable } from '@/db/models/plan/unit_exceptions';
-import { TeamScheduleTable } from '@/db/models/plan/team_schedule';
-import { TCardTable } from '@/db/models/data/t_cards'
+import { UnitLoadTable } from './../../db/models/plan/unit_loads';
+import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions';
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
+import { TCardTable } from './../../db/models/data/t_cards'
 
-import { UnitTable } from '@/db/models/catalogs/units'
+import { UnitTable } from './../../db/models/catalogs/units'
 
-import { UnitActionTable } from '@/db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '@/db/models/data/t_card_operations'
-import { TCardProductTable } from '@/db/models/data/t_card_products'
-import { TCardStageTable } from '@/db/models/data/t_card_stages'
+import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
+import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { TCardStageTable } from './../../db/models/data/t_card_stages'
 
 
-import { UnitLoadItem } from "@/types/types";
+import { UnitLoadItem } from "./../../types/types";
 
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {  
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
@@ -74,7 +73,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
         const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
         //  уберем из нее лоады нашей карты 
-         const unitLoadItemsFull = unitLoadItemsBD.filter(lo => Number(tCardId) !== lo.id_tCard)
+        //  const unitLoadItemsFull = unitLoadItemsBD.filter(lo => Number(tCardId) !== lo.id_tCard)
         // в этих лоадах нет операций в статусе prepared
 
 
@@ -104,10 +103,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       default:
         res.status(405).end(); // Метод не поддерживается
     }
-    // } catch (error) {
-    //   console.error('Ошибка подключения или выполнения запроса ((pre-fullcardplan-api)):', error);
-    //   res.status(500).json({ error: 'Не удалось обработать запрос' + error });
-    // }
+    
   } catch (error: unknown) {
     let errorMessage = "Не удалось обработать запрос.";
 

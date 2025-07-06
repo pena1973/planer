@@ -5,7 +5,7 @@ import {
   TeamItem,
   SettingsItem,
   UnitItem,
-} from '@/types/types';
+} from './../../types/types';
 import {
   setUser,
   setToken,
@@ -13,7 +13,7 @@ import {
   setSettings,
   setSignedAgreement,
   setUnit,
-} from '@/store/slices';
+} from './../../store/slices';
 
 interface LoginPayload {
   login: string;

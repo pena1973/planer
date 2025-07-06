@@ -1,4 +1,4 @@
-import { TCardTermsItem, UnitLoadItem } from "@/types/types";
+import { TCardTermsItem, UnitLoadItem } from "./../../types/types";
 
 export const getTCardsTerms = async (
     userId: number,

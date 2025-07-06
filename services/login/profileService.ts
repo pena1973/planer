@@ -1,7 +1,7 @@
 
 import { Dispatch } from 'redux';
-import { UserItem } from "@/types/types";
-import { setUser } from '@/store/slices';
+import { UserItem } from "./../../types/types";
+import { setUser } from './../../store/slices';
 
 export const changePassword = async (
     oldpass: string,

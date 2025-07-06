@@ -1,10 +1,10 @@
-import { withAuth } from '@/lib/withAuth'
+import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '@/db/database'; // Подключение к базе данных
-import { TemplateTable } from '@/db/models/catalogs/templates';
-import { TCardItem, TemplateItem } from '@/types/types'; // Ваш тип TCardItem для работы с шаблонами
+import connectDb from './../../db/database'; // Подключение к базе данных
+import { TemplateTable } from './../../db/models/catalogs/templates';
+import { TCardItem, TemplateItem } from './../../types/types'; // Ваш тип TCardItem для работы с шаблонами
 
-import { padNumberToFourDigits } from "@/lib/utils"
+import { padNumberToFourDigits } from "./../../lib/utils"
 
 interface RequestBody {
     teamId: number,

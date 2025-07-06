@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { TemplateItem, TeamItem, UserItem } from "@/types/types";
-import { setTemplates } from "@/store/slices";
+import { TemplateItem, TeamItem, UserItem } from "./../../types/types";
+import { setTemplates } from "./../../store/slices";
 
 export const saveTemplates = async (
     templatesValue: TemplateItem[],

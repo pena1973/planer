@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && tsc",
+    "start": "cross-env NODE_ENV=production next start",
     "lint": "next lint",
     "trans": "i18next -c i18next-parser.config.ts --fail-on-warnings",
     "migration:create": "powershell -Command \"$date = Get-Date -Format 'yyyy-MM-dd'; npx typeorm-ts-node-esm migration:create pages/db/migrations/Migration-$date\"",
@@ -29,6 +29,7 @@
     "redux-persist": "^6.0.0",
     "reflect-metadata": "^0.2.2",
     "sass": "^1.81.0",
+    "sharp": "^0.34.2",
     "tsconfig-paths": "^4.2.0",
     "typeorm": "^0.3.20"
   },
@@ -38,6 +39,7 @@
     "@types/react-dom": "^18",
     "@types/react-window": "^1.8.8",
     "@types/reflect-metadata": "^0.1.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "14.2.14",
     "i18next": "^24.2.0",

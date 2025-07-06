@@ -1,11 +1,11 @@
 
-import { Repository, In, Any } from 'typeorm';
+import { Repository } from 'typeorm';
 // tables
-import { UserTable } from '@/db/models/catalogs/users';
-import { SupportTable } from '@/db/models/support/support';
+import { UserTable } from './../db/models/catalogs/users';
+import { SupportTable } from './../db/models/support/support';
 
 // types
-import {UserItem, } from '@/types/types';
+import {UserItem, } from './../types/types';
 
 
 

@@ -1,4 +1,4 @@
-import { StatusEnum, UnitLoadItem } from "@/types/types";
+import { StatusEnum, UnitLoadItem } from "./../../types/types";
 
 export const setOperStatus = async (
     currentLoad: UnitLoadItem,

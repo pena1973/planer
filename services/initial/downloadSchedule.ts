@@ -1,5 +1,5 @@
-import { ScheduleItem } from '@/types/types';
-import { setSchedule } from '@/store/slices';
+import { ScheduleItem } from './../../types/types';
+import { setSchedule } from './../../store/slices';
 import { Dispatch } from 'redux';
 
 export const downloadSchedule = async (

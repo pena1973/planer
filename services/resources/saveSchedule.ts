@@ -1,7 +1,7 @@
 
 import { Dispatch } from "redux";
-import { TeamItem, ScheduleItem, UserItem, DaysOfWeek } from "@/types/types";
-import { setSchedule } from "@/store/slices";
+import { TeamItem, ScheduleItem, UserItem, DaysOfWeek } from "./../../types/types";
+import { setSchedule } from "./../../store/slices";
 
 export const saveSchedule = async (
     schedule: ScheduleItem,

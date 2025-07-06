@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, OneToMany, } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne,  } from 'typeorm';
 import { TeamTable } from '../../models/catalogs/teams'
 import { UserTable } from '../../models/catalogs/users'
-import { StatusEnum } from '@/types/types';
+import { StatusEnum } from './../../../types/types';
 
 @Entity('t_cards')
 export class TCardTable {

@@ -5,7 +5,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 't
 import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
 import { UnitTable } from '../catalogs/units'; // Подключаем сущность для связи
 
-import { TimeTypeEnum } from '@/types/types'; // Подключаем сущность для связи
+import { TimeTypeEnum } from './../../../types/types'; // Подключаем сущность для связи
 // Это отклонения юнита от расписания предприятия
 @Entity("unit_exceptions")
 export class UnitExceptionTable {

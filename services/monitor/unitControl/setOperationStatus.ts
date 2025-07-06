@@ -3,7 +3,7 @@ import {
   UnitLoadItem,
   TCardOperationItem,
   TCardItem
-} from "@/types/types";
+} from "./../../../types/types";
 
 export const setOperationStatus = async (
   status: StatusEnum,

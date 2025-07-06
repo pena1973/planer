@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
-import { UnitLoadItem, TCardItem, StatusEnum } from "@/types/types";
-import { setUnitLoads, setTCardPrepared, setTCardLighted, setTCards } from "@/store/slices";
+import { UnitLoadItem, TCardItem, StatusEnum } from "./../../types/types";
+import { setUnitLoads, setTCardPrepared, setTCardLighted, setTCards } from "./../../store/slices";
 
 export const erazeCard = async (
     tCardId: number,
