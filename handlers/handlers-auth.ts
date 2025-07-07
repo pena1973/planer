@@ -201,7 +201,7 @@ export async function getUser(
 
   // Строим фильтр для поиска пользователя по логину
   const filter = { login };
-
+  console.log('💡 Репозиторий user:', usersRepository.metadata.name);
   // Ищем пользователя в базе данных
   const userRecord = await usersRepository.findOne({ where: filter });
 

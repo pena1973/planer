@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { getRepositoryByClass } from './../../lib/db/utils'; // Хелпер для репозиториев
 
 import connectDb from './../../db/database';  // Импортируем функцию подключения
 
@@ -26,19 +27,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // Убедимся, что подключение установлено    
     const dbConnection = await connectDb();  // Получаем подключение
-    
-    const usersRepository = dbConnection.getRepository(UserTable);
-    const teamsRepository = dbConnection.getRepository(TeamTable);
-    const userAgreeRepository = dbConnection.getRepository(UserAgreeTable);
-    const agreementRepository = dbConnection.getRepository(AgreementTable);
-    const usersUnitsRepository = dbConnection.getRepository(UserUnitTable);
 
+    // Используем названия сущностей как строки
+
+    const usersRepository = getRepositoryByClass<UserTable>(dbConnection, UserTable);
+    const teamsRepository = getRepositoryByClass<TeamTable>(dbConnection, TeamTable);
+    const userAgreeRepository = getRepositoryByClass<UserAgreeTable>(dbConnection, UserAgreeTable);
+    const agreementRepository = getRepositoryByClass<AgreementTable>(dbConnection, AgreementTable);
+    const usersUnitsRepository = getRepositoryByClass<UserUnitTable>(dbConnection, UserUnitTable);
 
     switch (req.method) {
       // регистер
       case 'POST':
         // Извлекаем данные из тела запроса
         const { login, pass } = req.body as RequestBody;
+
+        console.log('👀 userRepository:', usersRepository.target);
 
         const resUser = await getUser(login, pass, usersRepository)
         if (!resUser.success) {
@@ -101,7 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const userunit = resUserUnits_.userUnits.find((uu) => { return uu.userId === user.id; })
 
         const unit = (userunit) ? userunit.unit : undefined;
-        
+
         // const unit = (resUserUnits_.userUnits.length > 0) ? resUserUnits_.userUnits[0].unit : undefined
 
         // отправляем ответ

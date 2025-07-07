@@ -1,35 +1,42 @@
-import config from './ormconfig';
+// import config from './ormconfig';
 
 import { DataSource } from 'typeorm';
+import config from './ormconfig';
+import { getEntities } from '../lib/db/entities'; // Твоя обёртка
 
 let dataSource: DataSource | null = null;
 
 const connectDb = async (): Promise<DataSource> => {
   try {
-    if (dataSource) return dataSource;  // Возвращаем уже существующее соединение
+    if (dataSource && dataSource.isInitialized) return dataSource;
 
     console.log('Initializing new DataSource...');
 
-    dataSource = new DataSource(config);  // Создаем новый источник данных
+    // Вставляем список сущностей прямо в конфиг
+    const updatedConfig = {
+      ...config,        
+        entities: getEntities(),
+    };
+    
+    console.log('getEntities()',getEntities());
 
-    // Инициализация соединения
+    dataSource = new DataSource(updatedConfig);
+
     await dataSource.initialize();
-    console.log('Сущности в DataSource:', dataSource.options.entities);
 
-    console.log(
-      'Зарегистрированные сущности:',
-      dataSource.entityMetadatas.map(e => e.name)
-    );
+    console.log('Сущности в DataSource:', updatedConfig.entities);
+
+    // console.log(
+    //   'Зарегистрированные сущности:',
+    //   dataSource.entityMetadatas.map(e => e.name)
+    // );
 
     console.log('DataSource initialized successfully');
-
     return dataSource;
   } catch (error) {
-    console.error('Error during DataSource initialization:', error);
-
-    throw error;  // Пробрасываем ошибку дальше, чтобы она была замечена
+    console.error('Ошибка инициализации DataSource:', error);
+    throw error;
   }
 };
 
 export default connectDb;
-

@@ -1,36 +1,4 @@
-// {
-//   "compilerOptions": {       
-//     "target": "ESNext",  // Устанавливаем стандарт ESNext
-//     "lib": ["dom", "dom.iterable", "esnext"],
-//     "allowJs": true,
-//     "skipLibCheck": true,
-//     "strict": true,
-//     "noEmit": false,   
-//    // "outDir": ".next/server", 
-//     "esModuleInterop": true,
-//     "module": "ESNext",
-//     "moduleResolution": "bundler",
-//     "resolveJsonModule": true,
-//     "isolatedModules": true,
-//     "jsx": "preserve",
-//     "incremental": true,    
-//      "experimentalDecorators": true,      // Включите поддержку декораторов
-//      "emitDecoratorMetadata": true,     // Включите эмитирование метаданных для декораторов
-//     "plugins": [
-//       {
-//         "name": "next"
-//       }
-//     ],
-//     "paths": {
-//       "@/*": ["./*"]
-//     },
-//     // "sourceMap": true,
-//     // "inlineSourceMap": true,
-//     // "outDir": "./.next" // для Next.js
-//   },
-//   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts","db/models/**/*"],
-//   "exclude": ["node_modules"]
-// }
+
 
 {
   "compilerOptions": {

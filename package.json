@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && tsc",
-    "start": "cross-env next start",
+    "prebuild": "tsc -p tsconfig.models.json",
+    "build": "npm run prebuild && next build",
+    "start": "cross-env NODE_ENV=production next start",
     "lint": "next lint",
     "trans": "i18next -c i18next-parser.config.ts --fail-on-warnings",
     "migration:create": "powershell -Command \"$date = Get-Date -Format 'yyyy-MM-dd'; npx typeorm-ts-node-esm migration:create pages/db/migrations/Migration-$date\"",
