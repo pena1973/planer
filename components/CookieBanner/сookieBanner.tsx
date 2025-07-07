@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import styles from './сookieBanner.module.scss'
+import styles from './cookieBanner.module.scss'
 import Link from 'next/link';
 
 export default function CookieBanner() {
