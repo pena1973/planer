@@ -4,7 +4,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 import styles from "./layout.module.scss";
 import { logout } from '@/lib/logout'
 import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
-import CookieBanner from '@/components/CookieBanner/сookieBanner'
+import CookieBanner from '@/components/CookieBanner/cookieBanner'
 
 import home from "@/public/home1.png";
 
