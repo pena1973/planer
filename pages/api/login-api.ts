@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getRepositoryByClass } from './../../lib/db/utils'; // Хелпер для репозиториев
+// import { getRepositoryByClass } from './../../lib/db/utils'; // Хелпер для репозиториев
 
 import connectDb from './../../db/database';  // Импортируем функцию подключения
 
@@ -30,11 +30,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Используем названия сущностей как строки
 
-    const usersRepository = getRepositoryByClass<UserTable>(dbConnection, UserTable);
-    const teamsRepository = getRepositoryByClass<TeamTable>(dbConnection, TeamTable);
-    const userAgreeRepository = getRepositoryByClass<UserAgreeTable>(dbConnection, UserAgreeTable);
-    const agreementRepository = getRepositoryByClass<AgreementTable>(dbConnection, AgreementTable);
-    const usersUnitsRepository = getRepositoryByClass<UserUnitTable>(dbConnection, UserUnitTable);
+    const usersRepository = dbConnection.getRepository(UserTable);
+    const teamsRepository = dbConnection.getRepository(TeamTable);
+    const userAgreeRepository = dbConnection.getRepository(UserAgreeTable);
+    const agreementRepository = dbConnection.getRepository(AgreementTable);
+    const usersUnitsRepository = dbConnection.getRepository(UserUnitTable);
+
+    // const usersRepository = getRepositoryByClass<UserTable>(dbConnection, UserTable);
+    // const teamsRepository = getRepositoryByClass<TeamTable>(dbConnection, TeamTable);
+    // const userAgreeRepository = getRepositoryByClass<UserAgreeTable>(dbConnection, UserAgreeTable);
+    // const agreementRepository = getRepositoryByClass<AgreementTable>(dbConnection, AgreementTable);
+    // const usersUnitsRepository = getRepositoryByClass<UserUnitTable>(dbConnection, UserUnitTable);
 
     switch (req.method) {
       // регистер
