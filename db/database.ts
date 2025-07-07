@@ -14,17 +14,20 @@ const connectDb = async (): Promise<DataSource> => {
 
     // Вставляем список сущностей прямо в конфиг
     const updatedConfig = {
-      ...config,        
-        entities: getEntities(),
+      ...config,
+      entities: getEntities(),
     };
-    
-    console.log('getEntities()',getEntities());
+    console.log('🟡 Инициализация базы начинается');
+
+    // console.log('getEntities()',getEntities());
 
     dataSource = new DataSource(updatedConfig);
 
-    await dataSource.initialize();
+    await dataSource.initialize()
+      .then(() => console.log('🟢 DataSource инициализирован'))
+      .catch((err) => console.error('🔴 Ошибка инициализации', err));
 
-    console.log('Сущности в DataSource:', updatedConfig.entities);
+    // console.log('Сущности в DataSource:', updatedConfig.entities);
 
     // console.log(
     //   'Зарегистрированные сущности:',
