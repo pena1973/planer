@@ -1,14 +1,15 @@
 // Корректировка текущего статуса карты по ее состоянию в БД
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
+
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 
 import { TCardOperationItem, StatusEnum } from './../../types/types';
-
 import { updateStatusTCard} from './../../handlers/handlers-update';
-
 import { getTCard, getTCardOperationsByCardId} from './../../handlers/handlers-get';
 
 import { getStatusPriority } from "./../../lib/utils"
@@ -19,16 +20,12 @@ interface RequestBody {
   userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
+    const db = await connectDb(); 
+    const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+    const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    // const teamRepository = dbConnection.getRepository(TeamTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    
+  try {
+        
     switch (req.method) {
       case 'POST':
 

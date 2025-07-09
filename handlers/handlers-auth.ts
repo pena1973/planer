@@ -46,14 +46,7 @@ export async function createNewTeam(
       },
       message: "Команда успешно создана",
     };
-    // } catch (e: any) {
-    //   // В случае ошибки возвращаем сообщение об ошибке
-    //   return {
-    //     success: false,
-    //     team: {} as TeamItem,
-    //     message: `Ошибка при создании команды: ${e.message}`,
-    //   };
-    // }
+    
   } catch (e: unknown) {
     let message = "Ошибка при создании команды.";
     if (e instanceof Error) {
@@ -131,8 +124,6 @@ export async function updateUser(
       };
     }
 
-
-
     // Обновляем данные пользователя, если что-то передано
     if (name !== undefined) {
       user.name = name; // Обновляем никнейм
@@ -169,15 +160,6 @@ export async function updateUser(
       },
       message: 'Пользователь успешно обновлен.',
     };
-
-    // } catch (e: any) {
-    //   // Обработка ошибок
-    //   return {
-    //     success: false,
-    //     savedUser: {} as UserItem,
-    //     message: `Ошибка при обновлении пользователя: ${e.message}`,
-    //   };
-    // }
   } catch (e: unknown) {
     let message = "Ошибка при обновлении пользователя.";
     if (e instanceof Error) {

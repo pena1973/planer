@@ -3,13 +3,14 @@ import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinCo
 import { TeamTable } from './teams'
 import { ActionTable } from './actions'
 import { UnitTable } from './units'
+
 @Entity("unit_actions")
 export class UnitActionTable {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
+  created_at!: Date;  
 
   @Column('int', { unique: true })
   idc!: number;
@@ -25,23 +26,23 @@ export class UnitActionTable {
   @Column({ default: "" })
   coment!: string;
 
-  @ManyToOne(() => ActionTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'action_id' }) // Указываем колонку, которая является внешним ключом
-  action!: ActionTable;  // Связь с таблицей UOMsTable
+  @ManyToOne(() => ActionTable) 
+  @JoinColumn({ name: 'action_id' })
+  action!: ActionTable; 
   @Column()
   action_id!: number;
 
-  @ManyToOne(() => UnitTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'unit_id' }) // Указываем колонку, которая является внешним ключом
-  unit!: UnitTable;  // Связь с таблицей UOMsTable
+  @ManyToOne(() => UnitTable)
+  @JoinColumn({ name: 'unit_id' })
+  unit!: UnitTable;
   @Column()
   unit_id!: number;
   @Column()
   unit_idc!: number;
 
-  @ManyToOne(() => TeamTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей UOMsTable
+  @ManyToOne(() => TeamTable)
+  @JoinColumn({ name: 'team_id' })
+  team!: TeamTable;
   @Column()
   team_id!: number;
 }

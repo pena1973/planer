@@ -1,5 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column,  ManyToOne, JoinColumn } from 'typeorm';
 import {TeamTable} from './teams'
 
 @Entity("users")
@@ -37,8 +37,8 @@ export class UserTable {
   @Column({ default: true })
   active!: boolean; //  запись действующая
   
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
+  @ManyToOne(() => TeamTable)
+  @JoinColumn({ name: 'team_id' })
   team!: TeamTable;  
   @Column()
   team_id!: number;

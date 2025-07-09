@@ -1,7 +1,10 @@
 
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
+
 import { getEarliestStart } from './../../handlers/handlers-plan';  // планирование карты
 import { Repository } from 'typeorm';
 
@@ -26,17 +29,18 @@ interface RequestBody {
   userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+
+  const db = await connectDb();
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const TeamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+
+
   // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const TeamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
-    const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
 
     switch (req.method) {
 
@@ -44,7 +48,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       case 'POST':
         const { tCardLoads, tCardId, today, teamId, userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
-
         //tCardLoads //Это все лоады покарте
 
         // Убираем prepared

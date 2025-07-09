@@ -21,7 +21,7 @@ export class BillTable {
     @Column({ default: false })
     paid!: boolean;
 
-    @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
+    @ManyToOne(() => TeamTable) // Указываем связь "многие к одному"
     @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
     team!: TeamTable;
     @Column()

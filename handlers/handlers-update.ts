@@ -1,5 +1,5 @@
 
-import { Repository, In} from 'typeorm';
+import { Repository, In } from 'typeorm';
 // tables
 import { UnitTable } from './../db/models/catalogs/units'
 import { UnitActionTable } from './../db/models/catalogs/unit_actions'
@@ -448,7 +448,11 @@ export async function updateUnitActions(
 ) {
 
   // СПИСОК ЮНИТОВ в базе
-  const existingUnitActions = await unitActionsRepository.find({ where: { team_id: teamId } });
+  const existingUnitActions = await unitActionsRepository.find({
+    where: { team_id: teamId },
+    relations: ['action']
+  }
+  );
 
   // 1. Найдём удалённые действия Юнита
   const unitActionToDelete = existingUnitActions.filter(unitAction =>

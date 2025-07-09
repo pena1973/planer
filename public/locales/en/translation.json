@@ -372,5 +372,11 @@
     "section3Title": "3. Profile",
     "section3Text1": "This section stores user information. You can change your name and password.",
     "section3Text2": "Important: You can't change your email or login here. Only the team admin can delete your account."
+  },
+  "agreement": {
+    "signAgreement": " Concent",
+    "cancelSignAgreement": "Cancel",
+    "agree": "Agree"
+    
   }
 }

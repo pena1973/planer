@@ -1,7 +1,10 @@
 
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';  
+import { getTypedRepository } from './../../lib/db/utils'
+
 import { getUnits, getUnitLoads } from './../../handlers/handlers-get';  // расчеты
 import { getAllPreparedOperationsIds, planTCardFromOperINC } from './../../handlers/handlers-plan';  // планирование карты
 import { getTeamShedule, getExceptions, getTCardFull, getUnitActions } from './../../handlers/handlers-get';  // 
@@ -22,22 +25,20 @@ import { TCardStageTable } from './../../db/models/data/t_card_stages'
 import { UnitLoadItem } from "./../../types/types";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {  
+
+  const db = await connectDb();
+  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+  const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
-    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-    const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
-
-
-    // userId, teamId в любом случае
+        
     const { userId, teamId, tCardId, today } = req.query;
 
     switch (req.method) {

@@ -25,10 +25,7 @@ const DropdownSelectBelong: React.FC<DropdownSelectBelongProps> = ({ onSelect, s
     return (
         <div className={styles.dropdownContainer}>
             {/* Выбранное значение */}
-            <div 
-                className={selectedValue !== null ? styles.select : styles.belong_select_placeholder}
-                onClick={toggleDropdown}
-            >
+            <div className={styles.select} onClick={toggleDropdown}>
                 {selectedValue ? UnitBelongEnum[selectedValue] : "Выберите"}
                 <div className={styles.arrow}>&#9662;</div>
             </div>

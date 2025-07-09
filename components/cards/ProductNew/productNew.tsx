@@ -1,54 +1,44 @@
+import styles from "./productNew.module.scss";
+
 import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
-import { RootState, 
-    // useAppDispatch 
-} from "@/pages/_app";
-import styles from "./tCardProductNew.module.scss";
+import { RootState } from "@/pages/_app";
+
 import { UOMItem } from '@/types/types'
 import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM';
 
 import Image from 'next/image';
-
 import del from "@/public/del2.png";
 
-export interface TCardProductNewProps {
-    idc: number,   
-    prefix:string, 
-    code: string,
+export interface ProductNewProps {
+    idc: number,
     title: string,
-    qtu: number,
+    sync: string,
     uom: UOMItem | null,
     deleteProductHandler: (index: number) => void,
-    changeProductHandler: (index:number, id: number,  title: string, qtu: number, uom: UOMItem | null) => void,
-    index:number
+    changeProductHandler: (index: number, title: string, sync: string, uom: UOMItem | null) => void,
+    index: number
 }
 
-export default function TCardProductNew({
-    idc,   
-    prefix, 
-    code,
+export default function ProductNew({
+    idc,
     title,
-    qtu,
     uom,
+    sync,
     deleteProductHandler,
     changeProductHandler,
     index
-}: TCardProductNewProps) {
-
-    // const [editMode, setEditMode] = useState(false);
-    // const [edited, setEdited] = useState(false);
+}: ProductNewProps) {
 
     const [titleValue, setTitleValue] = useState("");
-    const [qtuValue, setQtuValue] = useState(0);
+    const [syncValue, setSyncValue] = useState("");
     const [uomValue, setUomValue] = useState<UOMItem | null>(null);
-
-    // const [message, setMessage] = useState("");
 
     useEffect(() => {
         setTitleValue(title);
-        setQtuValue(qtu);
         setUomValue(uom);
-    }, [title, qtu, uom]);
+        setSyncValue(sync);
+    }, [title, sync, uom]);
 
     const uoms = useSelector((state: RootState) => {
         return state.catalogSlice.uoms;
@@ -57,8 +47,7 @@ export default function TCardProductNew({
     const handleSelectUOM = (uom: UOMItem | null) => {
         if (uom) {
             setUomValue(uom);
-            // setEdited(true);
-            changeProductHandler(index,idc, titleValue, qtuValue, uom)
+            changeProductHandler(index, titleValue, sync, uom)
         }
     };
 
@@ -69,31 +58,32 @@ export default function TCardProductNew({
                 src={del} alt="del" width={20} height={20}
                 onClick={() => deleteProductHandler(index)}
             />
-            <div className={styles.tCardProduct_code}>{"P"+idc}|{code}</div>
-            <input className={styles.tCardProduct_title}
+            <div className={styles.idc}>{idc}</div>
+            <input className={styles.title}
                 id={"title" + idc} autoComplete="off"
                 value={titleValue} type="text"
+                placeholder="title"
                 onChange={e => {
                     setTitleValue(e.target.value);
-                    // setEdited(true);
-                    changeProductHandler(index,idc, e.target.value, qtuValue, uomValue)
+                    changeProductHandler(index, e.target.value, sync, uomValue)
                 }} />
-
-            <input className={styles.tCardProduct_qtu}
-                id={"qtu" + idc} autoComplete="off"
-                value={qtuValue} type="number"
-                onChange={e => {
-                    setQtuValue(Number(e.target.value));
-                    // setEdited(true);
-                    changeProductHandler(index,idc, titleValue, Number(e.target.value), uomValue)
-                }}
-            />
 
             <DropdownSelectUOM
                 options={uoms}
                 onSelect={handleSelectUOM}
                 selectedValue={uomValue ? uomValue.id : null}
             />
+
+            <input className={styles.sync}
+                id={"sync" + idc} autoComplete="off"
+                placeholder="sync"
+                value={syncValue} type="text"
+                onChange={e => {
+                    setSyncValue(e.target.value);
+                    changeProductHandler(index, titleValue, e.target.value, uomValue)
+                }}
+            />
+
 
         </div>
 

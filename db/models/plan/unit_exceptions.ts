@@ -30,13 +30,13 @@ export class UnitExceptionTable {
   @Column('int')
   timeFinish!: number; // Время окончания отклонения в минутах с начала дня
 
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей TeamTable
+  @ManyToOne(() => TeamTable) 
+  @JoinColumn({ name: 'team_id' })
+  team!: TeamTable;  
   @Column()
   team_id!: number
   
-  @ManyToOne(() => UnitTable, { eager: true })
+  @ManyToOne(() => UnitTable)
   @JoinColumn({ name: 'unit_id' })
   unit!: UnitTable;
   @Column()

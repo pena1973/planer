@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { TeamTable } from '../../models/catalogs/teams'
 import { UserTable } from '../../models/catalogs/users'
 
@@ -27,13 +27,13 @@ export class SupportTable {
     basedOn!: number;  // если это сообщение ответ то здесь id исходного письма.
 
 
-    @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
+    @ManyToOne(() => TeamTable) // Указываем связь "многие к одному"
     @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
     team!: TeamTable;
     @Column()
     team_id!: number;
 
-    @ManyToOne(() => UserTable, { eager: true }) // Указываем связь "многие к одному"
+    @ManyToOne(() => UserTable) // Указываем связь "многие к одному"
     @JoinColumn({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
     user!: TeamTable;
     @Column()

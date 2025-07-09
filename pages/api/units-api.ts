@@ -1,8 +1,11 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
-import { getUnits } from './../../handlers/handlers-get';  
-import { updateUnits,updateUnitActions, updateExceptions} from './../../handlers/handlers-update';  
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
+
+import { getUnits } from './../../handlers/handlers-get';
+import { updateUnits, updateUnitActions, updateExceptions } from './../../handlers/handlers-update';
 import { UnitTable } from './../../db/models/catalogs/units'
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
@@ -17,19 +20,15 @@ interface RequestBody {
   exceptions: UnitExceptionItem[],
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const db = await connectDb();
+  // const teamRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    // const teamcompaniesRepository = dbConnection.getRepository(TeamTable);
-    const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
-    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-
-     const { teamId: getTeamId } = req.query;
-
+    const { teamId: getTeamId } = req.query;
     switch (req.method) {
       case 'GET':
         const units__ = await getUnits(Number(getTeamId), unitRepository)
@@ -76,7 +75,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               belong: unit.belong,
               type: unit.type,
               coment: unit.coment,
-              active: unit.active,                
+              active: unit.active,
             } as UnitItem;
           });
 

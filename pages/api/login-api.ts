@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-// import { getRepositoryByClass } from './../../lib/db/utils'; // Хелпер для репозиториев
 
 import connectDb from './../../db/database';  // Импортируем функцию подключения
 
@@ -11,6 +10,7 @@ import { UserUnitTable } from './../../db/models/catalogs/user_unit';
 
 import { UserItem } from './../../types/types';
 import { createAccessToken, createRefreshToken } from './../../lib/auth'
+import { getTypedRepository } from './../../lib/db/utils'
 import { getUser, getTeam, getLastAgreement } from './../../handlers/handlers-auth';  // расчеты
 import { getUsersUnits } from './../../handlers/handlers-get';  // расчеты
 
@@ -24,26 +24,20 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
+  const db = await connectDb();
+
+  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
+  const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
+  const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
+
+  // console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    // Используем названия сущностей как строки
-
-    const usersRepository = dbConnection.getRepository(UserTable);
-    const teamsRepository = dbConnection.getRepository(TeamTable);
-    const userAgreeRepository = dbConnection.getRepository(UserAgreeTable);
-    const agreementRepository = dbConnection.getRepository(AgreementTable);
-    const usersUnitsRepository = dbConnection.getRepository(UserUnitTable);
-
-    // const usersRepository = getRepositoryByClass<UserTable>(dbConnection, UserTable);
-    // const teamsRepository = getRepositoryByClass<TeamTable>(dbConnection, TeamTable);
-    // const userAgreeRepository = getRepositoryByClass<UserAgreeTable>(dbConnection, UserAgreeTable);
-    // const agreementRepository = getRepositoryByClass<AgreementTable>(dbConnection, AgreementTable);
-    // const usersUnitsRepository = getRepositoryByClass<UserUnitTable>(dbConnection, UserUnitTable);
 
     switch (req.method) {
-      // регистер
       case 'POST':
         // Извлекаем данные из тела запроса
         const { login, pass } = req.body as RequestBody;
@@ -98,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           team.id,
           usersRepository,
           usersUnitsRepository,
-        )
+          user.id)
 
         if (!resUserUnits_.success) {
           res.status(200).json({

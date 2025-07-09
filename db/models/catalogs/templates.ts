@@ -15,7 +15,7 @@ export class TemplateTable {
     @Column({ type: 'text' })
     fileContent!: string; // Содержимое файла в формате JSON (содержимое карты)
 
-    @ManyToOne(() => TeamTable, { eager: true })
+    @ManyToOne(() => TeamTable)
     @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
     team!: TeamTable;  // Ссылка на команду, к которой относится шаблон
     @Column()

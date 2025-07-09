@@ -2,13 +2,14 @@ import Layout from "@/components/Layout/layout";
 import TCardOper from "@/components/cards/TCardOper/tCardOper";
 import TCardOperNew from "@/components/cards/TCardOperNew/tCardOperNew";
 import TCardProducts from "@/components/cards/TCardProducts/tCardProducts";
+import Products from "@/components/cards/Products/products";
 import TCardComent from "@/components/cards/TCardComent/tCardComent";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 
 import { formatDate, padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/utils"
-import { useEffect, useState  } from "react";
+import { useEffect, useState } from "react";
 
 
 import { deleteTCardById } from '@/services/cards/deleteTCardById';
@@ -38,7 +39,8 @@ import {
   TCardItem,
   TCardStageItem,
   StatusEnum,
- 
+  ProductItem
+
 } from "@/types/types";
 import { checkReconcilation } from "@/lib/cardsHandlers";
 
@@ -84,6 +86,9 @@ export default function Cards() {
   const tCards = useSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
+   const products = useSelector((state: RootState) => {
+      return state.dataSlice.products;
+    })
 
   const uoms = useSelector((state: RootState) => {
     return state.catalogSlice.uoms;
@@ -98,6 +103,27 @@ export default function Cards() {
   const unitLoads = useSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
+
+
+
+  // const products = [
+  //   {
+  //     id: 4,
+  //     idc: 4,
+  //     title: "Прод",
+  //     uom: { id: 0, title: "шт", code: "8787" },
+  //     sync: "string",
+  //     cardId: 1
+  //   },
+  //   {
+  //     id: 3,
+  //     idc: 6,
+  //     title: "Прод25",
+  //     uom: { id: 0, title: "шт", code: "8787" },
+  //     sync: "str21ing",
+  //     cardId: 1
+  //   },
+  // ] as ProductItem[]
 
 
 
@@ -1024,7 +1050,7 @@ export default function Cards() {
   };
 
   // На клиенте
-  const saveProductsHandler = (tProductsValue: TCardProductItem[]) => {
+  const saveTCardProductsHandler = (tProductsValue: TCardProductItem[]) => {
 
     const { editedProducts, newIdc } = correctCardProducts(tProductsValue, tCards[tCardIndex])
 
@@ -1049,6 +1075,35 @@ export default function Cards() {
     updatedTCards.splice(tCardIndex, 1, tCard)
 
     dispatch(setTCards(updatedTCards));
+
+  };
+
+  // На клиенте
+  const saveProductsHandler = (productsValue: ProductItem[]) => {
+
+    // const { editedProducts, newIdc } = correctCardProducts(tProductsValue, tCards[tCardIndex])
+
+    // const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
+
+    // // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
+    // const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(editedProducts, tCardOperations);
+
+    // const tCard =
+    // {
+    //   ...tCards[tCardIndex],
+    //   modified: true,
+    //   maxIdc: newIdc,
+    //   tCardProducts: tCardProductsUpdated,  // Обновляем массивы
+    //   tCardOperations: tCardOperationsUpdated,  // Обновляем массивы
+    //   tCardWastes: tCardWastesUpdated,  // Обновляем массивы
+    //   tCardMaterials: tCardMaterialsUpdated,  // Обновляем массивы
+    //   status: StatusEnum.draft,
+    // }
+
+    // const updatedTCards = [...tCards];
+    // updatedTCards.splice(tCardIndex, 1, tCard)
+
+    // dispatch(setTCards(updatedTCards));
 
   };
 
@@ -1602,7 +1657,7 @@ export default function Cards() {
               <TCardProducts
                 tCardProducts={tCardProducts}
                 tCardOperations={tCardOperations}
-                saveProductsHandler={saveProductsHandler}
+                saveTCardProductsHandler={saveTCardProductsHandler}
                 dragOverHandler={dragOverHandler}
                 dropHandler={dropHandler}
                 setCurrentDraggingElement={setCurrentDraggingElement}
@@ -1628,7 +1683,7 @@ export default function Cards() {
               <TCardProducts
                 tCardProducts={tCardWastes}
                 tCardOperations={tCardOperations}
-                saveProductsHandler={saveProductsHandler}
+                saveTCardProductsHandler={saveTCardProductsHandler}
                 dragOverHandler={dragOverHandler}
                 dropHandler={dropHandler}
                 setCurrentDraggingElement={setCurrentDraggingElement}
@@ -1654,6 +1709,16 @@ export default function Cards() {
                 setComentTCardHandler={setComentTCardHandler}
                 tCardIdc={tCards[tCardIndex].idc}
               />
+              <div className="container_stage_title">
+                {t('cards.nomenklatura')}
+              </div>
+              <Products
+                products={products}
+                saveProductsHandler={saveProductsHandler}
+                updateIdc={updateIdc}
+                maxIdc={tCards[tCardIndex].maxIdc}
+                setMaxIdc={setMaxIdc}
+              />
             </div>
             {/* Обработка */}
             {tCardStagesReactNodes}
@@ -1664,7 +1729,7 @@ export default function Cards() {
                 </div>
                 <TCardProducts
                   tCardProducts={tCardMaterials}
-                  saveProductsHandler={saveProductsHandler}
+                  saveTCardProductsHandler={saveTCardProductsHandler}
                   dragOverHandler={dragOverHandler}
                   dropHandler={dropHandler}
                   setCurrentDraggingElement={setCurrentDraggingElement}

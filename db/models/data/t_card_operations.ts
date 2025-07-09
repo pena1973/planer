@@ -16,7 +16,7 @@ export class TCardOperationTable {
   @Column()
   idc!: number;
 
-  @ManyToOne(() => TCardStageTable, { eager: true, cascade: true })
+  @ManyToOne(() => TCardStageTable )
   @JoinColumn({ name: 'stage_id' })
   stage!: TCardStageTable;
   @Column()
@@ -25,7 +25,7 @@ export class TCardOperationTable {
   @Column({ type: 'int', default: 0 })
   order!: number;  //  порядок визуализации операций на стадиях
 
-  @ManyToOne(() => ActionTable, { eager: true }) // Указываем связь "многие к одному"
+  @ManyToOne(() => ActionTable) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'action_id' }) // Указываем колонку, которая является внешним ключом
   action!: ActionTable;  // Действие
   @Column()
@@ -34,7 +34,7 @@ export class TCardOperationTable {
   @Column('int')
   duration!: number;  // Время в миллисекундах
 
-  @ManyToOne(() => TCardTable, { eager: true, cascade: true })
+  @ManyToOne(() => TCardTable)
   @JoinColumn({ name: 'tcard_id' })
   tcard!: TCardTable;
   @Column()
@@ -55,6 +55,5 @@ export class TCardOperationTable {
   @Column({ type: 'int', default: 0 })
   fix_oper_idc!: number;
 
-  // @OneToMany(() => TCardProductTable, (product) => product.operation, { cascade: true })
-  // products!: TCardProductTable[];
+
 }

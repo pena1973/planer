@@ -1,32 +1,29 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
+
 import { getTeamShedule } from './../../handlers/handlers-get';  // расчеты
 
-import { Repository  } from 'typeorm';
+import { Repository } from 'typeorm';
 import { TeamTable } from './../../db/models/catalogs/teams'
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
 
-import { ScheduleItem} from './../../types/types';
+import { ScheduleItem } from './../../types/types';
 
 interface RequestBody {
   schedule: ScheduleItem,
-  userId:number, 
-  teamId:number
+  userId: number,
+  teamId: number
 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const db = await connectDb();
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    const teamsRepository = dbConnection.getRepository(TeamTable);
-
-    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
-
-    // userId, teamId в любом случае
     const { userId: userIdget, teamId: teamIdget } = req.query;
 
     switch (req.method) {
@@ -43,7 +40,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'POST':
         // Извлекаем данные из тела запроса
         const { schedule, userId, teamId } = req.body as RequestBody;
-        
+
         const resSchedule = await updateShedule(
           teamScheduleRepository,
           schedule,
@@ -86,19 +83,19 @@ async function updateShedule(
 
   if (!existingSchedule) {
     // Если расписания нет, создаем новое
-    const newSchedule = scheduleRepository.create({      
+    const newSchedule = scheduleRepository.create({
       team: { id: teamId }, // Вместо team_id передаем объект TeamTable
       timeStartWork: schedule.timeStartWork,
       timeFinishWork: schedule.timeFinishWork,
-      breaks: schedule.breaks,      
+      breaks: schedule.breaks,
       holidays: schedule.holidays,
       weekends: schedule.weekends,
       workdays: schedule.workdays.map(workday => ({
-        date: String(workday.date).split('T')[0], 
+        date: String(workday.date).split('T')[0],
         timeStart: workday.timeStart,
         timeFinish: workday.timeFinish
       })),
-      timeZone:schedule.timeZone
+      timeZone: schedule.timeZone
     });
 
     const savedNewSchedule = await scheduleRepository.save(newSchedule);
@@ -119,14 +116,14 @@ async function updateShedule(
       timeStart: workday.timeStart,
       timeFinish: workday.timeFinish
     }));
-    
+
     existingSchedule.timeZone = schedule.timeZone;
 
 
     const savedUpdatedSchedule = await scheduleRepository.save(existingSchedule);
     if (!savedUpdatedSchedule) return { success: false, message: "Не удалось обновить расписание" };
 
-    
+
     return { success: true, savedSchedule: savedUpdatedSchedule };
   }
 }

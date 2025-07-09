@@ -31,9 +31,9 @@ export class TeamScheduleTable {
   @Column('json', { nullable: true })
   workdays!: { date: string, timeStart: number, timeFinish: number }[]; // Даты, когда работа возможна в выходные (переносы), использует строковый формат для даты
   
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей TeamTable
+  @ManyToOne(() => TeamTable) 
+  @JoinColumn({ name: 'team_id' })
+  team!: TeamTable;  
   
   @Column()
   team_id!: number;

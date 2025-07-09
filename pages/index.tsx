@@ -9,6 +9,7 @@ import { downloadLoads } from '@/services/initial/downloadLoads';
 import { downloadSchedule } from '@/services/initial/downloadSchedule';
 import { downloadSettings } from '@/services/initial/downloadSettings';
 import { downloadTCards } from '@/services/initial/downloadTCards';
+import { downloadProducts } from '@/services/initial/downloadProducts';
 import { downloadUnits } from '@/services/initial/downloadUnits';
 import { downloadUnutsActions } from '@/services/initial/downloadUnutsActions';
 import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExceptions';
@@ -21,7 +22,6 @@ import { loginHandler } from '@/services/login/loginHandler';
 import { registerHandler } from '@/services/login/registerHandler';
 
 import { store } from '@/store' // путь к твоему Redux store
-import Link from 'next/link';
 
 import {
   UnitItem,
@@ -274,6 +274,7 @@ export default function Index() {
           await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
           await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
           await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadProducts(user.id, team.id, token, t, setMessage, dispatch);
           await downloadLoads(user.id, team.id, token, t, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           setStep(5);
@@ -303,6 +304,8 @@ export default function Index() {
   }, [user, token, team, signedAgreement]);  // Зависимости от user, token и team
 
   const signAgreement = async (signedAgreement: boolean, agreementId: number) => {
+    
+     
     // обращаемся к базе и подписываем соглашение
     // после этого переходим к загрузке начальных таблиц
     // после этого вываливаемся на начальные настройки
@@ -326,24 +329,15 @@ export default function Index() {
         const receivedData = await res.json();
         const error = receivedData.error;
         setMessageLogin(error);
-        //  console.log(t('service.serverUnavailable') + res.status);
-        setMessageLogin(t('service.serverUnavailable') + res.status);
       } else {
         const receivedData = await res.json();
-        // console.log("receivedData", receivedData)
-
         if (receivedData.success) {
-
           const signed_ = receivedData.signed as boolean;
           //   Обновим настройки          
           dispatch(setSignedAgreement(signed_));
           setStep(4);
         } else setMessageLogin(receivedData.message);
       }
-
-      // } catch (e: any) {
-      //   // setMessageLogin(t('service.serverUnavailable') + e.message)            
-      // }
     } catch (e: unknown) {
       let message = t('service.serverUnavailable');
       if (e instanceof Error) {

@@ -2,6 +2,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
 import {TeamTable} from './teams'
 
+
 @Entity("actions")
 export class ActionTable {
   @PrimaryGeneratedColumn()
@@ -22,7 +23,7 @@ export class ActionTable {
   @Column({default:true})
   interruptible!: boolean;
   
-  @ManyToOne(() => TeamTable, { eager: true, cascade:true }) // Указываем связь "многие к одному"
+  @ManyToOne(() => TeamTable) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
   team!: TeamTable;  // Связь с таблицей UOMsTable
   @Column()

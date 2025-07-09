@@ -28,9 +28,9 @@ export class SettingsTable {
   @Column('boolean', {default:false} )
   isQualControl!: boolean; // использовать контроль качества
   
-  @ManyToOne(() => TeamTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей UOMsTable
+  @ManyToOne(() => TeamTable)
+  @JoinColumn({ name: 'team_id' }) 
+  team!: TeamTable;  
   @Column()
   team_id!: number;
 }

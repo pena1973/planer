@@ -9,7 +9,7 @@ export class UserAgreeTable {
   id!: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
+  created_at!: Date;  
 
   @Column({default:false})
   signed!: boolean; //  соглашение подписано
@@ -17,14 +17,14 @@ export class UserAgreeTable {
 @Column({ type: 'date', nullable: true })
 date!: Date | null; // дата подписания
 
-  @ManyToOne(() => UserTable, { eager: true }) // ссылка на пользователя
-  @JoinColumn({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
+  @ManyToOne(() => UserTable) 
+  @JoinColumn({ name: 'user_id' })
   user!: UserTable;  
   @Column()
   user_id!: number;
 
-  @ManyToOne(() => AgreementTable, { eager: true }) // ссылка на соглашение
-  @JoinColumn({ name: 'agreement_id' }) // Указываем колонку, которая является внешним ключом
+  @ManyToOne(() => AgreementTable)
+  @JoinColumn({ name: 'agreement_id' })
   agreement!: AgreementTable;  
   @Column()
   agreement_id!: number;

@@ -1,6 +1,8 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
 
 import { getUnits, getUnitLoads, getTeamShedule, getExceptions } from './../../handlers/handlers-get';  // 
 import { getUnitsSchedule } from './../../handlers/handlers-schedule';  // 
@@ -15,18 +17,14 @@ import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
 import { UnitCalendarItem, UnitLoadItem, StatusEnum, UnitKPIItem } from "./../../types/types";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
+  const db = await connectDb();
+  const teamRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const unitRepository = getTypedRepository(db, 'UOMsTable', UnitTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    const teamRepository = dbConnection.getRepository(TeamTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const unitRepository = dbConnection.getRepository(UnitTable);
-
-    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
-    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-    // userId, teamId в любом случае
+  try {    
     const { userId, teamId, today, unitId, dateFrom, dateTo, month } = req.query;
 
     switch (req.method) {

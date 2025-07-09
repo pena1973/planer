@@ -14,15 +14,15 @@ export class TCardTable {
   @Column('date')
   date!: Date; // дата карты
 
-  @ManyToOne(() => UserTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
-  user!: UserTable;  // Связь с таблицей UOMsTable
+  @ManyToOne(() => UserTable) 
+  @JoinColumn({ name: 'user_id' }) 
+  user!: UserTable;  
   @Column()
   user_id!: number;
 
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей UOMsTable
+  @ManyToOne(() => TeamTable)
+  @JoinColumn({ name: 'team_id' })
+  team!: TeamTable;
   @Column()
   team_id!: number;
 

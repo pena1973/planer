@@ -24,7 +24,7 @@ export class UnitLoadTable {
   @Column('int')
   idc_oper!: number; // Идентификатор операции
 
-  @ManyToOne(() => TCardTable, { eager: true, cascade: true })
+  @ManyToOne(() => TCardTable)
   @JoinColumn({ name: 'id_tCard' })
   tCard!: TCardTable;
   @Column('int')
@@ -37,13 +37,13 @@ export class UnitLoadTable {
   timeFinish!: number; // Время окончания в миллисекундах
 
 
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
+  @ManyToOne(() => TeamTable) // Указываем связь "многие к одному"
   @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
   team!: TeamTable;  // Связь с таблицей TeamTable
   @Column()
   team_id!: number
 
-  @ManyToOne(() => UnitTable, { eager: true })
+  @ManyToOne(() => UnitTable)
   @JoinColumn({ name: 'unit_id' })
   unit!: UnitTable;
   @Column()

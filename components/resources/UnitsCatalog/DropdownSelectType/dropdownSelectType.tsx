@@ -1,7 +1,7 @@
 
 // export default DropdownSelectType;
 import React, { useState } from 'react';
-import styles from './dropdownSelectType.module.scss'; 
+import styles from './dropdownSelectType.module.scss';
 import { UnitTypeEnum } from '@/types/types';
 
 // Определение типов для пропсов компонента
@@ -25,11 +25,8 @@ const DropdownSelectType: React.FC<DropdownSelectTypeProps> = ({ onSelect, selec
     return (
         <div className={styles.dropdownContainer}>
             {/* Выбранное значение */}
-            <div 
-                className={styles.select}
-                onClick={toggleDropdown}
-            >
-                {selectedValue ? UnitTypeEnum[selectedValue] : "Выберите"}
+            <div className={styles.select} onClick={toggleDropdown} >
+                {selectedValue ? selectedValue : "Выберите"}
                 <div className={styles.arrow}>&#9662;</div>
             </div>
 

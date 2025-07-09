@@ -1,9 +1,13 @@
+import { Repository } from 'typeorm';
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from './../../db/database';  // Импортируем функцию подключения
-
+import { getRepositoryByName } from '@/lib/db/utils';
+import { getTypedRepository } from './../../lib/db/utils'
 import { UserAgreeTable } from './../../db/models/catalogs/user_agree';
 import { AgreementTable } from './../../db/models/catalogs/agreements';
 import { signAgreement } from './../../handlers/handlers-auth';  // расчеты
+import { entities } from '@/lib/db/entities';
+
 
 interface RequestBody {
   userId: number,
@@ -12,16 +16,20 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+   const db = await connectDb();
+  // const meta = db.entityMetadatas.find(m => m.name === 'UserAgreeTable');
+  // if (!meta) {
+  //   throw new Error('UserAgreeTable не зарегистрирован в метаданных');
+  // }
+  // // 👇 здесь указываем явно тип
+  // const userAgreeRepository: Repository<UserAgreeTable> = db.getRepository(meta.target as typeof UserAgreeTable);
+
+  const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
+  const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    // Используем репозиторий для работы с сущностью TCardTable    
-    const userAgreeRepository = dbConnection.getRepository(UserAgreeTable);
-    const agreementRepository = dbConnection.getRepository(AgreementTable);
-
+ 
     switch (req.method) {
-      // регистер
       case 'POST':
         // Извлекаем данные из тела запроса
         const { userId, signedAgreement, agreementId } = req.body as RequestBody;

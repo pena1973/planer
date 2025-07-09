@@ -1,5 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';  
+import { getTypedRepository } from './../../lib/db/utils'
+
 import { extractIdFromTeamNumber } from './../../lib/utils';
 
 import { UserTable } from './../../db/models/catalogs/users';
@@ -14,7 +17,8 @@ import { TeamItem, UserItem, SettingsItem} from './../../types/types';
 
 import { sign } from 'jsonwebtoken';
 import { createNewTeam, createNewUser, getTeam, 
-  isUserExist, getLastAgreement } from './../../handlers/handlers-auth';  // расчеты
+  isUserExist, getLastAgreement } from './../../handlers/handlers-auth';  
+
 
 interface RequestBody {
   login: string,
@@ -25,20 +29,20 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
+  const db = await connectDb();
+
+  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
+  const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
+  const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
+
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    // Используем репозиторий для работы с сущностью TCardTable
-    const usersRepository = dbConnection.getRepository(UserTable);
-    const teamsRepository = dbConnection.getRepository(TeamTable);
-    const userAgreeRepository = dbConnection.getRepository(UserAgreeTable);
-    const agreementRepository = dbConnection.getRepository(AgreementTable);
-    const settingsRepository = dbConnection.getRepository(SettingsTable);
-
+  
     switch (req.method) {
-      // регистер
-      case 'POST':
+           case 'POST':
         // Извлекаем данные из тела запроса
         const { login, pass, teamNumber, createTeam, nickname } = req.body as RequestBody;
 
@@ -100,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return;
         }
 
-        const savedSettings = resSettings.savedSettings as SettingsItem;  //  можно сразу привести типы простые
+        // const savedSettings = resSettings.savedSettings as SettingsItem;  //  можно сразу привести типы простые
 
         // Юзер
 

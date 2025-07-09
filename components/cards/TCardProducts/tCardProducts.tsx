@@ -1,6 +1,6 @@
 
 import styles from "./tCardProducts.module.scss";
-import { TCardOperationItem, TCardProductItem, UOMItem } from '@/types/types'
+import { TCardOperationItem, TCardProductItem, UOMItem, ProductItem } from '@/types/types'
 import Image from 'next/image';
 
 import TCardProduct from "@/components/cards/TCardProduct/tCardProduct";
@@ -21,7 +21,7 @@ import add from "@/public/add-rem.png";
 export interface TCardProductsProps {
     tCardProducts: TCardProductItem[],
     tCardOperations?: TCardOperationItem[], // для прорисовки статусов
-    saveProductsHandler: (tProductsValue: TCardProductItem[]) => void;
+    saveTCardProductsHandler: (tProductsValue: TCardProductItem[]) => void;
     dragOverHandler: (e: React.DragEvent<HTMLElement>) => void,
     dropHandler: (e: React.DragEvent<HTMLElement>) => void,
     setCurrentDraggingElement: ({ }: string) => void,
@@ -45,7 +45,7 @@ export interface TCardProductsProps {
 export default function TCardProducts({
     tCardProducts,
     tCardOperations,
-    saveProductsHandler,
+    saveTCardProductsHandler,
     dragOverHandler,
     dropHandler,
     setCurrentDraggingElement,
@@ -117,7 +117,7 @@ export default function TCardProducts({
             }
         })
         if (isOK) {
-            saveProductsHandler(tProductsValue);
+            saveTCardProductsHandler(tProductsValue);
             setEdited(!isOK);
         }
     };
@@ -131,6 +131,7 @@ export default function TCardProducts({
             qtu: 0,
             uom: {} as UOMItem,
             mode: true,
+            product:{} as ProductItem
         } as TCardProductItem;
         setTProductsValue([...tProductsValue, newProduct])
         setMaxIdc(idc);

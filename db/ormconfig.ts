@@ -14,6 +14,7 @@ const config: DataSourceOptions = {
   migrations: ['/db/migrations/**/*.ts'],
   subscribers: [],
   ssl: { rejectUnauthorized: false },
+  synchronize:true
 };
 
 export default config;

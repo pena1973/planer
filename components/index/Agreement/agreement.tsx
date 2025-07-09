@@ -46,7 +46,7 @@ const Agreement: React.FC<AgreementProps> = ({
 
       <div className={styles.container_block}>
         <div className={styles.label}>
-          {t('payment.agreement')}
+          {t('agreement.agree')}
           <input 
           className={styles.checkbox} 
           type="checkbox" 

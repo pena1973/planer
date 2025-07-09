@@ -1,6 +1,9 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database'; // Подключение к базе данных
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
+
 import { TemplateTable } from './../../db/models/catalogs/templates';
 import { TemplateItem } from './../../types/types'; 
 import { updateTemplates } from './../../handlers/handlers-update';  
@@ -13,13 +16,9 @@ interface RequestBody {
     templates: TemplateItem[],
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    try {
-        const dbConnection = await connectDb();  // Устанавливаем подключение
-
-        // Репозиторий для работы с шаблонами
-        const templateRepository = dbConnection.getRepository(TemplateTable);
-
+  const db = await connectDb();
+  const templateRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
+    try {       
         const { teamId: getTeamId } = req.query;
 
         switch (req.method) {

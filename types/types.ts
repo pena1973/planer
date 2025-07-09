@@ -46,11 +46,20 @@ export interface TCardOperationItem {
 
 export interface TCardProductItem {
     id?: number,  // id BD
-    idc: number, //  id на клиенте
+    idc: number, //  // замена
     code: string, //  код источника    
-    title: string,
+    title: string, // замена
     qtu: number,
+    uom: UOMItem,// замена
+    product:ProductItem
+}
+export interface ProductItem {
+    id?: number,  // id BD
+    idc: number, //  id на клиенте    
+    title: string,    
     uom: UOMItem,
+    sync:string,
+    cardId:number
 }
 
 export interface TCardItem {

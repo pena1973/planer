@@ -106,7 +106,6 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                 updatedUnit = { ...unit, belong: value as UnitBelongEnum, modified: true }
                 break;
             case "type":
-
                 updatedUnit = { ...unit, type: value as UnitTypeEnum, modified: true }
                 break;
             case "retool":
@@ -205,7 +204,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             setMessage(message);
             return
         };
-       await saveUnits(unitsValue, actionsValue, exceptionsValue,
+        await saveUnits(unitsValue, actionsValue, exceptionsValue,
             user, team, token, dispatch, t,
             setMessage, setUnitsValue, setActionsValue, setExceptionsValue,);
 
@@ -434,7 +433,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             </td>
             <td>
                 <DropdownSelectType
-                    onSelect={(value) => { changeHandler(index, String(value), "type"); }}
+                    onSelect={(value) => { changeHandler(index, value, "type"); }}
                     selectedValue={elem.type || null}
                 />
             </td>
@@ -535,8 +534,9 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
     const unitFocusActionValueReactNodes = (actionsValue || [])
         .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
-        .map((elem, index) => (
-            (
+        .map((elem, index) => {   
+            console.log(elem);
+            return (
                 <tr key={"ac" + index}>
                     <td>
                         <Image
@@ -544,8 +544,6 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                             onClick={() => deleteUnitActionHandler(elem.id, elem.idc)}
                         />
                     </td>
-
-
                     <td>
                         <DropdownSelectUnitAction
                             options={actions}
@@ -574,7 +572,9 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                     </td>
                 </tr>
             )
-        ))
+        }
+
+        )
 
     return (
         <div className={styles.units}>

@@ -4,10 +4,6 @@ import { UOMItem, StatusEnum } from '@/types/types'
 
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
 export interface TCardProductProps {
     idc: number,
     code: string,

@@ -1,7 +1,9 @@
 // Это вариант АПИ по обработке карты оптимизированный того что без 1 в имени, потом надо остальное переделать
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
 
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
@@ -21,10 +23,13 @@ import {
   UnitBelongEnum,
   TypeEnum
 } from './../../types/types';
+
 import { getTCardFull, getTCardLoads, getUnitActions } from './../../handlers/handlers-get';  // 
-import { updateCard, updateStages, updateOperations, 
-  updateProducts, updateTCardLoads, updateStatusTCard, 
-  updateStatusOperationByTCardId } from './../../handlers/handlers-update';  // 
+import {
+  updateCard, updateStages, updateOperations,
+  updateProducts, updateTCardLoads, updateStatusTCard,
+  updateStatusOperationByTCardId
+} from './../../handlers/handlers-update';  // 
 
 // Определение перечисления
 
@@ -35,19 +40,16 @@ interface RequestBody {
   tCardStages: TCardStageItem[];
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const db = await connectDb();
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const tCardOperationRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-    const teamsRepository = dbConnection.getRepository(TeamTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-    const tCardOperationRepository = dbConnection.getRepository(TCardOperationTable);
-    const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
 
     const { tCardId: tCardIdget } = req.query;
 
@@ -275,7 +277,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard__ = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
+        const tCard__ = await getTCardFull(tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository)
         // запросим действия юнитов
         const unitActions_ = await getUnitActions(teamId_, unitActionsRepository)
 
@@ -348,7 +350,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               tCardIdc: tCard__.idc,
               tCardDate: tCard__.date,
               title: oper?.action.title,
-              duration: (!oper) ? 0 : oper.duration/1000,
+              duration: (!oper) ? 0 : oper.duration / 1000,
               interruptible: oper?.action.interruptible,
               koef: unitAction?.koef ? unitAction.koef : 1,
             },
@@ -367,7 +369,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (loads_.length > 0) {
 
           // обновим статус операций
-          const resOpers = await updateStatusOperationByTCardId(tCardOperationsRepository, tCardId, StatusEnum.cancelled)
+          const resOpers = await updateStatusOperationByTCardId(tCardOperationRepository, tCardId, StatusEnum.cancelled)
           if (!resOpers.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
             break;

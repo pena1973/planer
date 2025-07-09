@@ -3,6 +3,7 @@ import { TCardTable } from './../../db/models/data/t_cards';
 import { TCardOperationTable } from './../../db/models/data/t_card_operations';
 import { TCardProductTable } from './../../db/models/data/t_card_products';
 import { TCardStageTable } from './../../db/models/data/t_card_stages';
+import { ProductsTable } from './../../db/models/data/products';
 
 import { UOMsTable } from './../../db/models/catalogs/uoms';
 import { ActionTable } from './../../db/models/catalogs/actions';
@@ -23,7 +24,7 @@ import { SettingsTable } from './../../db/models/plan/settings';
 import { SupportTable } from './../../db/models/support/support';
 import { BillTable } from './../../db/models/support/bills';
 
-export const getEntities = () => [
+export const entities = {
   TCardTable,
   TCardOperationTable,
   TCardProductTable,
@@ -44,4 +45,7 @@ export const getEntities = () => [
   SettingsTable,
   SupportTable,
   BillTable,
-];
+  ProductsTable,
+};
+
+export const getEntities = () => Object.values(entities);

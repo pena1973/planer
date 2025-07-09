@@ -1,6 +1,9 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
+
 import { updateSupportMessage } from './../../handlers/handlers-update';  // расчеты
 
 import { SupportTable } from './../../db/models/support/support';
@@ -14,14 +17,11 @@ interface RequestBody {
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const db = await connectDb();
+  const supportRepository = getTypedRepository(db, 'SupportTable', SupportTable);
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    // Используем репозиторий для работы с сущностью TCardTable
-    const supportRepository = dbConnection.getRepository(SupportTable);
-
+  
     const { teamId: getTeamId } = req.query;
     switch (req.method) {
       case 'GET':

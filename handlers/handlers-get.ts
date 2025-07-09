@@ -762,7 +762,7 @@ export async function getUnitActions(
 
   const receivedUnitActions = await unitActionsRepository.find({
     where: filter,  // Применяем фильтр к запросу
-    relations: ['unit'], // Добавляем связь с таблицей Unit
+    relations: ['unit',"action"], // Добавляем связь с таблицей Unit
   });
 
   if (!receivedUnitActions) return [] as UnitActionItem[]
@@ -985,7 +985,7 @@ export async function getUsersUnits(
 
   try {
     // Шаг 1: Формируем условие для поиска пользователей
-    const userCondition = userId ? { id: userId, team_id: teamId, isAdmin: false, active: true } : { team_id: teamId, isAdmin: false, active: true };
+    const userCondition = userId ? { id: userId, team_id: teamId, active: true } : { team_id: teamId, active: true };
 
     // Получаем пользователей по условию
     const activeUsers = await usersRepository.find({ where: userCondition });

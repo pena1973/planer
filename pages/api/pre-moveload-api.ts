@@ -1,21 +1,22 @@
 import { withAuth } from './../../lib/withAuth'
-// Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
-import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './../../handlers/handlers-get';  // 
 
+import connectDb from './../../db/database';  
+import { getTypedRepository } from './../../lib/db/utils'
+
+import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './../../handlers/handlers-get';  // 
 import {  planTCardFromOperINC, planOperOnUnit,  getDependentOperationsIds, getOperationReadyMoment} from './../../handlers/handlers-plan';  // 
 
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions';
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
 import { TCardTable } from './../../db/models/data/t_cards'
-
 import { UnitTable } from './../../db/models/catalogs/units'
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
+
 import { StatusEnum } from './../../types/types'
 
 import { UnitItem, UnitLoadItem,  UnitBelongEnum} from "./../../types/types";
@@ -32,24 +33,20 @@ interface RequestBody {
   teamId: number, 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
+  const db = await connectDb();
+  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+  const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+  
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
-    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-    const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
-    // userId, teamId в любом случае
-
-    // const { userId, teamId } = req.query;
-
+  
     switch (req.method) {
 
       // ПЕРЕПЛАНИРОВАНИЕ по перемещению лоада

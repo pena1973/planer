@@ -1,7 +1,10 @@
 
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utils'
+
 import { getDependentOperationsIds } from './../../handlers/handlers-plan';  // планирование карты
 import { getTCardFull } from './../../handlers/handlers-get';  // 
 
@@ -23,15 +26,14 @@ interface RequestBody {
   userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const db = await connectDb();
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+  const unitLoadRepository = getTypedRepository(db, 'UOMsTable', UnitLoadTable);
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
 
     const { userId, teamId } = req.query;
 
@@ -165,22 +167,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     res.status(405).end(); // Метод не поддерживается
 
-  // } catch (error) {
-  //   console.error('Ошибка подключения или выполнения запроса (eraze-load-plan-api):', error);
-  //   res.status(500).json({ error: 'Не удалось обработать запрос' + error });
-  // }
+    // } catch (error) {
+    //   console.error('Ошибка подключения или выполнения запроса (eraze-load-plan-api):', error);
+    //   res.status(500).json({ error: 'Не удалось обработать запрос' + error });
+    // }
   } catch (error: unknown) {
-  let errorMessage = "Неизвестная ошибка";
+    let errorMessage = "Неизвестная ошибка";
 
-  if (error instanceof Error) {
-    errorMessage = error.message;
-    console.error("Ошибка подключения или выполнения запроса (eraze-load-plan-api):", error);
-  } else {
-    console.error("Неизвестная ошибка подключения (eraze-load-plan-api):", error);
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      console.error("Ошибка подключения или выполнения запроса (eraze-load-plan-api):", error);
+    } else {
+      console.error("Неизвестная ошибка подключения (eraze-load-plan-api):", error);
+    }
+
+    res.status(500).json({ error: "Не удалось обработать запрос: " + errorMessage });
   }
-
-  res.status(500).json({ error: "Не удалось обработать запрос: " + errorMessage });
-}
 
 }
 
@@ -213,7 +215,7 @@ const cancelLoads = async (
     } else {
       return { success: false, message: "Нет загрузок для отмены." };
     }
-   
+
   } catch (error: unknown) {
     let message = "Ошибка при отмене загрузок.";
     if (error instanceof Error) {
@@ -252,17 +254,17 @@ const deleteLoads = async (
     } else {
       return { success: false, message: "Нет загрузок для удаления." };
     }
-  
+
   } catch (error: unknown) {
-  let message = "Ошибка при удалении загрузок.";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка при удалении загрузок:", error);
-  } else {
-    console.error("Неизвестная ошибка при удалении загрузок:", error);
+    let message = "Ошибка при удалении загрузок.";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка при удалении загрузок:", error);
+    } else {
+      console.error("Неизвестная ошибка при удалении загрузок:", error);
+    }
+    return { success: false, message };
   }
-  return { success: false, message };
-}
 };
 
 const setOperStatus = async (
@@ -283,17 +285,17 @@ const setOperStatus = async (
     } else {
       return { success: false, message: "Ни одна операция не обновлена." };
     }
-  
+
   } catch (error: unknown) {
-  let message = "Ошибка обновления статуса операций.";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка обновления операций:", error);
-  } else {
-    console.error("Неизвестная ошибка обновления операций:", error);
+    let message = "Ошибка обновления статуса операций.";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка обновления операций:", error);
+    } else {
+      console.error("Неизвестная ошибка обновления операций:", error);
+    }
+    return { success: false, message };
   }
-  return { success: false, message };
-}
 };
 
 const setTCardStatus = async (
@@ -314,17 +316,17 @@ const setTCardStatus = async (
     } else {
       return { success: false, message: "Карта не обновлена." };
     }
-  
+
   } catch (error: unknown) {
-  let message = "Ошибка обновления статуса карты.";
-  if (error instanceof Error) {
-    message = error.message;
-    console.error("Ошибка обновления карты:", error);
-  } else {
-    console.error("Неизвестная ошибка обновления карты:", error);
+    let message = "Ошибка обновления статуса карты.";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка обновления карты:", error);
+    } else {
+      console.error("Неизвестная ошибка обновления карты:", error);
+    }
+    return { success: false, message };
   }
-  return { success: false, message };
-}
 
 };
 export default withAuth(handler)

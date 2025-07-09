@@ -17,7 +17,7 @@ export class TCardStageTable {
   @Column()
   code!: number;
 
-  @ManyToOne(() => TCardTable,  { eager: true, cascade:true })
+  @ManyToOne(() => TCardTable)
   @JoinColumn({ name: 'tcard_id' })
   tcard!: TCardTable;
   @Column()
