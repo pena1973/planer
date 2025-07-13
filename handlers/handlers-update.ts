@@ -1673,48 +1673,74 @@ export async function updateStatusOperationsByOperIds(
 }
 
 
-// Функция для обновления статусов загрузок
+// // Функция для обновления статусов загрузок (интервалов)
+// export async function updateStatusLoads(
+//   unitLoadRepository: Repository<UnitLoadTable>,
+//   loadsIds: number[],
+//   status: StatusEnum
+// ): Promise<{ success: boolean, message: string }> {
+//   try {
+
+//     if (loadsIds.length === 0) {
+//       return { success: false, message: "Нет загрузок для обновления" };
+//     }
+
+//     const result = await unitLoadRepository
+//       .createQueryBuilder()
+//       .update(UnitLoadTable)
+//       .set({ status })
+//       .where("id IN (:...loadsIds)", { loadsIds })
+//       .execute();
+
+
+
+//     if (result.affected && result.affected > 0) {
+//       return { success: true, message: `Обновлено ${result.affected} загрузок` };
+//     } else {
+//       return { success: false, message: "Ни одна загрузка не обновлена" };
+//     }   
+//   } catch (error: unknown) {
+//     let message = "Ошибка обновления статусов загрузок";
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error("Ошибка обновления статусов загрузок:", error);
+//     } else {
+//       console.error("Неизвестная ошибка обновления статусов загрузок:", error);
+//     }
+//     return { success: false, message };
+//   }
+
+// }
+
+// Функция для обновления статусов загрузок (интервалов)
 export async function updateStatusLoads(
   unitLoadRepository: Repository<UnitLoadTable>,
   loadsIds: number[],
   status: StatusEnum
-): Promise<{ success: boolean, message: string }> {
+): Promise<{ success: boolean; message: string }> {
   try {
-
     if (loadsIds.length === 0) {
       return { success: false, message: "Нет загрузок для обновления" };
     }
 
-    const result = await unitLoadRepository
-      .createQueryBuilder()
-      .update(UnitLoadTable)
-      .set({ status })
-      .where("id IN (:...loadsIds)", { loadsIds })
-      .execute();
-
-
+    const result = await unitLoadRepository.update(
+      loadsIds,
+      { status }
+    );
 
     if (result.affected && result.affected > 0) {
       return { success: true, message: `Обновлено ${result.affected} загрузок` };
     } else {
       return { success: false, message: "Ни одна загрузка не обновлена" };
     }
-    // } catch (error: any) {
-    //   console.error("Ошибка обновления статусов загрузок:", error);
-    //   return { success: false, message: error.message || "Ошибка обновления статусов загрузок" };
-    // }
+
   } catch (error: unknown) {
-    let message = "Ошибка обновления статусов загрузок";
-    if (error instanceof Error) {
-      message = error.message;
-      console.error("Ошибка обновления статусов загрузок:", error);
-    } else {
-      console.error("Неизвестная ошибка обновления статусов загрузок:", error);
-    }
+    const message = error instanceof Error ? error.message : "Неизвестная ошибка обновления статусов загрузок";
+    console.error("Ошибка обновления статусов загрузок:", error);
     return { success: false, message };
   }
-
 }
+
 
 // Функция для обновления статуса карты
 export async function updateStatusTCard(
