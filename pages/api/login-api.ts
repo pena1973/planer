@@ -10,7 +10,7 @@ import { UserUnitTable } from './../../db/models/catalogs/user_unit';
 
 import { UserItem } from './../../types/types';
 import { createAccessToken, createRefreshToken } from './../../lib/auth'
-import { getTypedRepository } from './../../lib/db/utils'
+import { getTypedRepository } from './../../lib/db/utilites'
 import { getUser, getTeam, getLastAgreement } from './../../handlers/handlers-auth';  // расчеты
 import { getUsersUnits } from './../../handlers/handlers-get';  // расчеты
 

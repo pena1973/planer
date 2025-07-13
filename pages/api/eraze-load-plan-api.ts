@@ -3,7 +3,7 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utils'
+import { getTypedRepository } from './../../lib/db/utilites'
 
 import { getDependentOperationsIds } from './../../handlers/handlers-plan';  // планирование карты
 import { getTCardFull } from './../../handlers/handlers-get';  // 
@@ -11,6 +11,7 @@ import { getTCardFull } from './../../handlers/handlers-get';  //
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { ProductTable } from './../../db/models/data/products'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 
@@ -33,6 +34,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
   const unitLoadRepository = getTypedRepository(db, 'UOMsTable', UnitLoadTable);
 
+  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
   try {
 
     const { userId, teamId } = req.query;
@@ -45,7 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         let tCardLoadsUpdated = [...tCardLoads];
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
+        const tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository,productRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
@@ -149,7 +151,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // Получим карту в ее новом состоянии и тоже передадим      
 
-        const _tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
+        const _tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository,productRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

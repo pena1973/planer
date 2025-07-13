@@ -2,7 +2,7 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';  
-import { getTypedRepository } from './../../lib/db/utils'
+import { getTypedRepository } from './../../lib/db/utilites'
 
 import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './../../handlers/handlers-get';  // 
 import {  planTCardFromOperINC, planOperOnUnit,  getDependentOperationsIds, getOperationReadyMoment} from './../../handlers/handlers-plan';  // 
@@ -15,6 +15,7 @@ import { UnitTable } from './../../db/models/catalogs/units'
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { ProductTable } from './../../db/models/data/products'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
 
 import { StatusEnum } from './../../types/types'
@@ -40,6 +41,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable); 
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
@@ -65,7 +67,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(pinnedLoad.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStageRepository)
+        const tCard = await getTCardFull(pinnedLoad.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStageRepository,productRepository)
         if (!tCard) {
           res.status(200).json({
             success: false,

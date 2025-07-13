@@ -3,8 +3,8 @@ import styles from "./products.module.scss";
 import { ProductItem, UOMItem } from '@/types/types'
 import Image from 'next/image';
 
-import Product from "@/components/cards/Product/product";
-import ProductNew from "@/components/cards/ProductNew/productNew";
+import Product from "@/components/cards/Products/Product/product";
+import ProductNew from "@/components/cards/Products/ProductNew/productNew";
 
 import { useEffect, useState, useRef } from "react";
 
@@ -16,6 +16,19 @@ export interface TCardProductsProps {
     products: ProductItem[],
     saveProductsHandler: (products: ProductItem[]) => void;
     updateIdc: (currentId: number) => void,
+    dragOverHandler: (e: React.DragEvent<HTMLElement>) => void,
+    dropHandler: (e: React.DragEvent<HTMLElement>) => void,
+    setCurrentDraggingElement: ({ }: string) => void,
+    handleMouseDown: (code: string) => void,
+    handleMouseUp: (e: React.MouseEvent<HTMLDivElement>) => void,
+    isDragging: boolean,
+    currentDraggingElement: string,
+    positionX: number,
+    positionY: number,
+    handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,
+    possibleEdit: boolean,
+    prefix: string,
+    lightProduct: number,  // idc  продукта который нужно выделить цветом  
     maxIdc: number,
     setMaxIdc: (maxIdc: number) => void,
 }
@@ -23,6 +36,19 @@ export interface TCardProductsProps {
 export default function TCardProducts({
     products,
     saveProductsHandler,
+    dragOverHandler,
+    dropHandler,
+    setCurrentDraggingElement,
+    handleMouseDown,
+    handleMouseUp,
+    isDragging,
+    currentDraggingElement,
+    positionX,
+    positionY,
+    handleDrop,
+    possibleEdit,
+    prefix,
+    lightProduct,
     maxIdc,
     setMaxIdc,
 }: TCardProductsProps) {
@@ -32,7 +58,8 @@ export default function TCardProducts({
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        setProductsValue(products);
+        if (!edited)
+            setProductsValue(products);
     }, [products]);
 
     // колбеки кнопки
@@ -88,7 +115,6 @@ export default function TCardProducts({
             title: "Продукт",
             uom: {} as UOMItem,
             sync: "sync" + idc
-
         } as ProductItem;
         setProductsValue([...productsValue, newProduct])
         setMaxIdc(idc);
@@ -115,6 +141,19 @@ export default function TCardProducts({
                     title={elem.title}
                     uom={elem.uom}
                     sync={elem.sync}
+                    dragOverHandler={dragOverHandler}
+                    dropHandler={dropHandler}
+                    setCurrentDraggingElement={setCurrentDraggingElement}
+                    handleMouseDown={handleMouseDown}
+                    handleMouseUp={handleMouseUp}
+                    isDragging={isDragging}
+                    currentDraggingElement={currentDraggingElement}
+                    positionX={positionX}
+                    positionY={positionY}
+                    handleDrop={handleDrop}
+                    prefix={prefix}
+                    index={index}
+                    lightProduct={lightProduct}
                 />}
         </>
         );
@@ -125,7 +164,7 @@ export default function TCardProducts({
         <div className={styles.container}>
             {productsReactNodes}
 
-            <>
+            {possibleEdit && <>
                 {!edited && <div className={styles.container_buttons_row}>
 
                     <div className={styles.container_icon_edit_save}>
@@ -153,7 +192,7 @@ export default function TCardProducts({
                         />
                     </div>
                 </div>}
-            </>
+            </>}
 
         </div>
 

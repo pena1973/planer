@@ -85,13 +85,13 @@
     padding: 5px 0;
 }
 
-.container_coment
-{
+.container_coment {
     flex: 1;
     display: flex;
-    flex-direction: column;    
+    flex-direction: column;
     padding-top: 5px;
 }
+
 ._out,
 ._in,
 ._action,
@@ -120,34 +120,13 @@
     border-radius: $border-radius;
     height: auto;
     width: 100%;
-    min-height: 40px;  /* минимальная высота */
+    min-height: 40px;
+    /* минимальная высота */
     // max-height: 100px;
-    resize: none;  /* отключаем изменение размера пользователем */
+    resize: none;
+    /* отключаем изменение размера пользователем */
     // overflow-y: auto;  /* прокрутка по вертикали */
 }
-
-
-// .tCardOper_out,
-// .tCardOper_action,
-// .tCardOper_in {
-//     flex: 1;
-//     margin: 3px;
-//     padding: 2px 2px;
-//     background-color: #ffffff;
-//     /* Белый фон для блоков */
-//     border: 1px solid #ccc;
-//     /* Серая граница */
-//     border-radius: 5px;
-//     /* Скругленные углы */
-//     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-//     /* Легкая тень для блоков */
-//     height: auto;
-// }
-
-// .tCardOper_action{
-//     display: flex;
-//     flex-direction: row;
-// }
 
 
 .out_title,
@@ -199,144 +178,87 @@
 }
 
 //----OUT IN-----
+
+.in_out_item_code,
+.in_out_item_qtu,
+.time,
+.in_out_item_product {
+    align-items: center;
+    padding: 5px;
+    text-align: end;
+    font-size: $header4_font_size;
+    border: $border;
+    border-radius: $border-radius;
+    height: 24px;
+}
+
+.in_out_item_product {
+    width: 80%;
+   
+    //  background-color: antiquewhite;    
+    text-align: start;
+    padding: 4px;
+    height: 100%;
+}
+
+.in_out_item_code {
+    // width: 105px;    
+    min-width: 80px;
+    max-width: 80px;
+    text-align: start;
+    font-weight: bold;
+    //   background-color: aqua;
+}
+
+.in_out_item_qtu {
+    min-width: 80px;
+    max-width: 80px;
+    // min-width: 20%;
+    padding-right: 17px;
+    //  background-color: azure;
+    padding: 4px;
+}
+
+.time{
+    min-width: 60px;
+    // max-width: 40px;
+    // min-width: 20%;
+    padding-right: 17px;
+    //  background-color: azure;
+    padding: 4px;
+}
+
 .container_in_out_item {
     display: flex;
-    /* Используем Flexbox для расположения ячеек в строке */
-    justify-content: space-between;
-    /* Равномерное распределение пространства между ячейками */
-    padding: 2px 0;
-    /* Внутренние отступы для ячеек */
-    // border-bottom: 1px solid #ccc; /* Нижняя граница для разделения строк */
-    font-size: 12px;
     width: 100%;
+    height: 24px;
+    // background-color: rgb(177, 152, 135);
 }
+
 
 .container_in_out_item:last-child {
     border-bottom: none;
     /* Убираем границу у последней строки */
 }
 
-.in_out_item_code,
-.in_out_item_title,
-.in_out_item_uom,
-.in_out_item_qtu {
-    // flex: 1; /* Каждая ячейка занимает равное пространство */
-    text-align: center;
-    /* Выравнивание текста по центру */
-}
-
-.in_out_item_title,
-.in_out_item_uom,
-.in_out_item_qtu {
-    margin: 0 2px;
-    /* Отступ между ячейками для количества и единицы измерения */
-    color: #666;
-    /* Светло-серый цвет для количества и единицы измерения */
-    // width: 20%;
-    // background-color: #ccc;
-}
-
-// /* Дополнительные стили для улучшения внешнего вида */
-// .container_in_out_item:hover {
-//     background-color: #f9f9f9; /* Изменение фона при наведении */
-// }
-
-//------inputs.outputs---------
-.in_out_item_code_out {
-    min-width: 60px;
-    margin: 5px 0;
-}
-
-.in_out_item_code {
-    max-width: 60px;
-    flex: 1;
-    /* Каждый инпут занимает равное пространство */
-    padding: 2px;
-    /* Внутренние отступы для инпутов */
-    border: 1px solid #ccc;
-    /* Серая граница для инпутов */
-    border-radius: 4px;
-    /* Скругленные углы */
-    font-size: 12px;
-    /* Размер шрифта */
-    font-weight: bold;
-    /* Жирный текст для кода */
-
-}
-
-.in_out_item_title {
-    flex: 1;
-    /* Каждый инпут занимает равное пространство */
-    // margin: 0 5px; /* Отступы между инпутами */
-    padding: 2px;
-    /* Внутренние отступы для инпутов */
-    border: 1px solid #ccc;
-    /* Серая граница для инпутов */
-    border-radius: 4px;
-    /* Скругленные углы */
-    font-size: 12px;
-    /* Размер шрифта */
-    font-weight: bold;
-    /* Жирный текст для кода */
-    width: 80%;
-}
-
-.in_out_item_title:focus {
-    // border-color: #007bff; /* Синий цвет границы при фокусе */
-    outline: none;
-    /* Убираем стандартное выделение */
-}
-
-.in_out_item_qtu {
-    -moz-appearance: textfield;
-    /* Убираем стрелки для числового инпута в Firefox */
-    -webkit-appearance: none;
-    /* Убираем стрелки для числового инпута в Chrome, Safari */
-    appearance: none;
-    /* Стандарт для других браузеров */
-    padding: 2px;
-    /* Внутренние отступы для инпутов */
-    border: 1px solid #ccc;
-    /* Серая граница для инпутов */
-    border-radius: 4px;
-    /* Скругленные углы */
-    font-size: 12px;
-    /* Размер шрифта */
-    font-weight: bold;
-    /* Жирный текст для кода */
-    width: 20%;
-}
-
-/* Дополнительно, для удаления стрелочек на мобильных устройствах (например, на iOS) */
-.in_out_item_qtu::-webkit-outer-spin-button,
-.in_out_item_qtu::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.in_out_item_code[type="number"]::-webkit-outer-spin-button,
-.in_out_item_code[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    /* Убираем стрелки для числового инпута в Chrome */
-}
-
-
 
 .container_icon_edit_save {
     display: flex;
     flex-direction: row;
-  
+
     cursor: pointer;
-  
+
 }
 
 .icon_edit_save {
-
-    border-top-left-radius: 5px;
+    border-top-left-radius: $border-radius;
 }
 
 .icon_del {
+    width: 20px;
+    height: 20px;
     cursor: pointer;
+    margin: 2px;
 }
 
 .tCardOper_buttons_container {
@@ -350,16 +272,14 @@
     flex-direction: row;
     align-items: flex-end;
     justify-content: flex-end;
-    border-top: 1px solid #ccc;
-   
+    border-top: $border;
     width: calc(100% - 4px);
-    
     overflow: hidden;
-   
+
 }
 
 .message {
-    font-size: 12px;
+    font-size: $header4_font_size;
     /* Размер шрифта для информации о времени */
     color: #666;
     /* Светло-серый цвет для дополнительной информации */

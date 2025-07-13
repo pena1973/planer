@@ -29,7 +29,8 @@
     "products": "Products",
     "wastes": "Waste",
     "comment": "Comment",
-    "materials": "Materials"
+    "materials": "Materials",
+    "catalog": "Catalog"
   },
   "service": {
     "loginNotEntered": "Please enter your login",
@@ -95,7 +96,11 @@
     "sourse": "Source",
     "action": "Action",
     "result": "Result",
-    "fillUOM": "Please specify the unit of measurement!"
+    "fillUOM": "Please specify the unit of measurement!",
+    "fillProduct": "Fill in the product",
+    "fillQtu": "Fill in the quantity",
+    "fillAction": "Fill in the action",
+    "fillDuration": "Fill in the duration"
   },
   "fileUpload": {
     "json": "Upload your JSON file here",
@@ -377,6 +382,5 @@
     "signAgreement": " Concent",
     "cancelSignAgreement": "Cancel",
     "agree": "Agree"
-    
   }
 }

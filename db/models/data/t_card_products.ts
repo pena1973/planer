@@ -2,7 +2,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne,  } from 'typeorm';
 import { TCardTable } from './t_cards'; // Импортируем зависимую сущность
 import { UOMsTable } from '../../models/catalogs/uoms';
-import { ProductsTable } from '../../models/data/products';
+import { ProductTable } from '../../models/data/products';
 
 import { TypeEnum } from './../../../types/types';
 
@@ -16,9 +16,9 @@ export class TCardProductTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
   
-  //  заменит
-  @Column()
-  idc!: number; // id на клиенте
+  // //  заменит
+  // @Column()
+  // idc!: number; // id на клиенте
 
   @Column()
   code!: string;
@@ -30,19 +30,19 @@ export class TCardProductTable {
   })
   type!: TypeEnum;
 
-  //  заменит
-  @Column()
-  title!: string;
+  // //  заменит
+  // @Column()
+  // title!: string;
 
   @Column('int')
   qtu!: number;
 
-  //  заменит
-  @ManyToOne(() => UOMsTable, ) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'uom_id' }) // Указываем колонку, которая является внешним ключом
-  uom!: UOMsTable;  // Связь с таблицей UOMsTable
-  @Column()
-  uom_id!: number;
+  // //  заменит
+  // @ManyToOne(() => UOMsTable, ) // Указываем связь "многие к одному"
+  // @JoinColumn({ name: 'uom_id' }) // Указываем колонку, которая является внешним ключом
+  // uom!: UOMsTable;  // Связь с таблицей UOMsTable
+  // @Column()
+  // uom_id!: number;
 
   @ManyToOne(() => TCardTable  )
   @JoinColumn({ name: 'tcard_id' })
@@ -57,12 +57,11 @@ export class TCardProductTable {
   operation_id!: number | null;
 
   //  новый справочник продуктов
-  @ManyToOne(() => ProductsTable,{nullable:true}) 
+  @ManyToOne(() => ProductTable) 
   @JoinColumn({ name: 'product_id' }) 
-  product!: ProductsTable;  
-  @Column('int',{nullable:true})
+  product!: ProductTable;  
+  @Column('int')
   product_id!: number;
-  @Column('int',{nullable:true})
-  product_idc!: number;
+  
 
 }

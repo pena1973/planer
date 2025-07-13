@@ -19,8 +19,7 @@ export type CatalogState = {
 export type DataState = {
     tCards: TCardItem[],
     tCardIndex:number,
-    templates:TemplateItem[],    
-    products: ProductItem[],
+    templates:TemplateItem[],        
 }
 export type AuthState = {
     token: string,
@@ -56,8 +55,7 @@ const catalogIntialState: CatalogState = {
 const dataIntialState: DataState = {
     tCards: [] as TCardItem[],        
     tCardIndex:0,
-    templates:[] as TemplateItem[],    
-    products: [] as ProductItem[]
+    templates:[] as TemplateItem[],        
 }
 const authIntialState: AuthState = {
     token: "",
@@ -143,10 +141,7 @@ const dataSlice = createSlice({
         setTemplates: (state, action) => {
             state.templates = action.payload;
         },
-        setProducts: (state, action) => {
-            state.products = action.payload;
-        }, 
-        
+               
 
     },
 
@@ -200,7 +195,7 @@ const viewSlice = createSlice({
 export default function Foo() { return <></> }  // пустышка для билда
 
 export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule } = catalogSlice.actions;
-export const { setTCards,setTCardIndex, setTemplates,setProducts } = dataSlice.actions;
+export const { setTCards,setTCardIndex, setTemplates } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement,setUnit} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
 export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete } = viewSlice.actions;

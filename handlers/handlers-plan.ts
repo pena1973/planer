@@ -1,9 +1,9 @@
 import {
-  TCardProductItem, TCardOperationItem,
+  TCardProductItem, TCardOperationItem, ProductItem,
   TCardItem, UnitLoadItem, UOMItem, UnitExceptionItem,
   CalendarItem, TimeTypeEnum, StatusEnum,
   UnitItem, ScheduleItem, DaysOfWeek, UnitBelongEnum,
-  UnitActionItem
+  UnitActionItem, ReadyProduct
 } from "./../types/types";
 
 // функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
@@ -20,6 +20,8 @@ const getLoadIdc = (
 }
 
 import { generateUniqueIdc } from './../lib/utils'
+import TCardProduct from "@/components/cards/TCardProducts/TCardProduct/tCardProduct";
+import Product from "@/components/cards/Products/Product/product";
 // генерация привычной нам даты - ее использую как id дня
 const idDay = (date: Date): string => {
   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
@@ -256,12 +258,20 @@ function findAvailableTimeForOperation(
   // Если найдены кандидаты, выбираем того, который завершит операцию раньше.
   if (possibleCandidates.length > 0) {
     possibleCandidates.sort((a, b) => {
-      const aLastSegment = a.opSegments[a.opSegments.length - 1];
-      const bLastSegment = b.opSegments[b.opSegments.length - 1];
+      const aLastSegment = a.opSegments.length > 0 ? a.opSegments[a.opSegments.length - 1] : null;
+      const bLastSegment = b.opSegments.length > 0 ? b.opSegments[b.opSegments.length - 1] : null;
+
+      // Если у кого-то нет сегментов — считаем их "лучше" (например, раньше)
+      if (!aLastSegment && !bLastSegment) return 0;
+      if (!aLastSegment) return -1;
+      if (!bLastSegment) return 1;
+
       const aFinish = new Date(aLastSegment.date).getTime() + aLastSegment.finish * 60000;
       const bFinish = new Date(bLastSegment.date).getTime() + bLastSegment.finish * 60000;
+
       return aFinish - bFinish;
     });
+
     const bestCandidate = possibleCandidates[0];
 
     // Формируем итоговый массив загрузок (UnitLoadItem) для победившего юнита
@@ -285,7 +295,7 @@ function findAvailableTimeForOperation(
         idc: getLoadIdc(tCard, operation, seg),
         isActive: true,
         isRetool: seg.isRetool,
-        loadInfo: { tCardIdc:tCard.idc,tCardDate:tCard.date,title: operation.action.title, duration: Math.round(operation.duration / 60000), interruptible: operation.action.interruptible, koef: koef },
+        loadInfo: { tCardIdc: tCard.idc, tCardDate: tCard.date, title: operation.action.title, duration: Math.round(operation.duration / 60000), interruptible: operation.action.interruptible, koef: koef },
         isPinned: isPinned,
         isOuterStart: false,//  это старт оутсортера, здесь не применяется
         isOuterFinish: false,//  это финиш оутсортера        
@@ -295,6 +305,17 @@ function findAvailableTimeForOperation(
 
       isFirst = seg.isRetool ? isFirst : false;
     });
+
+    if (updatedUnitLoads.length === 0) {
+      return {
+        success: false,
+        planedUnitLoads: updatedUnitLoads,
+        dateReady: "",
+        timeReady: 0,
+        message: ""
+      };
+    }
+
     const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
 
     return {
@@ -302,7 +323,7 @@ function findAvailableTimeForOperation(
       planedUnitLoads: updatedUnitLoads,
       dateReady: finalLoad.date,
       timeReady: finalLoad.timeFinish,
-      message: ""
+      message: `Планирование не удалось: нет опрераций с указанным временем выполнения`
     };
   }
 
@@ -674,20 +695,21 @@ function findAvailableSegmentsDay(
 
 
 const doLoopProductsOper = (
-  readyProducts: readyProduct[],
+  readyProducts: ReadyProduct[],
   operation: TCardOperationItem,
   dateFinish: string,
   timeFinish: number
-): readyProduct[] => {
+): ReadyProduct[] => {
   if (dateFinish !== "") {
     const readyProductsOut = operation.out.map(elem => {
       return {
         id: elem.id,
-        idc: elem.idc,
+        product: elem.product,
+        // idc: elem.idc,
         code: elem.code,
-        title: elem.title,
+        // title: elem.title,
         qtu: elem.qtu,
-        uom: elem.uom,
+        // uom: elem.uom,
         date: dateFinish,
         time: timeFinish,
         reserved: 0,
@@ -702,20 +724,26 @@ const doLoopProductsOper = (
   return readyProducts;
 }
 
-interface readyProduct {
-  id?: number,
-  idc: number,
-  code: string,
-  title: string,
-  qtu: number,
-  uom: UOMItem,
-  date: string,
-  time: number,
-  reserved: number,
-  reservedTo: number
-}
 
+//   interface readyProduct {
+//   id?: number,
+//   idc: number,
+//   code: string,
+//   title: string,
+//   qtu: number,
+//   uom: UOMItem,
+//   date: string,
+//   time: number,
+//   reserved: number,
+//   reservedTo: number
+// }
 
+// interface ReadyProduct extends TCardProductItem {
+//   date: string;
+//   time: number;
+//   reserved: number;
+//   reservedTo: number;
+// }
 // В этом модуле делаем РАСЧЕТ ПЛАНИРОВАНИЯ, 
 // для массива операций по карте
 // возврашаем готовую загрузку
@@ -744,17 +772,18 @@ export const planTCardFromOperINC = (
 
   // массив готовых продуктов и дата время готовности каждого продукта
   // стартуем с продуктов которые  берутся со склада  
-  let readyProducts: readyProduct[] = [];
+  let readyProducts: ReadyProduct[] = [];
 
   if (tCard.tCardMaterials)
     readyProducts = tCard.tCardMaterials.map(material => {
       return {
         id: material.id,
-        idc: material.idc,
+        // idc: material.idc,
         code: material.code,
-        title: material.title,
+        // title: material.title,
         qtu: material.qtu,
-        uom: material.uom,
+        product: material.product,
+        // uom: material.uom,
         date: '2000-01-01', // это со склада дата доступности
         time: 0,            //  время доступности
         reserved: 0,
@@ -778,7 +807,7 @@ export const planTCardFromOperINC = (
 
   // здесь стартуем цикл планирования с сегодняшней даты пока операций для планирования в tCardOperations не останется
   let stoploop = false;
- 
+
   while (tCardOperations.length > 0 && !stoploop) {
     //+ 1--------    
 
@@ -786,19 +815,19 @@ export const planTCardFromOperINC = (
     // 2 . ищем операции исходники для которых готовы на данной итерации
     // и убираем эти исходники из списка как израсходованные (резервируем на операцию)
     // и получаем список операций ко торые можно делать selectedOperations
-    let message="";
+    let message = "";
 
     tCardOperations.forEach((operation) => {
       const hasAllMatchingProducts = operation.inn.every(innProduct => {
-        // Ищем продукт в tCardReady с таким же code и uom
+        // Ищем продукт в tCardReady с таким же code и product
         const matchingReadyProduct = readyProducts.find(elem =>
-          elem.code === innProduct.code && elem.uom.id === innProduct.uom.id
+          elem.code === innProduct.code && elem.product.id === innProduct.product.id
         );
         // Если соответствующий продукт найден, проверяем количество
         if (matchingReadyProduct) {
           // Если количество в tCardReady недостаточно для операции, пропускаем операцию
           if (matchingReadyProduct.qtu < innProduct.qtu) {
-            message =  message.concat(`Не хватает продукта ${innProduct.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu-matchingReadyProduct.qtu} единиц.\n`);
+            message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu - matchingReadyProduct.qtu} единиц.\n`);
             return false;
           }
           // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
@@ -807,11 +836,12 @@ export const planTCardFromOperINC = (
           readyProducts.push(
             {
               id: innProduct.id,
-              idc: innProduct.idc,
+              // idc: innProduct.idc,
+              product: innProduct.product,
               code: innProduct.code,
-              title: innProduct.title,
+              // title: innProduct.title,
               qtu: 0,
-              uom: innProduct.uom,
+              // uom: innProduct.uom,
               date: matchingReadyProduct.date,
               time: matchingReadyProduct.time,
               reserved: innProduct.qtu,
@@ -819,7 +849,7 @@ export const planTCardFromOperINC = (
             })
           return true;
         }
-        message =  message.concat(`Не хватает продукта ${innProduct.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu} единиц.\n`);
+        message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu} единиц.\n`);
 
         return false; // Если продукта нет или не совпадает по uom
       });
@@ -829,8 +859,8 @@ export const planTCardFromOperINC = (
         selectedOperations.push(operation);
       }
     });
-   
-    if (selectedOperations.length === 0) 
+
+    if (selectedOperations.length === 0)
       return { success: false, planedCardLoads: planedCardLoads, message: `Не все операции готовы к планированию или карта несогласована\n${message}` };
 
     // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
@@ -1063,18 +1093,7 @@ function dateResultLoad(
 
 // получает дату когда изготовлены  все продукты из списка
 function getMaxDate(
-  sourcesProducts: {
-    id?: number;
-    idc: number;
-    code: string;
-    title: string;
-    qtu: number;
-    uom: UOMItem;
-    date: string;
-    time: number;
-    reserved: number;
-    reservedTo: number;
-  }[],
+  sourcesProducts: ReadyProduct[],
   inn: TCardProductItem[]
 ): { maxDateSource: string; maxTimeSource: number } {
   // Преобразуем дату в строку формата "YYYY-MM-DD"
@@ -1118,30 +1137,33 @@ export const getPreviousOpers = (
   // Формируем массив исходных продуктов из текущей операции  
   const innProducts: TCardProductItem[] = oper.inn.map(material => ({
     id: material.id,
-    idc: material.idc,
+    product: material.product,
+    // idc: material.idc,
     code: material.code,
-    title: material.title,
+    // title: material.title,
     qtu: material.qtu,
-    uom: material.uom,
+    // uom: material.uom,
   }));
 
   // Формируем массив исходных материалов карты 
   let sources: Array<{
     id?: number;
-    idc: number;
+    product: ProductItem;
+    // idc: number;
     code: string;
-    title: string;
+    // title: string;
     qtu: number;
-    uom: UOMItem;
+    // uom: UOMItem;
     oper_idc: number;
   }> = tCard.tCardMaterials
       ? tCard.tCardMaterials.map(material => ({
         id: material.id,
-        idc: material.idc,
+        product: material.product,
+        // idc: material.idc,
         code: material.code,
-        title: material.title,
+        // title: material.title,
         qtu: material.qtu,
-        uom: material.uom,
+        // uom: material.uom,
         oper_idc: NaN  // По умолчанию, материалы не имеют источника операции
       }))
       : [];
@@ -1159,10 +1181,10 @@ export const getPreviousOpers = (
   // Обрабатываем массив входящих продуктов (innProducts)
   while (innProducts.length > 0) {
     let innProduct = innProducts[0];
-    // Ищем источник, у которого code и uom совпадают, и у которого ещё есть доступное количество (qtu > 0)
+    // Ищем источник, у которого code и продукт совпадают, и у которого ещё есть доступное количество (qtu > 0)
     const sourceIndex = sources.findIndex(source =>
       source.code === innProduct.code &&
-      source.uom.id === innProduct.uom.id &&
+      source.product.id === innProduct.product.id &&
       source.qtu > 0 &&
       innProduct.qtu > 0
     );

@@ -1,0 +1,81 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+.tCardProduct_code,
+.tCardProduct_qtu,
+.tCardProduct_product,
+.tCardProduct_status {
+    align-items: center;
+    padding: 5px;
+    text-align: end;
+    font-size: $header4_font_size;
+//     border: $border;
+//     border-radius: $border-radius;
+ }
+
+.tCardProduct_product {
+    width: 150px;
+    //  background-color: antiquewhite;    
+    text-align: start;
+    // font-weight: bold;
+        padding: 4px;
+}
+
+.tCardProduct_code {
+    // width: 105px;    
+    min-width: 80px;
+    // max-width:  70px;
+    text-align: start;
+    font-weight: bold;
+    //   background-color: aqua;
+}
+
+
+.tCardProduct_qtu {
+    min-width: 50px;
+    padding-right: 17px;
+    //  background-color: azure;
+
+}
+
+
+.tCardProduct_status {
+    width: 20px;
+    padding: 3px 0;
+    //  background-color: rgb(165, 197, 136);
+}
+
+
+.icon_del {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.container_row {
+    display: flex;
+    width: 100%;
+    height: 24px;
+}
+
+.container_buttons_row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    border-top: $border;
+    // background-color: aquamarine;
+    width: calc(100% - 4px);    
+    overflow: hidden;
+}
+
+.container_icon_edit_save {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
+}
+
+.icon_edit_save {
+    border-top-left-radius: 5px;
+}

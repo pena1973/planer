@@ -2,7 +2,7 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utils'
+import { getTypedRepository } from './../../lib/db/utilites'
 
 import { getSettings } from './../../handlers/handlers-get';  
 import { updateSettings } from './../../handlers/handlers-update'; 

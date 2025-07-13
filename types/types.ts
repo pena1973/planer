@@ -46,20 +46,26 @@ export interface TCardOperationItem {
 
 export interface TCardProductItem {
     id?: number,  // id BD
-    idc: number, //  // замена
+    // idc: number, //  // замена
     code: string, //  код источника    
-    title: string, // замена
+    // title: string, // замена
     qtu: number,
-    uom: UOMItem,// замена
-    product:ProductItem
+    // uom: UOMItem,// замена
+    product: ProductItem
+}
+export interface ReadyProduct extends TCardProductItem {
+  date: string;
+  time: number;
+  reserved: number;
+  reservedTo: number;
 }
 export interface ProductItem {
     id?: number,  // id BD
     idc: number, //  id на клиенте    
-    title: string,    
+    title: string,
     uom: UOMItem,
-    sync:string,
-    cardId:number
+    sync: string,
+    // cardId:number
 }
 
 export interface TCardItem {
@@ -71,9 +77,8 @@ export interface TCardItem {
     tCardWastes?: TCardProductItem[],
     tCardOperations?: TCardOperationItem[],
     tCardMaterials?: TCardProductItem[],
-    // включаю потому что может быть 
-    // не заполненная операциями стадия на этапе редактирования  
     tCardStages?: TCardStageItem[],
+    products?: ProductItem[],
     // это счетчик id для подчиненных сущьностей в пределах карты  
     // -  обеспечивает сквозную idc в карте иначе получим очень большие номера
     maxIdc: number,
@@ -333,38 +338,42 @@ export enum TimeZoneEnum {
 //// Интерфейсы для чтения карты из файла
 
 export interface ProductContent {
-    idc: number;
-    code: string;
+    idc: number;    
     title: string;
-    qtu: number;
     uom: { code: string; title: string };
+}
+
+export interface TProductContent {    
+    code: string;    
+    qtu: number;
+    product:ProductContent,
 }
 
 export interface OperationContent {
     order: number,
-    idc: number;
-    stage: { idc: number, code: number };
-    out: ProductContent[];
-    inn: ProductContent[];
-    action: { code: string; title: string };
-    duration: number;
-
+    idc: number,
+    stage: { idc: number, code: number },
+    out: TProductContent[],
+    inn: TProductContent[],
+    action: { code: string, title: string },
+    duration: number,
     coment?: string;
 }
 
 export interface TCardContent {
-    date: string;
-    idc: number;
-    tCardProducts: ProductContent[];
-    tCardOperations: OperationContent[];
-    tCardWastes?: ProductContent[];
-    tCardStages: { idc: number, code: number }[];
+    date: string,
+    idc: number,
+    tCardProducts: TProductContent[],
+    tCardOperations: OperationContent[],
+    tCardWastes?: TProductContent[],
+    tCardStages: { idc: number, code: number }[],
+    products:ProductContent[],
     coment?: string;
 
 }
 
 export interface SupportMessageItem {
-    id:number, // если новое то - (Временный id) 
+    id: number, // если новое то - (Временный id) 
     date: string; // дата время писма
     title: string;
     body: string,
@@ -374,7 +383,7 @@ export interface SupportMessageItem {
     // idChain: number, // id цепочки - равен исходному писму
 }
 export interface BillItem {
-    id?:number,
+    id?: number,
     date: string; // период за который вымавлен счет
     title: string;
     file: string,

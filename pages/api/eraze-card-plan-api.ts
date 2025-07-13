@@ -3,7 +3,7 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utils'
+import { getTypedRepository } from './../../lib/db/utilites'
 
 import { getEarliestStart } from './../../handlers/handlers-plan';  // планирование карты
 import { Repository } from 'typeorm';
@@ -14,6 +14,7 @@ import { TCardTable } from './../../db/models/data/t_cards'
 
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { ProductTable } from './../../db/models/data/products'
 import { getTCardFull } from './../../handlers/handlers-get';  // 
 import { updateStatusTCard } from './../../handlers/handlers-update';  // 
 
@@ -37,7 +38,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
   const TeamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-
+const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
 
   // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -61,7 +62,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
+        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository,productRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

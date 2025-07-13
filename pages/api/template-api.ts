@@ -2,7 +2,7 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utils'
+import { getTypedRepository } from './../../lib/db/utilites'
 
 import { TemplateTable } from './../../db/models/catalogs/templates';
 import { TCardItem, TemplateItem } from './../../types/types'; // Ваш тип TCardItem для работы с шаблонами
@@ -33,25 +33,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 const exportData = {
                     date: tCard.date,
                     idc: tCard.idc,
-                    tCardProducts: tCard.tCardProducts?.map(product => ({
+                    products: tCard.products?.map(product => ({
                         idc: product.idc,
-                        code: product.code,
                         title: product.title,
-                        qtu: product.qtu,
+                        sync: product.sync,
                         uom: {
                             title: product.uom.title,
                             code: product.uom.code
-                        }
+                        },
+                    })) || [],
+                    tCardProducts: tCard.tCardProducts?.map(tProduct => ({
+                        code: tProduct.code,
+                        qtu: tProduct.qtu,
+                        productIdc: tProduct.product.idc,
+
                     })) || [],
                     tCardWastes: tCard.tCardWastes?.map(waste => ({
-                        idc: waste.idc,
                         code: waste.code,
-                        title: waste.title,
                         qtu: waste.qtu,
-                        uom: {
-                            title: waste.uom.title,
-                            code: waste.uom.code
-                        }
+                        productIdc: waste.product.idc,
+
                     })) || [],
                     tCardOperations: tCard.tCardOperations?.map(operation => ({
                         idc: operation.idc,
@@ -60,24 +61,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                             code: operation.stage.code
                         } : undefined,
                         out: operation.out?.map(outItem => ({
-                            idc: outItem.idc,
                             code: outItem.code,
-                            title: outItem.title,
                             qtu: outItem.qtu,
-                            uom: {
-                                title: outItem.uom.title,
-                                code: outItem.uom.code
-                            }
+                            productIdc: outItem.product.idc,
                         })) || [],
                         inn: operation.inn?.map(innItem => ({
-                            idc: innItem.idc,
                             code: innItem.code,
-                            title: innItem.title,
                             qtu: innItem.qtu,
-                            uom: {
-                                title: innItem.uom.title,
-                                code: innItem.uom.code
-                            }
+                            productIdc: innItem.product.idc,
+
                         })) || [],
                         action: operation.action ? {
                             code: operation.action.code,

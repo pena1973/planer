@@ -39,6 +39,7 @@ import {
   TCardItem,
   TCardStageItem,
   StatusEnum,
+  TProductContent,
   ProductItem
 
 } from "@/types/types";
@@ -86,9 +87,6 @@ export default function Cards() {
   const tCards = useSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
-   const products = useSelector((state: RootState) => {
-      return state.dataSlice.products;
-    })
 
   const uoms = useSelector((state: RootState) => {
     return state.catalogSlice.uoms;
@@ -128,6 +126,7 @@ export default function Cards() {
 
 
   // Начальный загруз
+
   useEffect(() => {
     if (tCards?.length > 0) selectTCardHandler(tCards[tCardIndex]);
   }, []);
@@ -137,7 +136,7 @@ export default function Cards() {
     return state.dataSlice.tCardIndex;
   })
 
-  const readonlyCardStatuses = [StatusEnum.closed, StatusEnum.cancelled, StatusEnum.performed, StatusEnum.ready]
+  const readonlyCardStatuses = [StatusEnum.closed, StatusEnum.cancelled, StatusEnum.performed, StatusEnum.ready,StatusEnum.planed]
 
   const updateIdc = (currentId: number) => {
     // setTCardCurrentValue({ ...tCardCurrentValue, maxIdc: currentId }); // обновляем состояние карты
@@ -171,8 +170,9 @@ export default function Cards() {
 
     let idcProduct = NaN;
     let prodLine = undefined;
+
     if (code.includes("P") || code.includes("W") || code.includes("M")) {
-      const regex = /^([PWDM])(\d+)/; // Регулярное выражение для извлечения компонентов
+      const regex = /^([PWM])(\d+)/; // Регулярное выражение для извлечения компонентов
       const match = code.match(regex);
       const prefix = (match) ? match[1] : "";
       const indexProduct = (match) ? parseInt(match[2], 10) : NaN;
@@ -213,7 +213,15 @@ export default function Cards() {
         }
       }
     }
-    if (prodLine) idcProduct = prodLine.idc
+    if (prodLine) idcProduct = prodLine.product.idc;
+
+    if (code.includes("N") && tCards[tCardIndex].products) {
+      const regex = /^([N])(\d+)/; // Регулярное выражение для извлечения компонентов
+      const match = code.match(regex);
+      const prefix = (match) ? match[1] : "";
+      const indexProduct = (match) ? parseInt(match[2], 10) : NaN;
+      idcProduct = tCards[tCardIndex].products[indexProduct].idc;
+    }
 
     setLightProduct(idcProduct);
   }
@@ -243,6 +251,7 @@ export default function Cards() {
     const tCardProducts = tCards[tCardIndex].tCardProducts ? tCards[tCardIndex].tCardProducts : [] as TCardProductItem[];
     const tCardWastes = tCards[tCardIndex].tCardWastes ? tCards[tCardIndex].tCardWastes : [] as TCardProductItem[];
     const tStages = tCards[tCardIndex].tCardStages ? tCards[tCardIndex].tCardStages : [] as TCardStageItem[];
+    const products = tCards[tCardIndex].products ? tCards[tCardIndex].products : [] as ProductItem[]; // дописать  сами продукты не тащим?
 
     let updatedProducts = [...tCardProducts];
     let updatedOperations = [...tCardOperations];
@@ -295,7 +304,6 @@ export default function Cards() {
       newStatus = tCards[tCardIndex].status;
     }
 
-
     if (currentDraggingElement.includes("P") && target === "W") {
       const indexProduct = Number(currentDraggingElement.replace("P", ""));
       updatedProducts.splice(indexProduct, 1)
@@ -316,6 +324,28 @@ export default function Cards() {
       if (productToMove) updatedProducts = [...tCardProducts, productToMove];
     }
 
+    // из каталога в материал
+    if (currentDraggingElement.includes("N") && target === "M") {
+      // невозможно  материал сам вычисляется
+    }
+    // из каталога в продукт
+    if (currentDraggingElement.includes("N") && target === "P") {
+      //  получаем в источнике строку с индексом поскольку id мохет быть много      
+      const regexFrom = /^([N])(\d+)$/; // Регулярное выражение для извлечения компонентов
+
+      const matchFrom = currentDraggingElement.match(regexFrom);
+      const indexProductFrom = (matchFrom) ? parseInt(matchFrom[2], 10) : NaN;
+
+      // код источник в продукте и код результат в операции
+      const product = products[indexProductFrom]
+      if (!product) return
+
+      const code = `M${product.idc}`;
+      const productToMove = { product: product, code: code, qtu: 0 } as TCardProductItem
+
+      if (productToMove) updatedProducts = [...tCardProducts, productToMove];
+    }
+
     if (currentDraggingElement.includes("M") && target === "P") {
       // из материала в продукт - ничего не делаем такое невозможно
     }
@@ -329,10 +359,10 @@ export default function Cards() {
       const idOper = (match) ? parseInt(match[2], 10) : NaN;
       // const type =(match)? match[3]:"";  // Вход (I) или выход (O)
 
-      const product = tCardProducts[indexProduct]
+      const tPproduct = tCardProducts[indexProduct]
       // продукт перемещаем только как результат операции
-      const code = `A${idOper}O${product.idc}`;
-      const productToUpdate = { ...product, code: code } as TCardProductItem;
+      const code = `A${idOper}O${tPproduct.product.idc}`;
+      const productToUpdate = { ...tPproduct, code: code } as TCardProductItem;
 
       // ищем операцию и вставляем в выход
       updatedOperations = tCardOperations.map((oper) => {
@@ -345,7 +375,40 @@ export default function Cards() {
       })
     }
 
+    // из каталога на выход
+    if (currentDraggingElement.includes("N") && target.includes("O")) {
+      //  получаем в источнике строку с индексом поскольку id мохет быть много      
+      const regexFrom = /^([N])(\d+)$/; // Регулярное выражение для извлечения компонентов
 
+      const matchFrom = currentDraggingElement.match(regexFrom);
+      const indexProductFrom = (matchFrom) ? parseInt(matchFrom[2], 10) : NaN;
+
+      const regexTo = /^([A])(\d+)([IO])$/;
+      const matchTo = target.match(regexTo);
+      const idcOperTo = (matchTo) ? parseInt(matchTo[2], 10) : NaN;
+
+      // код источник в продукте и код результат в операции
+      const product = products[indexProductFrom]
+      if (!product) return
+
+      const code = `A${idcOperTo}O${product.idc}`;
+      const tProduct = { product: product, code: code, qtu: 0 } as TCardProductItem
+      const productToUpdate = { ...tProduct, code: code, qtu: 0 } as TCardProductItem;
+      // обновляем операции
+      updatedOperations = tCardOperations.map((oper) => {
+
+        // выход
+        if (oper.idc === idcOperTo && !readonlyCardStatuses.includes(oper.status)) {
+          // добавим предмет на выходе
+          const outUpdated = [...oper.out, productToUpdate]
+          return { ...oper, out: outUpdated };
+        }
+
+        return oper; // Если id не совпадает, оставляем элемент без изменений
+      })
+    }
+
+    // из входа на выход
     if (currentDraggingElement.includes("I") && target.includes("O")) {
       //  получаем в источнике строку с индексом поскольку id мохет быть много      
       const regexFrom = /^([A])(\d+)([IO])(\d+)$/;
@@ -360,12 +423,12 @@ export default function Cards() {
 
       // код источник в продукте и код результат в операции
       const operFrom = tCardOperations.find(oper => oper.idc === idcOperFrom)
-      const product = operFrom?.inn[indexProductFrom]
-      if (!product) return;
+      const tPproduct = operFrom?.inn[indexProductFrom]
+      if (!tPproduct) return;
 
-      const code = `A${idcOperTo}O${product.idc}`;
+      const code = `A${idcOperTo}O${tPproduct.product.idc}`;
 
-      const productToUpdate = { ...product, code: code } as TCardProductItem;
+      const productToUpdate = { ...tPproduct, code: code } as TCardProductItem;
 
       // обновляем операции
       updatedOperations = tCardOperations.map((oper) => {
@@ -387,6 +450,41 @@ export default function Cards() {
       })
     }
 
+    // из каталога в Источник
+    if (currentDraggingElement.includes("N") && target.includes("I")) {
+      //  получаем в источнике строку с индексом поскольку id мохет быть много      
+      const regexFrom = /^([N])(\d+)$/; // Регулярное выражение для извлечения компонентов
+
+      const matchFrom = currentDraggingElement.match(regexFrom);
+      const indexProductFrom = (matchFrom) ? parseInt(matchFrom[2], 10) : NaN;
+
+      const regexTo = /^([A])(\d+)([IO])$/; // Регулярное выражение для извлечения компонентов
+      const matchTo = target.match(regexTo);
+      const idcOperTo = (matchTo) ? parseInt(matchTo[2], 10) : NaN;
+
+      // код источник в продукте и код результат в операции
+      const product = products[indexProductFrom]
+      if (!product) return
+
+      const code = `M${product.idc}`;
+      const tProduct = { product: product, code: code, qtu: 0 } as TCardProductItem
+      const productToUpdate = { ...tProduct, code: code, qtu: 0 } as TCardProductItem;
+
+      // // обновляем операции
+      updatedOperations = tCardOperations.map((oper) => {
+
+        // вход
+        if (oper.idc === idcOperTo && !readonlyCardStatuses.includes(oper.status)) {
+          // добавим предмет на входе
+          const innUpdated = [...oper.inn, productToUpdate]
+          return { ...oper, inn: innUpdated };
+        }
+
+        return oper; // Если id не совпадает, оставляем элемент без изменений
+      })
+
+    }
+
     // из выхода на вход
     if (currentDraggingElement.includes("O") && target.includes("I")) {
       //  получаем в источнике строку с индексом поскольку id мохет быть много      
@@ -402,11 +500,11 @@ export default function Cards() {
 
       // код источник в продукте и код результат в операции
       const operFrom = tCardOperations.find(oper => oper.idc === idcOperFrom)
-      const product = operFrom?.out[indexProductFrom]
-      if (!product) return;
+      const tPproduct = operFrom?.out[indexProductFrom]
+      if (!tPproduct) return;
 
-      const code = `A${idcOperFrom}O${product.idc}`;
-      const productToUpdate = { ...product, code: code, qtu: 0 } as TCardProductItem;
+      const code = `A${idcOperFrom}O${tPproduct.product.idc}`;
+      const productToUpdate = { ...tPproduct, code: code, qtu: 0 } as TCardProductItem;
 
       // // обновляем операции
       updatedOperations = tCardOperations.map((oper) => {
@@ -438,18 +536,16 @@ export default function Cards() {
 
       // код источник в продукте и код результат в операции
       const operFrom = tCardOperations.find(oper => oper.idc === idcOperFrom)
-      const product = operFrom?.inn[indexProductFrom]
-      if (!product) return;
+      const tProduct = operFrom?.inn[indexProductFrom]
+      if (!tProduct) return;
 
       //  продукт тот же но берем со склада
-      const code = `M${product.idc}`;
+      const code = `M${tProduct.product.idc}`;
 
       const newProduct = {
-        idc: product.idc, //  id на клиенте
         code: code, //  код источника    
-        title: product.title,
-        qtu: product.qtu,
-        uom: { ...product.uom },
+        product: tProduct.product,
+        qtu: tProduct.qtu,
       } as TCardProductItem;
 
       // обновляем операции
@@ -764,8 +860,10 @@ export default function Cards() {
   const setMaxIdc = (maxIdc: number) => {
     const updatedTCards = [...tCards];
 
-    updatedTCards[tCardIndex] = { ...updatedTCards[tCardIndex], maxIdc: maxIdc, };
+    updatedTCards.splice(tCardIndex, 1, { ...updatedTCards[tCardIndex], maxIdc: maxIdc, modified: true })
     dispatch(setTCards(updatedTCards));
+    // updatedTCards[tCardIndex] = { ...updatedTCards[tCardIndex], maxIdc: maxIdc, };
+    // dispatch(setTCards(updatedTCards));
   }
 
   // На клиенте
@@ -828,25 +926,33 @@ export default function Cards() {
     const exportData = {
       date: tCard.date,
       idc: tCard.idc,
-      tCardProducts: tCard.tCardProducts?.map(product => ({
-        idc: product.idc,
-        code: product.code,
-        title: product.title,
-        qtu: product.qtu,
-        uom: {
-          title: product.uom.title,
-          code: product.uom.code
-        }
+      tCardProducts: tCard.tCardProducts?.map(tProduct => ({
+        code: tProduct.code,
+        product: {
+          idc: tProduct.product.idc,
+          sync: tProduct.product.sync,
+          title: tProduct.product.title,
+          uom: {
+            title: tProduct.product.uom.title,
+            code: tProduct.product.uom.code
+          }
+        },
+        qtu: tProduct.qtu,
+
       })) || [],
       tCardWastes: tCard.tCardWastes?.map(waste => ({
-        idc: waste.idc,
         code: waste.code,
-        title: waste.title,
+        product: {
+          idc: waste.product.idc,
+          sync: waste.product.sync,
+          title: waste.product.title,
+          uom: {
+            title: waste.product.uom.title,
+            code: waste.product.uom.code
+          }
+        },
         qtu: waste.qtu,
-        uom: {
-          title: waste.uom.title,
-          code: waste.uom.code
-        }
+
       })) || [],
       tCardOperations: tCard.tCardOperations?.map(operation => ({
         idc: operation.idc,
@@ -855,24 +961,32 @@ export default function Cards() {
           code: operation.stage.code
         } : undefined,
         out: operation.out?.map(outItem => ({
-          idc: outItem.idc,
           code: outItem.code,
-          title: outItem.title,
+          product: {
+            idc: outItem.product.idc,
+            sync: outItem.product.sync,
+            title: outItem.product.title,
+            uom: {
+              title: outItem.product.uom.title,
+              code: outItem.product.uom.code
+            }
+          },
           qtu: outItem.qtu,
-          uom: {
-            title: outItem.uom.title,
-            code: outItem.uom.code
-          }
+
         })) || [],
         inn: operation.inn?.map(innItem => ({
-          idc: innItem.idc,
           code: innItem.code,
-          title: innItem.title,
+          product: {
+            idc: innItem.product.idc,
+            sync: innItem.product.sync,
+            title: innItem.product.title,
+            uom: {
+              title: innItem.product.uom.title,
+              code: innItem.product.uom.code
+            }
+          },
           qtu: innItem.qtu,
-          uom: {
-            title: innItem.uom.title,
-            code: innItem.uom.code
-          }
+
         })) || [],
         action: operation.action ? {
           code: operation.action.code,
@@ -933,6 +1047,7 @@ export default function Cards() {
       tCardMaterials: [] as TCardProductItem[], // Если есть материалы, то заполняем
       tCardStages: [] as TCardStageItem[],
       coment: "",
+      products: [] as ProductItem[],
     } as TCardItem;
 
     try {
@@ -953,15 +1068,15 @@ export default function Cards() {
         });
       }
 
-      //  временный интерфейс
-      interface OperationIOItem {
-        id?: number,  // id BD
-        idc: number, //  id на клиенте
-        code: string, //  код источника    
-        title: string,
-        qtu: number,
-        uom: { code: string; title: string }; // ⚠️ упрощённый тип
-      }
+      // //  временный интерфейс
+      // interface OperationIOItem {
+      //   id?: number,  // id BD
+      //   idc: number, //  id на клиенте
+      //   code: string, //  код источника    
+      //   title: string,
+      //   qtu: number,
+      //   uom: { code: string; title: string }; // ⚠️ упрощённый тип
+      // }
 
       // Заполняем tCardOperations
       if (template.tCardOperations) {
@@ -971,15 +1086,15 @@ export default function Cards() {
             ...operation,
             status: StatusEnum.draft,
             action: action ? action : undefined,
-            out: operation.out.map((outItem: OperationIOItem) => {
-              const uom = uoms.find(uom => uom.code === outItem.uom.code);
+            out: operation.out.map((outItem: TProductContent) => {
+              const uom = uoms.find(uom => uom.code === outItem.product.uom.code);
               return ({
                 ...outItem,
                 uom: (uom) ? uom : undefined,
               })
             }),
-            inn: operation.inn.map((innItem: OperationIOItem) => {
-              const uom = uoms.find(uom => uom.code === innItem.uom.code);
+            inn: operation.inn.map((innItem: TProductContent) => {
+              const uom = uoms.find(uom => uom.code === innItem.product.uom.code);
               return ({
                 ...innItem,
                 uom: (uom) ? uom : undefined,
@@ -1009,6 +1124,7 @@ export default function Cards() {
       newTCard.tCardWastes = tCardWastesUpdated;
       newTCard.tCardMaterials = tCardMaterialsUpdated;
       newTCard.status = StatusEnum.draft;
+      newTCard.products = newTCard.products;
       newTCard.maxIdc = calculateMaxIdc(newTCard as TCardContent); //  MaxIdc  после полного заполнения
 
       // Добавляем новую карту в состояние
@@ -1023,47 +1139,20 @@ export default function Cards() {
 
   ////////////////// ПРОДУКЦИЯ
   // На клиенте
-  const correctCardProducts = (editedProducts: TCardProductItem[], card: TCardItem): { editedProducts: TCardProductItem[], newIdc: number } => {
-
-
-    const tCardProducts = card.tCardProducts ? card.tCardProducts : editedProducts;
-
-    let newIdc = card.maxIdc;
-
-    editedProducts.forEach(editedProduct => {
-      const existingProduct = tCardProducts.find(product => product.code === editedProduct.code);
-
-      if (existingProduct) {
-        // Проверяем, изменился ли title или uom
-        if (editedProduct.title !== existingProduct.title || editedProduct.uom.code !== existingProduct.uom.code) {
-          // Увеличиваем idc для нового продукта
-          newIdc = newIdc + 1;
-
-          // Присваиваем новый idc и обновляем code
-          editedProduct.idc = newIdc;
-          editedProduct.code = existingProduct.code.replace(/P(\d+)/, `P${newIdc}`);
-        }
-      }
-    });
-
-    return { editedProducts: editedProducts, newIdc: newIdc };
-  };
 
   // На клиенте
   const saveTCardProductsHandler = (tProductsValue: TCardProductItem[]) => {
-
-    const { editedProducts, newIdc } = correctCardProducts(tProductsValue, tCards[tCardIndex])
-
+    // editedProduct.code = existingProduct.code.replace(/P(\d+)/, `P${newIdc}`);
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
 
     // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
-    const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(editedProducts, tCardOperations);
+    const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(tProductsValue, tCardOperations);
 
     const tCard =
     {
       ...tCards[tCardIndex],
       modified: true,
-      maxIdc: newIdc,
+      // maxIdc: newIdc,
       tCardProducts: tCardProductsUpdated,  // Обновляем массивы
       tCardOperations: tCardOperationsUpdated,  // Обновляем массивы
       tCardWastes: tCardWastesUpdated,  // Обновляем массивы
@@ -1078,32 +1167,21 @@ export default function Cards() {
 
   };
 
-  // На клиенте
+  ////////////////// КАТАЛОГ продуктс
+  // На клиенте (ДОПИСАТЬ ПРОВЕРКУ ПРИ УДАДЕНИИ ПРЕДМЕТА КАТАЛОГА ЧТОБЫ ОН НЕ БЫЛ ЗАДЕЙСТВОВАН В ОПЕР КАРТЫ)
   const saveProductsHandler = (productsValue: ProductItem[]) => {
+    //  проверить чтобы не был удален предмет задействованный в операциях карты
 
-    // const { editedProducts, newIdc } = correctCardProducts(tProductsValue, tCards[tCardIndex])
+    const tCard = {
+      ...tCards[tCardIndex],
+      modified: true,
+      products: productsValue,
+      status: StatusEnum.draft,
+    }
+    const updatedTCards = [...tCards];
+    updatedTCards.splice(tCardIndex, 1, tCard)
 
-    // const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
-
-    // // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
-    // const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(editedProducts, tCardOperations);
-
-    // const tCard =
-    // {
-    //   ...tCards[tCardIndex],
-    //   modified: true,
-    //   maxIdc: newIdc,
-    //   tCardProducts: tCardProductsUpdated,  // Обновляем массивы
-    //   tCardOperations: tCardOperationsUpdated,  // Обновляем массивы
-    //   tCardWastes: tCardWastesUpdated,  // Обновляем массивы
-    //   tCardMaterials: tCardMaterialsUpdated,  // Обновляем массивы
-    //   status: StatusEnum.draft,
-    // }
-
-    // const updatedTCards = [...tCards];
-    // updatedTCards.splice(tCardIndex, 1, tCard)
-
-    // dispatch(setTCards(updatedTCards));
+    dispatch(setTCards(updatedTCards));
 
   };
 
@@ -1188,11 +1266,12 @@ export default function Cards() {
       let oldProduct = oldOUT.find(p => p.code === outProduct.code);
       oldProduct = (oldProduct) ? oldProduct : outProduct;
       // Проверяем, изменился ли какой-либо атрибут, кроме количества
-      if (outProduct.title !== oldProduct.title || outProduct.uom.code !== oldProduct.uom.code) {
-        newIdc = newIdc + 1;
+      if (outProduct.product.idc !== oldProduct.product.idc) {
+        // newIdc = newIdc + 1;
         // Присваиваем новый idc и обновляем code
-        outProduct.idc = newIdc;
-        outProduct.code = outProduct.code.replace(/O(\d+)/, `O${newIdc}`);
+        // outProduct.product.idc = newIdc;
+        // outProduct.code = outProduct.code.replace(/O(\d+)/, `O${newIdc}`);        
+        outProduct.code = outProduct.code.replace(/O(\d+)/, `O${outProduct.product.idc}`);
       }
     });
     // Обрабатываем источники продукты из редактируемой операции
@@ -1200,11 +1279,11 @@ export default function Cards() {
       let oldProduct = oldINN.find(p => p.code === innProduct.code);
       oldProduct = (oldProduct) ? oldProduct : innProduct;
       // Проверяем, изменился ли какой-либо атрибут, кроме количества
-      if (innProduct.title !== oldProduct.title || innProduct.uom.code !== oldProduct.uom.code) {
-        newIdc = newIdc + 1;
+      if (innProduct.product.idc !== oldProduct.product.idc) {
+        // newIdc = newIdc + 1;
         // Присваиваем новый idc и обновляем code
-        innProduct.idc = newIdc;
-        innProduct.code = innProduct.code.replace(/O(\d+)/, `O${newIdc}`);
+        // innProduct.idc = newIdc;
+        innProduct.code = innProduct.code.replace(/O(\d+)/, `O${innProduct.product.idc}`);
       }
     });
 
@@ -1379,26 +1458,29 @@ export default function Cards() {
 
     // поменяем операцию в кодах и сформируем выход и выход;
     const inn = oper.inn.map(prod => {
-      const code = `M${prod.idc}`;
-      return {
-        idc: prod.idc, //  id на клиенте
-        code: code,
-        title: prod.title,
-        qtu: prod.qtu,
-        uom: { ...prod.uom },
-      } as TCardProductItem
+      const code = `M${prod.product.idc}`;
+      return { ...prod, code: code } as TCardProductItem
+      // return {
+      //   // idc: prod.idc, //  id на клиенте
+      //   code: code,
+      //   product:prod.product,
+      //   // title: prod.title,
+      //   qtu: prod.qtu,
+      //   // uom: { ...prod.uom },
+      // } as TCardProductItem
     }
     )
     // поменяем операцию в кодах и сформируем выход и выход;
     const out = oper.out.map(prod => {
-      const code = `A${newid}O${prod.idc}`;
-      return {
-        idc: prod.idc, //  id на клиенте
-        code: code,
-        title: prod.title,
-        qtu: prod.qtu,
-        uom: { ...prod.uom },
-      } as TCardProductItem
+      const code = `A${newid}O${prod.product.idc}`;
+      return { ...prod, code: code } as TCardProductItem
+      // return {
+      //   idc: prod.idc, //  id на клиенте
+      //   code: code,
+      //   title: prod.title,
+      //   qtu: prod.qtu,
+      //   uom: { ...prod.uom },
+      // } as TCardProductItem
     }
     )
     const newOper = {
@@ -1447,6 +1529,7 @@ export default function Cards() {
   const tCardProducts = (tCards[tCardIndex] && tCards[tCardIndex].tCardProducts) ? tCards[tCardIndex].tCardProducts : [] as TCardProductItem[];
   const tCardWastes = (tCards[tCardIndex] && tCards[tCardIndex].tCardWastes) ? tCards[tCardIndex].tCardWastes : [] as TCardProductItem[];
   const tCardMaterials = (tCards[tCardIndex] && tCards[tCardIndex].tCardMaterials) ? tCards[tCardIndex].tCardMaterials : [] as TCardProductItem[];
+  const products = (tCards[tCardIndex] && tCards[tCardIndex].products) ? tCards[tCardIndex].products : [] as ProductItem[];
 
   // Стадии
   const tCardStagesReactNodes = tCardStages.map((tStage, index2) => {
@@ -1481,6 +1564,7 @@ export default function Cards() {
           />}
 
         {tCardOperation.mode && <TCardOperNew
+          products={products}
           key={index1}
           tCardOperation={tCardOperation}
           deleteOperHandler={deleteOperHandler}
@@ -1655,6 +1739,7 @@ export default function Cards() {
                 />
               </div>
               <TCardProducts
+                products={products}
                 tCardProducts={tCardProducts}
                 tCardOperations={tCardOperations}
                 saveTCardProductsHandler={saveTCardProductsHandler}
@@ -1670,9 +1755,6 @@ export default function Cards() {
                 handleDrop={handleDrop}
                 possibleEdit={!readonlyCardStatuses.includes(tCards[tCardIndex].status)}
                 prefix={"P"}
-                updateIdc={updateIdc}
-                maxIdc={tCards[tCardIndex].maxIdc}
-                setMaxIdc={setMaxIdc}
                 lightProduct={lightProduct}
 
               />
@@ -1681,6 +1763,7 @@ export default function Cards() {
                 {t('cards.wastes')}
               </div>
               <TCardProducts
+                products={products}
                 tCardProducts={tCardWastes}
                 tCardOperations={tCardOperations}
                 saveTCardProductsHandler={saveTCardProductsHandler}
@@ -1696,9 +1779,6 @@ export default function Cards() {
                 handleDrop={handleDrop}
                 possibleEdit={false}
                 prefix={"W"}
-                updateIdc={updateIdc}
-                maxIdc={tCards[tCardIndex].maxIdc}
-                setMaxIdc={setMaxIdc}
                 lightProduct={lightProduct}
               />
               <div className="container_stage_title">
@@ -1710,12 +1790,25 @@ export default function Cards() {
                 tCardIdc={tCards[tCardIndex].idc}
               />
               <div className="container_stage_title">
-                {t('cards.nomenklatura')}
+                {t('cards.catalog')}
               </div>
               <Products
                 products={products}
                 saveProductsHandler={saveProductsHandler}
                 updateIdc={updateIdc}
+                dragOverHandler={dragOverHandler}
+                dropHandler={dropHandler}
+                setCurrentDraggingElement={setCurrentDraggingElement}
+                handleMouseDown={handleMouseDown}
+                handleMouseUp={handleMouseUp}
+                isDragging={isDragging}
+                currentDraggingElement={currentDraggingElement}
+                positionX={position.x}
+                positionY={position.y}
+                handleDrop={handleDrop}
+                possibleEdit={!readonlyCardStatuses.includes(tCards[tCardIndex].status)}
+                prefix={"N"}
+                lightProduct={lightProduct}
                 maxIdc={tCards[tCardIndex].maxIdc}
                 setMaxIdc={setMaxIdc}
               />
@@ -1728,6 +1821,7 @@ export default function Cards() {
                   {t('cards.materials')}
                 </div>
                 <TCardProducts
+                  products={products}
                   tCardProducts={tCardMaterials}
                   saveTCardProductsHandler={saveTCardProductsHandler}
                   dragOverHandler={dragOverHandler}
@@ -1742,9 +1836,6 @@ export default function Cards() {
                   handleDrop={handleDrop}
                   possibleEdit={false}
                   prefix={"M"}
-                  updateIdc={updateIdc}
-                  maxIdc={tCards[tCardIndex].maxIdc}
-                  setMaxIdc={setMaxIdc}
                   lightProduct={lightProduct}
                 />
               </div>}

@@ -274,7 +274,7 @@ export default function Index() {
           await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
           await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
           await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadProducts(user.id, team.id, token, t, setMessage, dispatch);
+          // await downloadProducts(user.id, team.id, token, t, setMessage, dispatch);
           await downloadLoads(user.id, team.id, token, t, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           setStep(5);

@@ -1,8 +1,8 @@
 import { Repository } from 'typeorm';
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from './../../db/database';  // Импортируем функцию подключения
-import { getRepositoryByName } from '@/lib/db/utils';
-import { getTypedRepository } from './../../lib/db/utils'
+import { getRepositoryByName } from '@/lib/db/utilites';
+import { getTypedRepository } from './../../lib/db/utilites'
 import { UserAgreeTable } from './../../db/models/catalogs/user_agree';
 import { AgreementTable } from './../../db/models/catalogs/agreements';
 import { signAgreement } from './../../handlers/handlers-auth';  // расчеты

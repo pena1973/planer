@@ -77,12 +77,12 @@ export default function TCardOper({
                         left: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? positionX : 0,
                         top: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? positionY : 0,
                         cursor: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "O" + index1) ? 'grabbing' : 'grab',
-                        color: (lightProduct === elem2.idc) ? 'rgb(25, 130, 25)' : '',
+                        color: (lightProduct === elem2.product.idc) ? 'rgb(25, 130, 25)' : '',
                     }}>
-                    <div className={styles.in_out_item_code}>{elem2.code}</div>
-                    <div className={styles.in_out_item_title}>{elem2.title}</div>
-                    <div className={styles.in_out_item_qty}>{elem2.qtu}</div>
-                    <div className={styles.in_out_item_uom}>{elem2.uom.title}</div>
+                    <div className={styles.out_item_code}>{elem2.code}</div>
+                    <div className={styles.in_out_item_product}>{`${elem2.product.title}(${elem2.product.uom.title})`}</div>
+                    <div className={styles.in_out_item_qtu}>{elem2.qtu}</div>
+                    
                 </div>
             )
         })
@@ -107,13 +107,13 @@ export default function TCardOper({
                         left: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? positionX : 0,
                         top: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? positionY : 0,
                         cursor: isDragging && (currentDraggingElement === "A" + tCardOperation.idc + "I" + index2) ? 'grabbing' : 'grab',
-                        color: (lightProduct === elem3.idc) ? 'rgb(25, 130, 25)' : '',
+                        color: (lightProduct === elem3.product.idc) ? 'rgb(25, 130, 25)' : '',
                     }}
                 >
-                    <div className={styles.in_out_item_code}>{elem3.code}</div>
-                    <div className={styles.in_out_item_title}>{elem3.title}</div>
-                    <div className={styles.in_out_item_qty}>{elem3.qtu}</div>
-                    <div className={styles.in_out_item_uom}>{elem3.uom.title}</div>
+                    <div className={styles.in_item_code}>{elem3.code}</div>
+                    <div className={styles.in_out_item_product}>{`${elem3.product.title}(${elem3.product.uom.title})`}</div>
+                    <div className={styles.in_out_item_qtu}>{elem3.qtu}</div>
+                    
 
                 </div>
             )

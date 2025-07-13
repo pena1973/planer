@@ -7,6 +7,7 @@ import { UnitActionTable } from './../db/models/catalogs/unit_actions'
 import { UnitLoadTable } from './../db/models/plan/unit_loads';
 import { TCardTable } from './../db/models/data/t_cards'
 import { TCardProductTable } from './../db/models/data/t_card_products'
+import { ProductTable } from './../db/models/data/products'
 import { TCardOperationTable } from './../db/models/data/t_card_operations'
 import { TCardStageTable } from './../db/models/data/t_card_stages'
 
@@ -24,8 +25,14 @@ import { SupportTable } from './../db/models/support/support';
 
 
 // types
-import { StatusEnum, UserItem, UnitItem, UnitLoadItem, UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem, TimeTypeEnum, DaysOfWeek, TimeZoneEnum, TCardOperationTermsItem } from './../types/types';
-import { TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem, TCardTermsItem, BillItem } from './../types/types';
+import {
+  StatusEnum, UserItem, UnitItem, UnitLoadItem,
+  UnitActionItem, UnitBelongEnum, UnitTypeEnum, UnitExceptionItem,
+  TimeTypeEnum, TimeZoneEnum, TCardOperationTermsItem,
+  TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem,
+  TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem,
+  TCardTermsItem, BillItem, ProductItem
+} from './../types/types';
 
 // единицы измерения
 export async function getUOMs(
@@ -136,7 +143,7 @@ export async function getUnits(
 export async function getUnitLoads(
   units: UnitItem[],
   unitLoadRepository: Repository<UnitLoadTable>,
-  isControler: boolean = false, 
+  isControler: boolean = false,
 
 ): Promise<UnitLoadItem[]> {
 
@@ -356,7 +363,8 @@ export async function getTCardFull(
   tCardRepository: Repository<TCardTable>,
   tCardOperationRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
-  tCardStageRepository: Repository<TCardStageTable>
+  tCardStageRepository: Repository<TCardStageTable>,
+  productRepository: Repository<ProductTable>,
 ): Promise<TCardItem | undefined> {
 
   // Строим фильтр для поиска по id карты
@@ -374,9 +382,9 @@ export async function getTCardFull(
   // Проверяем, что карта существует
   if (!tCardtab) return undefined;
 
+
   // СТАДИИ
   const tCardStagestab = await tCardStageRepository.find({ where: { tcard_id: tcardId } });
-
 
   // Преобразуем стадии
   const tCardStages_ = tCardStagestab
@@ -388,98 +396,143 @@ export async function getTCardFull(
       } as TCardStageItem;
     });
 
+  //  КАТАЛОГ ПРодуктов
+  const productstab = await productRepository.find({
+    where: { tcard_id: tcardId },
+    relations: ['uom']
+  });
 
-  // ПРОДУКТЫ, МАТЕРИАЛЫ, ОТХОДЫ
-  const tCardProductstab = await tCardProductRepository.find({ where: { tcard_id: tcardId } });
-
-  // Преобразуем материалы
-  const tCardMaterials_ = tCardProductstab
-    .filter(product => product.type === TypeEnum.M)
+  const products_ = productstab
     .map(product => {
       return {
         id: product.id,
         idc: product.idc,
-        code: product.code,
         title: product.title,
-        qtu: product.qtu,
+        sync: product.sync,
         uom: {
           id: product.uom.id,
           title: product.uom.title,
           code: product.uom.code,
         } as UOMItem
+      } as ProductItem;
+    });
+  // ПРОДУКТЫ, МАТЕРИАЛЫ, ОТХОДЫ
+  const tCardProductstab = await tCardProductRepository.find({
+    where: { tcard_id: tcardId },
+    relations: ['product']
+  });
+
+  // Преобразуем материалы
+  const tCardMaterials_ = tCardProductstab
+    .filter(tProduct => tProduct.type === TypeEnum.M)
+    .map(tProduct => {
+      const product = products_.find(product => product.id === tProduct.product_id)
+      return {
+        id: tProduct.id,
+        code: tProduct.code,
+        qtu: tProduct.qtu,
+        product: {
+          id: product?.id,
+          idc: product?.idc,
+          title: product?.title,
+          uom: {
+            id: product?.uom?.id,
+            title: product?.uom?.title,
+            code: product?.uom?.code
+          } as UOMItem
+        } as ProductItem
       } as TCardProductItem;
     });
   // Преобразуем продукты
   const tCardProducts_ = tCardProductstab
-    .filter(product => product.type === TypeEnum.P)
-    .map(product => {
+    .filter(tProduct => tProduct.type === TypeEnum.P)
+    .map(tProduct => {
+      const product = products_.find(product => product.id === tProduct.product_id)
       return {
-        id: product.id,
-        idc: product.idc,
-        code: product.code,
-        title: product.title,
-        qtu: product.qtu,
-        uom: {
-          id: product.uom.id,
-          title: product.uom.title,
-          code: product.uom.code,
-        } as UOMItem
+        id: tProduct.id,
+        code: tProduct.code,
+        qtu: tProduct.qtu,
+        product: {
+          id: product?.id,
+          idc: product?.idc,
+          title: product?.title,
+          uom: {
+            id: product?.uom?.id,
+            title: product?.uom?.title,
+            code: product?.uom?.code
+          } as UOMItem
+        } as ProductItem
       } as TCardProductItem;
     });
   // Преобразуем отходы
   const tCardWastes_ = tCardProductstab
     .filter(product => product.type === TypeEnum.W)
-    .map(product => {
+    .map(tProduct => {
+      const product = products_.find(product => product.id === tProduct.product_id)
       return {
-        id: product.id,
-        idc: product.idc,
-        code: product.code,
-        title: product.title,
-        qtu: product.qtu,
-        uom: {
-          id: product.uom.id,
-          title: product.uom.title,
-          code: product.uom.code,
-        } as UOMItem
+        id: tProduct.id,
+        code: tProduct.code,
+        qtu: tProduct.qtu,
+        product: {
+          id: product?.id,
+          idc: product?.idc,
+          title: product?.title,
+          uom: {
+            id: product?.uom?.id,
+            title: product?.uom?.title,
+            code: product?.uom?.code
+          } as UOMItem
+        } as ProductItem
       } as TCardProductItem;
     });
 
   // ОПЕРАЦИИ
-  const tCardOperationstab = await tCardOperationRepository.find({ where: { tcard_id: tcardId } });
+  const tCardOperationstab = await tCardOperationRepository.find({
+    where: { tcard_id: tcardId },
+    relations: ['action', 'stage']
+  });
   // Преобразуем операции
   const tCardOperations_ = tCardOperationstab
     .map(oper => {
       const inn = tCardProductstab
         .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
-        .map(product => {
+        .map(tProduct => {
+          const product = products_.find(product => product.id === tProduct.product_id)
           return {
-            id: product.id,
-            idc: product.idc,
-            code: product.code,
-            title: product.title,
-            qtu: product.qtu,
-            uom: {
-              id: product.uom.id,
-              title: product.uom.title,
-              code: product.uom.code,
-            } as UOMItem
+            id: tProduct.id,
+            code: tProduct.code,
+            qtu: tProduct.qtu,
+            product: {
+              id: product?.id,
+              idc: product?.idc,
+              title: product?.title,
+              uom: {
+                id: product?.uom?.id,
+                title: product?.uom?.title,
+                code: product?.uom?.code
+              } as UOMItem
+            } as ProductItem
           } as TCardProductItem;
         });
 
       const out = tCardProductstab
         .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
-        .map(product => {
+        .map(tProduct => {
+          const product = products_.find(product => product.id === tProduct.product_id)
           return {
-            id: product.id,
-            idc: product.idc,
-            code: product.code,
-            title: product.title,
-            qtu: product.qtu,
-            uom: {
-              id: product.uom.id,
-              title: product.uom.title,
-              code: product.uom.code,
-            } as UOMItem
+            id: tProduct.id,
+            code: tProduct.code,
+            qtu: tProduct.qtu,
+            product: {
+              id: product?.id,
+              idc: product?.idc,
+              title: product?.title,
+              uom: {
+                id: product?.uom?.id,
+                title: product?.uom?.title,
+                code: product?.uom?.code
+              } as UOMItem
+            } as ProductItem
           } as TCardProductItem;
         });
 
@@ -501,6 +554,7 @@ export async function getTCardFull(
     id: tCardtab.id,
     date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
     idc: tCardtab.idc,
+    products: products_,
     tCardProducts: tCardProducts_,
     tCardWastes: tCardWastes_,
     tCardOperations: tCardOperations_,
@@ -762,7 +816,7 @@ export async function getUnitActions(
 
   const receivedUnitActions = await unitActionsRepository.find({
     where: filter,  // Применяем фильтр к запросу
-    relations: ['unit',"action"], // Добавляем связь с таблицей Unit
+    relations: ['unit', "action"], // Добавляем связь с таблицей Unit
   });
 
   if (!receivedUnitActions) return [] as UnitActionItem[]

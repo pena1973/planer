@@ -5,7 +5,7 @@ import { UOMsTable } from '../../models/catalogs/uoms';
 import { TypeEnum } from './../../../types/types';
 
 @Entity('products')
-export class ProductsTable {
+export class ProductTable {
   @PrimaryGeneratedColumn()
   id?: number;
 
@@ -17,6 +17,9 @@ export class ProductsTable {
 
   @Column()
   title!: string;
+
+  @Column()
+  sync!: string;
 
   @ManyToOne(() => UOMsTable) 
   @JoinColumn({ name: 'uom_id' }) 

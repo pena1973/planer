@@ -28,11 +28,8 @@
     height: auto;
     padding: 5px;
     border-bottom: $border;
-    /* Нижняя граница для отделения заголовка от содержимого */
     font-size: $header4_font_size;
-    /* Размер шрифта для заголовка */
     color: $text_color;
-    /* Цвет текста заголовка */
 }
 
 .container_status {
@@ -47,29 +44,8 @@
     flex-direction: row;
     width: auto;
     height: auto;
-
-
 }
 
-// .container:hover {
-//     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
-// }
-
-// .container .content {
-//     flex: 1; /* Разделяет пространство для содержимого */
-//     padding: 10px; /* Отступы для содержимого */
-//     color: #333; /* Темно-серый цвет текста */
-//     font-weight: normal; /* Обычный текст */
-//     font-family: Arial, sans-serif; /* Шрифт для офисного стиля */
-// }
-
-
-
-// .container_tCardOper {
-//     display: flex; /* Используем Flexbox для расположения блоков в ряд */
-//     justify-content: space-between; /* Равномерное распределение пространства между блоками */
-//     width: 100%; /* Ширина контейнера */
-// }
 
 .container_out,
 .container_in {
@@ -129,8 +105,8 @@
 .action_title,
 .in_title,
 .coment_title {
-    font-weight: bold;    
-    color: $second_text_color;    
+    font-weight: bold;
+    color: $second_text_color;
     text-align: center;
     height: auto;
     font-size: $header4_font_size;
@@ -145,82 +121,78 @@
 }
 
 //----OUT IN-----
+
+.out_item_code,
+.in_item_code,
+.in_out_item_qtu,
+.in_out_item_product {
+    align-items: center;
+    padding: 5px;
+    text-align: end;
+    font-size: $header4_font_size;
+    //     border: $border;
+    //     border-radius: $border-radius;
+}
+
+.in_out_item_product {
+    width: 80%;
+    // max-width: 98px;
+    //  background-color: antiquewhite;    
+    text-align: start;    
+    padding: 4px;
+    overflow: hidden;
+}
+
+.in_item_code {
+    //  width: 105px;    
+     min-width: 60px;
+     max-width:  60px;
+    text-align: start;
+    font-weight: bold;
+    //   background-color: aqua;
+}
+.out_item_code {
+    // width: 105px;    
+     min-width: 60px;
+     max-width:  60px;
+    text-align: start;
+    font-weight: bold;
+    
+    //   background-color: aqua;
+}
+
+.in_out_item_qtu {
+    min-width: 20%;
+    max-width:  60px;
+    
+    //  background-color: azure;
+
+}
+
 .container_in_out_item {
     display: flex;
-    /* Используем Flexbox для расположения ячеек в строке */
-    justify-content: space-between;
-    /* Равномерное распределение пространства между ячейками */
-    padding: 2px;
-    /* Внутренние отступы для ячеек */
-    border-bottom: 1px solid #ccc;
-    /* Нижняя граница для разделения строк */
-    font-size: 12px;
     width: 100%;
+    height: 24px;
+    //  background-color: rgb(177, 152, 135);
 }
+
+// .container_in_out_item {
+//     display: flex;    
+//     justify-content: space-between;    
+//     padding: 2px;    
+//     border-bottom: 1px solid #ccc;    
+//     font-size: 12px;
+//     width: 100%;
+// }
 
 .container_in_out_item:last-child {
     border-bottom: none;
     /* Убираем границу у последней строки */
 }
 
-.in_out_item_code,
-.in_out_item_title,
-.in_out_item_uom,
-.in_out_item_qty {
-    // flex: 1; /* Каждая ячейка занимает равное пространство */
-    text-align: center;
-    /* Выравнивание текста по центру */
-}
-
-.in_out_item_title,
-.in_out_item_uom,
-.in_out_item_qty {
-    margin-left: 2px;
-    /* Отступ между ячейками для количества и единицы измерения */
-}
-
-.in_out_item_title:last-child,
-.in_out_item_code:last-child,
-.in_out_item_qty:last-child,
-.in_out_item_uom:last-child {
-    margin-left: 0;
-    /* Убираем отступ для последней ячейки в строке */
-}
-
-/* Дополнительные стили для улучшения внешнего вида */
-.container_in_out_item:hover {
-    background-color: #f9f9f9;
-    /* Изменение фона при наведении */
-}
-
-
-.in_out_item_code {
-    font-weight: bold;
-    /* Жирный текст для кода */
-    min-width: 60px;
-}
-
-.in_out_item_title {
-    font-weight: bold;
-    /* Жирный текст для кода */
-    width: 80%;
-    // background-color: #ccc;
-}
-
-.in_out_item_qty,
-.in_out_item_uom {
-    color: #666;
-    /* Светло-серый цвет для количества и единицы измерения */
-    width: 20%;
-    // background-color: #ccc;
-}
-
 .container_icon_edit_save {
     display: flex;
     flex-direction: row;
-    // position: absolute;
-    // top: 0;
-    // left: 0;
     cursor: pointer;
     border-top-left-radius: 5px;
 }
@@ -242,12 +214,12 @@
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
-    border-top: 1px solid #ccc;
+    border-top: $border;
     width: calc(100% - 4px);
     overflow: hidden;
     padding: 3px 5px;
     margin-left: 5px;
-    height: 30px;   
+    height: 30px;
 }
 
 .button_status {

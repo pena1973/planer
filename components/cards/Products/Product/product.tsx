@@ -1,15 +1,12 @@
 
-import styles from "./tCardProduct.module.scss";
-import { UOMItem, StatusEnum } from '@/types/types'
+import styles from "./product.module.scss";
+import { UOMItem } from '@/types/types'
 
-import { StatusCircle } from "@/components/StatusCircle/statusCircle";
-
-export interface TCardProductProps {
+export interface ProductProps {
     idc: number,
-    code: string,
     title: string,
-    qtu: number,
     uom: UOMItem,
+    sync: string,
     dragOverHandler: (e: React.DragEvent<HTMLElement>) => void,
     dropHandler: (e: React.DragEvent<HTMLElement>) => void,
     setCurrentDraggingElement: ({ }: string) => void,
@@ -23,15 +20,14 @@ export interface TCardProductProps {
     prefix: string,
     index: number,
     lightProduct: number,
-    status: StatusEnum | undefined
+
 }
 
-export default function TCardProduct({
+export default function Product({
     idc,
-    code,
     title,
-    qtu,
     uom,
+    sync,
     dragOverHandler,
     dropHandler,
     setCurrentDraggingElement,
@@ -44,16 +40,10 @@ export default function TCardProduct({
     prefix,
     index,
     lightProduct,
-    status,
-
-}: TCardProductProps) {
-
-    const code1 = (prefix === "M") ? code : `${prefix + idc} | ${code}`
-    const codeWidth = (prefix === "M") ? 50 : 100
-    const titleWidth = (prefix === "M") ? 140 : 80
+}: ProductProps) {
     return (
         <div className={styles.container_row}
-            onDragOver={(e) => dragOverHandler(e)}
+         onDragOver={(e) => dragOverHandler(e)}
             onDrop={(e) => dropHandler(e)}
             draggable={true}
             onMouseDown={(e) => {
@@ -70,15 +60,10 @@ export default function TCardProduct({
                 cursor: isDragging && (currentDraggingElement === prefix + index) ? 'grabbing' : 'grab',
                 color: (lightProduct === idc) ? 'rgb(25, 130, 25)' : '',
             }}>
-
-            <div className={styles.tCardProduct_status} >
-                {(status) && <StatusCircle status={status} />}
-            </div>
-            <div className={styles.tCardProduct_code} style={{ width: codeWidth }}>{code1}</div>
-            <div className={styles.tCardProduct_title} style={{ width: titleWidth }}>{title}</div>
-            <div className={styles.tCardProduct_qtu}>{qtu}</div>
-            
-            <div className={styles.tCardProduct_uom}>{uom.title}</div>
+            <div className={styles.idc} >{idc}</div>
+            <div className={styles.title}>{title}</div>
+            <div className={styles.uom}>{uom.title}</div>
+            <div className={styles.sync}>{sync}</div>
         </div>
 
     )

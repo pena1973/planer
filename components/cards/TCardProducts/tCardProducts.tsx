@@ -3,22 +3,17 @@ import styles from "./tCardProducts.module.scss";
 import { TCardOperationItem, TCardProductItem, UOMItem, ProductItem } from '@/types/types'
 import Image from 'next/image';
 
-import TCardProduct from "@/components/cards/TCardProduct/tCardProduct";
-import TCardProductNew from "@/components/cards/TCardProductNew/tCardProductNew";
+import TCardProduct from "@/components/cards/TCardProducts/TCardProduct/tCardProduct";
+import TCardProductNew from "@/components/cards/TCardProducts/TCardProductNew/tCardProductNew";
 
 import { useEffect, useState, useRef } from "react";
 
-
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
 import edit from "@/public/edit-rem.png";
-
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
 export interface TCardProductsProps {
+    products: ProductItem[],
     tCardProducts: TCardProductItem[],
     tCardOperations?: TCardOperationItem[], // для прорисовки статусов
     saveTCardProductsHandler: (tProductsValue: TCardProductItem[]) => void;
@@ -33,16 +28,12 @@ export interface TCardProductsProps {
     positionY: number,
     handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,
     possibleEdit: boolean,
-    prefix: string,
-    updateIdc: (currentId: number) => void,
-    // setCartEdited: () => void,
-    maxIdc: number,
-    setMaxIdc: (maxIdc: number) => void,
+    prefix: string,    
     lightProduct: number,  // idc  продукта который нужно выделить цветом  
-    
 }
 
 export default function TCardProducts({
+    products,
     tCardProducts,
     tCardOperations,
     saveTCardProductsHandler,
@@ -57,16 +48,13 @@ export default function TCardProducts({
     positionY,
     handleDrop,
     possibleEdit,
-    prefix,    
-    maxIdc,
-    setMaxIdc,
+    prefix,   
     lightProduct,
-    
 }: TCardProductsProps) {
 
-    const [edited, setEdited] = useState(false);
-    // const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
-    const [tProductsValue, setTProductsValue] = useState([] as TCardProductItem[]);
+    const [edited, setEdited] = useState(false);    
+
+    const [tProductsValue, setTProductsValue] = useState<(Omit<TCardProductItem, 'product'> & { product: ProductItem | null })[]>([]);
     const [message, setMessage] = useState("");
 
     useEffect(() => {
@@ -78,34 +66,23 @@ export default function TCardProducts({
         const tProductsValueUpdated = [...tProductsValue]
         tProductsValueUpdated.splice(indexToRemove, 1)
         setTProductsValue(tProductsValueUpdated)
-        // setCartEdited();
     };
 
-    const changeProductHandler = (indexToChange: number, id: number, title: string, qtu: number, uom: UOMItem | null) => {
-        const product = tProductsValue[indexToChange];
-        const updatedProduct = { ...product, title: title, qtu: qtu, uom: uom ?? product.uom }
+    const changeProductHandler = (indexToChange: number, product: ProductItem | null, qtu: number) => {
+        const tProduct = tProductsValue[indexToChange];
+        const updatedTProduct = { ...tProduct, product: product, qtu: qtu }
         const tProductsValueUpdated = [...tProductsValue]
-        tProductsValueUpdated.splice(indexToChange, 1, updatedProduct)
+        tProductsValueUpdated.splice(indexToChange, 1, updatedTProduct)
         setTProductsValue(tProductsValueUpdated)
-        // setCartEdited();
     };
 
-    const checkUOMFilled = (uom: UOMItem | null): boolean => {
-        // проверяем uom заполнен
-        return (uom !== null &&
-            uom !== undefined &&
-            uom.id !== undefined &&
-            uom.title !== undefined &&
-            uom.title.trim() !== ""
-        );
-    };
     const saveProducts = () => {
         setMessage("");
         // проверяем на заполненность
         let isOK = true;
         tProductsValue.forEach((elem) => {
-            if (elem.uom === null || !checkUOMFilled(elem.uom)) {
-                setMessage("Заполните единицу измерения!");
+            if (!elem.product) {
+                setMessage("Заполните продукт!");
                 isOK = false;
                 return;
             }
@@ -117,25 +94,25 @@ export default function TCardProducts({
             }
         })
         if (isOK) {
-            saveTCardProductsHandler(tProductsValue);
-            setEdited(!isOK);
+            // Явно указываем: все product теперь точно не null
+            const cleaned: TCardProductItem[] = tProductsValue.map(elem => ({
+                ...elem,
+                product: elem.product as ProductItem,
+            }));
+
+            saveTCardProductsHandler(cleaned);
+            setEdited(false);
         }
     };
 
-    const addProductHandler = () => {
-        const idc = maxIdc + 1;
-        const newProduct = {
-            idc: idc,
+    const addProductHandler = () => {        
+        const newProduct = {         
             code: "",
-            title: "Продукт",
-            qtu: 0,
-            uom: {} as UOMItem,
+            qtu: 0,         
             mode: true,
-            product:{} as ProductItem
+            product: {} as ProductItem
         } as TCardProductItem;
         setTProductsValue([...tProductsValue, newProduct])
-        setMaxIdc(idc);
-
     };
 
     const tCardProductsReactNodes = tProductsValue.map((elem, index) => {
@@ -148,25 +125,21 @@ export default function TCardProducts({
         return (<>
             {edited &&
                 <TCardProductNew
-                     key={'products' + index}
-                    idc={elem.idc}
-                    prefix={prefix}
+                    key={'products' + index}
+                    product={elem.product}
+                    products={products}
                     code={elem.code}
-                    title={elem.title}
                     qtu={elem.qtu}
-                    uom={elem.uom}
                     changeProductHandler={changeProductHandler}
                     deleteProductHandler={deleteProductHandler}
                     index={index}
                 />}
-            {!edited &&
+            {!edited && elem.product !== null && (elem.product) &&
                 <TCardProduct
                     key={'products' + index}
-                    idc={elem.idc}
+                    product={elem.product}
                     code={elem.code}
-                    title={elem.title}
                     qtu={elem.qtu}
-                    uom={elem.uom}
                     dragOverHandler={dragOverHandler}
                     dropHandler={dropHandler}
                     setCurrentDraggingElement={setCurrentDraggingElement}
