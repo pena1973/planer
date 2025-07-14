@@ -26,7 +26,7 @@ __decorate([
     __metadata("design:type", Date)
 ], UserUnitTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => users_1.UserTable, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => users_1.UserTable),
     (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
     __metadata("design:type", users_1.UserTable)
 ], UserUnitTable.prototype, "user", void 0);
@@ -35,7 +35,7 @@ __decorate([
     __metadata("design:type", Number)
 ], UserUnitTable.prototype, "user_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable),
     (0, typeorm_1.JoinColumn)({ name: 'team_id' }),
     __metadata("design:type", teams_1.TeamTable)
 ], UserUnitTable.prototype, "team", void 0);
@@ -44,9 +44,8 @@ __decorate([
     __metadata("design:type", Number)
 ], UserUnitTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable, { eager: true, nullable: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'unit_id' }) // Указываем внешний ключ для поля unit_id
-    ,
+    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'unit_id' }),
     __metadata("design:type", Object)
 ], UserUnitTable.prototype, "unit", void 0);
 __decorate([

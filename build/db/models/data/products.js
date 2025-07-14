@@ -1,0 +1,60 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProductTable = void 0;
+// Каталог номенклатуры в пределах карты. Уникальный ключ карта idc + продукт idc
+const typeorm_1 = require("typeorm");
+const t_cards_1 = require("./t_cards");
+const uoms_1 = require("../../models/catalogs/uoms");
+let ProductTable = class ProductTable {
+};
+exports.ProductTable = ProductTable;
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)(),
+    __metadata("design:type", Number)
+], ProductTable.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
+    __metadata("design:type", Date)
+], ProductTable.prototype, "created_at", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], ProductTable.prototype, "idc", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], ProductTable.prototype, "title", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], ProductTable.prototype, "sync", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => uoms_1.UOMsTable),
+    (0, typeorm_1.JoinColumn)({ name: 'uom_id' }),
+    __metadata("design:type", uoms_1.UOMsTable)
+], ProductTable.prototype, "uom", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], ProductTable.prototype, "uom_id", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => t_cards_1.TCardTable),
+    (0, typeorm_1.JoinColumn)({ name: 'tcard_id' }),
+    __metadata("design:type", t_cards_1.TCardTable)
+], ProductTable.prototype, "tcard", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], ProductTable.prototype, "tcard_id", void 0);
+exports.ProductTable = ProductTable = __decorate([
+    (0, typeorm_1.Entity)('products')
+], ProductTable);

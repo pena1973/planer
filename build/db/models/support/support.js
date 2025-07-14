@@ -46,7 +46,7 @@ __decorate([
     __metadata("design:type", Number)
 ], SupportTable.prototype, "basedOn", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
+    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable) // Указываем связь "многие к одному"
     ,
     (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
     ,
@@ -57,7 +57,7 @@ __decorate([
     __metadata("design:type", Number)
 ], SupportTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => users_1.UserTable, { eager: true }) // Указываем связь "многие к одному"
+    (0, typeorm_1.ManyToOne)(() => users_1.UserTable) // Указываем связь "многие к одному"
     ,
     (0, typeorm_1.JoinColumn)({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
     ,

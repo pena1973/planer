@@ -45,27 +45,19 @@ export interface TCardOperationItem {
 }
 
 export interface TCardProductItem {
-    id?: number,  // id BD
-    // idc: number, //  // замена
+    id?: number,  // id BD   
     code: string, //  код источника    
-    // title: string, // замена
-    qtu: number,
-    // uom: UOMItem,// замена
+    qtu: number,   
     product: ProductItem
 }
-export interface ReadyProduct extends TCardProductItem {
-  date: string;
-  time: number;
-  reserved: number;
-  reservedTo: number;
-}
+
 export interface ProductItem {
     id?: number,  // id BD
     idc: number, //  id на клиенте    
     title: string,
     uom: UOMItem,
     sync: string,
-    // cardId:number
+   
 }
 
 export interface TCardItem {
@@ -85,7 +77,12 @@ export interface TCardItem {
     coment?: string,
     status: StatusEnum
 }
-
+export interface ReadyProduct extends TCardProductItem {
+  date: string;
+  time: number;
+  reserved: number;
+  reservedTo: number;
+}
 export interface UOMItem {
     id: number,
     title: string,
@@ -341,12 +338,13 @@ export interface ProductContent {
     idc: number;    
     title: string;
     uom: { code: string; title: string };
+    sync: string,
 }
 
 export interface TProductContent {    
     code: string;    
     qtu: number;
-    product:ProductContent,
+    productIdc:number,
 }
 
 export interface OperationContent {

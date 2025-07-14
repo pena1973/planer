@@ -49,10 +49,8 @@ __decorate([
     __metadata("design:type", Array)
 ], TeamScheduleTable.prototype, "workdays", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
+    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable),
+    (0, typeorm_1.JoinColumn)({ name: 'team_id' }),
     __metadata("design:type", teams_1.TeamTable)
 ], TeamScheduleTable.prototype, "team", void 0);
 __decorate([

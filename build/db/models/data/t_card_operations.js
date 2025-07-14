@@ -27,7 +27,7 @@ __decorate([
     __metadata("design:type", Number)
 ], TCardOperationTable.prototype, "idc", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => t_card_stages_1.TCardStageTable, { eager: true, cascade: true }),
+    (0, typeorm_1.ManyToOne)(() => t_card_stages_1.TCardStageTable),
     (0, typeorm_1.JoinColumn)({ name: 'stage_id' }),
     __metadata("design:type", t_card_stages_1.TCardStageTable)
 ], TCardOperationTable.prototype, "stage", void 0);
@@ -40,7 +40,7 @@ __decorate([
     __metadata("design:type", Number)
 ], TCardOperationTable.prototype, "order", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => actions_1.ActionTable, { eager: true }) // Указываем связь "многие к одному"
+    (0, typeorm_1.ManyToOne)(() => actions_1.ActionTable) // Указываем связь "многие к одному"
     ,
     (0, typeorm_1.JoinColumn)({ name: 'action_id' }) // Указываем колонку, которая является внешним ключом
     ,
@@ -55,7 +55,7 @@ __decorate([
     __metadata("design:type", Number)
 ], TCardOperationTable.prototype, "duration", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => t_cards_1.TCardTable, { eager: true, cascade: true }),
+    (0, typeorm_1.ManyToOne)(() => t_cards_1.TCardTable),
     (0, typeorm_1.JoinColumn)({ name: 'tcard_id' }),
     __metadata("design:type", t_cards_1.TCardTable)
 ], TCardOperationTable.prototype, "tcard", void 0);

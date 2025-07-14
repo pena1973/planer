@@ -249,12 +249,11 @@ export const getStatusPriority = (status: StatusEnum): number => {
 //  ЧТЕНИЕ КАРТЫ ИЗ ФАЙЛА
 export const calculateMaxIdc = (content: TCardContent): number => {
   let maxIdc = 0;
-
   // Проверяем tCardProducts
   if (content.tCardProducts) {
-    content.tCardProducts.forEach((product) => {
-      if (product.idc && product.idc > maxIdc) {
-        maxIdc = product.idc;
+    content.tCardProducts.forEach((tProduct) => {
+      if (tProduct.productIdc > maxIdc) {
+        maxIdc = tProduct.productIdc;
       }
     });
   }
@@ -271,8 +270,8 @@ export const calculateMaxIdc = (content: TCardContent): number => {
   // Проверяем tCardWastes
   if (content.tCardWastes) {
     content.tCardWastes.forEach((waste) => {
-      if (waste.idc && waste.idc > maxIdc) {
-        maxIdc = waste.idc;
+      if (waste.productIdc > maxIdc) {
+        maxIdc = waste.productIdc;
       }
     });
   }
@@ -297,17 +296,26 @@ export const validateFileContent = (content: TCardContent) => {
   // Проверяем обязательные поля
   if (!content.date) missingFields.push("date");
   if (!content.idc) missingFields.push("idc");
+  if (!Array.isArray(content.products)) missingFields.push("products");
   if (!Array.isArray(content.tCardProducts)) missingFields.push("tCardProducts");
   if (!Array.isArray(content.tCardOperations)) missingFields.push("tCardOperations");
   if (!Array.isArray(content.tCardStages)) missingFields.push("tCardStages");
 
+   // Проверка на корректность значений
+  if (content.products) {
+    content.products.forEach((product, index) => {
+      if (!product.idc || (typeof product.idc !== 'number')) invalidFields.push(`products[${index}].idc`);
+      if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);      
+       if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);
+    });
+  }
+
   // Проверка на корректность значений
   if (content.tCardProducts) {
-    content.tCardProducts.forEach((product, index) => {
-      if (!product.code) invalidFields.push(`tCardProducts[${index}].code`);
-      if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);
-      if (typeof product.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);
-      if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);
+    content.tCardProducts.forEach((tProduct, index) => {
+      if (!tProduct.code) invalidFields.push(`tCardProducts[${index}].code`);
+      if (!tProduct.productIdc) invalidFields.push(`tCardProducts[${index}].productIdc`);
+      if (typeof tProduct.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);      
     });
   }
 

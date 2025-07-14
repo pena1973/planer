@@ -31,6 +31,7 @@ export interface TCardProductsProps {
     lightProduct: number,  // idc  продукта который нужно выделить цветом  
     maxIdc: number,
     setMaxIdc: (maxIdc: number) => void,
+    isPossibleToDelete: (indexToRemove: number) => boolean,
 }
 
 export default function TCardProducts({
@@ -51,6 +52,7 @@ export default function TCardProducts({
     lightProduct,
     maxIdc,
     setMaxIdc,
+    isPossibleToDelete
 }: TCardProductsProps) {
 
     const [edited, setEdited] = useState(false);
@@ -64,9 +66,12 @@ export default function TCardProducts({
 
     // колбеки кнопки
     const deleteProductHandler = (indexToRemove: number) => {
-        const productsValueUpdated = [...productsValue]
-        productsValueUpdated.splice(indexToRemove, 1)
-        setProductsValue(productsValueUpdated)
+        //  проверка можно удалить или он уже задействован в расчетах
+        if (isPossibleToDelete(indexToRemove)) {
+            const productsValueUpdated = [...productsValue]
+            productsValueUpdated.splice(indexToRemove, 1)
+            setProductsValue(productsValueUpdated)
+        }
     };
 
     const changeProductHandler = (indexToChange: number, title: string, sync: string, uom: UOMItem | null) => {

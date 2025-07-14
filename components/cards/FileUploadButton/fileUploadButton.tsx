@@ -1,8 +1,11 @@
 // Файл загрузка
 import React, { useState, } from "react";
 import styles from './fileUploadButton.module.scss';
-import { generateUniqueId,calculateMaxIdc,validateFileContent } from "@/lib/utils"
-import { TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem } from "@/types/types"; // Импортируем нужные типы
+import { generateUniqueId, calculateMaxIdc, validateFileContent } from "@/lib/utils"
+import {
+  TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem, ProductContent, TProductContent,
+  ProductItem, TCardProductItem
+} from "@/types/types"; // Импортируем нужные типы
 
 import { useTranslation } from 'react-i18next';
 
@@ -17,7 +20,7 @@ const FileUploadButton = ({
   uoms,
   actions,
 }: FileUploadButtonProps) => {
- 
+
   const { t, i18n } = useTranslation();
 
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания drag&drop
@@ -40,9 +43,9 @@ const FileUploadButton = ({
     if (file && file.type === 'application/json') {
       readFile(file);
     } else {
-      alert( t('fileUpload.alert')
-      // 'Пожалуйста, загрузите файл в формате JSON'
-    );
+      alert(t('fileUpload.alert')
+        // 'Пожалуйста, загрузите файл в формате JSON'
+      );
     }
   };
 
@@ -59,7 +62,7 @@ const FileUploadButton = ({
     fileInput.click();
   };
 
- 
+
   ///////////////////////
   // Функция для проверки содержимого файла на наличие отсутствующих или некорректных полей
 
@@ -67,51 +70,64 @@ const FileUploadButton = ({
     const tempId = generateUniqueId();
     const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
     const tCard: TCardItem = {
-      id: -tempId,      
+      id: -tempId,
       date: currentDate,
       idc: 0,
-      tCardProducts: content.tCardProducts.map((product) => ({
-        ...product,
-        uom: {
-          id: uoms.find(uom => uom.code === product.uom.code)?.id ?? -1,
-          code: product.uom.code,
-          title: product.uom.title,
-        }
-      })),
-      tCardWastes: content.tCardWastes ? content.tCardWastes.map((waste) => ({
-        ...waste,
-        uom: {
-          id: uoms.find(uom => uom.code === waste.uom.code)?.id ?? -1,
-          code: waste.uom.code,
-          title: waste.uom.title,
-        }
-      })) : [],
-      tCardOperations: content.tCardOperations.map((operation, index) => {
+      // Заполняем products
+      products: content.products.map((product: ProductContent) => {
+        const uom = uoms.find(uom => uom.code === product.uom.code);
+        return ({
+          idc: product.idc,
+          title: product.title,
+          uom: (uom) ? uom : undefined,
+          sync: product.sync,
+        } as ProductItem)
+      }),
+      tCardProducts: content.tCardProducts ? content.tCardProducts.map((tProduct: TProductContent) => {
+        const product = content.products.find(product => product.idc === tProduct.productIdc);
+        return {
+          code: tProduct.code,
+          qtu: tProduct.qtu,
+          product: product
+        } as TCardProductItem
+      }) : [],
+      tCardWastes: content.tCardWastes ? content.tCardWastes.map(
+        (waste: TProductContent) => {
+          const product = content.products.find(product => product.idc === waste.productIdc);
+          return {
+            code: waste.code,
+            qtu: waste.qtu,
+            product: product
+          } as TCardProductItem
+        }) : [],
+
+      tCardOperations: content.tCardOperations ? content.tCardOperations.map((operation, index) => {
         let action = actions.find(act => act.code === operation.action.code);
         action = (action) ? action : { id: NaN, code: "", title: "", interruptible: false }
         return {
           ...operation,
           order: index + 1,
           action: action,
-          status:StatusEnum.draft,
-          out: operation.out.map((outItem) => ({
-            ...outItem,
-            uom: {
-              id: uoms.find(uom => uom.code === outItem.uom.code)?.id ?? -1,
-              code: outItem.uom.code,
-              title: outItem.uom.title,
-            }
-          })),
-          inn: operation.inn.map((innItem) => ({
-            ...innItem,
-            uom: {
-              id: uoms.find(uom => uom.code === innItem.uom.code)?.id ?? -1,
-              code: innItem.uom.code,
-              title: innItem.uom.title,
-            }
-          }))
+          status: StatusEnum.draft,
+
+          out: operation.out.map((outItem) => {
+            const product = content.products.find(product => product.idc === outItem.productIdc);
+            return {
+              code: outItem.code,
+              qtu: outItem.qtu,
+              product: product
+            } as TCardProductItem
+          }),
+          inn: operation.inn.map((innItem) => {
+            const product = content.products.find(product => product.idc === innItem.productIdc);
+            return {
+              code: innItem.code,
+              qtu: innItem.qtu,
+              product: product
+            } as TCardProductItem
+          }),
         };
-      }),
+      }) : [],
       tCardStages: content.tCardStages.map((stage) => ({
         idc: Number(stage.idc),
         code: stage.code
@@ -155,7 +171,7 @@ const FileUploadButton = ({
       } catch (err) {
         // alert('Невозможно прочитать или распарсить файл.');
         alert(t('fileUpload.alert3'));
-        
+
       }
     };
     reader.readAsText(file);
@@ -169,6 +185,6 @@ const FileUploadButton = ({
     onDrop={handleDropFile}
     onClick={handleFileClick}
   > {t('fileUpload.json')} </div>)
-  
+
 }
 export default FileUploadButton;

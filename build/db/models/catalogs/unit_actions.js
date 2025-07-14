@@ -43,10 +43,8 @@ __decorate([
     __metadata("design:type", String)
 ], UnitActionTable.prototype, "coment", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => actions_1.ActionTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'action_id' }) // Указываем колонку, которая является внешним ключом
-    ,
+    (0, typeorm_1.ManyToOne)(() => actions_1.ActionTable),
+    (0, typeorm_1.JoinColumn)({ name: 'action_id' }),
     __metadata("design:type", actions_1.ActionTable)
 ], UnitActionTable.prototype, "action", void 0);
 __decorate([
@@ -54,10 +52,8 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitActionTable.prototype, "action_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'unit_id' }) // Указываем колонку, которая является внешним ключом
-    ,
+    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable),
+    (0, typeorm_1.JoinColumn)({ name: 'unit_id' }),
     __metadata("design:type", units_1.UnitTable)
 ], UnitActionTable.prototype, "unit", void 0);
 __decorate([
@@ -69,10 +65,8 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitActionTable.prototype, "unit_idc", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
+    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable),
+    (0, typeorm_1.JoinColumn)({ name: 'team_id' }),
     __metadata("design:type", teams_1.TeamTable)
 ], UnitActionTable.prototype, "team", void 0);
 __decorate([

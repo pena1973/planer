@@ -40,7 +40,8 @@ import {
   TCardStageItem,
   StatusEnum,
   TProductContent,
-  ProductItem
+  ProductItem,
+  
 
 } from "@/types/types";
 import { checkReconcilation } from "@/lib/cardsHandlers";
@@ -136,7 +137,7 @@ export default function Cards() {
     return state.dataSlice.tCardIndex;
   })
 
-  const readonlyCardStatuses = [StatusEnum.closed, StatusEnum.cancelled, StatusEnum.performed, StatusEnum.ready,StatusEnum.planed]
+  const readonlyCardStatuses = [StatusEnum.closed, StatusEnum.cancelled, StatusEnum.performed, StatusEnum.ready, StatusEnum.planed]
 
   const updateIdc = (currentId: number) => {
     // setTCardCurrentValue({ ...tCardCurrentValue, maxIdc: currentId }); // обновляем состояние карты
@@ -926,33 +927,27 @@ export default function Cards() {
     const exportData = {
       date: tCard.date,
       idc: tCard.idc,
+      products: tCard.products?.map(product => {
+        return {
+          idc: product.idc,
+          sync: product.sync,
+          title: product.title,
+          uom: {
+            title: product.uom.title,
+            code: product.uom.code
+          }
+        } as ProductItem
+      }) || [],
+
       tCardProducts: tCard.tCardProducts?.map(tProduct => ({
         code: tProduct.code,
-        product: {
-          idc: tProduct.product.idc,
-          sync: tProduct.product.sync,
-          title: tProduct.product.title,
-          uom: {
-            title: tProduct.product.uom.title,
-            code: tProduct.product.uom.code
-          }
-        },
+        productIdc: tProduct.product.idc,
         qtu: tProduct.qtu,
-
       })) || [],
       tCardWastes: tCard.tCardWastes?.map(waste => ({
         code: waste.code,
-        product: {
-          idc: waste.product.idc,
-          sync: waste.product.sync,
-          title: waste.product.title,
-          uom: {
-            title: waste.product.uom.title,
-            code: waste.product.uom.code
-          }
-        },
+        productIdc: waste.product.idc,
         qtu: waste.qtu,
-
       })) || [],
       tCardOperations: tCard.tCardOperations?.map(operation => ({
         idc: operation.idc,
@@ -962,31 +957,13 @@ export default function Cards() {
         } : undefined,
         out: operation.out?.map(outItem => ({
           code: outItem.code,
-          product: {
-            idc: outItem.product.idc,
-            sync: outItem.product.sync,
-            title: outItem.product.title,
-            uom: {
-              title: outItem.product.uom.title,
-              code: outItem.product.uom.code
-            }
-          },
+          productIdc: outItem.product.idc,
           qtu: outItem.qtu,
-
         })) || [],
         inn: operation.inn?.map(innItem => ({
           code: innItem.code,
-          product: {
-            idc: innItem.product.idc,
-            sync: innItem.product.sync,
-            title: innItem.product.title,
-            uom: {
-              title: innItem.product.uom.title,
-              code: innItem.product.uom.code
-            }
-          },
+          productIdc: innItem.product.idc,
           qtu: innItem.qtu,
-
         })) || [],
         action: operation.action ? {
           code: operation.action.code,
@@ -1057,9 +1034,9 @@ export default function Cards() {
       // Заполнение полей newTCard из template
       newTCard.coment = template.coment;
 
-      // Заполняем tCardProducts
-      if (template.tCardProducts) {
-        newTCard.tCardProducts = template.tCardProducts.map((product: ProductContent) => {
+      // Заполняем products
+      if (template.products) {
+        newTCard.products = template.products.map((product: ProductContent) => {
           const uom = uoms.find(uom => uom.code === product.uom.code);
           return ({
             ...product,
@@ -1068,15 +1045,17 @@ export default function Cards() {
         });
       }
 
-      // //  временный интерфейс
-      // interface OperationIOItem {
-      //   id?: number,  // id BD
-      //   idc: number, //  id на клиенте
-      //   code: string, //  код источника    
-      //   title: string,
-      //   qtu: number,
-      //   uom: { code: string; title: string }; // ⚠️ упрощённый тип
-      // }
+      // const tProducts = (newTCard.tCardProducts) ? newTCard.tCardProducts : [] as TProductContent[];
+      if (template.tCardProducts) {
+        newTCard.tCardProducts = template.tCardProducts.map((tProduct: TProductContent) => {
+          const product = products.find(product => product.idc === tProduct.productIdc);
+          return ({
+            code: tProduct.code,
+            qtu: tProduct.qtu,
+            product: (product) ? product as ProductItem : undefined,
+          } as TCardProductItem)
+        });
+      }
 
       // Заполняем tCardOperations
       if (template.tCardOperations) {
@@ -1087,18 +1066,21 @@ export default function Cards() {
             status: StatusEnum.draft,
             action: action ? action : undefined,
             out: operation.out.map((outItem: TProductContent) => {
-              const uom = uoms.find(uom => uom.code === outItem.product.uom.code);
+              const product = products.find(product => product.idc === outItem.productIdc);
               return ({
-                ...outItem,
-                uom: (uom) ? uom : undefined,
-              })
+                code: outItem.code,
+                qtu: outItem.qtu,
+                product: (product) ? product as ProductItem : undefined,
+              } as TCardProductItem)
+
             }),
             inn: operation.inn.map((innItem: TProductContent) => {
-              const uom = uoms.find(uom => uom.code === innItem.product.uom.code);
+              const product = products.find(product => product.idc === innItem.productIdc);
               return ({
-                ...innItem,
-                uom: (uom) ? uom : undefined,
-              })
+                code: innItem.code,
+                qtu: innItem.qtu,
+                product: (product) ? product as ProductItem : undefined,
+              } as TCardProductItem)
             }),
             stage: operation.stage ? { idc: operation.stage.idc, code: operation.stage.code } : undefined,
           })
@@ -1124,8 +1106,8 @@ export default function Cards() {
       newTCard.tCardWastes = tCardWastesUpdated;
       newTCard.tCardMaterials = tCardMaterialsUpdated;
       newTCard.status = StatusEnum.draft;
-      newTCard.products = newTCard.products;
-      newTCard.maxIdc = calculateMaxIdc(newTCard as TCardContent); //  MaxIdc  после полного заполнения
+      // newTCard.products = newTCard.products;
+      newTCard.maxIdc = calculateMaxIdc(template as TCardContent); //  MaxIdc  после полного заполнения
 
       // Добавляем новую карту в состояние
       dispatch(setTCards([...tCards, newTCard]));
@@ -1169,6 +1151,31 @@ export default function Cards() {
 
   ////////////////// КАТАЛОГ продуктс
   // На клиенте (ДОПИСАТЬ ПРОВЕРКУ ПРИ УДАДЕНИИ ПРЕДМЕТА КАТАЛОГА ЧТОБЫ ОН НЕ БЫЛ ЗАДЕЙСТВОВАН В ОПЕР КАРТЫ)
+ 
+const isPossibleToDelete = (indexToRemove: number): boolean => {
+  const tCard = tCards[tCardIndex];
+  const productToRemove = tCard.products?.[indexToRemove];
+
+  if (!productToRemove) return true; // если продукта нет — можно "удалить"
+
+  const idcToRemove = productToRemove.idc;
+
+  // Проверка в products уровня карты
+  const usedInProducts = tCard.tCardProducts?.some(p => p.product.idc === idcToRemove);
+  const usedInWastes = tCard.tCardWastes?.some(p => p.product.idc === idcToRemove);
+  const usedInMaterials = tCard.tCardMaterials?.some(p => p.product.idc === idcToRemove);
+
+  const usedInOperations = tCard.tCardOperations?.some(op =>
+    op.inn.some(p => p.product.idc === idcToRemove) ||
+    op.out.some(p => p.product.idc === idcToRemove)
+  );
+
+  const isUsed = usedInProducts || usedInWastes || usedInMaterials || usedInOperations;
+
+  return !isUsed; // если не используется — можно удалить (true)
+};
+
+
   const saveProductsHandler = (productsValue: ProductItem[]) => {
     //  проверить чтобы не был удален предмет задействованный в операциях карты
 
@@ -1460,27 +1467,13 @@ export default function Cards() {
     const inn = oper.inn.map(prod => {
       const code = `M${prod.product.idc}`;
       return { ...prod, code: code } as TCardProductItem
-      // return {
-      //   // idc: prod.idc, //  id на клиенте
-      //   code: code,
-      //   product:prod.product,
-      //   // title: prod.title,
-      //   qtu: prod.qtu,
-      //   // uom: { ...prod.uom },
-      // } as TCardProductItem
+      
     }
     )
     // поменяем операцию в кодах и сформируем выход и выход;
     const out = oper.out.map(prod => {
       const code = `A${newid}O${prod.product.idc}`;
       return { ...prod, code: code } as TCardProductItem
-      // return {
-      //   idc: prod.idc, //  id на клиенте
-      //   code: code,
-      //   title: prod.title,
-      //   qtu: prod.qtu,
-      //   uom: { ...prod.uom },
-      // } as TCardProductItem
     }
     )
     const newOper = {
@@ -1811,6 +1804,7 @@ export default function Cards() {
                 lightProduct={lightProduct}
                 maxIdc={tCards[tCardIndex].maxIdc}
                 setMaxIdc={setMaxIdc}
+                isPossibleToDelete={isPossibleToDelete}
               />
             </div>
             {/* Обработка */}

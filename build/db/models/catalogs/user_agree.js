@@ -33,10 +33,8 @@ __decorate([
     __metadata("design:type", Object)
 ], UserAgreeTable.prototype, "date", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => users_1.UserTable, { eager: true }) // ссылка на пользователя
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
-    ,
+    (0, typeorm_1.ManyToOne)(() => users_1.UserTable),
+    (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
     __metadata("design:type", users_1.UserTable)
 ], UserAgreeTable.prototype, "user", void 0);
 __decorate([
@@ -44,10 +42,8 @@ __decorate([
     __metadata("design:type", Number)
 ], UserAgreeTable.prototype, "user_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => agreements_1.AgreementTable, { eager: true }) // ссылка на соглашение
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'agreement_id' }) // Указываем колонку, которая является внешним ключом
-    ,
+    (0, typeorm_1.ManyToOne)(() => agreements_1.AgreementTable),
+    (0, typeorm_1.JoinColumn)({ name: 'agreement_id' }),
     __metadata("design:type", agreements_1.AgreementTable)
 ], UserAgreeTable.prototype, "agreement", void 0);
 __decorate([

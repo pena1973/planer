@@ -47,10 +47,8 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "timeFinish", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
+    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable),
+    (0, typeorm_1.JoinColumn)({ name: 'team_id' }),
     __metadata("design:type", teams_1.TeamTable)
 ], UnitExceptionTable.prototype, "team", void 0);
 __decorate([
@@ -58,7 +56,7 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable),
     (0, typeorm_1.JoinColumn)({ name: 'unit_id' }),
     __metadata("design:type", units_1.UnitTable)
 ], UnitExceptionTable.prototype, "unit", void 0);
