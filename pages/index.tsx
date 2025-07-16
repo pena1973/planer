@@ -273,8 +273,7 @@ export default function Index() {
           await downloadUnutsExceptions(user.id, team.id, token, t, setMessage, dispatch);
           await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
           await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
-          // await downloadProducts(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);          
           await downloadLoads(user.id, team.id, token, t, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           setStep(5);
@@ -285,12 +284,12 @@ export default function Index() {
           // Только для одного юнита 
           await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
           await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnutActions(unit.id, user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnutExceptions(unit.id, user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnutActions(unit?.id, user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnutExceptions(unit?.id, user.id, team.id, token, t, setMessage, dispatch);
           await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
           await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
           await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnitLoads(unit.id, user.id, team.id, token, t, setMessage, dispatch);
+          await downloadUnitLoads(unit?.id, user.id, team.id, token, t, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           setStep(5);
           // Переходим на страницу "cards"

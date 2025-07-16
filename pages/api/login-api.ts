@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
   const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
 
-  // console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
+  console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
 
   try {
 
@@ -90,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
         const resUserUnits_ = await getUsersUnits(
           team.id,
+          false,
           usersRepository,
           usersUnitsRepository,
           user.id)
@@ -104,7 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const userunit = resUserUnits_.userUnits.find((uu) => { return uu.userId === user.id; })
 
-        const unit = (userunit) ? userunit.unit : undefined;
+        const unit = (userunit && userunit.active) ? userunit.unit : undefined;
 
         // const unit = (resUserUnits_.userUnits.length > 0) ? resUserUnits_.userUnits[0].unit : undefined
 

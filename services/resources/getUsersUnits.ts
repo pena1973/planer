@@ -13,7 +13,7 @@ export const getUsersUnits = async (
 ) => {
 
     try {
-        const res = await fetch(`api/users-units-api?userId=${user.id}&teamId=${team.id}`,
+        const res = await fetch(`api/users-units-api?userId=${user.id}&teamId=${team.id}&withoutAdmin=${true}`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -28,7 +28,7 @@ export const getUsersUnits = async (
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
-                const users_units_ = receivedData.users_units as UserUnitItem[];
+                const users_units_ = receivedData.users_units as UserUnitItem[];                
                 setUsersUnits(users_units_);
                 users_units_old_ref.current = users_units_;
             }

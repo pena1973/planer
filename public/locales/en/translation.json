@@ -237,10 +237,9 @@
     "outerActions1": "Actions assigned to external performers",
     "readiness": "Card readiness",
     "kpi": "Units KPIs",
-    "kpi1": "KPIs of working units",
-    "syncCodes": "Sync codes",
-    "syncCodes1": "Product sync codes from cards",
-    "notes": "Notes"
+    "kpi1": "KPIs of working units",    
+    "notes": "Notes",
+    "notes1": "Position not assigned, please contact your supervisor"
   },
   "unitTaskStackProcess": {
     "loading": "Loading",

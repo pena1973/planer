@@ -20,7 +20,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
   const teamRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-  const unitRepository = getTypedRepository(db, 'UOMsTable', UnitTable);
+  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
 

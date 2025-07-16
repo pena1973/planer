@@ -653,7 +653,10 @@ export async function updateUsersUnits(
   teamId: number
 ) {
   // Получаем все существующие назначения юнитов в базе
-  const existingUsersUnits = await usersUnitsRepository.find({ where: { team_id: teamId } });
+  const existingUsersUnits = await usersUnitsRepository.find({
+    where: { team_id: teamId },
+    relations: ['user', 'unit']
+  });
 
   // 1. Найдём назначения юнитов, которые нужно удалить
   const usersUnitsToDelete = existingUsersUnits.filter(existingUserUnit =>

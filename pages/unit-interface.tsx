@@ -45,7 +45,6 @@ export default function Monitor() {
   const unit = useSelector((state: RootState) => {
     return state.authSlice.unit;
   })
-
   const unitLoads = useSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
@@ -62,7 +61,7 @@ export default function Monitor() {
     return state.dataSlice.tCards;
   })
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,
     // продолжаем увеличивать дату.
@@ -156,22 +155,23 @@ export default function Monitor() {
   }
 
   const unitReactNode = () => {
+    if (!unit?.id)  return  <div className="unit_interfase_not_assigned_title" >{t('monitor.notes1')}</div>
     // фильтрую по юниту 
     const unitLoads_ = unitLoads.filter((load) => {
       return (
-        load.unit.id === unit.id
+        load.unit.id === unit?.id
         && load.date === day.toLocaleDateString("en-CA")
         && load.status !== StatusEnum.prepared)
     });
 
     const unitExceptions_ = unitExceptions.filter((ex) => {
-      return (ex.unitId === unit.id && ex.date === day.toLocaleDateString("en-CA"))
+      return (ex.unitId === unit?.id && ex.date === day.toLocaleDateString("en-CA"))
     });
 
     // юниты работники
-    if (unit.type === UnitTypeEnum.process) {
+    if (unit?.type === UnitTypeEnum.process) {
       return <UnitTaskStackProcess
-        key={unit.id}
+        key={unit?.id}
         unit={unit}
         tCards={tCards}
         day={day.toLocaleDateString("en-CA")}
@@ -191,10 +191,10 @@ export default function Monitor() {
     }
 
     // юниты контролеры используется только если включен контроль качества в настройках
-    if (settings.isQualControl && unit.type === UnitTypeEnum.control) {
+    if (settings.isQualControl && unit?.type === UnitTypeEnum.control) {
       const performedLoads = unitLoads.filter((lo) => lo.status === StatusEnum.performed);
       return <UnitTaskStackControl
-        key={unit.id}
+        key={unit?.id}
         unit={unit}
         tCards={tCards}
         day={day.toLocaleDateString("en-CA")}

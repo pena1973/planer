@@ -52,6 +52,9 @@ export default function Planing() {
   const units = useSelector((state: RootState) => {
     return state.catalogSlice.units;
   })
+  const unitActions = useSelector((state: RootState) => {
+    return state.planSlice.unitActions;
+  })
   const tCardPrepared = useSelector((state: RootState) => {
     return state.planSlice.tCardPrepared;
   })
@@ -685,7 +688,7 @@ export default function Planing() {
             moveLoadHandler={moveLoadHandler}
             pinLoadHandler={pinLoadHandler}
             unPinLoadHandler={unPinLoadHandler}
-
+            unitActions={unitActions}
           />
         </div>
 

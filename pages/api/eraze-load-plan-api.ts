@@ -17,7 +17,7 @@ import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 
 import { UnitLoadItem, StatusEnum, } from "./../../types/types";
 
-import { Repository } from 'typeorm';
+import { In, Raw, Repository } from 'typeorm';
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
@@ -32,7 +32,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
   const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-  const unitLoadRepository = getTypedRepository(db, 'UOMsTable', UnitLoadTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
 
   const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
   try {
@@ -188,43 +188,91 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 }
 
+// const cancelLoads = async (
+//   cancellLoads: UnitLoadItem[],
+//   today: string, // формат "YYYY-MM-DD"
+//   unitLoadRepository: Repository<UnitLoadTable>
+// ): Promise<{ success: boolean, message: string }> => {
+//   // Извлекаем id загрузок, которые переданы в массиве
+//   const loadIds = cancellLoads
+//     .map(load => load.id)
+//     .filter((id): id is number => id !== undefined);
+
+//   if (loadIds.length === 0) {
+//     return { success: true, message: "Нет загрузок для отмены." };
+//   }
+
+//   try {
+//     const result = await unitLoadRepository
+//       .createQueryBuilder()
+//       .update(UnitLoadTable)
+//       .set({ status: StatusEnum.cancelled })
+//       .where("id IN (:...loadIds)", { loadIds })
+//       .andWhere("status = :planed", { planed: StatusEnum.planed })
+//       .andWhere("date < :today", { today })
+//       .execute();
+
+//     if (result.affected && result.affected > 0) {
+//       return { success: true, message: `Обновлено ${result.affected} загрузок.` };
+//     } else {
+//       return { success: false, message: "Нет загрузок для отмены." };
+//     }
+
+//   } catch (error: unknown) {
+//     let message = "Ошибка при отмене загрузок.";
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error("Ошибка при отмене загрузок:", error);
+//     } else {
+//       console.error("Неизвестная ошибка при отмене загрузок:", error);
+//     }
+//     return { success: false, message };
+//   }
+// };
+// 
 const cancelLoads = async (
   cancellLoads: UnitLoadItem[],
   today: string, // формат "YYYY-MM-DD"
   unitLoadRepository: Repository<UnitLoadTable>
-): Promise<{ success: boolean, message: string }> => {
-  // Извлекаем id загрузок, которые переданы в массиве
+): Promise<{ success: boolean; message: string }> => {
+
   const loadIds = cancellLoads
     .map(load => load.id)
     .filter((id): id is number => id !== undefined);
 
   if (loadIds.length === 0) {
-    return { success: true, message: "Нет загрузок для отмены." };
+    return { success: true, message: 'Нет загрузок для отмены.' };
   }
 
   try {
-    const result = await unitLoadRepository
-      .createQueryBuilder()
-      .update(UnitLoadTable)
-      .set({ status: StatusEnum.cancelled })
-      .where("id IN (:...loadIds)", { loadIds })
-      .andWhere("status = :planed", { planed: StatusEnum.planed })
-      .andWhere("date < :today", { today })
-      .execute();
+    const result = await unitLoadRepository.update(
+      {
+        id: In(loadIds),
+        status: StatusEnum.planed,
+        date: Raw(dateField => `${dateField} < :today`, { today })
+      },
+      { status: StatusEnum.cancelled }
+    );
 
     if (result.affected && result.affected > 0) {
-      return { success: true, message: `Обновлено ${result.affected} загрузок.` };
+      return {
+        success: true,
+        message: `Обновлено ${result.affected} загрузок.`,
+      };
     } else {
-      return { success: false, message: "Нет загрузок для отмены." };
+      return {
+        success: false,
+        message: 'Нет загрузок для отмены.',
+      };
     }
 
   } catch (error: unknown) {
-    let message = "Ошибка при отмене загрузок.";
+    let message = 'Ошибка при отмене загрузок.';
     if (error instanceof Error) {
       message = error.message;
-      console.error("Ошибка при отмене загрузок:", error);
+      console.error('Ошибка при отмене загрузок:', error);
     } else {
-      console.error("Неизвестная ошибка при отмене загрузок:", error);
+      console.error('Неизвестная ошибка при отмене загрузок:', error);
     }
     return { success: false, message };
   }
@@ -232,103 +280,213 @@ const cancelLoads = async (
 
 const deleteLoads = async (
   delLoads: UnitLoadItem[],
-  today: string, // "YYYY-MM-DD"
+  today: string, // формат "YYYY-MM-DD"
   unitLoadRepository: Repository<UnitLoadTable>
-): Promise<{ success: boolean, message: string }> => {
-  // Извлекаем id загрузок, фильтруя возможные undefined
+): Promise<{ success: boolean; message: string }> => {
+
   const loadIds = delLoads.map(load => load.id).filter((id): id is number => id !== undefined);
+
   if (loadIds.length === 0) {
-    return { success: true, message: "Нет загрузок для удаления." };
+    return { success: true, message: 'Нет загрузок для удаления.' };
   }
 
   try {
-    const result = await unitLoadRepository
-      .createQueryBuilder()
-      .delete()
-      .from(UnitLoadTable)
-      .where("id IN (:...loadIds)", { loadIds })
-      .andWhere("status = :status", { status: StatusEnum.planed })
-      .andWhere("date >= :today", { today })
-      .execute();
+    const result = await unitLoadRepository.delete({
+      id: In(loadIds),
+      status: StatusEnum.planed,
+      date: Raw(dateField => `${dateField} >= :today`, { today })
+    });
 
     if (result.affected && result.affected > 0) {
       return { success: true, message: `Удалено ${result.affected} загрузок.` };
     } else {
-      return { success: false, message: "Нет загрузок для удаления." };
+      return { success: false, message: 'Нет загрузок для удаления.' };
     }
 
   } catch (error: unknown) {
-    let message = "Ошибка при удалении загрузок.";
+    let message = 'Ошибка при удалении загрузок.';
     if (error instanceof Error) {
       message = error.message;
-      console.error("Ошибка при удалении загрузок:", error);
+      console.error('Ошибка при удалении загрузок:', error);
     } else {
-      console.error("Неизвестная ошибка при удалении загрузок:", error);
+      console.error('Неизвестная ошибка при удалении загрузок:', error);
     }
     return { success: false, message };
   }
 };
+
+// const deleteLoads = async (
+//   delLoads: UnitLoadItem[],
+//   today: string, // "YYYY-MM-DD"
+//   unitLoadRepository: Repository<UnitLoadTable>
+// ): Promise<{ success: boolean, message: string }> => {
+//   // Извлекаем id загрузок, фильтруя возможные undefined
+//   const loadIds = delLoads.map(load => load.id).filter((id): id is number => id !== undefined);
+//   if (loadIds.length === 0) {
+//     return { success: true, message: "Нет загрузок для удаления." };
+//   }
+
+//   try {
+//     const result = await unitLoadRepository
+//       .createQueryBuilder()
+//       .delete()
+//       .from(UnitLoadTable)
+//       .where("id IN (:...loadIds)", { loadIds })
+//       .andWhere("status = :status", { status: StatusEnum.planed })
+//       .andWhere("date >= :today", { today })
+//       .execute();
+
+//     if (result.affected && result.affected > 0) {
+//       return { success: true, message: `Удалено ${result.affected} загрузок.` };
+//     } else {
+//       return { success: false, message: "Нет загрузок для удаления." };
+//     }
+
+//   } catch (error: unknown) {
+//     let message = "Ошибка при удалении загрузок.";
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error("Ошибка при удалении загрузок:", error);
+//     } else {
+//       console.error("Неизвестная ошибка при удалении загрузок:", error);
+//     }
+//     return { success: false, message };
+//   }
+// };
+
+// const setOperStatus = async (
+//   operationIds: number[],
+//   newStatus: StatusEnum,
+//   tCardOperationsRepository: Repository<TCardOperationTable>
+// ): Promise<{ success: boolean, message: string }> => {
+//   try {
+//     const result = await tCardOperationsRepository
+//       .createQueryBuilder()
+//       .update(TCardOperationTable)
+//       .set({ status: newStatus })
+//       .where("id IN (:...operationIds)", { operationIds })
+//       .execute();
+
+//     if (result.affected && result.affected > 0) {
+//       return { success: true, message: `Обновлено ${result.affected} операций.` };
+//     } else {
+//       return { success: false, message: "Ни одна операция не обновлена." };
+//     }
+
+//   } catch (error: unknown) {
+//     let message = "Ошибка обновления статуса операций.";
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error("Ошибка обновления операций:", error);
+//     } else {
+//       console.error("Неизвестная ошибка обновления операций:", error);
+//     }
+//     return { success: false, message };
+//   }
+// };
 
 const setOperStatus = async (
   operationIds: number[],
   newStatus: StatusEnum,
   tCardOperationsRepository: Repository<TCardOperationTable>
-): Promise<{ success: boolean, message: string }> => {
+): Promise<{ success: boolean; message: string }> => {
   try {
-    const result = await tCardOperationsRepository
-      .createQueryBuilder()
-      .update(TCardOperationTable)
-      .set({ status: newStatus })
-      .where("id IN (:...operationIds)", { operationIds })
-      .execute();
+    const result = await tCardOperationsRepository.update(
+      { id: In(operationIds) },
+      { status: newStatus }
+    );
 
     if (result.affected && result.affected > 0) {
-      return { success: true, message: `Обновлено ${result.affected} операций.` };
+      return {
+        success: true,
+        message: `Обновлено ${result.affected} операций.`,
+      };
     } else {
-      return { success: false, message: "Ни одна операция не обновлена." };
+      return {
+        success: false,
+        message: 'Ни одна операция не обновлена.',
+      };
     }
 
   } catch (error: unknown) {
-    let message = "Ошибка обновления статуса операций.";
+    let message = 'Ошибка обновления статуса операций.';
     if (error instanceof Error) {
       message = error.message;
-      console.error("Ошибка обновления операций:", error);
+      console.error('Ошибка обновления операций:', error);
     } else {
-      console.error("Неизвестная ошибка обновления операций:", error);
+      console.error('Неизвестная ошибка обновления операций:', error);
     }
     return { success: false, message };
   }
 };
+
+// const setTCardStatus = async (
+//   tCardId: number,
+//   newStatus: StatusEnum,
+//   tCardRepository: Repository<TCardTable>
+// ): Promise<{ success: boolean, message: string }> => {
+//   try {
+//     const result = await tCardRepository
+//       .createQueryBuilder()
+//       .update(TCardTable)
+//       .set({ status: newStatus })
+//       .where("id = :tCardId", { tCardId })
+//       .execute();
+
+//     if (result.affected && result.affected > 0) {
+//       return { success: true, message: `Обновлена карта с id: ${tCardId}` };
+//     } else {
+//       return { success: false, message: "Карта не обновлена." };
+//     }
+
+//   } catch (error: unknown) {
+//     let message = "Ошибка обновления статуса карты.";
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error("Ошибка обновления карты:", error);
+//     } else {
+//       console.error("Неизвестная ошибка обновления карты:", error);
+//     }
+//     return { success: false, message };
+//   }
+
+// };
+
 
 const setTCardStatus = async (
   tCardId: number,
   newStatus: StatusEnum,
   tCardRepository: Repository<TCardTable>
-): Promise<{ success: boolean, message: string }> => {
+): Promise<{ success: boolean; message: string }> => {
   try {
-    const result = await tCardRepository
-      .createQueryBuilder()
-      .update(TCardTable)
-      .set({ status: newStatus })
-      .where("id = :tCardId", { tCardId })
-      .execute();
+    const result = await tCardRepository.update(
+      { id: tCardId },
+      { status: newStatus }
+    );
 
     if (result.affected && result.affected > 0) {
-      return { success: true, message: `Обновлена карта с id: ${tCardId}` };
+      return {
+        success: true,
+        message: `Обновлена карта с id: ${tCardId}`,
+      };
     } else {
-      return { success: false, message: "Карта не обновлена." };
+      return {
+        success: false,
+        message: 'Карта не обновлена.',
+      };
     }
 
   } catch (error: unknown) {
-    let message = "Ошибка обновления статуса карты.";
+    let message = 'Ошибка обновления статуса карты.';
     if (error instanceof Error) {
       message = error.message;
-      console.error("Ошибка обновления карты:", error);
+      console.error('Ошибка обновления карты:', error);
     } else {
-      console.error("Неизвестная ошибка обновления карты:", error);
+      console.error('Неизвестная ошибка обновления карты:', error);
     }
     return { success: false, message };
   }
-
 };
+
+
 export default withAuth(handler)

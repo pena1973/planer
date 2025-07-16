@@ -1265,19 +1265,12 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
     const oldOUT = oldOper.out;
     const oldINN = oldOper.inn;
 
-    // для генерации нового idc
-    let newIdc = card.maxIdc;
-
     // Обрабатываем выходные продукты из редактируемой операции
     editedOperation.out.forEach(outProduct => {
       let oldProduct = oldOUT.find(p => p.code === outProduct.code);
       oldProduct = (oldProduct) ? oldProduct : outProduct;
       // Проверяем, изменился ли какой-либо атрибут, кроме количества
-      if (outProduct.product.idc !== oldProduct.product.idc) {
-        // newIdc = newIdc + 1;
-        // Присваиваем новый idc и обновляем code
-        // outProduct.product.idc = newIdc;
-        // outProduct.code = outProduct.code.replace(/O(\d+)/, `O${newIdc}`);        
+      if (outProduct.product.idc !== oldProduct.product.idc) {       
         outProduct.code = outProduct.code.replace(/O(\d+)/, `O${outProduct.product.idc}`);
       }
     });
@@ -1286,17 +1279,10 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       let oldProduct = oldINN.find(p => p.code === innProduct.code);
       oldProduct = (oldProduct) ? oldProduct : innProduct;
       // Проверяем, изменился ли какой-либо атрибут, кроме количества
-      if (innProduct.product.idc !== oldProduct.product.idc) {
-        // newIdc = newIdc + 1;
-        // Присваиваем новый idc и обновляем code
-        // innProduct.idc = newIdc;
+      if (innProduct.product.idc !== oldProduct.product.idc) {       
         innProduct.code = innProduct.code.replace(/O(\d+)/, `O${innProduct.product.idc}`);
       }
     });
-
-    // Обновляем maxIdc в карте
-    correctedCard.maxIdc = newIdc;
-
     // Возвращаем обновленную карту
     return correctedCard;
   };

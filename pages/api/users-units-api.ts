@@ -19,25 +19,26 @@ interface RequestBody {
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
-const db = await connectDb();
-  const usersRepository = getTypedRepository(db, 'UOMsTable', UserTable);
-  const teamsRepository = getTypedRepository(db, 'UOMsTable', TeamTable);
-  const usersUnitsRepository = getTypedRepository(db, 'UOMsTable', UserUnitTable);
+  const db = await connectDb();
+  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
 
   try {
- 
+
     switch (req.method) {
 
       case 'GET':
 
         // userId, teamId в любом случае
-        const { userId: getUserId, teamId: getTeamId } = req.query;
+        const { userId: getUserId, teamId: getTeamId, withoutAdmin } = req.query;
 
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
         const resUserUnits_ = await getUsersUnits(
           Number(getTeamId),
+          Boolean(withoutAdmin),
           usersRepository,
-          usersUnitsRepository,          
+          usersUnitsRepository,
         )
 
         if (!resUserUnits_.success) {
@@ -59,6 +60,7 @@ const db = await connectDb();
       case 'POST':
         const { users_units, userId, teamId } = req.body as RequestBody;
 
+        // const users_units_ = users_units.filter(u => (u.unit))
         // СПИСОК СООТВЕТСТВИЙ 
         const resUserUnits = await updateUsersUnits(
           usersUnitsRepository,
@@ -89,8 +91,8 @@ const db = await connectDb();
         );
 
         // Преобразуем пользователей в массив объектов с active = false
-        const usersToUnactive_ = usersToUnactive.map(user => {return{...user, active: false}});
-        
+        const usersToUnactive_ = usersToUnactive.map(user => { return { ...user, active: false } });
+
         // let message = '';
         // let remainingUsers: UserUnitTable[] = [];
 
@@ -108,14 +110,18 @@ const db = await connectDb();
         }
         // Преобразуем оставшихся пользователей в необходимый формат для ответа
         const remainingUsers_ = savedUsersUnits
-          .map(u => ({
-            id: u.id,
-            userId: u.user_id,
-            name: u.user?.name,
-            unit: u.unit,
-            active: u.active,
-            unitId: u.unit_id,
-          } as UserUnitItem));
+          .map(uu => {
+            const user = users.find(us => us.id === uu.user_id)
+            const unit = users_units.find(un => un.id === uu.unit_id)
+            return {
+              id: uu.id,
+              userId: uu.user_id,
+              name: user?.name,
+              unit: unit?unit:null,
+              active: uu.active,
+              unitId: uu.unit_id,
+            } as UserUnitItem
+          });
 
         // отправляем ответ
         res.status(200).json({

@@ -3,13 +3,14 @@ import React, { useEffect, useState, useRef } from 'react';
 
 import styles from "./planScaleContainer.module.scss";
 
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum } from "@/types/types";
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum, UnitActionItem } from "@/types/types";
 
 import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/utils";
 
 import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
 import DottedLine from "./DottedLine/dottedLine";
+import UnitMenu from "./UnitMenu/unitMenu";
 
 import { useTranslation } from 'react-i18next';
 
@@ -76,6 +77,7 @@ export interface PlanScaleContainerProps {
   moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => Promise<void>,
   pinLoadHandler: (oper_id: number, version: number) => void,
   unPinLoadHandler: (oper_id: number, tCardId: number, version: number) => void
+  unitActions:UnitActionItem[]
 }
 
 export default function PlanScaleContainer({
@@ -89,7 +91,8 @@ export default function PlanScaleContainer({
   erazLoadHandler,
   moveLoadHandler,
   pinLoadHandler,
-  unPinLoadHandler
+  unPinLoadHandler,
+  unitActions
 
 }: PlanScaleContainerProps) {
 
@@ -121,6 +124,7 @@ export default function PlanScaleContainer({
   const scaleRestart = useRef(false as boolean); // запускает useEffect прорисовки
 
   const [contectMenuShow, setContectMenuShow] = useState(0); // содержит operation.id и показывает контекстное меню 
+  const [unitMenuShow, setUnitMenuShow] = useState(0); // содержит operation.id и показывает контекстное меню 
 
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
@@ -208,7 +212,8 @@ export default function PlanScaleContainer({
     updateSize();
   }, 200); // дебаунс 300мс
 
-  let stopCloseMenu = 0;
+  let stopCloseMenuload = 0;
+  let stopCloseMenuUnit = 0;
 
   // изменение при смене массива загрузки, может прорисоватся и при сохранении и при накидывании драфта
   useEffect(() => {
@@ -464,7 +469,7 @@ export default function PlanScaleContainer({
     const dayIndex = Math.floor(relativeX / fullDayWidth);
     const calendarItem = calendarViewPlus[dayIndex];
     if (!calendarItem) {
-      setIsLoadingDrop(NaN); 
+      setIsLoadingDrop(NaN);
       return
     };
 
@@ -674,7 +679,7 @@ export default function PlanScaleContainer({
               // moveLoadHandler={moveLoadHandler}
               pinLoadHandler={pinLoadHandler}
               unPinLoadHandler={unPinLoadHandler}
-              isLoadingDrop={isLoadingDrop===load.version && !load.isRetool}
+              isLoadingDrop={isLoadingDrop === load.version && !load.isRetool}
             />
           })
 
@@ -727,7 +732,7 @@ export default function PlanScaleContainer({
               handleMouseDownOper={handleMouseDownOper}
               handleMouseUpOper={handleMouseUpOper}
               handleRightClickMenu={handleRightClickMenu}
-              stopCloseMenu={(idc) => { stopCloseMenu = idc }}
+              stopCloseMenu={(idc) => { stopCloseMenuload = idc }}
               moveLoadHandler={moveLoadHandler}
             />
 
@@ -769,14 +774,20 @@ export default function PlanScaleContainer({
     return dayScale;
   };
 
-  // контекстное меню
+  // контекстное меню закрытие
   const handleRightClick = (event: React.MouseEvent) => {
     event.preventDefault(); // Отключаем стандартное контекстное меню
-    if (contectMenuShow !== stopCloseMenu) {
+    if (contectMenuShow !== stopCloseMenuload) {
       setContectMenuShow(0);
-      stopCloseMenu = 0;
+      stopCloseMenuload = 0;      
     }
-    stopCloseMenu = 0;
+    stopCloseMenuload = 0;
+
+     if (unitMenuShow !== stopCloseMenuUnit) {
+      setUnitMenuShow(0);
+      stopCloseMenuUnit = 0;
+    }
+    stopCloseMenuUnit = 0;
   };
   // контекстное меню
   const handleRightClickMenu = (event: React.MouseEvent, idc: number | undefined) => {
@@ -785,6 +796,15 @@ export default function PlanScaleContainer({
     if (idc) setContectMenuShow(idc);
   };
 
+   // контекстное меню
+  const handletClickUnit = (event: React.MouseEvent, idc: number | undefined) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (idc) setUnitMenuShow(idc);
+  };
+
+
+   
 
   const timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
     // console.log("render день минус", elem.date);
@@ -838,7 +858,9 @@ export default function PlanScaleContainer({
 
   const unitsReactNodesInner = unitsViewInner.current.map(elem => {
     return (
-      <div key={elem.id} className={styles.unit_name}> {elem.title}</div>
+      <div key={elem.id} className={styles.unit_name} onClick={(event) => handletClickUnit(event, elem.idc)}> {elem.title}
+       {unitMenuShow === elem.idc && ( <UnitMenu unitActions={unitActions.filter(a=>a.unitId===elem.id)}/>)}
+      </div>
     )
   });
   const unitsReactNodesOuter = unitsViewOuter.current.map(elem => {

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';  
+import connectDb from './../../db/database';
 import { getTypedRepository } from './../../lib/db/utilites'
 
 import { extractIdFromTeamNumber } from './../../lib/utils';
@@ -13,11 +13,13 @@ import { SettingsTable } from './../../db/models/plan/settings'
 
 import { updateSettings } from './../../handlers/handlers-update';  // расчеты
 
-import { TeamItem, UserItem, SettingsItem} from './../../types/types';
+import { TeamItem, UserItem } from './../../types/types';
 
 import { sign } from 'jsonwebtoken';
-import { createNewTeam, createNewUser, getTeam, 
-  isUserExist, getLastAgreement } from './../../handlers/handlers-auth';  
+import {
+  createNewTeam, createNewUser, getTeam,
+  isUserExist, getLastAgreement
+} from './../../handlers/handlers-auth';
 
 
 interface RequestBody {
@@ -40,9 +42,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
   try {
-  
+
     switch (req.method) {
-           case 'POST':
+      case 'POST':
         // Извлекаем данные из тела запроса
         const { login, pass, teamNumber, createTeam, nickname } = req.body as RequestBody;
 
@@ -71,6 +73,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           team = resTeam.team
 
+          //  создаем настройки команды
+          const settings = {
+            timeStartWork: 540,
+            timeFinishWork: 1080,
+            showWeekend: false,
+            showHoliday: false,
+            isQualControl: true
+          }
+          const resSettings = await updateSettings(
+            settingsRepository,
+            settings,
+            team.id
+          )
+          if (!resSettings.success) {
+            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSettings.message });
+            return;
+          }
+
         } else {
           //  иначе ищем команду по номеру
           const teamId = extractIdFromTeamNumber(teamNumber);
@@ -84,27 +104,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           team = resTeam1.team;
         }
-
-
-        // Настройки команды
-        const settings = {
-          timeStartWork: 0,
-          timeFinishWork: 1440,
-          showWeekend: false,
-          showHoliday: false,
-          isQualControl: true
-        }
-        const resSettings = await updateSettings(
-          settingsRepository,
-          settings,
-          team.id
-        )
-        if (!resSettings.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSettings.message });
-          return;
-        }
-
-        // const savedSettings = resSettings.savedSettings as SettingsItem;  //  можно сразу привести типы простые
 
         // Юзер
 

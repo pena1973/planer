@@ -115,7 +115,7 @@ export async function getUnits(
 
   // Выполняем запрос с фильтрацией
   const receivedUnits = await unitRepository.find({
-    where: filter,  // Применяем фильтр к запросу
+    where: filter,
   });
 
   const units = receivedUnits
@@ -131,7 +131,7 @@ export async function getUnits(
         type: unit.type as UnitTypeEnum,
         coment: unit.coment,
         active: unit.active
-      };
+      } as UnitItem;
     });
 
   return units;
@@ -846,11 +846,6 @@ export async function getTeamShedule(
   teamId: number,
   teamScheduleRepository: Repository<TeamScheduleTable>
 ): Promise<ScheduleItem> {
-  // Строим фильтр для поиска
-  // const filter: any = {};
-  // if (teamId) {
-  //   filter.team_id = teamId;
-  // }
 
   const filter: FindOptionsWhere<TeamScheduleTable> = { team_id: teamId };
 
@@ -1031,31 +1026,38 @@ export async function getTCardOperationsByCardId(
 // получение юнитов пользователей команды
 export async function getUsersUnits(
   teamId: number,
+  withoutAdmin: boolean,
   usersRepository: Repository<UserTable>,
   usersUnitsRepository: Repository<UserUnitTable>,
   userId?: number, // Добавляем необязательный параметр userId
 ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
 
+  try {    
+    //  Шаг 1: Формируем строго типизированное условие для поиска пользователей
+    const userCondition: FindOptionsWhere<UserTable> = {
+      team_id: teamId,
+      active: true,
+    };
+    if (userId) {  userCondition.id = userId; }
 
-  try {
-    // Шаг 1: Формируем условие для поиска пользователей
-    const userCondition = userId ? { id: userId, team_id: teamId, active: true } : { team_id: teamId, active: true };
+    if (withoutAdmin) {userCondition.isAdmin = false;}
 
-    // Получаем пользователей по условию
+    // Получаем активных пользователей по сформированному условию
     const activeUsers = await usersRepository.find({ where: userCondition });
 
-
-    // Шаг 1: Получаем всех пользователей команды
-    // const activeUsers = await usersRepository.find({ where: { team_id: teamId, isAdmin: false, active: true } });
     // Если активные пользователи не найдены
     if (activeUsers.length === 0) {
       return {
         success: false,
         userUnits: [],
-        message: 'Нет активных пользователей.',
+        message: 'Нет пользователей команды.',
       };
     }
-    const usersUnits = await usersUnitsRepository.find({ where: { team_id: teamId } });
+
+    const usersUnits = await usersUnitsRepository.find({
+      where: { team_id: teamId },
+      relations: ['user', 'unit']
+    });
 
     // Шаг 3: Преобразуем данные в формат UserUnitItem 
     const userUnits: UserUnitItem[] = activeUsers.map(user => {
@@ -1094,13 +1096,7 @@ export async function getUsersUnits(
       message: 'Данные успешно получены.',
     };
 
-    // } catch (e: any) {
-    //   return {
-    //     success: false,
-    //     userUnits: [],
-    //     message: `Ошибка при получении данных: ${e.message}`,
-    //   };
-    // }
+
   } catch (e: unknown) {
     let message = "Ошибка при получении данных.";
     if (e instanceof Error) {

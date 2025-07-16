@@ -1,5 +1,5 @@
 
-import { DataSource, Repository,  ObjectLiteral } from 'typeorm';
+import { DataSource, Repository, ObjectLiteral, EntityTarget } from 'typeorm';
 
 import { entities } from './entities';
 
@@ -27,3 +27,28 @@ export function getTypedRepository<T extends ObjectLiteral>(
   return db.getRepository(meta.target as typeof ctor) as Repository<T>;
 }
 
+// export function getTypedRepository<T extends ObjectLiteral>(
+//   db: DataSource,
+//   name: string,
+//   ctor: EntityTarget<T>, // может быть Function или строкой (но чаще всего — класс)
+// ): Repository<T> {
+//   try {
+//     return db.getRepository<T>(ctor);
+//   } catch (err) {
+//     const entityNames = db.entityMetadatas.map(meta => {
+//       const name = typeof meta.target === 'function'
+//         ? meta.target.name
+//         : String(meta.target); // может быть строка
+//       return name;
+//     }).join(', ');
+
+//     const targetName = typeof ctor === 'function'
+//       ? ctor.name
+//       : String(ctor);
+
+//     throw new Error(
+//       `Entity "${targetName}" not found in DataSource. `
+//       + `Зарегистрированные: [${entityNames}]`
+//     );
+//   }
+// }
