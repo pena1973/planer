@@ -1,6 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import {TeamTable} from './teams'
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity("uoms")
 export class UOMsTable {
@@ -10,18 +9,15 @@ export class UOMsTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  
 
-  @Column()
+  @Column('varchar')
   title!: string;
 
-  @Column({ type: 'text', default: "" })
+  @Column('text', { default: "" })
   coment!: string;
 
-  @Column({ default: "", nullable: true })
+  @Column('varchar',{ default: "", nullable: true })
   code!: string;
-
-  @ManyToOne(() => TeamTable)
-  @JoinColumn({ name: 'team_id' })
-  team!: TeamTable;
-  @Column()
+  
+  @Column('int')
   team_id!: number;
 }

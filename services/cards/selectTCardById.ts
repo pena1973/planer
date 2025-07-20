@@ -1,20 +1,20 @@
 import { Dispatch } from "redux";
-import { TCardItem } from "./../../types/types";
+import { TCardItem, TeamItem, } from "./../../types/types";
 import { setTCards, setTCardIndex } from "./../../store/slices";
 
 export const selectTCardById = async (
     selectedTCardId:number,
-    indexCurrentCard:number,
-    // selectedTCard: TCardItem,
+    indexCurrentCard:number,    
     tCards: TCardItem[],
     token: string,
+    team: TeamItem,
     dispatch: Dispatch,
     t: (key: string) => string,
     setMessage: (msg: string) => void,
 ) => {
 
     try {
-        const res = await fetch(`api/tcard-api?tCardId=${selectedTCardId}`,
+        const res = await fetch(`api/tcard-api?tCardId=${selectedTCardId}&teamId=${team.id}`,
             {
                 method: 'get',
                 headers: new Headers({

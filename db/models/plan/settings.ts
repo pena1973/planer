@@ -1,8 +1,5 @@
 //  Управляет настройками видимости шкалы времени
-
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
-
+import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 
 @Entity("settings")
 export class SettingsTable {
@@ -28,10 +25,7 @@ export class SettingsTable {
   @Column('boolean', {default:false} )
   isQualControl!: boolean; // использовать контроль качества
   
-  @ManyToOne(() => TeamTable)
-  @JoinColumn({ name: 'team_id' }) 
-  team!: TeamTable;  
-  @Column()
+  @Column('int')
   team_id!: number;
 }
 

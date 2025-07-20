@@ -129,7 +129,7 @@ export default function Index() {
       return
     }
 
-    loginHandler({
+    const tt = await loginHandler({
       login: loginValue,
       pass: passValue,
       token,
@@ -197,8 +197,8 @@ export default function Index() {
     // setLoaderButtonRecovery(false);
   }
   const registerClick = async (e: React.MouseEvent<HTMLElement>) => {
-
     setLoaderButtonRegister(true)
+    
     // if (loginValue.length < 5) {
     //   setMessageRegister(t('service.loginLengthMustBe'));
     //   setMessageRegister("Длина логина должна быть не менее 5 символов и содержать @  и . ");
@@ -237,7 +237,7 @@ export default function Index() {
     //  далее адресуем на страницу соглашения и после этого регистрируем, 
     // загружаем начальное состояние а потом на мастер настроек
 
-    registerHandler({
+    const tt = await registerHandler({
       login: loginValue,
       pass: pass1Value,
       teamNumber: teamNumberValue,
@@ -252,8 +252,6 @@ export default function Index() {
       agreementIdRef: agreementId,
       agreementTextRef: textAgreement,
     });
-
-
     setLoaderButtonRegister(false)
   }
 
@@ -273,7 +271,7 @@ export default function Index() {
           await downloadUnutsExceptions(user.id, team.id, token, t, setMessage, dispatch);
           await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
           await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);          
+          await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
           await downloadLoads(user.id, team.id, token, t, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           setStep(5);
@@ -303,8 +301,8 @@ export default function Index() {
   }, [user, token, team, signedAgreement]);  // Зависимости от user, token и team
 
   const signAgreement = async (signedAgreement: boolean, agreementId: number) => {
-    
-     
+
+
     // обращаемся к базе и подписываем соглашение
     // после этого переходим к загрузке начальных таблиц
     // после этого вываливаемся на начальные настройки
@@ -344,7 +342,7 @@ export default function Index() {
       }
       setMessage(message);
     }
-    setLoaderButtonLogin(false)
+    // setLoaderButtonLogin(false)
 
   }
 
@@ -430,7 +428,6 @@ export default function Index() {
           {(step === 1) &&
             <div className="register_container">
               <div className="register_input_container">
-                {/* <div className="register_title">{t('register.email')}: </div> */}
                 <input className="register_input"
                   type="email"
                   id="email"
@@ -440,8 +437,6 @@ export default function Index() {
               </div>
 
               <div className="register_input_container">
-                {/* <div className="register_title">{t('register.pass')}:</div> */}
-
                 <input className="register_input"
                   type="password"
                   id="password"
@@ -493,19 +488,9 @@ export default function Index() {
                   value={teamNumberValue}
                   onChange={(e) => setTeamNumberValue(e.target.value)}
                   required autoComplete="off" />}
-
-
-
               </div>
 
-              {/* <DropdownSelectRole
-                options={options}
-                onSelect={handleSelectRole}
-                selectedValue={selectedRole}
-              /> */}
-
               <div className="register_input_container">
-
                 <div className="register_notice">{t('register.visible')}: </div>
                 <input className="register_input"
                   type="text"

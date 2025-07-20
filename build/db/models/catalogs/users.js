@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("./teams");
 let UserTable = class UserTable {
 };
 exports.UserTable = UserTable;
@@ -28,44 +27,39 @@ __decorate([
     __metadata("design:type", String)
 ], UserTable.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
 ], UserTable.prototype, "login", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
 ], UserTable.prototype, "pass", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "" }),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
 ], UserTable.prototype, "loginhash", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "en" }),
+    (0, typeorm_1.Column)('varchar', { default: "en" }),
     __metadata("design:type", String)
 ], UserTable.prototype, "locale", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
+    (0, typeorm_1.Column)('boolean', { default: false }),
     __metadata("design:type", Boolean)
 ], UserTable.prototype, "isAdmin", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
+    (0, typeorm_1.Column)('boolean', { default: false }),
     __metadata("design:type", Boolean)
 ], UserTable.prototype, "confirmed", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "" }),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
 ], UserTable.prototype, "coment", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: true }),
+    (0, typeorm_1.Column)('boolean', { default: true }),
     __metadata("design:type", Boolean)
 ], UserTable.prototype, "active", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable),
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }),
-    __metadata("design:type", teams_1.TeamTable)
-], UserTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UserTable.prototype, "team_id", void 0);
 exports.UserTable = UserTable = __decorate([

@@ -11,9 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UnitLoadTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("../catalogs/teams"); // Подключаем сущность для связи
-const units_1 = require("../catalogs/units"); // Подключаем сущность для связи
-const t_cards_1 = require("../data/t_cards"); // Подключаем сущность для связи
 const types_1 = require("./../../../types/types");
 let UnitLoadTable = class UnitLoadTable {
 };
@@ -43,11 +40,6 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitLoadTable.prototype, "idc_oper", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => t_cards_1.TCardTable, { eager: true, cascade: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'id_tCard' }),
-    __metadata("design:type", t_cards_1.TCardTable)
-], UnitLoadTable.prototype, "tCard", void 0);
-__decorate([
     (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UnitLoadTable.prototype, "id_tCard", void 0);
@@ -60,23 +52,11 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitLoadTable.prototype, "timeFinish", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], UnitLoadTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UnitLoadTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable, { eager: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'unit_id' }),
-    __metadata("design:type", units_1.UnitTable)
-], UnitLoadTable.prototype, "unit", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UnitLoadTable.prototype, "unit_id", void 0);
 __decorate([

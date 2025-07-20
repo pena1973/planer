@@ -7,6 +7,7 @@ import { getTypedRepository } from './../../lib/db/utilites'
 import { getUnits } from './../../handlers/handlers-get';
 import { updateUnits, updateUnitActions, updateExceptions } from './../../handlers/handlers-update';
 import { UnitTable } from './../../db/models/catalogs/units'
+import { ActionTable } from './../../db/models/catalogs/actions'
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
 
@@ -16,7 +17,7 @@ interface RequestBody {
   userId: number,
   teamId: number,
   units: UnitItem[],
-  actions: UnitActionItem[],
+  unitActions: UnitActionItem[],
   exceptions: UnitExceptionItem[],
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -51,7 +52,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'POST':
 
         // Извлекаем данные из тела запроса
-        const { units, exceptions, actions, userId, teamId } = req.body as RequestBody;
+        const { units, exceptions, unitActions, userId, teamId } = req.body as RequestBody;
 
         // СПИСОК ЮНИТОВ
 
@@ -61,33 +62,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUnit.message });
           return;
         }
-        const savedUnits = resUnit.savedUnits as UnitTable[];
-
-        const units_ = savedUnits
-          .map(unit => {
-            return {
-              id: unit.id,
-              idc: unit.idc,
-              title: unit.title,
-              code: unit.code,
-              retool: unit.retool,
-              modified: false,
-              belong: unit.belong,
-              type: unit.type,
-              coment: unit.coment,
-              active: unit.active,
-            } as UnitItem;
-          });
+        const savedUnits = resUnit.savedUnits as UnitItem[];
 
         //  заполнили id юнитов в действиях,  ищем по idc все что не имело unitId и заполняем id юнита
-
-        const actions_ = actions.map(action => {
-          if (!action.unitId) {
-            const unit = savedUnits.find(un => un.idc === action.unitIdc)
-            if (unit) return { ...action, unitId: unit.id }
+        const unitActions_ = unitActions.map(unitAction => {
+          if (!unitAction.unitId) {
+            const unit = savedUnits.find(un => un.idc === unitAction.unitIdc)
+            if (unit) return { ...unitAction, unitId: unit.id }
             else return undefined;
-          } else { return action }
-        }).filter(elem => elem !== undefined);
+          } else { return unitAction }
+        }).filter(elem => elem !== undefined) as UnitActionItem[];
 
         //  заполнили id юнитов в исключениях ищем по idc все что не имело unitId
         const exceptions_ = exceptions.map(ex => {
@@ -96,12 +80,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             if (unit) return { ...ex, unitId: unit.id }
             else return undefined;
           } else { return ex }
-        }).filter(elem => elem !== undefined);
+        }).filter(elem => elem !== undefined) as UnitExceptionItem[];
 
         // СПИСОК ДЕЙСТВИЙ ЮНИТОВ
         const resUnitActions = await updateUnitActions(
           unitActionsRepository,
-          actions_,
+          unitActions_,
           teamId)
 
         if (!resUnitActions.success) {
@@ -109,19 +93,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return;
         }
 
-        const savedUnitActions = resUnitActions.savedUnitActions as UnitActionTable[];
+        const savedUnitActions = resUnitActions.savedUnitActions as UnitActionItem[];
 
-        const unitActions_ = savedUnitActions
-          .map(unitAction => {
-            return {
-              id: unitAction.id,
-              action: unitAction.action,
-              koef: unitAction.koef,
-              unitId: unitAction.unit_id,
-              unitIdc: unitAction.unit_idc,
-              idc: unitAction.idc,
-            } as UnitActionItem;
-          });
 
         // ОТКЛОНЕНИЯ ЮНИТА ОТ РАСПИСАНИЯ КОМПАНИИ
 
@@ -132,29 +105,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return;
         }
 
-        let unitExceptions_ = [] as UnitExceptionItem[];
-
-        if (resEx.savedUnitExceptions) {
-          unitExceptions_ = resEx.savedUnitExceptions
-            .map(ex => {
-              return {
-                id: ex.id,
-                date: ex.date.toLocaleDateString("en-CA"),
-                timeFinish: ex.timeFinish,
-                timeStart: ex.timeStart,
-                type: ex.type,
-                unitId: ex.unit_id,
-              } as UnitExceptionItem;
-            });
-        }
-
+        let savedUnitExceptions = resEx.savedUnitExceptions as UnitExceptionItem[];
 
         // отправляем ответ
         res.status(200).json({
           success: true,
-          actions: unitActions_,
-          units: units_,
-          exceptions: unitExceptions_,
+          actions: savedUnitActions,
+          units: savedUnits,
+          exceptions: savedUnitExceptions,
         });
         break;
 

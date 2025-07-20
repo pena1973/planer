@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ActionTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("./teams");
 let ActionTable = class ActionTable {
 };
 exports.ActionTable = ActionTable;
@@ -24,15 +23,15 @@ __decorate([
     __metadata("design:type", Date)
 ], ActionTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
 ], ActionTable.prototype, "title", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text', default: "" }),
+    (0, typeorm_1.Column)('text', { default: "" }),
     __metadata("design:type", String)
 ], ActionTable.prototype, "coment", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "", nullable: true }),
+    (0, typeorm_1.Column)('varchar', { default: "", nullable: true }),
     __metadata("design:type", String)
 ], ActionTable.prototype, "code", void 0);
 __decorate([
@@ -40,14 +39,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], ActionTable.prototype, "interruptible", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], ActionTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], ActionTable.prototype, "team_id", void 0);
 exports.ActionTable = ActionTable = __decorate([

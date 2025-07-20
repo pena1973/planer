@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     switch (req.method) {
       case 'GET':
-        const shedule_ = await getTeamShedule(Number(teamIdget), teamScheduleRepository)
+        const shedule_ = await getTeamShedule(Number(teamIdget), teamScheduleRepository,teamsRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -79,12 +79,13 @@ async function updateShedule(
 ) {
 
   // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
-  const existingSchedule = await scheduleRepository.findOne({ where: { team: { id: teamId } } });
-
+  //  const existingSchedule = await scheduleRepository.findOne({ where: { team: { id: teamId } } });
+  const existingSchedule = await scheduleRepository.findOne({ where: { team_id: teamId }, });
   if (!existingSchedule) {
     // Если расписания нет, создаем новое
     const newSchedule = scheduleRepository.create({
-      team: { id: teamId }, // Вместо team_id передаем объект TeamTable
+      team_id: teamId, // ⬅️ правильно
+      // team: { id: teamId }, // Вместо team_id передаем объект TeamTable
       timeStartWork: schedule.timeStartWork,
       timeFinishWork: schedule.timeFinishWork,
       breaks: schedule.breaks,

@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UnitTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("./teams");
 const types_1 = require("./../../../types/types");
 let UnitTable = class UnitTable {
 };
@@ -29,19 +28,19 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitTable.prototype, "idc", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
 ], UnitTable.prototype, "title", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)('varchar', { nullable: true }),
     __metadata("design:type", String)
 ], UnitTable.prototype, "code", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 0 }),
+    (0, typeorm_1.Column)('boolean', { default: 0 }),
     __metadata("design:type", Number)
 ], UnitTable.prototype, "retool", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, default: "" }),
+    (0, typeorm_1.Column)('text', { nullable: true, default: "" }),
     __metadata("design:type", String)
 ], UnitTable.prototype, "coment", void 0);
 __decorate([
@@ -61,16 +60,11 @@ __decorate([
     __metadata("design:type", String)
 ], UnitTable.prototype, "type", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
+    (0, typeorm_1.Column)('boolean', { default: false }),
     __metadata("design:type", Boolean)
 ], UnitTable.prototype, "active", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable),
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }),
-    __metadata("design:type", teams_1.TeamTable)
-], UnitTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UnitTable.prototype, "team_id", void 0);
 exports.UnitTable = UnitTable = __decorate([

@@ -1,6 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
+import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 import { DaysOfWeek,TimeZoneEnum } from "./../../../types/types"; // Подключаем сущность для связи
 
 
@@ -30,12 +29,8 @@ export class TeamScheduleTable {
 
   @Column('json', { nullable: true })
   workdays!: { date: string, timeStart: number, timeFinish: number }[]; // Даты, когда работа возможна в выходные (переносы), использует строковый формат для даты
-  
-  @ManyToOne(() => TeamTable) 
-  @JoinColumn({ name: 'team_id' })
-  team!: TeamTable;  
-  
-  @Column()
+    
+  @Column('int')
   team_id!: number;
 
   @Column('varchar', {default:"", length: 255 })

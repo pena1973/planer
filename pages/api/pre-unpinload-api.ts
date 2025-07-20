@@ -12,7 +12,7 @@ import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions';
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
 import { TCardTable } from './../../db/models/data/t_cards'
-
+import { TeamTable } from './../../db/models/catalogs/teams'
 import { UnitTable } from './../../db/models/catalogs/units'
 
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
@@ -20,6 +20,7 @@ import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { ProductTable } from './../../db/models/data/products'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
+import { ActionTable } from './../../db/models/catalogs/actions'
 import { UnitLoadItem, } from "./../../types/types";
 
 interface RequestBody {
@@ -32,17 +33,18 @@ interface RequestBody {
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
   const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
   const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
-  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const tCardOperationRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
   const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-
+  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
   try {
 
     switch (req.method) {
@@ -66,7 +68,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStageRepository,productRepository)
+        const tCard = await getTCardFull(
+          Number(teamId),
+          Number(tCardId),
+          tCardRepository,
+          tCardOperationRepository,
+          tCardProductRepository,
+          tCardStageRepository,
+          productRepository,
+          actionRepository
+        )
         if (!tCard) {
           res.status(200).json({
             success: false,
@@ -108,12 +119,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository)
 
         // запросим расписание компании
-        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
+        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
 
         //  получим исключения рабочего времени юнитов         
         const exceptionItems = await getExceptions(Number(teamId), unitExceptionsRepository)
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
-        const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
+        const unitLoadItemsBD = await getUnitLoads(
+          Number(teamId),
+          units_,
+          unitLoadRepository,
+          unitActionsRepository)
         //  уберем из нее лоады нашей карты
         let unitLoadItemsFull = unitLoadItemsBD.filter(lo => tCardId !== lo.id)
         //  и добавим  лоады без операций которые надо перепланировать

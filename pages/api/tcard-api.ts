@@ -14,6 +14,8 @@ import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { UnitLoadTable } from './../../db/models/plan/unit_loads'
 import { ProductTable } from './../../db/models/data/products'
 import { UOMsTable } from './../../db/models/catalogs/uoms'
+import { UnitTable } from './../../db/models/catalogs/units'
+import { ActionTable } from './../../db/models/catalogs/actions'
 
 import {
   TCardItem, TCardProductItem,
@@ -26,7 +28,7 @@ import {
   TypeEnum, ProductItem
 } from './../../types/types';
 
-import { getTCardFull, getTCardLoads, getUnitActions } from './../../handlers/handlers-get';  // 
+import { getTCardFull, getTCardLoads, getUnitActions, getUnits } from './../../handlers/handlers-get';  // 
 import {
   updateCard, updateStages, updateOperations, updateCatalogProducts,
   updateProducts, updateTCardLoads, updateStatusTCard,
@@ -52,22 +54,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
   const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
   const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
+  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
 
   try {
 
-    const { tCardId: tCardIdget } = req.query;
+    const { teamId: teamIdget, tCardId: tCardIdget } = req.query;
 
     switch (req.method) {
       case 'GET':
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard_ = await getTCardFull(
+          Number(teamIdget),
           Number(tCardIdget),
           tCardRepository,
           tCardOperationRepository,
           tCardProductRepository,
           tCardStageRepository,
           productRepository,
+          actionRepository
         )
         if (!tCard_) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
@@ -99,28 +105,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
           return;
         }
-        const savedTCard = resCard.savedTCard as TCardTable;
+        const savedTCard = resCard.savedTCard as TCardItem;
 
         // КАТАЛОГ ПРОДУКТОВ  
-        let savedProducts = [] as ProductTable[];
+        let savedProducts: ProductItem[] = [];
         if (tCard.products && tCard.products.length > 0) {
           const resProducts = await updateCatalogProducts(
-            uomsRepository,
             productRepository,
             savedTCard,
-            (!tCard.products) ? [] as ProductItem[] : tCard.products,
-            teamId
+            tCard.products ?? [] as ProductItem[],
           )
 
           if (!resProducts.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resProducts.message });
             return;
           }
-          savedProducts = resProducts.savedProducts as ProductTable[];
+          savedProducts = resProducts.savedProducts as ProductItem[];
         }
 
         // СПИСОК СТАДИЙ  
-        let savedTCardStages = [] as TCardStageTable[];
+        let savedTCardStages = [] as TCardStageItem[];
         if (tCard.tCardStages && tCard.tCardStages.length > 0) {
           const resStages = await updateStages(
             tCardStageRepository,
@@ -133,11 +137,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             return;
           }
 
-          savedTCardStages = resStages.savedTCardStages as TCardStageTable[];
+          savedTCardStages = resStages.savedTCardStages as TCardStageItem[];
         }
 
-        //СПИСОК ОПЕРАЦИЙ
-        let savedTCardOperations = [] as TCardOperationTable[];
+        //СПИСОК ОПЕРАЦИЙ (без вложеных продуктов)
+        let savedTCardOperations = [] as TCardOperationItem[];
         if (tCard.tCardOperations && tCard.tCardOperations.length > 0) {
           const resOperations = await updateOperations(
             tCardOperationRepository,
@@ -149,11 +153,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOperations.message });
             return;
           }
-          savedTCardOperations = resOperations.savedTCardOperations as TCardOperationTable[];
+          savedTCardOperations = resOperations.savedTCardOperations as TCardOperationItem[];
         }
 
         //СПИСОК ПРОДУКТОВ
-        let savedTCardProducts = [] as TCardProductTable[];
+        let savedTCardProducts = [] as TCardProductItem[];
         if ((tCard.tCardProducts && tCard.tCardProducts.length > 0)
           || (tCard.tCardMaterials && tCard.tCardMaterials.length > 0)
           || (tCard.tCardWastes && tCard.tCardWastes.length > 0)
@@ -174,180 +178,34 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resProducts.message });
             return;
           }
-          savedTCardProducts = resProducts.savedTCardProducts as TCardProductTable[];
+          savedTCardProducts = resProducts.savedTCardProducts as TCardProductItem[];
         }
 
+        //  все записали а сейчас запросим полную карту
+        // получаем полную карту со всеми входящими и исходящими
+        const savedtCardItem = await getTCardFull(
+          Number(teamId),
+          Number(savedTCard.id),
+          tCardRepository,
+          tCardOperationRepository,
+          tCardProductRepository,
+          tCardStageRepository,
+          productRepository,
+          actionRepository
+        )
+        if (!savedtCardItem) {
+          res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
+          return
+        }
 
-        // если дошли сюда значит при сохранении ничего не слетело 
-        // Это Каталог продуктов
-        const savedProducts_ = savedProducts
-          .map(product => {
-            return {
-              id: product.id,
-              idc: product.idc,
-              title: product.title,
-              uom: {
-                id: product.uom.id,
-                title: product.uom.title,
-                code: product.uom.code
-              } as UOMItem,
-              sync: product.sync,
-              mode: false
-            };
-          });
-
-
-        //  преобразуем  записи таблиц в наши типы но только с указанием  уже id базы
-        const tCardStages_ = savedTCardStages
-          .map(stage => { return { id: stage.id, idc: stage.idc, code: stage.code, mode: false }; });
-
-        const tCardProducts_ = savedTCardProducts
-          .filter(tProduct => tProduct.type === TypeEnum.P)
-          .map(tProduct => {
-            const product = savedProducts_.find(product => product.id === tProduct.product_id)
-            return {
-              id: tProduct.id,
-              code: tProduct.code,
-              qtu: tProduct.qtu,
-              product: {
-                id: product?.id,
-                idc: product?.idc,
-                title: product?.title,
-                uom: {
-                  id: product?.uom?.id,
-                  title: product?.uom?.title,
-                  code: product?.uom?.code
-                } as UOMItem
-              } as ProductItem
-            } as TCardProductItem;
-          });
-
-        const tCardWastes_ = savedTCardProducts
-          .filter(tProduct => tProduct.type === TypeEnum.W)
-          .map(tProduct => {
-            const product = savedProducts_.find(product => product.id === tProduct.product_id)
-            return {
-              id: tProduct.id,
-              code: tProduct.code,
-              qtu: tProduct.qtu,
-              product: {
-                id: product?.id,
-                idc: product?.idc,
-                title: product?.title,
-                uom: {
-                  id: product?.uom?.id,
-                  title: product?.uom?.title,
-                  code: product?.uom?.code
-                } as UOMItem
-              } as ProductItem
-            } as TCardProductItem;
-          });
-
-        const tCardMaterials_ = savedTCardProducts
-          .filter(tProduct => tProduct.type === TypeEnum.M)
-          .map(tProduct => {
-            const product = savedProducts_.find(product => product.id === tProduct.product_id)
-            return {
-              id: tProduct.id,
-              code: tProduct.code,
-              qtu: tProduct.qtu,
-              product: {
-                id: product?.id,
-                idc: product?.idc,
-                title: product?.title,
-                uom: {
-                  id: product?.uom?.id,
-                  title: product?.uom?.title,
-                  code: product?.uom?.code
-                } as UOMItem
-              } as ProductItem
-            } as TCardProductItem;
-          });
-
-        const tCardOperations_ = savedTCardOperations
-          .map(oper => {
-            const staget = savedTCardStages.find(stage => stage.id === oper.stage_id) as TCardStageTable
-            const stage = { id: staget.id, idc: staget.idc, code: staget.code } as TCardStageItem
-
-            const inn = savedTCardProducts
-              .filter(tProduct => { return (tProduct.operation_id === oper.id && tProduct.type === TypeEnum.I) })
-              .map(tProduct => {
-                const product = savedProducts_.find(product => product.id === tProduct.product_id)
-                return {
-                  id: tProduct.id,
-                  code: tProduct.code,
-                  qtu: tProduct.qtu,
-                  product: {
-                    id: product?.id,
-                    idc: product?.idc,
-                    title: product?.title,
-                    uom: {
-                      id: product?.uom?.id,
-                      title: product?.uom?.title,
-                      code: product?.uom?.code
-                    } as UOMItem
-                  } as ProductItem
-                } as TCardProductItem;
-              });
-
-            const out = savedTCardProducts
-              .filter(tProduct => { return (tProduct.operation_id === oper.id && tProduct.type === TypeEnum.O) })
-              .map(tProduct => {
-                const product = savedProducts_.find(product => product.id === tProduct.product_id)
-                return {
-                  id: tProduct.id,
-                  code: tProduct.code,
-                  qtu: tProduct.qtu,
-                  product: {
-                    id: product?.id,
-                    idc: product?.idc,
-                    title: product?.title,
-                    uom: {
-                      id: product?.uom?.id,
-                      title: product?.uom?.title,
-                      code: product?.uom?.code
-                    } as UOMItem
-                  } as ProductItem
-                } as TCardProductItem;
-              });
-
-            return {
-              id: oper.id,
-              idc: oper.idc,
-              order: oper.order,
-              stage: stage,
-              out: out,
-              inn: inn,
-              action: { id: oper.action.id, title: oper.action.title, code: oper.action.code } as ActionItem,
-              duration: oper.duration, // в милисекундах   
-              status: oper.status,
-              coment: oper.coment,
-              fixOperIdc: oper.fix_oper_idc,
-            } as TCardOperationItem; // Приводим к типу TCardOperationItem
-          });
-
-        const tCardItem_ = {
-          id: savedTCard.id,
-          date: new Date(savedTCard.date).toLocaleDateString("en-CA"),
-          idc: savedTCard.idc,
-          modified: false, // Например, установка true, так как мы только что сохранили
-          maxIdc: savedTCard.max_idc,
-          coment: savedTCard.coment,
-          status: savedTCard.status,
-          products: savedProducts_,
-          tCardProducts: tCardProducts_,
-          tCardWastes: tCardWastes_,
-          tCardMaterials: tCardMaterials_,
-          tCardOperations: tCardOperations_,
-          tCardStages: tCardStages_,
-        } as TCardItem; // Приводим к типу TCardItem
-
-
-        // отправляем ответ
+        // Отправляем ответ с данными
         res.status(200).json({
           success: true,
-          tCard: tCardItem_,
+          tCard: savedtCardItem,
+          messsage: ""
         });
+
+
         break;
 
       case 'DELETE':
@@ -355,20 +213,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const { tCardId: tCardIddel, teamId: teamIddel } = req.query;
         const tCardId = Number(tCardIddel);
-        const teamId_ = Number(teamIddel);
-
+        
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard__ = await getTCardFull(tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository,)
+        const tCard__ = await getTCardFull(Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository)
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(teamId_, unitActionsRepository)
+        const unitActions_ = await getUnitActions(Number(teamIddel), unitActionsRepository)
 
         if (!tCard__) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
 
-        const loads = await getTCardLoads(tCardId, unitLoadRepository)
+        const units = await getUnits(Number(teamIddel), unitRepository)
+
+        const loads = await getTCardLoads(tCard__,units, unitLoadRepository)
         if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
 
         // фильтруем лоады по сегодняшней дате
@@ -392,15 +251,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
 
         const allLoads = [...historyLoads, ...planLoads];
-
-        const resDel = await updateTCardLoads(teamId_, tCardId, allLoads, unitLoadRepository);
+        
+        // !!!!Проверить
+        const resDel = await updateTCardLoads(Number(teamIddel), tCardId, allLoads, unitLoadRepository);
         if (!resDel.success) { res.status(200).json({ success: false, message: resDel.message }); }
 
         // Переводим в тип UnitLoadItem[]                
         const loads_ = resDel.loads.map(lo => {
           const oper = tCard__.tCardOperations?.find(oper => oper.id === lo.id_oper);
 
-          const unit = lo.unit;
+
+          const unit = units.find(u => u.id = lo.unit_id);
+          if (!unit) return null;
           const unitAction = unitActions_.find(ac => ac.unitId === unit.id && ac.action.id === oper?.action.id);;
 
           return {
@@ -466,12 +328,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             });
             break;
           }
+
           // собираем все что осталось от карты
-          const tCard_ = await getTCardFull(tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository,);
+          const tCard_ = await getTCardFull(Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository);
           // Возвращаем успешный ответ
           res.status(200).json({ success: true, tCard: tCard_, loads: loads_, message: `TCard canceled successfully` });
           break
         } else {
+
           // лоадов нет удаляем карту и все связанные с ней данные
           await tCardProductRepository.delete({ tcard_id: tCardId });
           // Удаляем все связанные данные: стадии, операции, продукты

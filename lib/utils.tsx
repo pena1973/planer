@@ -103,16 +103,21 @@ export function extractIdFromTeamNumber(teamNumber: string): number {
 }
 
 
+// export function generateUniqueIdc(): number {
+//   // Генерируем уникальное число на основе времени (в миллисекундах)
+//   const timestamp = Date.now();  // Текущее время в миллисекундах
+
+//   // Ограничиваем результат до 9 цифр (чтобы влезло в диапазон int)
+//   const uniqueInt = timestamp % 1000000000;  // Берем последние 9 цифр
+
+//   return uniqueInt;
+// }
+
 export function generateUniqueIdc(): number {
-  // Генерируем уникальное число на основе времени (в миллисекундах)
-  const timestamp = Date.now();  // Текущее время в миллисекундах
-
-  // Ограничиваем результат до 9 цифр (чтобы влезло в диапазон int)
-  const uniqueInt = timestamp % 1000000000;  // Берем последние 9 цифр
-
-  return uniqueInt;
+  const timestamp = Date.now() % 1000000000;
+  const random = Math.floor(Math.random() * 1000); // 0–999
+  return timestamp * 1000 + random;
 }
-
 
 export function generateUniqueId(): number {
   const timestamp = Date.now(); // Получаем текущее время в миллисекундах

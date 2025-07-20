@@ -1,8 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from './teams'
-import { ActionTable } from './actions'
-import { UnitTable } from './units'
+import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 
 @Entity("unit_actions")
 export class UnitActionTable {
@@ -12,7 +9,7 @@ export class UnitActionTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  
 
-  @Column('int', { unique: true })
+  @Column('bigint', { unique: true })
   idc!: number;
   
   @Column({
@@ -23,26 +20,18 @@ export class UnitActionTable {
   })
   koef!: number;
 
-  @Column({ default: "" })
+  @Column('varchar',{ default: "" })
   coment!: string;
 
-  @ManyToOne(() => ActionTable) 
-  @JoinColumn({ name: 'action_id' })
-  action!: ActionTable; 
-  @Column()
+  
+  @Column('int')
   action_id!: number;
 
-  @ManyToOne(() => UnitTable)
-  @JoinColumn({ name: 'unit_id' })
-  unit!: UnitTable;
-  @Column()
+  @Column('int')
   unit_id!: number;
-  @Column()
+  @Column('int')
   unit_idc!: number;
 
-  @ManyToOne(() => TeamTable)
-  @JoinColumn({ name: 'team_id' })
-  team!: TeamTable;
-  @Column()
+  @Column('int')
   team_id!: number;
 }

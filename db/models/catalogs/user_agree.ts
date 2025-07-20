@@ -1,7 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column,  ManyToOne, JoinColumn } from 'typeorm';
-import {AgreementTable} from './agreements'
-import {UserTable} from './users'
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity("user_agree")
 export class UserAgreeTable {
@@ -9,23 +7,17 @@ export class UserAgreeTable {
   id!: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at!: Date;  
+  created_at!: Date;
 
-  @Column({default:false})
-  signed!: boolean; //  соглашение подписано
+  @Column('boolean',{ default: false })
+  signed!: boolean; 
 
-@Column({ type: 'date', nullable: true })
-date!: Date | null; // дата подписания
-
-  @ManyToOne(() => UserTable) 
-  @JoinColumn({ name: 'user_id' })
-  user!: UserTable;  
-  @Column()
+  @Column({ type: 'date', nullable: true })
+  date!: Date | null; // дата подписания
+  
+  @Column('int')
   user_id!: number;
-
-  @ManyToOne(() => AgreementTable)
-  @JoinColumn({ name: 'agreement_id' })
-  agreement!: AgreementTable;  
-  @Column()
+  
+  @Column('int')
   agreement_id!: number;
 }

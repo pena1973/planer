@@ -769,7 +769,7 @@ export default function Cards() {
       return
     }
 
-    await deleteTCardById(idToRemove, token, tCards, unitLoads, dispatch, t, setMessage)
+    await deleteTCardById(idToRemove, token,team, tCards, unitLoads, dispatch, t, setMessage)
 
     setRemoveLoaderCard(NaN);
 
@@ -812,7 +812,7 @@ export default function Cards() {
   // Он сбрасывает карту в начальное состояние с сервера, если она была модифицирована.
   const resetCardHandler = async (idToReset: number) => {
     setResetLoaderCard(idToReset);
-    await resetTCardById(idToReset, tCards, token, dispatch, t, setMessage)
+    await resetTCardById(idToReset, tCards, token, team,dispatch, t, setMessage)
     setResetLoaderCard(NaN);
   };
   // На сервере
@@ -831,7 +831,7 @@ export default function Cards() {
     }
     // если карта не была ранее подгружена, то вытаскиваем из базы
     setResetLoaderCard(selectedTCard.id)
-    await selectTCardById(selectedTCard.id, indexCurrentCard, tCards, token, dispatch, t, setMessage);
+    await selectTCardById(selectedTCard.id, indexCurrentCard, tCards, token,team, dispatch, t, setMessage);
     setResetLoaderCard(NaN)
 
   };

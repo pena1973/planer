@@ -1,6 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from '../../models/catalogs/teams'
-import { UserTable } from '../../models/catalogs/users'
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity("support")
 export class SupportTable {
@@ -13,30 +11,22 @@ export class SupportTable {
     @Column('date') // дата писма
     date!: Date;
 
-    @Column({ default: "" })
+    @Column('varchar',{ default: "" })
     title!: string;
 
-    @Column({ type: 'text' })
-    body!: string; // Содержимое файла в формате JSON (содержимое карты)
+    @Column('text')
+    body!: string; 
 
-    @Column({ default: false })
+    @Column('boolean',{ default: false })
     fromUser!: boolean;
 
-
-    @Column({ nullable: true })
+    @Column('int',{ nullable: true })
     basedOn!: number;  // если это сообщение ответ то здесь id исходного письма.
 
-
-    @ManyToOne(() => TeamTable) // Указываем связь "многие к одному"
-    @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    team!: TeamTable;
-    @Column()
+    @Column('int')
     team_id!: number;
-
-    @ManyToOne(() => UserTable) // Указываем связь "многие к одному"
-    @JoinColumn({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
-    user!: TeamTable;
-    @Column()
+    
+    @Column('int')
     user_id!: number;
 }
 

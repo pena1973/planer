@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { userId, signedAgreement, agreementId } = req.body as RequestBody;
         if (!agreementId) {
           res.status(200).json({
-            success: false,
+            success: true,
             signed: false,
             message: "нет соглашения нечего подписывать",
           });

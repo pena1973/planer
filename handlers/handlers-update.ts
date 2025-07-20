@@ -28,7 +28,7 @@ import {
   UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem,
   SupportMessageItem, TCardItem, TCardOperationItem, TCardProductItem,
   ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
-  SettingsItem, TemplateItem, StatusEnum
+  SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum
 } from './../types/types';
 import { getUOMs } from './handlers-get';
 
@@ -41,12 +41,13 @@ export async function updateSettings(
 ) {
 
   // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
-  const existingSetting = await settingsRepository.findOne({ where: { team: { id: teamId } } });
+  const existingSetting = await settingsRepository.findOne({ where: { team_id: teamId } });
 
   if (!existingSetting) {
     // Если расписания нет, создаем новое
     const newSettings = settingsRepository.create({
-      team: { id: teamId }, // Вместо team_id передаем объект TeamTable
+      // team: { id: teamId }, 
+      team_id: teamId,
       timeStartWork: settings.timeStartWork,
       timeFinishWork: settings.timeFinishWork,
       showWeekend: settings.showWeekend,
@@ -348,12 +349,13 @@ export async function updateActions(
   return { success: true, savedActions: savedActions }
 }
 
+// &&&&&
 // ЮНИТЫ
 export async function updateUnits(
   unitRepository: Repository<UnitTable>,
   units: UnitItem[],
   teamId: number
-) {
+): Promise<{ success: boolean, savedUnits?: UnitItem[], message?: string }> {
 
   // Получаем все существующие юниты в базе
   const existingUnits = await unitRepository.find({ where: { team_id: teamId } });
@@ -443,108 +445,115 @@ export async function updateUnits(
     return { success: false, message: error };
   }
 
-  return { success: true, savedUnits: savedUnits };
+  const savedUnits_ = savedUnits.map(u => {
+    return {
+      id: u.id,
+      idc: u.idc,
+      title: u.title,
+      code: u.code,
+      retool: u.retool,
+      modified: false,
+      belong: u.belong as UnitBelongEnum,
+      type: u.type as UnitTypeEnum,
+      coment: u.coment,
+      active: u.active,
+    } as UnitItem
+  })
+  return { success: true, savedUnits: savedUnits_ };
 }
 
+// &&&&&
 // ДЕЙСТВИЯ ЮНИТА
 export async function updateUnitActions(
   unitActionsRepository: Repository<UnitActionTable>,
   unitActions: UnitActionItem[],
   teamId: number
-) {
-
-  // СПИСОК ЮНИТОВ в базе
+): Promise<{ success: boolean; message?: string; savedUnitActions?: UnitActionItem[] }> {
   const existingUnitActions = await unitActionsRepository.find({
-    where: { team_id: teamId },
-    relations: ['action']
-  }
+    where: { team_id: teamId }
+  });
+
+  const unitActionToDelete = existingUnitActions.filter(existing =>
+    !unitActions.some(u => u.id === existing.id)
   );
 
-  // 1. Найдём удалённые действия Юнита
-  const unitActionToDelete = existingUnitActions.filter(unitAction =>
-    !unitActions.some(newUnitActions => newUnitActions.id === unitAction.id) // Сравниваем id существующих стадий с переданными
+  const unitActionToAdd = unitActions.filter(u =>
+    !existingUnitActions.some(existing => existing.id === u.id)
   );
 
-  // 2. Найдём новые действия Юнита, которых нет в базе
-  const unitActionToAdd = unitActions.filter(unitAction =>
-    !existingUnitActions.some(existingUnitAction => existingUnitAction.id === unitAction.id) // Сравниваем id переданных стадий с существующими
+  const unitActionToUpdate = unitActions.filter(u =>
+    existingUnitActions.some(existing => existing.id === u.id)
   );
 
-  // 3. Найдём существующие действия Юнита для обновления
-  const unitActionToUpdate = unitActions.filter(unitAction =>
-    existingUnitActions.some(existingUnitAction => existingUnitAction.id === unitAction.id) // Сравниваем id для существующих стадий
-  );
-
-  // Удаляем старые действия Юнита
   if (unitActionToDelete.length > 0) {
     await unitActionsRepository.remove(unitActionToDelete);
   }
 
-  // Добавляем новые действия Юнита
-  const newUnitAction = unitActionToAdd.map(unitAction => {
-    return unitActionsRepository.create({
+  const newUnitActionEntities = unitActionToAdd.map(unitAction =>
+    unitActionsRepository.create({
       idc: unitAction.idc,
       koef: unitAction.koef,
       action_id: unitAction.action.id,
-      action: unitAction.action,
       unit_id: unitAction.unitId,
       unit_idc: unitAction.unitIdc,
       team_id: teamId,
-      // coment: unitAction.coment, // пока не используется
+    })
+  );
 
-    });
-  });
-  let savedNewUnitActions = [] as UnitActionTable[]
-  if (newUnitAction.length > 0) savedNewUnitActions = await unitActionsRepository.save(newUnitAction);
-  if (!savedNewUnitActions) return { success: false, message: "Не удалось сохранить действия Юнитов" }
+  const savedNewUnitActions = newUnitActionEntities.length > 0
+    ? await unitActionsRepository.save(newUnitActionEntities)
+    : [];
 
-  // Обновляем существующие действия
-  const updatedUnitActions = unitActionToUpdate.map(unitAction => {
-    const existingUnitAction = existingUnitActions.find(existingUnitAction => existingUnitAction.id === unitAction.id);
-    if (existingUnitAction) {
-      existingUnitAction.koef = unitAction.koef; // Обновляем нужные поля
-      existingUnitAction.action_id = unitAction.action.id;
-      return unitActionsRepository.create(existingUnitAction);
+  const updatedEntities = unitActionToUpdate.map(unitAction => {
+    const existing = existingUnitActions.find(e => e.id === unitAction.id);
+    if (existing) {
+      return unitActionsRepository.create({
+        id: unitAction.id,
+        idc: unitAction.idc,
+        koef: unitAction.koef,
+        action_id: unitAction.action.id,
+        unit_id: unitAction.unitId,
+        unit_idc: unitAction.unitIdc,
+        team_id: teamId,
+      });
     }
     return null;
-  }).filter(unitAction => unitAction !== null);
+  }).filter(Boolean) as UnitActionTable[];
 
-  let savedUpdatedUnitActions = [] as UnitActionTable[]
-  if (updatedUnitActions.length > 0) savedUpdatedUnitActions = await unitActionsRepository.save(updatedUnitActions);
+  const savedUpdatedUnitActions = updatedEntities.length > 0
+    ? await unitActionsRepository.save(updatedEntities)
+    : [];
 
-  if (!savedUpdatedUnitActions) return { success: false, message: "Не удалось сохранить действия Юнитов" }
+  const savedUnitActions = [...savedNewUnitActions, ...savedUpdatedUnitActions].map(unitAction => ({
+    ...unitAction,
+    action: unitActions.find(u => u.id === unitAction.id)?.action
+  })) as (UnitActionTable & { action?: ActionTable })[];
 
-  // Все действия юнита сохранены, проверка
-  let error = ""
-  const savedUnitActions = [...savedNewUnitActions, ...savedUpdatedUnitActions] as UnitActionTable[]
-
-  // вход и выход массив операций не совпадает количество записей - чтото не сохранилось
   if (savedUnitActions.length > 0 && unitActions.length !== savedUnitActions.length) {
-    error = `Не удалось сохранить стадии`;
+    const error = `Не удалось сохранить действия юнита`;
     console.log(error);
-    return { success: false, message: error }
+    return { success: false, message: error };
   }
 
-  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-  if (savedUnitActions.length > 0 && unitActions.length > 0) {
-    if (savedUnitActions.length > 0) {
-
-      savedUnitActions.forEach((unitAction, index) => {
-        if (unitAction.id) {
-          // console.log(`Действие юнита ${index + 1} успешно сохранено с id: ${unitAction.id}`);
-        } else {
-          error = `Ошибка при сохранении стадии ${index + 1}`;
-          console.log(error);
-          return { success: false, message: error }
-        }
-      });
-    } else {
-      error = `Не удалось сохранить стадии`;
+  for (const [index, unitAction] of savedUnitActions.entries()) {
+    if (!unitAction.id) {
+      const error = `Ошибка при сохранении действия юнита ${index + 1}`;
       console.log(error);
-      return { success: false, message: error }
+      return { success: false, message: error };
     }
   }
-  return { success: true, savedUnitActions: savedUnitActions }
+  const savedUnitActions_ = savedUnitActions.map(uasaved => {
+    const unitAction = unitActions.find(ua => ua.idc === uasaved.idc)
+    return {
+      id: uasaved.id,
+      idc: uasaved.idc,
+      action: unitAction?.action ?? {} as ActionItem,
+      koef: uasaved.koef,
+      unitId: uasaved.unit_id,
+      unitIdc: uasaved.unit_idc,
+    } as UnitActionItem
+  })
+  return { success: true, savedUnitActions: savedUnitActions_ };
 }
 
 // ОТКЛОНЕНИЯ ОТ РАСПИСАНИЯ ЮНИТА
@@ -552,7 +561,7 @@ export async function updateExceptions(
   unitExceptionsRepository: Repository<UnitExceptionTable>,
   unitExceptions: UnitExceptionItem[],
   teamId: number
-) {
+): Promise<{ success: boolean; message?: string; savedUnitExceptions?: UnitExceptionItem[] }> {
 
   // СПИСОК ЮНИТОВ в базе
   const existingUnitExceptions = await unitExceptionsRepository.find({ where: { team_id: teamId } });
@@ -643,7 +652,19 @@ export async function updateExceptions(
       return { success: false, message: error }
     }
   }
-  return { success: true, savedUnitExceptions: savedUnitExceptions }
+  const savedUnitExceptions_ = savedUnitExceptions.map(sue => {
+    return {
+    id: sue.id,
+    idc: sue.idc,
+    date: new Date(sue.date).toLocaleDateString('en-CA'),
+    type: sue.type,
+    timeStart: sue.timeStart,
+    timeFinish: sue.timeFinish,
+    unitId: sue.unit_id,
+    unitIdc: sue.unit_idc, 
+    } as UnitExceptionItem
+  })
+  return { success: true, savedUnitExceptions: savedUnitExceptions_ }
 }
 
 // НАЗНАЧЕНИЯ ЮНИТА ПОЛЬЗОВАТЕЛЮ
@@ -655,7 +676,7 @@ export async function updateUsersUnits(
   // Получаем все существующие назначения юнитов в базе
   const existingUsersUnits = await usersUnitsRepository.find({
     where: { team_id: teamId },
-    relations: ['user', 'unit']
+    // relations: ['user', 'unit']
   });
 
   // 1. Найдём назначения юнитов, которые нужно удалить
@@ -727,7 +748,7 @@ export async function updateUsersUnits(
   // Получаем полные записи UserUnitTable для обновленных назначений
   savedUpdatedUsersUnits = await usersUnitsRepository.find({
     where: { id: In(savedUpdatedUsersUnits.map(unit => unit.id)) }, // Получаем только обновленные записи
-    relations: ['unit', 'user'], // Загружаем связь с таблицей UnitTable
+    // relations: ['unit', 'user'], // Загружаем связь с таблицей UnitTable
   });
 
   // Все назначения юнитов сохранены, проверка
@@ -936,640 +957,679 @@ async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>)
   return newNumber;
 }
 
+///////////////////// ЗАПИСЬ КАРТЫ//////////////////
+// &&&&
 // ТКАРТА
 export async function updateCard(
   tCardRepository: Repository<TCardTable>,
   tCard: TCardItem,
   userId: number,
-  teamId: number) {
-  let savedTCard = null;
-  let error = "";
-  // генерим пользовательский номер карты
-  let newCardNumber = Number(tCard.idc);
+  teamId: number
+): Promise<{ success: boolean; savedTCard?: TCardItem; message?: string }> {
+  let savedTCard: TCardTable | null = null;
 
-  if (tCard.idc === 0) {
-    newCardNumber = await generateNewNumberForTeam(tCardRepository);
-    if (!newCardNumber) {
-      error = `Ошибка при генерации номера карты`;
-      console.log(error);
-      return { success: false, message: error }
+  try {
+    // Генерируем номер карты, если idc = 0
+    let newCardNumber = Number(tCard.idc);
+    if (tCard.idc === 0) {
+      newCardNumber = await generateNewNumberForTeam(tCardRepository);
+      if (!newCardNumber) {
+        return { success: false, message: `Ошибка при генерации номера карты` };
+      }
     }
+
+    // Если id карты > 0, обновляем, иначе создаём новую
+    if (tCard.id && tCard.id > 0) {
+      savedTCard = await tCardRepository.save({
+        ...tCard,
+        user_id: Number(userId),
+        team_id: Number(teamId),
+        max_idc: tCard.maxIdc,
+        coment: tCard.coment,
+        status: tCard.status,
+      });
+    } else {
+      const newTCard = tCardRepository.create({
+        user_id: Number(userId),
+        date: tCard.date,
+        team_id: Number(teamId),
+        idc: newCardNumber,
+        max_idc: tCard.maxIdc,
+        coment: tCard.coment,
+        status: tCard.status,
+      });
+      savedTCard = await tCardRepository.save(newTCard);
+    }
+
+    // Проверка успешности
+    if (!savedTCard || !savedTCard.id) {
+      return { success: false, message: `Ошибка при сохранении карты` };
+    }
+
+    // Формируем TCardItem
+    const savedItem: TCardItem = {
+      id: savedTCard.id,
+      date: new Date(savedTCard.date).toLocaleDateString("en-CA"),
+      idc: savedTCard.idc,
+      modified: false,
+      maxIdc: savedTCard.max_idc,
+      coment: savedTCard.coment,
+      status: savedTCard.status
+    };
+
+    return { success: true, savedTCard: savedItem };
+
+  } catch (error) {
+    console.error('Ошибка при обновлении/создании карты:', error);
+    return { success: false, message: 'Ошибка при сохранении карты' };
   }
-
-  // Если id карты положительный, то обновляем, если нет - создаем новую
-  if (tCard.id && tCard.id > 0) {
-    // Обновляем существующую карту
-
-    savedTCard = await tCardRepository.save({
-      ...tCard,  // сохраняем все поля карты, включая id
-      user_id: Number(userId),
-      team_id: Number(teamId),
-      max_idc: tCard.maxIdc,
-      coment: tCard.coment,
-      status: tCard.status,
-    });
-
-    // console.log('Карта успешно обновлена с id:', savedTCard.id);
-  } else {
-    // Создаем новую карту
-    const newTCard = tCardRepository.create({
-      user_id: Number(userId),
-      date: tCard.date,
-      team_id: Number(teamId),
-      idc: newCardNumber,
-      max_idc: tCard.maxIdc,
-      coment: tCard.coment,
-      status: tCard.status,
-    });
-
-    savedTCard = await tCardRepository.save(newTCard);
-    console.log('Новая карта успешно сохранена с id:', savedTCard.id);
-  }
-
-  // Проверка, что сохранение прошло успешно
-  if (savedTCard && savedTCard.id) {
-    // console.log('Карта успешно сохранена или обновлена с id:', savedTCard.id);
-  } else {
-    error = `Ошибка при сохранении или обновлении карты ${JSON.stringify(tCard)}`;
-    console.log(error);
-    return { success: false, message: error }
-  }
-
-  return { success: true, savedTCard: savedTCard }
-
 }
-
+// &&&&
 // СТАДИИ
 export async function updateStages(
   tCardStagesRepository: Repository<TCardStageTable>,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
   tCardStages: TCardStageItem[],
-  savedTCard: TCardTable) {
-
-  // СПИСОК СТАДИЙ  в базе
-  const existingTCardStages = await tCardStagesRepository.find({ where: { tcard_id: savedTCard.id } });
-
-  // 1. Найдём удалённые стадии
-  const stagesToDelete = existingTCardStages.filter(stage =>
-    !tCardStages.some(newStage => newStage.id === stage.id) // Сравниваем id существующих стадий с переданными
-  );
-
-  // 2. Найдём новые стадии, которых нет в базе
-  const stagesToAdd = tCardStages.filter(stage =>
-    !existingTCardStages.some(existingStage => existingStage.id === stage.id) // Сравниваем id переданных стадий с существующими
-  );
-
-  // 3. Найдём существующие стадии для обновления
-  const stagesToUpdate = tCardStages.filter(stage =>
-    existingTCardStages.some(existingStage => existingStage.id === stage.id) // Сравниваем id для существующих стадий
-  );
-
-  // Удаляем старые стадии
-  if (stagesToDelete.length > 0) {
-    // Для каждой стадии находим связанные с ней операции
-    for (const stage of stagesToDelete) {
-      // Получаем операции, связанные с текущей стадией
-      const operationsToDelete = await tCardOperationsRepository.find({
-        where: { stage_id: stage.id },
-      });
-
-      // Для каждой операции находим связанные с ней продукты
-      for (const operation of operationsToDelete) {
-        const productsToDelete = await tCardProductRepository
-          .createQueryBuilder('product')
-          .where('product.operation_id = :operationId', { operationId: operation.id })
-          .getMany();
-
-        // Удаляем продукты
-        if (productsToDelete.length > 0) {
-          await tCardProductRepository.remove(productsToDelete);
-          console.log(`Удалено ${productsToDelete.length} продуктов для операции ${operation.id}`);
-        }
-      }
-
-      // Удаляем операции
-      if (operationsToDelete.length > 0) {
-        await tCardOperationsRepository.remove(operationsToDelete);
-        console.log(`Удалено ${operationsToDelete.length} операций для стадии ${stage.id}`);
-      }
-    }
-    await tCardStagesRepository.remove(stagesToDelete);
-  }
-
-  // Добавляем новые стадии
-  const newStages = stagesToAdd.map(stage => {
-    return tCardStagesRepository.create({
-      idc: stage.idc,
-      code: stage.code,
-      tcard_id: savedTCard.id,
+  savedTCard: TCardItem
+): Promise<{ success: boolean, savedTCardStages?: TCardStageItem[], message?: string }> {
+  try {
+    // Получаем текущие стадии из БД
+    const existingTCardStages = await tCardStagesRepository.find({
+      where: { tcard_id: savedTCard.id },
     });
-  });
-  let savedNewStages = [] as TCardStageTable[]
-  if (newStages.length > 0) savedNewStages = await tCardStagesRepository.save(newStages);
-  if (!savedNewStages) return { success: false, message: "Не удалось сохранить стадии" }
 
-  // Обновляем существующие стадии
-  const updatedStages = stagesToUpdate.map(stage => {
-    const existingStage = existingTCardStages.find(existingStage => existingStage.id === stage.id);
-    if (existingStage) {
-      existingStage.code = stage.code; // Обновляем нужные поля
-      return tCardStagesRepository.create(existingStage);
-    }
-    return null;
-  }).filter(stage => stage !== null);
+    // 1. Удаляем удалённые стадии и связанные данные
+    const stagesToDelete = existingTCardStages.filter(stage =>
+      !tCardStages.some(newStage => newStage.id === stage.id)
+    );
 
-  let savedUpdatedStages = [] as TCardStageTable[]
-  if (updatedStages.length > 0) savedUpdatedStages = await tCardStagesRepository.save(updatedStages);
-  if (!savedUpdatedStages) return { success: false, message: "Не удалось сохранить стадии" }
+    if (stagesToDelete.length > 0) {
+      for (const stage of stagesToDelete) {
+        // Операции для стадии
+        const operationsToDelete = await tCardOperationsRepository.find({ where: { stage_id: stage.id } });
 
-  // Все стадии сохранены, проверка
-  const savedTCardStages = [...savedNewStages, ...savedUpdatedStages]
-    .sort((a, b) => a.code - b.code) as TCardStageTable[];
+        if (operationsToDelete.length > 0) {
+          // Удаляем продукты для операций
+          const operationIds = operationsToDelete.map(op => op.id);
+          const productsToDelete = await tCardProductRepository
+            .createQueryBuilder('product')
+            .where('product.operation_id IN (:...operationIds)', { operationIds })
+            .getMany();
 
-  if (tCardStages.length > 0) {
-    // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-    let error = ""
-    if (savedTCardStages.length > 0) {
+          if (productsToDelete.length > 0) {
+            await tCardProductRepository.remove(productsToDelete);
+            console.log(`Удалено ${productsToDelete.length} продуктов для стадии ${stage.id}`);
+          }
 
-      savedTCardStages.forEach((stage, index) => {
-        if (stage.id) {
-          console.log(`Стадия ${index + 1} успешно сохранена с id: ${stage.id}`);
-        } else {
-          error = `Ошибка при сохранении стадии ${index + 1}`;
-          console.log(error);
-          return { success: false, message: error }
+          await tCardOperationsRepository.remove(operationsToDelete);
+          console.log(`Удалено ${operationsToDelete.length} операций для стадии ${stage.id}`);
         }
-      });
-    } else {
-      error = `Не удалось сохранить стадии`;
-      console.log(error);
-      return { success: false, message: error }
+      }
+      await tCardStagesRepository.remove(stagesToDelete);
     }
-  }
-  return { success: true, savedTCardStages: savedTCardStages }
-}
 
+    // 2. Добавляем новые стадии
+    const newStages = tCardStages
+      .filter(stage => !existingTCardStages.some(existingStage => existingStage.id === stage.id))
+      .map(stage => tCardStagesRepository.create({
+        idc: stage.idc,
+        code: stage.code,
+        tcard_id: savedTCard.id,
+      }));
+
+    const savedNewStages = newStages.length > 0 ? await tCardStagesRepository.save(newStages) : [];
+
+    // 3. Обновляем существующие стадии
+    const updatedStages = tCardStages
+      .filter(stage => existingTCardStages.some(existingStage => existingStage.id === stage.id))
+      .map(stage => {
+        const existingStage = existingTCardStages.find(existing => existing.id === stage.id);
+        if (!existingStage) return null;
+        existingStage.code = stage.code;
+        return existingStage;
+      })
+      .filter(Boolean) as TCardStageTable[];
+
+    const savedUpdatedStages = updatedStages.length > 0 ? await tCardStagesRepository.save(updatedStages) : [];
+
+    // 4. Объединяем результат
+    const savedTCardStages = [...savedNewStages, ...savedUpdatedStages]
+      .sort((a, b) => a.code - b.code)
+      .map(stage => ({
+        id: stage.id,
+        idc: stage.idc,
+        code: stage.code,
+      } as TCardStageItem));
+
+    // Проверка корректности
+    if (tCardStages.length > 0 && savedTCardStages.length === 0) {
+      return { success: false, message: 'Не удалось сохранить стадии' };
+    }
+
+    return { success: true, savedTCardStages };
+
+  } catch (error) {
+    console.error('Ошибка при обновлении стадий:', error);
+    return { success: false, message: 'Ошибка при обновлении стадий' };
+  }
+}
+// &&&&
 // ОПЕРАЦИИ
 export async function updateOperations(
   tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
   tCardOperations: TCardOperationItem[],
-  savedTCard: TCardTable,
-  savedTCardStages: TCardStageTable[] // Сохранённые стадии
-) {
+  savedTCard: TCardItem,
+  savedTCardStages: TCardStageItem[]
+): Promise<{
+  success: boolean;
+  message?: string;
+  savedTCardOperations?: TCardOperationItem[];
+}> {
+  try {
+    // Получаем существующие операции для данного tCard
+    const existingTCardOperations = await tCardOperationsRepository.find({
+      where: { tcard_id: savedTCard.id },
+    });
 
-  // Получаем существующие операции для данного tCard
-  const existingTCardOperations = await tCardOperationsRepository.find({
-    where: { tcard_id: savedTCard.id },
-  });
-
-  // 1. Найдём удалённые операции
-  const operationsToDelete = existingTCardOperations.filter(
-    (operation) => !tCardOperations.some((newOperation) => newOperation.id === operation.id)
-  );
-
-  // 2. Найдём новые операции, которых нет в базе
-  const operationsToAdd = tCardOperations.filter(
-    (operation) => !existingTCardOperations.some((existingOperation) => existingOperation.id === operation.id)
-  );
-
-  // 3. Найдём существующие операции для обновления
-  const operationsToUpdate = tCardOperations.filter(
-    (operation) => existingTCardOperations.some((existingOperation) => existingOperation.id === operation.id)
-  );
-
-
-  // Удаляем старые операции
-  // Перед этим надо удалить продукты, входящие в операцию
-  const operationIds = operationsToDelete.map(op => op.id);
-
-  // Если список операций пуст, пропускаем запрос
-  if (operationIds.length > 0) {
-    const productsToDelete = await tCardProductRepository
-      .createQueryBuilder('product')
-      .where('product.operation_id IN (:...operationIds)', { operationIds })
-      .getMany();
-
-    if (productsToDelete.length > 0) {
-      // Удаляем продукты, связанные с этими операциями
-      await tCardProductRepository.remove(productsToDelete);
-      console.log(`Удалено ${productsToDelete.length} продуктов`);
-    }
-  }
-
-  if (operationsToDelete.length > 0) {
-    await tCardOperationsRepository.remove(operationsToDelete);
-    console.log(`Удалено ${operationsToDelete.length} операций`);
-  }
-
-  let error = "";
-
-  // Добавляем новые операции
-
-  const newOperations = [];
-
-  for (const operation of operationsToAdd) {
-    const savedStage = savedTCardStages.find((stage) => stage.idc === operation.stage.idc);
-
-    if (!savedStage) {
-      error = `Ошибка при поиске стадии для операции С${operation.idc}`;
-      console.log(error);
-      break;  // Прерываем цикл
-    }
-
-    if (!operation.action.id) {
-      error = `Ошибка, не заполнено действие в операции ${operation.idc}`;
-      console.log(error);
-      break;  // Прерываем цикл
-    }
-    newOperations.push(
-      tCardOperationsRepository.create({
-        idc: operation.idc,
-        stage_id: savedStage.id,
-        order: operation.order,
-        action_id: operation.action.id,
-        action: operation.action,
-        duration: operation.duration,
-        tcard_id: savedTCard.id,
-        status: operation.status,
-        coment: operation.coment,
-        fix_oper_idc: operation.fixOperIdc,
-      }));
-  }
-
-  if (error) {
-    return { success: false, message: error };
-  }
-
-  let savedNewOperations = [] as TCardOperationTable[];;
-  if (newOperations.length > 0) {
-    savedNewOperations = await tCardOperationsRepository.save(newOperations);
-  }
-
-
-  // Обновляем существующие операции
-  const updatedOperations = [] as TCardOperationTable[];
-
-  for (const operation of operationsToUpdate) {
-    const existingOperation = existingTCardOperations.find(
-      (existingOperation) => existingOperation.id === operation.id
+    // Определяем операции на удаление, добавление и обновление
+    const operationsToDelete = existingTCardOperations.filter(
+      op => !tCardOperations.some(newOp => newOp.id === op.id)
     );
 
-    if (!existingOperation) {
-      error = `Операция с id ${operation.id} не найдена`;
-      console.log(error);
-      break;  // Прерываем цикл
+    const operationsToAdd = tCardOperations.filter(
+      op => !existingTCardOperations.some(existingOp => existingOp.id === op.id)
+    );
+
+    const operationsToUpdate = tCardOperations.filter(
+      op => existingTCardOperations.some(existingOp => existingOp.id === op.id)
+    );
+
+    // Удаляем связанные продукты перед удалением операций    
+    if (operationsToDelete.length > 0) {
+      const operationIds = operationsToDelete.map(op => op.id);
+      await tCardProductRepository.delete({ operation_id: In(operationIds) });
+      await tCardOperationsRepository.remove(operationsToDelete);
     }
 
-    const savedStage = savedTCardStages.find((stage) => stage.idc === operation.stage.idc);
-    if (!savedStage || !savedStage.id) {
-      error = `Ошибка при поиске стадии для операции С${operation.idc}`;
-      console.log(error);
-      break;  // Прерываем цикл
-    }
 
-    if (!operation.action.id) {
-      error = `Ошибка, не заполнено действие в операции ${operation.idc}`;
-      console.log(error);
-      break;  // Прерываем цикл
-    }
-    const operationToUpdate = {
-      id: existingOperation.id,
-      stage_id: savedStage.id,
-      action_id: operation.action.id,
-      order: operation.order,
-      duration: operation.duration,
-      status: operation.status,
-      coment: operation.coment,
-      fix_oper_idc: operation.fixOperIdc,
-    } as TCardOperationTable;
+    // Добавляем новые операции
+    const newOperations = operationsToAdd.map(op => {
+      const savedStage = savedTCardStages.find(stage => stage.idc === op.stage.idc);
+      if (!savedStage || !op.action.id) return null;
 
-    updatedOperations.push(operationToUpdate);
-  }
-
-  if (error) {
-    return { success: false, message: error };
-  }
-
-  let savedUpdatedOperations = [] as TCardOperationTable[];
-  if (updatedOperations.length > 0) {
-    savedUpdatedOperations = await tCardOperationsRepository.save(updatedOperations); // сохраняем обновленные записи
-  }
-
-  // Извлекаем обновленные операции с их связанными таблицами (stage, tCard, action)
-  const operIds = updatedOperations.map(op => op.id);
-  savedUpdatedOperations = await tCardOperationsRepository.find({
-    where: { id: In(operIds) },
-    relations: ['stage', 'action', 'tcard']
-  });
-
-  // Все операции сохранены, проверка
-  const savedTCardOperations = [...savedNewOperations, ...savedUpdatedOperations] as TCardOperationTable[];
-
-  if (tCardOperations.length > 0) {
-    let error = '';
-    if (savedTCardOperations.length > 0) {
-      savedTCardOperations.forEach((operation, index) => {
-        if (operation.id) {
-          console.log(`Операция ${index + 1} успешно сохранена с id: ${operation.id}`);
-        } else {
-          error = `Ошибка при сохранении операции ${index + 1}`;
-          console.log(error);
-          return { success: false, message: error };
-        }
+      return tCardOperationsRepository.create({
+        idc: op.idc,
+        stage_id: savedStage.id,
+        order: op.order,
+        action_id: op.action.id,
+        duration: op.duration,
+        tcard_id: savedTCard.id,
+        status: op.status,
+        coment: op.coment,
+        fix_oper_idc: op.fixOperIdc,
       });
-    } else {
-      error = `Не удалось сохранить операции`;
-      console.log(error);
-      return { success: false, message: error };
-    }
-  }
-  return { success: true, savedTCardOperations: savedTCardOperations };
-}
+    }).filter(Boolean) as TCardOperationTable[];
 
+    const savedNewOperations = newOperations.length
+      ? await tCardOperationsRepository.save(newOperations)
+      : [];
+
+    // Обновляем существующие операции
+    const updatedOperations = operationsToUpdate.map(op => {
+      const existingOperation = existingTCardOperations.find(eo => eo.id === op.id);
+      const savedStage = savedTCardStages.find(stage => stage.idc === op.stage.idc);
+
+      if (!existingOperation || !savedStage || !op.action.id) return null;
+
+      return {
+        ...existingOperation,
+        stage_id: savedStage.id,
+        action_id: op.action.id,
+        order: op.order,
+        duration: op.duration,
+        status: op.status,
+        coment: op.coment,
+        fix_oper_idc: op.fixOperIdc,
+      };
+    }).filter(Boolean) as TCardOperationTable[];
+
+    let savedUpdatedOperations: TCardOperationTable[] = [];
+    if (updatedOperations.length > 0) {
+      savedUpdatedOperations = await tCardOperationsRepository.save(updatedOperations);
+    }
+
+    // Формируем итоговый массив
+    const operIds = [...savedNewOperations, ...savedUpdatedOperations].map(op => op.id);
+    let savedTCardOperations: TCardOperationItem[] = [];
+
+    if (operIds.length > 0) {
+      const rawOperations = await tCardOperationsRepository
+        .createQueryBuilder('oper')
+        .leftJoin('actions', 'action', 'oper.action_id = action.id')
+        .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
+        .addSelect([
+          'action.id', 'action.title', 'action.code', 'action.interruptible',
+          'stage.id', 'stage.idc', 'stage.code'
+        ])
+        .where('oper.id IN (:...ids)', { ids: operIds })
+        .getRawMany();
+
+      savedTCardOperations = rawOperations.map(raw => ({
+        id: raw.oper_id,
+        idc: raw.oper_idc,
+        stage: { id: raw.stage_id, idc: raw.stage_idc, code: raw.stage_code },
+        action: {
+          id: raw.action_id,
+          title: raw.action_title,
+          code: raw.action_code,
+          interruptible: raw.action_interruptible
+        },
+        order: raw.oper_order,
+        duration: raw.oper_duration,
+        status: raw.oper_status,
+        coment: raw.oper_coment,
+        fixOperIdc: raw.oper_fix_oper_idc,
+        out: [],
+        inn: []
+      } as TCardOperationItem));
+    }
+
+    return { success: true, savedTCardOperations };
+  } catch (error) {
+    console.error('Ошибка при обновлении операций:', error);
+    return { success: false, message: 'Ошибка при обновлении операций' };
+  }
+}
+// &&&&
 // ПРОДУКТЫ
 export async function updateProducts(
   products: ProductItem[],
   tCardProductRepository: Repository<TCardProductTable>,
-  savedTCard: TCardTable,
-  savedTCardOperations: TCardOperationTable[],
+  savedTCard: TCardItem,
+  savedTCardOperations: TCardOperationItem[],
   tCardProducts: TCardProductItem[],
   tCardMaterials: TCardProductItem[],
   tCardWastes: TCardProductItem[],
   tCardOperations: TCardOperationItem[]
-): Promise<{ success: boolean; savedTCardProducts?: TCardProductTable[], message?: string }> {
+): Promise<{ success: boolean; savedTCardProducts?: TCardProductItem[], message?: string }> {
 
-  // Расширяем тип TCardProductItem, чтобы добавить поле 'type' и operationId
   interface TCardProductItemRecord extends TCardProductItem {
-    type: TypeEnum;      // Добавляем поле 'type'
-    operationId: number | null;  // Поле operationId
+    type: TypeEnum;
+    operationId: number | null;
+    productIdc: number;
   }
 
-  let error = "";
-  let outArr = [] as TCardProductItemRecord[];
-  let innArr = [] as TCardProductItemRecord[];
+  try {
+    // Карта операций (idc -> id)
+    const operationsMap = Object.fromEntries(
+      savedTCardOperations.map(op => [op.idc, op.id])
+    );
 
-  // Преобразуем tCardOperations в объект, где idc операции - это ключ
-  const operationsMap = savedTCardOperations.reduce((acc, operation) => {
-    acc[operation.idc] = operation.idc;  // Сопоставляем idc операции с id
-    return acc;
-  }, {} as Record<number, number>);
+    // Продукты операций
+    const outArr = tCardOperations.flatMap(op =>
+      op.out.map(tp => ({
+        ...tp,
+        type: TypeEnum.O,
+        operationId: operationsMap[op.idc] ?? null,  // приводим к null
+        productIdc: tp.product.idc
+      }))
+    );
 
-  // Собираем продукты из операций и добавляем operationId на этом этапе
-  tCardOperations.forEach(toper => {
-    // Продукты на выходе (с добавлением operationId)
-    outArr = [...outArr, ...toper.out.map((tProduct) => ({ ...tProduct, type: TypeEnum.O, operationId: operationsMap[toper.idc] }))];
+    const innArr = tCardOperations.flatMap(op =>
+      op.inn.map(tp => ({
+        ...tp,
+        type: TypeEnum.I,
+        operationId: operationsMap[op.idc] ?? null,  // приводим к null
+        productIdc: tp.product.idc
+      }))
+    );
+    // Полный список продуктов
+    const tCardAllProducts: TCardProductItemRecord[] = [
+      ...tCardProducts.map(tp => ({ ...tp, type: TypeEnum.P, operationId: null, productIdc: tp.product.idc })),
+      ...tCardMaterials.map(tp => ({ ...tp, type: TypeEnum.M, operationId: null, productIdc: tp.product.idc })),
+      ...tCardWastes.map(tp => ({ ...tp, type: TypeEnum.W, operationId: null, productIdc: tp.product.idc })),
+      ...outArr,
+      ...innArr
+    ];
 
-    // Продукты на входе (с добавлением operationId)
-    innArr = [...innArr, ...toper.inn.map((tProduct) => ({ ...tProduct, type: TypeEnum.I, operationId: operationsMap[toper.idc] }))];
-  });
-
-  // Собираем все продукты в один массив
-  const tCardAllProducts = [
-    ...tCardProducts.map((tProduct) => ({ ...tProduct, type: TypeEnum.P, operationId: null })),    // Для заказанных предметов type: TypeEnum.P
-    ...tCardMaterials.map((tProduct) => ({ ...tProduct, type: TypeEnum.M, operationId: null })), // Для материалов type: TypeEnum.M
-    ...tCardWastes.map((tProduct) => ({ ...tProduct, type: TypeEnum.W, operationId: null })),    // Для отходов type: TypeEnum.W
-    ...outArr,
-    ...innArr
-  ] as TCardProductItemRecord[];
-
-
-  // Шаг 1: Получаем существующие продукты из базы данных
-  const existingTCardProducts = await tCardProductRepository.find({
-    where: { tcard_id: savedTCard.id },
-    relations: ['product']
-  });
-
-  // 1. Найдем удаленные продукты
-  const productsToDelete = existingTCardProducts.filter(product =>
-    !tCardAllProducts.some(newProduct => {
-      return (
-        newProduct.id === product.id
-        && newProduct.code === product.code
-        && newProduct.product.idc === product.product.idc
-        && newProduct.type === product.type
-        && newProduct.qtu === product.qtu
-      )
-    }) // Сравниваем id существующих продуктов с переданными
-  );
-
-  // 2. Найдем новые продукты, которых нет в базе
-  const productsToAdd = tCardAllProducts.filter(product =>
-    !existingTCardProducts.some(existingProduct => {
-      return (
-        existingProduct.id === product.id
-        && existingProduct.code === product.code
-        && existingProduct.product.idc === product.product.idc
-        && existingProduct.type === product.type
-        && existingProduct.qtu === product.qtu
-      )
-    })
-  );
-
-  // 3. Найдем существующие продукты для обновления
-  const productsToUpdate = tCardAllProducts.filter(product =>
-    existingTCardProducts.some(existingProduct => {
-      return (
-        existingProduct.id === product.id
-        && existingProduct.code === product.code
-        && existingProduct.product.idc === product.product.idc
-        && existingProduct.type === product.type
-        && existingProduct.qtu === product.qtu
-      )
-    })
-  );
-
-
-  // Удаляем старые продукты
-  if (productsToDelete.length > 0) await tCardProductRepository.remove(productsToDelete);
-
-
-  // Добавляем новые продукты
-  const newProducts = productsToAdd.map(tProduct => {
-    const opertab = savedTCardOperations.find(opertab => opertab.idc === tProduct.operationId);
-    const product = products.find(product => product.idc === tProduct.product.idc);
-    if (!product) return null;
-    return tCardProductRepository.create({
-      code: tProduct.code,
-      type: tProduct.type,
-      // product:tProduct.product,
-      product_id: product.id,
-      qtu: tProduct.qtu,
-      operation: opertab ? opertab : null,
-      operation_id: opertab ? opertab.id : null,
-      tcard_id: savedTCard.id,
+    // Существующие продукты
+    const existingTCardProducts = await tCardProductRepository.find({
+      where: { tcard_id: savedTCard.id },
     });
-  }).filter(tProduct => tProduct !== null);;
 
-  let savedNewTProducts = [] as TCardProductTable[];
-  if (newProducts.length > 0) {
-    savedNewTProducts = await tCardProductRepository.save(newProducts);
-    if (!savedNewTProducts) return { success: false, message: "Не удалось сохранить продукты" };
-  }
+    // Продукты для CRUD операций
+    const productsToDelete = existingTCardProducts.filter(ep =>
+      !tCardAllProducts.some(np => np.id === ep.id && np.code === ep.code && np.type === ep.type && np.qtu === ep.qtu)
+    );
 
-  for (const tProduct of productsToUpdate) {
-    if (!tProduct.product?.id) {
-      return { success: false, message: `Продукт не выбран у строки с id: ${tProduct.id}` };
+    const productsToAdd = tCardAllProducts.filter(np =>
+      !existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
+    );
+
+    const productsToUpdate = tCardAllProducts.filter(np =>
+      existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
+    );
+
+    // Удаляем продукты
+    if (productsToDelete.length > 0) await tCardProductRepository.remove(productsToDelete);
+
+    // Добавляем новые
+    const newProducts = productsToAdd.map(tp => {
+      const operationId = savedTCardOperations.find(o => o.id === tp.operationId)?.id ?? null;
+      const product = products.find(p => p.idc === tp.product.idc);
+      if (!product) return null;
+
+      return tCardProductRepository.create({
+        code: tp.code,
+        type: tp.type,
+        product_id: product.id,
+        qtu: tp.qtu,
+        operation_id: operationId,
+        tcard_id: savedTCard.id,
+      });
+    }).filter(Boolean) as TCardProductTable[];
+
+    const savedNewProducts = newProducts.length ? await tCardProductRepository.save(newProducts) : [];
+
+    // Обновляем существующие
+    const updatedProducts = productsToUpdate.map(tp => {
+      const existingProduct = existingTCardProducts.find(ep => ep.id === tp.id);
+      const product = products.find(p => p.idc === tp.product.idc);
+      if (!product || !existingProduct) return null;
+
+      return {
+        ...existingProduct,
+        code: tp.code,
+        product_id: product.id,
+        qtu: tp.qtu,
+      };
+    }).filter(Boolean) as TCardProductTable[];
+
+    const savedUpdatedProducts = updatedProducts.length ? await tCardProductRepository.save(updatedProducts) : [];
+
+    const savedTCardProducts: TCardProductItem[] = [...savedNewProducts, ...savedUpdatedProducts]
+      .map(tProduct => {
+        const product = products.find(p => p.id === tProduct.product_id);
+        return {
+          id: tProduct.id,
+          code: tProduct.code,
+          qtu: tProduct.qtu,
+          product: product ?? {} as ProductItem, // гарантируем структуру
+        } as TCardProductItem;
+      });
+    // Проверка результата
+    if (savedTCardProducts.length === 0 && tCardAllProducts.length > 0) {
+      return { success: false, message: "Не удалось сохранить продукты" };
     }
-  }
-  // Обновляем существующие продукты
-  const updatedProducts = productsToUpdate.map(tProduct => {
-    const existingProduct = existingTCardProducts.find(existingProduct => existingProduct.id === tProduct.id);
-    const product = products.find(product => product.idc === tProduct.product.idc);
-    if (!product || !product?.id) return null
 
-    if (existingProduct) {
-      existingProduct.code = tProduct.code; // Обновляем нужные поля
-      existingProduct.product_id = product.id;
-      existingProduct.qtu = tProduct.qtu;
-      return tCardProductRepository.create(existingProduct);
-    }
-    return null;
-  }).filter(tProduct => tProduct !== null);
-
-  let savedUpdatedTProducts = [] as TCardProductTable[];
-  if (updatedProducts.length > 0) {
-    savedUpdatedTProducts = await tCardProductRepository.save(updatedProducts);
-    if (!savedUpdatedTProducts) return { success: false, message: "Не удалось сохранить продукты" };
-  }
-
-  // Все продукты сохранены, проверка
-  const savedTCardProducts = [...savedNewTProducts, ...savedUpdatedTProducts] as TCardProductTable[];
-
-  // если изначально был пустой массив продуктов уходим
-  if (tCardAllProducts.length === 0) return { success: true, savedTCardProducts: savedTCardProducts };
-
-  // если изначально был НЕ пустой массив продуктов  проверка
-  if (savedTCardProducts.length > 0) {
-    savedTCardProducts.forEach((tProduct, index) => {
-      if (tProduct.id) {
-        console.log(`TПродукт ${index + 1} успешно сохранен с id: ${tProduct.id}`);
-      } else {
-        error = `Ошибка при сохранении тпродукта ${index + 1}`;
-        console.log(error);
-        return { success: false, message: error };
-      }
+    savedTCardProducts.forEach((tp, index) => {
+      if (!tp.id) console.warn(`Ошибка при сохранении продукта ${index + 1}`);
     });
-  } else {
-    error = `Не удалось сохранить тпродукты`;
-    console.log(error);
-    return { success: false, message: error };
-  }
 
-  return { success: true, savedTCardProducts: savedTCardProducts };
+    return { success: true, savedTCardProducts };
+
+  } catch (err) {
+    console.error("Ошибка в updateProducts:", err);
+    return { success: false, message: "Ошибка при обновлении продуктов" };
+  }
 }
 
+// &&&&
+// КАТАЛОГ
+// export async function updateCatalogProducts(
+//   uomsRepository: Repository<UOMsTable>,
+//   productRepository: Repository<ProductTable>,
+//   savedTCard: TCardTable,
+//   products: ProductItem[],
+//   teamId: number
+// ): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
+//   let error = ""; 
+
+//   const existingProductsRaw = await productRepository
+//     .createQueryBuilder('product')
+//     .leftJoin('uoms', 'uom', 'product.uom_id = uom.id')
+//     .addSelect([
+//       'uom.id',
+//       'uom.title',
+//       'uom.code'
+//     ])
+//     .where('product.tcard_id = :tcardId', { tcardId: savedTCard.id })
+//     .getRawMany();
+
+//   const existingProducts: (ProductTable & { uom?: UOMItem })[] = existingProductsRaw.map(row => ({
+//     created_at: row.product_created_at,
+//     id: row.product_id,
+//     idc: row.product_idc,
+//     title: row.product_title,
+//     sync: row.product_sync,
+//     tcard_id: row.product_tcard_id,
+//     uom_id: row.product_uom_id,
+
+//     uom: {
+//       id: row.uom_id,
+//       title: row.uom_title,
+//       code: row.uom_code,
+//     } as UOMItem,
+//   }));
+
+//   // 1. Найдем удаленные продукты
+//   const productsToDelete = existingProducts.filter(product =>
+//     !products.some(newProduct => { return (newProduct.id === product.id) })
+//   );
+
+//   // 2. Найдем новые продукты, которых нет в базе
+//   const productsToAdd = products.filter(product =>
+//     !existingProducts.some(existingProduct => { return (existingProduct.id === product.id) })
+//   );
+
+//   // 3. Найдем существующие продукты для обновления
+//   const productsToUpdate = products.filter(product =>
+//     existingProducts.some(existingProduct => { return (existingProduct.id === product.id) })
+//   );
+
+//   // Удаляем старые продукты
+//   if (productsToDelete.length > 0) await productRepository.remove(productsToDelete);
+
+//  // Добавляем новые продукты
+// let savedNewProducts: (ProductTable & { uom?: UOMItem })[] = [];
+
+// if (productsToAdd.length > 0) {
+//   try {
+//     const plainProducts = productsToAdd.map(product => ({
+//       idc: product.idc,
+//       title: product.title,
+//       uom_id: product.uom.id,   // только ID
+//       tcard_id: savedTCard.id,  // только ID
+//       sync: product.sync
+//     }));
+
+//     savedNewProducts = await productRepository.save(plainProducts);
+
+//     if (savedNewProducts.length === 0) {
+//       return { success: false, message: "Не удалось сохранить продукты из каталога" };
+//     }
+//   } catch (err) {
+//     console.error('Ошибка при сохранении новых продуктов:', err);
+//     return { success: false, message: 'Ошибка при сохранении продуктов каталога' };
+//   }
+// }
+
+//   // Обновляем существующие продукты
+//   const updatedProducts = productsToUpdate.map(product => {
+//     const existingProduct = existingProducts.find(existingProduct => existingProduct.id === product.id);
+//     if (existingProduct) {
+//       existingProduct.title = product.title;
+//       existingProduct.uom_id = product.uom.id;
+//       existingProduct.sync = product.sync;
+//       return productRepository.create(existingProduct);
+//     }
+//     return null;
+//   }).filter(product => product !== null);
+
+//   let savedUpdatedProducts = [] as (ProductTable & { uom?: UOMItem })[];
+//   if (updatedProducts.length > 0) {
+//     savedUpdatedProducts = await productRepository.save(updatedProducts);
+//     if (!savedUpdatedProducts) return { success: false, message: "Не удалось сохранить каталог" };
+//   }
+
+
+//   // Все продукты сохранены, проверка
+//   const savedProducts = [...savedNewProducts, ...savedUpdatedProducts] as (ProductTable & { uom?: UOMItem })[];
+
+//   // // Выполняем запрос с фильтрацией
+//   // const uoms = await uomsRepository.find({
+//   //   where: { team_id: teamId },  // Применяем фильтр к запросу
+//   // });
+
+//   // // Заполняем поле uom там где не заполнено
+//   // for (const product of savedProducts) {
+//   //   if (!product.uom_id) {
+//   //     const matched = uoms.find(uom => uom.id === product.uom_id)
+//   //     if (matched) {
+//   //       product.uom = matched;
+//   //     }
+//   //   }
+//   // }
+
+//   // если изначально был пустой массив продуктов уходим
+//   if (products.length === 0) return { success: true, savedProducts: savedProducts };
+
+//   // если изначально был НЕ пустой массив продуктов  проверка
+//   if (savedProducts.length > 0) {
+//     savedProducts.forEach((product, index) => {
+//       if (product.id) {
+//         console.log(`Предмет каталога ${index + 1} успешно сохранен с id: ${product.id}`);
+//       } else {
+//         error = `Ошибка при сохранении каталога ${index + 1}`;
+//         console.log(error);
+//         return { success: false, message: error };
+//       }
+//     });
+//   } else {
+//     error = `Не удалось сохранить каталог`;
+//     console.log(error);
+//     return { success: false, message: error };
+//   }
+
+//   return { success: true, savedProducts: savedProducts };
+// }
 // КАТАЛОГ
 export async function updateCatalogProducts(
-  uomsRepository: Repository<UOMsTable>,
   productRepository: Repository<ProductTable>,
-  savedTCard: TCardTable,
+  savedTCard: TCardItem,
   products: ProductItem[],
-  teamId: number
-): Promise<{ success: boolean; savedProducts?: ProductTable[], message?: string }> {
+): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
   let error = "";
 
-  // Шаг 1: Получаем существующие продукты из базы данных
-  const existingProducts = await productRepository.find({
-    where: { tcard_id: savedTCard.id },
-    relations: ['uom']
-  });
+  // Получаем существующие продукты с привязанными UOM
+  const existingProductsRaw = await productRepository
+    .createQueryBuilder('product')
+    .leftJoin('uoms', 'uom', 'product.uom_id = uom.id')
+    .addSelect(['uom.id', 'uom.title', 'uom.code'])
+    .where('product.tcard_id = :tcardId', { tcardId: savedTCard.id })
+    .getRawMany();
 
-  // 1. Найдем удаленные продукты
-  const productsToDelete = existingProducts.filter(product =>
-    !products.some(newProduct => { return (newProduct.id === product.id) })
-  );
+  const existingProducts: ProductItem[] = existingProductsRaw.map(row => ({
+    id: row.product_id,
+    idc: row.product_idc,
+    title: row.product_title,
+    sync: row.product_sync,
+    uom: {
+      id: row.uom_id,
+      title: row.uom_title,
+      code: row.uom_code
+    }
+  }));
 
-  // 2. Найдем новые продукты, которых нет в базе
-  const productsToAdd = products.filter(product =>
-    !existingProducts.some(existingProduct => { return (existingProduct.id === product.id) })
-  );
+  // 1. Продукты для удаления
+  const productsToDelete = existingProducts.filter(p => !products.some(np => np.id === p.id));
+  if (productsToDelete.length > 0) {
+    const idsToDelete = productsToDelete.map(p => p.id!) as number[];
+    await productRepository.delete(idsToDelete);
+  }
 
-  // 3. Найдем существующие продукты для обновления
-  const productsToUpdate = products.filter(product =>
-    existingProducts.some(existingProduct => { return (existingProduct.id === product.id) })
-  );
+  // 2. Продукты для добавления
+  let savedNewProducts: ProductItem[] = [];
+  const productsToAdd = products.filter(p => !existingProducts.some(ep => ep.id === p.id));
 
-  // Удаляем старые продукты
-  if (productsToDelete.length > 0) await productRepository.remove(productsToDelete);
+  if (productsToAdd.length > 0) {
+    try {
+      const plainProducts = productsToAdd.map(p => ({
+        idc: p.idc,
+        title: p.title,
+        uom_id: p.uom.id,
+        tcard_id: savedTCard.id,
+        sync: p.sync
+      }));
 
-  // Добавляем новые продукты
-  const newProducts = productsToAdd.map(product => {
-    return productRepository.create({
-      idc: product.idc,
-      title: product.title,
-      uom_id: product.uom.id,
+      const inserted = await productRepository.save(plainProducts);
+      savedNewProducts = inserted.map(saved => {
+        const source = productsToAdd.find(p => p.idc === saved.idc)!;
+        return {
+          id: saved.id,
+          idc: saved.idc,
+          title: saved.title,
+          sync: saved.sync,
+          uom: source.uom // Используем UOM из исходного массива
+        };
+      });
+    } catch (err) {
+      console.error('Ошибка при сохранении новых продуктов:', err);
+      return { success: false, message: 'Ошибка при сохранении продуктов каталога' };
+    }
+  }
+
+  // 3. Продукты для обновления
+  let savedUpdatedProducts: ProductItem[] = [];
+  const productsToUpdate = products.filter(p => existingProducts.some(ep => ep.id === p.id));
+
+  if (productsToUpdate.length > 0) {
+    const updateEntities = productsToUpdate.map(p => ({
+      id: p.id,
+      idc: p.idc,
+      title: p.title,
+      uom_id: p.uom.id,
       tcard_id: savedTCard.id,
-      // uom: product.uom, //   чтоб уом не переписывался
-      sync: product.sync
+      sync: p.sync
+    }));
+
+    const updated = await productRepository.save(updateEntities);
+    savedUpdatedProducts = updated.map(saved => {
+      const source = productsToUpdate.find(p => p.id === saved.id)!;
+      return {
+        id: saved.id,
+        idc: saved.idc,
+        title: saved.title,
+        sync: saved.sync,
+        uom: source.uom
+      };
     });
-  });
-
-  let savedNewProducts = [] as ProductTable[];
-  if (newProducts.length > 0) {
-    savedNewProducts = await productRepository.save(newProducts);
-    if (!savedNewProducts) return { success: false, message: "Не удалось сохранить каталог" };
   }
 
-  // Обновляем существующие продукты
-  const updatedProducts = productsToUpdate.map(product => {
-    const existingProduct = existingProducts.find(existingProduct => existingProduct.id === product.id);
-    if (existingProduct) {
-      existingProduct.title = product.title;
-      existingProduct.uom_id = product.uom.id;
-      existingProduct.sync = product.sync;
-      return productRepository.create(existingProduct);
-    }
-    return null;
-  }).filter(product => product !== null);
+  // Объединяем новые и обновленные продукты
+  const savedProducts: ProductItem[] = [...savedNewProducts, ...savedUpdatedProducts];
 
-  let savedUpdatedProducts = [] as ProductTable[];
-  if (updatedProducts.length > 0) {
-    savedUpdatedProducts = await productRepository.save(updatedProducts);
-    if (!savedUpdatedProducts) return { success: false, message: "Не удалось сохранить каталог" };
-  }
+  // Проверка сохраненных данных
+  if (products.length === 0) return { success: true, savedProducts };
 
-
-  // Все продукты сохранены, проверка
-  const savedProducts = [...savedNewProducts, ...savedUpdatedProducts] as ProductTable[];
-
-  // Выполняем запрос с фильтрацией
-  const uoms = await uomsRepository.find({
-    where: { team_id: teamId },  // Применяем фильтр к запросу
-  });
-
-  // Заполняем поле uom там где не заполнено
-  for (const product of savedProducts) {
-    if (!product.uom) {
-      const matched = uoms.find(uom => uom.id === product.uom_id)
-      if (matched) {
-        product.uom = matched;
-      }
-    }
-  }
-
-  // если изначально был пустой массив продуктов уходим
-  if (products.length === 0) return { success: true, savedProducts: savedProducts };
-
-  // если изначально был НЕ пустой массив продуктов  проверка
-  if (savedProducts.length > 0) {
-    savedProducts.forEach((product, index) => {
-      if (product.id) {
-        console.log(`Предмет каталога ${index + 1} успешно сохранен с id: ${product.id}`);
-      } else {
-        error = `Ошибка при сохранении каталога ${index + 1}`;
-        console.log(error);
-        return { success: false, message: error };
-      }
-    });
-  } else {
+  if (savedProducts.length === 0) {
     error = `Не удалось сохранить каталог`;
     console.log(error);
     return { success: false, message: error };
   }
 
-  return { success: true, savedProducts: savedProducts };
+  savedProducts.forEach((product, index) => {
+    if (!product.id) {
+      error = `Ошибка при сохранении продукта ${index + 1}`;
+      console.log(error);
+    }
+  });
+
+  if (error) return { success: false, message: error };
+
+  return { success: true, savedProducts };
 }
 
 ///////////////////// СТАТУСЫ//////////////////
@@ -1591,10 +1651,6 @@ export async function updateStatusOperationByTCardId(
       return { success: false, message: "Операции не были обновлены" };
     }
 
-    // } catch (error: any) {
-    //   console.error("Ошибка обновления операций:", error);
-    //   return { success: false, message: error.message || "Ошибка обновления операций" };
-    // }
   } catch (error: unknown) {
     let message = "Ошибка обновления операций";
     if (error instanceof Error) {

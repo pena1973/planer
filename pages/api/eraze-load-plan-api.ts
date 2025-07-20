@@ -14,7 +14,7 @@ import { TCardProductTable } from './../../db/models/data/t_card_products'
 import { ProductTable } from './../../db/models/data/products'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
-
+import { ActionTable } from './../../db/models/catalogs/actions'
 import { UnitLoadItem, StatusEnum, } from "./../../types/types";
 
 import { In, Raw, Repository } from 'typeorm';
@@ -33,7 +33,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
   const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-
+  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
   const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
   try {
 
@@ -47,7 +47,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         let tCardLoadsUpdated = [...tCardLoads];
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository,productRepository)
+        const tCard = await getTCardFull(
+          Number(teamId),
+          erazload.id_tCard,
+          tCardRepository,
+          tCardOperationsRepository,
+          tCardProductRepository,
+          tCardStagesRepository,
+          productRepository,
+          actionRepository)
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
@@ -151,7 +159,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // Получим карту в ее новом состоянии и тоже передадим      
 
-        const _tCard = await getTCardFull(erazload.id_tCard, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository,productRepository)
+        const _tCard = await getTCardFull(
+          Number(teamId),
+          erazload.id_tCard,
+          tCardRepository,
+          tCardOperationsRepository,
+          tCardProductRepository,
+          tCardStagesRepository,
+          productRepository,
+          actionRepository
+        )
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

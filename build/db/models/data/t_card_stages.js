@@ -11,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TCardStageTable = void 0;
 const typeorm_1 = require("typeorm");
-// import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-const t_cards_1 = require("./t_cards"); // Импортируем зависимую сущность
 let TCardStageTable = class TCardStageTable {
 };
 exports.TCardStageTable = TCardStageTable;
@@ -25,20 +23,15 @@ __decorate([
     __metadata("design:type", Date)
 ], TCardStageTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardStageTable.prototype, "idc", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", Number)
 ], TCardStageTable.prototype, "code", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => t_cards_1.TCardTable, { eager: true, cascade: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'tcard_id' }),
-    __metadata("design:type", t_cards_1.TCardTable)
-], TCardStageTable.prototype, "tcard", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardStageTable.prototype, "tcard_id", void 0);
 exports.TCardStageTable = TCardStageTable = __decorate([

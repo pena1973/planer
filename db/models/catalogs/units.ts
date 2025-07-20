@@ -1,6 +1,6 @@
 
-import { Entity, PrimaryGeneratedColumn, Column,  ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from './teams'
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
 import { UnitTypeEnum, UnitBelongEnum } from './../../../types/types';
 
 @Entity("units")
@@ -15,16 +15,16 @@ export class UnitTable {
   @Column('int', { unique: true })
   idc!: number;
   
-  @Column()
+  @Column('varchar')
   title!: string;
 
-  @Column({ nullable: true })
+  @Column('varchar',{ nullable: true })
   code!: string;
 
-  @Column({ default: 0 })
+  @Column('int',{ default: 0 })
   retool!: number;
 
-  @Column({ nullable: true, default: "" })
+  @Column('text',{ nullable: true, default: "" })
   coment!: string;
 
   @Column({
@@ -41,12 +41,9 @@ export class UnitTable {
   })
   type!: UnitTypeEnum;
   
-  @Column({ default: false })
+  @Column('boolean',{ default: false })
   active!: boolean; //  запись действующая
-
-  @ManyToOne(() => TeamTable) 
-  @JoinColumn({ name: 'team_id' })
-  team!: TeamTable; 
-  @Column()
+  
+  @Column('int')
   team_id!: number;
 }

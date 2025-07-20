@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BillTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("../../models/catalogs/teams");
 let BillTable = class BillTable {
 };
 exports.BillTable = BillTable;
@@ -28,7 +27,7 @@ __decorate([
     __metadata("design:type", Date)
 ], BillTable.prototype, "date", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "" }),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
 ], BillTable.prototype, "title", void 0);
 __decorate([
@@ -36,18 +35,11 @@ __decorate([
     __metadata("design:type", String)
 ], BillTable.prototype, "fileContent", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
+    (0, typeorm_1.Column)('boolean', { default: false }),
     __metadata("design:type", Boolean)
 ], BillTable.prototype, "paid", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], BillTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], BillTable.prototype, "team_id", void 0);
 exports.BillTable = BillTable = __decorate([

@@ -13,7 +13,7 @@ import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { UnitTable } from './../../db/models/catalogs/units'
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
-
+import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { UnitCalendarItem, UnitLoadItem, StatusEnum, UnitKPIItem } from "./../../types/types";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -24,7 +24,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
 
-  try {    
+  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+
+  try {
     const { userId, teamId, today, unitId, dateFrom, dateTo, month } = req.query;
 
     switch (req.method) {
@@ -38,10 +40,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (unitId) filteredUnits = units.filter(unit => unit.id === Number(unitId));
 
         // запросим лоады по юнитам
-        const unitLoads = await getUnitLoads(filteredUnits, unitLoadRepository)
+        const unitLoads = await getUnitLoads(
+          Number(teamId),
+          filteredUnits,
+          unitLoadRepository,
+          unitActionsRepository
+        )
 
         // запросим расписание команды
-        const schedule = await getTeamShedule(Number(teamId), teamScheduleRepository)
+        const schedule = await getTeamShedule(Number(teamId), teamScheduleRepository,teamRepository)
 
         // запросим исключения расписания по юнитам
 

@@ -42,8 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Извлекаем данные из тела запроса
         const { login, pass } = req.body as RequestBody;
 
-        console.log('👀 userRepository:', usersRepository.target);
-
+        // console.log('👀 userRepository:', usersRepository.target);
+        //&&&&&
         const resUser = await getUser(login, pass, usersRepository)
         if (!resUser.success) {
           res.status(200).json({
@@ -54,19 +54,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         const user = resUser.user as UserItem;
 
+        // &&&&&
         const resTeam = await getTeam(user.teamId, teamsRepository)
-
         if (!resTeam.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUser.message });
           return;
         }
-
         const team = resTeam.team;
 
 
         //  юзер получен проверяю актуальное соглашение
         const resAgreement = await getLastAgreement(user.id, userAgreeRepository, agreementRepository)
-        //  { text: string, signed: boolean, dateSigned?: string, message?: string }> 
+ 
+        if (!resAgreement.agreementId) {
+          res.status(200).json({
+            success: true,
+            team: team,
+            token: "",
+            user: user,
+            agreementText: "Нет соглашения",
+            agreementId: "",
+            signed: false,
+            dateSigned: "",
+            unit: undefined,            
+          });
+          return;
+        }
 
         const signed = resAgreement.signed;
         const agreementText = resAgreement.agreementText;

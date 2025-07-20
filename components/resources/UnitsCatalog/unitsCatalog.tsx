@@ -72,14 +72,14 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     })
     const [unitsValue, setUnitsValue] = useState([] as UnitItem[]); //временное хранилище юнитов
     const [exceptionsValue, setExceptionsValue] = useState([] as UnitExceptionItem[]); //отклонения распиания юнитов от общего расписания
-    const [actionsValue, setActionsValue] = useState([] as UnitActionItem[]); //действия юнитов
+    const [unitActionsValue, setUnitActionsValue] = useState([] as UnitActionItem[]); //действия юнитов  action
 
     const [focusIndexUnit, setFocusIndexUnit] = useState(NaN); // Юнит на мкотором стоит курсор 
     const [buttonLoader, setButtonLoader] = useState(false);
 
     useEffect(() => {
         setExceptionsValue(unitExceptions)
-        setActionsValue(unitActions)
+        setUnitActionsValue(unitActions)
         setUnitsValue(units)
     }, []);
 
@@ -155,7 +155,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             }
         })
         //  проверка на заполненность действий
-        actionsValue.forEach((act) => {
+        unitActionsValue.forEach((act) => {
 
             if (!act.action) {
                 const title = unitsValue.find(unit => (!unit.id) ? unit.idc === act.unitIdc : unit.id === act.unitId)?.title;
@@ -201,12 +201,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         })
 
         if (exit) {
+            setButtonLoader(false);
             setMessage(message);
             return
         };
-        await saveUnits(unitsValue, actionsValue, exceptionsValue,
+        await saveUnits(unitsValue, unitActionsValue, exceptionsValue,
             user, team, token, dispatch, t,
-            setMessage, setUnitsValue, setActionsValue, setExceptionsValue,);
+            setMessage, setUnitsValue, setUnitActionsValue, setExceptionsValue,);
 
         setButtonLoader(false)
     };
@@ -229,7 +230,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     // На клиенте
     const cancelHandler = () => {
         setExceptionsValue(unitExceptions)
-        setActionsValue(unitActions)
+        setUnitActionsValue(unitActions)
         setUnitsValue(units)
     };
     // На клиенте
@@ -247,7 +248,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     const changeUnitActionHandler = (idToChange: number | undefined, idcToChange: number, value: number | null | { id: number, title: string }, field: string) => {
         unitModified();
         // отклонения
-        const actionsValueUpdated = [...actionsValue]
+        const actionsValueUpdated = [...unitActionsValue]
         let indexToChange = -1;
 
         if (!idToChange) {
@@ -279,30 +280,35 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         }
 
         actionsValueUpdated.splice(indexToChange, 1, unitaction)
-        setActionsValue(actionsValueUpdated)
+        setUnitActionsValue(actionsValueUpdated)
     }
     // На клиенте
     const addUnitActionHandler = () => {
         unitModified();
         const unit = unitsValue[focusIndexUnit];
-        const actionsValueUpdated = [...actionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, koef: 1 } as UnitActionItem]
-        setActionsValue(actionsValueUpdated);
+        const actionsValueUpdated = [
+            ...unitActionsValue, 
+            { idc: generateUniqueIdc(), 
+                unitId: unit.id, 
+                unitIdc: unit.idc, 
+                koef: 1 } as UnitActionItem]
+        setUnitActionsValue(actionsValueUpdated);
     };
     // На клиенте
     const deleteUnitActionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
         unitModified();
         let indexToRemove = -1;
         if (!idToRemove) {
-            indexToRemove = actionsValue.findIndex(elem => elem.idc === idcToRemove)
+            indexToRemove = unitActionsValue.findIndex(elem => elem.idc === idcToRemove)
             if (indexToRemove < 0) return
         }
         else {
-            indexToRemove = actionsValue.findIndex(elem => elem.id === idToRemove)
+            indexToRemove = unitActionsValue.findIndex(elem => elem.id === idToRemove)
             if (indexToRemove < 0) return
         }
-        const actionsValueUpdated = [...actionsValue];
+        const actionsValueUpdated = [...unitActionsValue];
         actionsValueUpdated.splice(indexToRemove, 1)
-        setActionsValue(actionsValueUpdated);
+        setUnitActionsValue(actionsValueUpdated);
     };
 
     ///////// для отклонений расписания юнита
@@ -455,9 +461,10 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             </td>
         </tr>
     ))
+
     // Исключения
     const unitFocusExceptionsValueReactNodes = exceptionsValue
-        .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
+        .filter(elem => elem.unitIdc === unitsValue[focusIndexUnit]?.idc)
         .map((elem, index) => (
 
             <tr key={"ex" + index}>
@@ -526,15 +533,17 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         )
 
         )
-
-    const selectedValues = (actionsValue || [])
-        .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
+  
+    // Действия которые уже выбраны в списоке юнита
+    const selectedValues = (unitActionsValue || [])
+        .filter(elem => elem.unitIdc === unitsValue[focusIndexUnit]?.idc)
         .map((elem) =>
-            elem.action?.id)
-
-    const unitFocusActionValueReactNodes = (actionsValue || [])
-        .filter(elem => elem.unitId === unitsValue[focusIndexUnit]?.id)
-        .map((elem, index) => {   
+            elem.action?.id
+    )
+    // Действия
+    const unitFocusActionValueReactNodes = (unitActionsValue || [])
+        .filter(elem => elem.unitIdc === unitsValue[focusIndexUnit]?.idc)
+        .map((elem, index) => {
             console.log(elem);
             return (
                 <tr key={"ac" + index}>

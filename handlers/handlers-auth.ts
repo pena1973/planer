@@ -174,7 +174,7 @@ export async function updateUser(
 
 }
 
-
+// &&&&&
 export async function getUser(
   login: string,
   pass: string,
@@ -183,7 +183,7 @@ export async function getUser(
 
   // Строим фильтр для поиска пользователя по логину
   const filter = { login };
-  console.log('💡 Репозиторий user:', usersRepository.metadata.name);
+  // console.log('💡 Репозиторий user:', usersRepository.metadata.name);
   // Ищем пользователя в базе данных
   const userRecord = await usersRepository.findOne({ where: filter });
 
@@ -231,7 +231,7 @@ export async function isUserExist(
   return !(!userRecord)
 
 }
-
+//&&&&&&
 export async function getTeam(
   teamId: number,
   teamsRepository: Repository<TeamTable>
@@ -247,7 +247,7 @@ export async function getTeam(
     };
   }
 
-  // Возвращаем успешный результат с данными команды
+ 
   return {
     success: true,
     team: {
@@ -260,7 +260,7 @@ export async function getTeam(
   };
 
 }
-
+// &&&&&
 export async function getLastAgreement(
   userId: number,
   userAgreeRepository: Repository<UserAgreeTable>,

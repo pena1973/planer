@@ -17,7 +17,7 @@ import { TCardProductTable } from './../../db/models/data/t_card_products'
 import { ProductTable } from './../../db/models/data/products'
 import { getTCardFull } from './../../handlers/handlers-get';  // 
 import { updateStatusTCard } from './../../handlers/handlers-update';  // 
-
+import { ActionTable } from './../../db/models/catalogs/actions'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
 
 import { TCardOperationItem, UnitLoadItem, StatusEnum } from "./../../types/types";
@@ -39,6 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const TeamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
 const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
 
   // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -62,7 +63,16 @@ const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
 
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository,productRepository)
+        const tCard = await getTCardFull( 
+          Number(teamId),
+          Number(tCardId), 
+          tCardRepository, 
+          tCardOperationsRepository, 
+          tCardProductRepository, 
+          tCardStagesRepository,
+          productRepository,
+          actionRepository
+        )
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

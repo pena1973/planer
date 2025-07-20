@@ -10,6 +10,7 @@ import { TCardProductTable } from './../db/models/data/t_card_products'
 import { ProductTable } from './../db/models/data/products'
 import { TCardOperationTable } from './../db/models/data/t_card_operations'
 import { TCardStageTable } from './../db/models/data/t_card_stages'
+import { TemplateTable } from './../db/models/catalogs/templates'
 
 import { SupportMessageItem, TypeEnum } from './../types/types';
 import { ActionTable } from './../db/models/catalogs/actions';
@@ -23,6 +24,7 @@ import { UserUnitTable } from './../db/models/catalogs/user_unit';
 import { BillTable } from './../db/models/support/bills';
 import { SupportTable } from './../db/models/support/support';
 
+import { TeamTable } from './../db/models/catalogs/teams';
 
 // types
 import {
@@ -31,59 +33,45 @@ import {
   TimeTypeEnum, TimeZoneEnum, TCardOperationTermsItem,
   TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem,
   TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem,
-  TCardTermsItem, BillItem, ProductItem
+  TCardTermsItem, BillItem, ProductItem, TemplateItem
 } from './../types/types';
 
+// &&&&
 // единицы измерения
 export async function getUOMs(
   teamId: number,
   uomsRepository: Repository<UOMsTable>
 ): Promise<UOMItem[]> {
 
-  // Строим фильтр для поиска
-
-  const filter: { team_id?: number; } = {};
-
-  if (teamId) {
-    filter.team_id = teamId;
-  }
-
-  // Выполняем запрос с фильтрацией
   const receivedUOMS = await uomsRepository.find({
-    where: filter,  // Применяем фильтр к запросу
+    where: { team_id: teamId },
   });
-  // console.log(receivedUOMS);
 
-  const uoms__ = receivedUOMS
+  const uoms = receivedUOMS
     .map(uom => {
       return {
         id: uom.id,
         code: uom.code,
         title: uom.title,
-      };
+      } as UOMItem;
     });
-
-  return uoms__;
+  return uoms;
 }
-// возможные операции команды
+
+// &&&&
+//  операции команды
 export async function getActions(
   teamId: number,
   actionsRepository: Repository<ActionTable>
 ): Promise<ActionItem[]> {
-  // Строим фильтр для поиска
-
-  const filter: Partial<ActionTable> = {};
-  if (teamId) {
-    filter.team_id = teamId;
-  }
 
   // Выполняем запрос с фильтрацией
   const receivedActions = await actionsRepository.find({
-    where: filter,  // Применяем фильтр к запросу
+    where: { team_id: teamId },
   });
   // console.log(receivedActions);
 
-  const actions__ = receivedActions
+  const actions = receivedActions
     .map(action => {
       return {
         id: action.id,
@@ -93,9 +81,10 @@ export async function getActions(
       } as ActionItem;
     });
 
-
-  return actions__;
+  return actions;
 }
+
+// &&&&
 // юниты
 export async function getUnits(
   teamId: number,
@@ -103,19 +92,8 @@ export async function getUnits(
   unitId?: number,
 ): Promise<UnitItem[]> {
 
-  // Строим фильтр для поиска
-  const filter: Partial<UnitActionTable> = {};
-  if (teamId) {
-    filter.team_id = teamId;
-  }
-
-  if (unitId) {
-    filter.id = unitId;
-  }
-
-  // Выполняем запрос с фильтрацией
   const receivedUnits = await unitRepository.find({
-    where: filter,
+    where: { team_id: teamId, ...(unitId && { id: unitId }) },
   });
 
   const units = receivedUnits
@@ -137,77 +115,153 @@ export async function getUnits(
   return units;
 }
 
+// &&&&
+// шаблоны
+export async function getTemplates(
+  teamId: number,
+  templatesRepository: Repository<TemplateTable>
+): Promise<TemplateItem[]> {
+
+  const receivedTemplates = await templatesRepository.find({
+    where: { team_id: teamId },
+  });
+
+  const templates = receivedTemplates
+    .map(template => {
+      return {
+        id: template.id,
+        name: template.name,
+        fileContent: template.fileContent,
+
+      } as TemplateItem;
+    });
+  return templates;
+}
+
+
 // необходимо потом получить операции покартам и дополнить даннве info
 
-// загрузка юнитов 
+// // загрузка юнитов старая версия со связями
+// export async function getUnitLoads(
+//   units: UnitItem[],
+//   unitLoadRepository: Repository<UnitLoadTable>,
+//   isControler: boolean = false,
+
+// ): Promise<UnitLoadItem[]> {
+
+//   // const unitIds = units.map(unit => unit.id);
+
+//   // // Если нет юнитов, можно вернуть пустой результат или обработать ошибку
+//   // if (unitIds.length === 0) return [];
+
+//   // const query = unitLoadRepository
+//   //   .createQueryBuilder('unitLoad')
+//   //   .leftJoinAndSelect('unitLoad.tCard', 'tCard')
+//   //   .where('unitLoad.unit_id IN (:...unitIds)', { unitIds });
+
+//   // if (isControler) {
+//   //   query.andWhere('unitLoad.status = :status', { status: 'performed' });
+//   // }
+
+//   // const unitLoads = await query.getMany();
+
+//   // const unitLoadItems: UnitLoadItem[] = unitLoads.map(unitLoad => {
+
+//   //   const unit = units.find(unit => unit.id === unitLoad.unit_id)
+
+//   //   return {
+//   //     id: unitLoad.id,
+//   //     idc: unitLoad.idc,  // добавлено
+//   //     unit: unit ? unit : {} as UnitItem, // гарантированно существует
+//   //     date: String(unitLoad.date),
+//   //     id_oper: unitLoad.id_oper,
+//   //     idc_oper: unitLoad.idc_oper,
+//   //     id_tCard: unitLoad.id_tCard,
+//   //     timeStart: unitLoad.timeStart,
+//   //     timeFinish: unitLoad.timeFinish,
+//   //     status: unitLoad.status,
+//   //     version: unitLoad.version,
+//   //     isActive: unitLoad.isActive,
+//   //     isRetool: unitLoad.isRetool,
+//   //     isPinned: unitLoad.isPinned,
+//   //     isOuterFinish: unitLoad.isOuterFinish,
+//   //     isOuterStart: unitLoad.isOuterStart,
+//   //     isFirst: unitLoad.isFirst,
+//   //     // частично заполняем инфо по карте
+//   //     loadInfo: {
+//   //       tCardIdc: unitLoad.tCard.idc,
+//   //       tCardDate: new Date(unitLoad.tCard.date).toLocaleDateString("en-CA"),
+//   //       title: "",
+//   //       duration: 0,
+//   //       interruptible: false,
+//   //       koef: 1
+//   //     },
+//   //   };
+//   // });
+//   return unitLoadItems;
+// }
+
+// &&&&
+// загрузка юнитов
 export async function getUnitLoads(
+  teamId: number,
   units: UnitItem[],
   unitLoadRepository: Repository<UnitLoadTable>,
+  unitActionsRepository: Repository<UnitActionTable>,
   isControler: boolean = false,
-
 ): Promise<UnitLoadItem[]> {
 
-  // const unitIds = units.map(unit => unit.id); // Получаем массив идентификаторов
-
-  // if (unitIds.length === 0) {
-  //   // Если нет юнитов, можно вернуть пустой результат или обработать ошибку
-  //   return [];
-  // }
-
-  // const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
-  //   .andWhere('unitLoad.unit_id IN (:...unitIds)', { unitIds }) // Фильтруем по unitIds
-  //   .leftJoinAndSelect('unitLoad.tCard', 'tCard') // Добавляем связь с таблицей tCard
-  //   .getMany();
-
   const unitIds = units.map(unit => unit.id);
-
-  // Если нет юнитов, можно вернуть пустой результат или обработать ошибку
   if (unitIds.length === 0) return [];
+
+  const unitActions: UnitActionItem[] = await getUnitActions(teamId, unitActionsRepository)
 
   const query = unitLoadRepository
     .createQueryBuilder('unitLoad')
-    .leftJoinAndSelect('unitLoad.tCard', 'tCard')
+    .select('unitLoad')
+    .leftJoin('t_cards', 'tCard', 'unitLoad.id_tCard = tCard.id')
+    .addSelect(['tCard.id', 'tCard.idc', 'tCard.date'])
+    .leftJoin('t_card_operations', 'tOper', 'unitLoad.id_oper = tOper.id')
+    .addSelect(['tOper.id', 'tOper.duration', 'tOper.action_id'])
     .where('unitLoad.unit_id IN (:...unitIds)', { unitIds });
 
   if (isControler) {
     query.andWhere('unitLoad.status = :status', { status: 'performed' });
   }
+  const unitLoads = await query.getRawMany();
 
-  const unitLoads = await query.getMany();
-
-  const unitLoadItems: UnitLoadItem[] = unitLoads.map(unitLoad => {
-
-    const unit = units.find(unit => unit.id === unitLoad.unit_id)
-
+  const unitLoadItems: UnitLoadItem[] = unitLoads.map(row => {
+    const unit = units.find(unit => unit.id === row.unitLoad_unit_id);
+    const unitAction = unitActions.find(uAct => uAct.unitId === row.unitLoad_unit_id && uAct?.action.id === row.tOper_action_id);
     return {
-      id: unitLoad.id,
-      idc: unitLoad.idc,  // добавлено
-      unit: unit ? unit : {} as UnitItem, // гарантированно существует
-      date: String(unitLoad.date),
-      id_oper: unitLoad.id_oper,
-      idc_oper: unitLoad.idc_oper,
-      id_tCard: unitLoad.id_tCard,
-      timeStart: unitLoad.timeStart,
-      timeFinish: unitLoad.timeFinish,
-      status: unitLoad.status,
-      version: unitLoad.version,
-      isActive: unitLoad.isActive,
-      isRetool: unitLoad.isRetool,
-      isPinned: unitLoad.isPinned,
-      isOuterFinish: unitLoad.isOuterFinish,
-      isOuterStart: unitLoad.isOuterStart,
-      isFirst: unitLoad.isFirst,
-      // частично заполняем инфо по карте
+      id: row.unitLoad_id,
+      idc: row.unitLoad_idc,
+      unit: unit ?? {} as UnitItem,
+      date: new Date(row.unitLoad_date).toLocaleDateString("en-CA"),
+      id_oper: row.unitLoad_id_oper,
+      idc_oper: row.unitLoad_idc_oper,
+      id_tCard: row.unitLoad_id_tCard,
+      timeStart: row.unitLoad_timeStart,
+      timeFinish: row.unitLoad_timeFinish,
+      status: row.unitLoad_status,
+      version: row.unitLoad_version,
+      isActive: row.unitLoad_isActive,
+      isRetool: row.unitLoad_isRetool,
+      isPinned: row.unitLoad_isPinned,
+      isOuterFinish: row.unitLoad_isOuterFinish,
+      isOuterStart: row.unitLoad_isOuterStart,
+      isFirst: row.unitLoad_isFirst,
       loadInfo: {
-        tCardIdc: unitLoad.tCard.idc,
-        tCardDate: new Date(unitLoad.tCard.date).toLocaleDateString("en-CA"),
-        title: "",
-        duration: 0,
-        interruptible: false,
-        koef: 1
+        tCardIdc: row.tCard_idc,
+        tCardDate: new Date(row.tCard_date).toLocaleDateString("en-CA"),
+        title: unitAction?.action.title ?? "",
+        duration: row.tOper_duration,
+        interruptible: unitAction?.action.interruptible ?? false,
+        koef: unitAction?.koef ?? 1,
       },
-    };
+    } as UnitLoadItem;
   });
+
   return unitLoadItems;
 }
 
@@ -230,99 +284,91 @@ export async function getTCardOperationLoads(
   const loadsIds = unitLoads.map(lo => lo.id)
   return loadsIds;
 }
+
 // ВСЕ лоады по КАРТЕ (ДЛЯ ПРОВЕРКИ удаления карты)
 export async function getTCardLoads(
-  tCardId: number, // ID карты для фильтрации
+  tCard: TCardItem,
+  units: UnitItem[],
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<UnitLoadItem[]> {
-
-  // Получаем операции с фильтрацией по tCardId
-
-  const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
-    .leftJoinAndSelect('unitLoad.unit', 'unit') // Добавляем связь с таблицей units
-    .where('unitLoad.id_tCard = :tCardId', { tCardId })
-    .getMany();
-
-  const loads = unitLoads.map(unitLoad => {
-    return {
-      id: unitLoad.id,
-      idc: unitLoad.idc,  // добавлено
-      unit: unitLoad.unit ? unitLoad.unit : {} as UnitItem, // гарантированно существует
-      date: String(unitLoad.date),
-      id_oper: unitLoad.id_oper,
-      idc_oper: unitLoad.idc_oper,
-      id_tCard: unitLoad.id_tCard,
-      timeStart: unitLoad.timeStart,
-      timeFinish: unitLoad.timeFinish,
-      status: unitLoad.status,
-      version: unitLoad.version,
-      isActive: unitLoad.isActive,
-      isRetool: unitLoad.isRetool,
-      isPinned: unitLoad.isPinned,
-      isOuterFinish: unitLoad.isOuterFinish,
-      isOuterStart: unitLoad.isOuterStart,
-      isFirst: unitLoad.isFirst
-    } as UnitLoadItem
+  // Создаём карту операций для быстрого поиска
+  const operationMap = new Map<number, TCardOperationItem>();
+  tCard.tCardOperations?.forEach(op => {
+    if (op.id) operationMap.set(op.id, op);
   });
 
-  return loads;
+  // Загружаем лоады по карте
+  const unitLoads = await unitLoadRepository
+    .createQueryBuilder('unitLoad')
+    .where('unitLoad.id_tCard = :tCardId', { tCardId: tCard.id })
+    .getRawMany();
+
+  return unitLoads.map(row => {
+    // Юнит
+    const unit = units.find(u => u.id === row.unitLoad_unit_id) ?? {
+      id: 0,
+      title: 'Неизвестный юнит',
+      code: ''
+    };
+
+    // Операция
+    const operation = operationMap.get(row.unitLoad_id_oper);
+
+    return {
+      id: row.unitLoad_id,
+      idc: row.unitLoad_idc,
+      unit,
+      date: new Date(row.unitLoad_date).toLocaleDateString('en-CA'),
+      id_oper: row.unitLoad_id_oper,
+      idc_oper: row.unitLoad_idc_oper,
+      id_tCard: row.unitLoad_id_tCard,
+      timeStart: row.unitLoad_timeStart,
+      timeFinish: row.unitLoad_timeFinish,
+      status: row.unitLoad_status,
+      version: row.unitLoad_version,
+      isActive: row.unitLoad_isActive,
+      isRetool: row.unitLoad_isRetool,
+      isPinned: row.unitLoad_isPinned,
+      isOuterFinish: row.unitLoad_isOuterFinish,
+      isOuterStart: row.unitLoad_isOuterStart,
+      isFirst: row.unitLoad_isFirst,
+      loadInfo: {
+        tCardIdc: tCard.idc,
+        tCardDate: new Date(tCard.date).toLocaleDateString('en-CA'),
+        title: operation?.action.title ?? '',
+        duration: operation?.duration ?? 0,
+        interruptible: operation?.action.interruptible ?? false,
+        koef: 1
+      }
+    } as UnitLoadItem;
+  });
 }
+
+
+
+// &&&&
 // список карт только шапка
 export async function getTCards(
   teamId: number,
-  statuses: StatusEnum[],  // все кроме этих, что в списке
+  statuses: StatusEnum[],
   tCardRepository: Repository<TCardTable>
 ): Promise<TCardItem[]> {
-
-
-  // Строим фильтр для поиска
-  const filter: FindOptionsWhere<TCardTable> = {};
-
-  if (teamId) {
-    filter.team_id = teamId;
-  }
-
-  if (statuses && statuses.length > 0) {
-    filter.status = In(statuses);
-  }
-
-  // // Строим фильтр для поиска
-  // const filter: any = {};
-  // if (teamId) {
-  //   filter.team_id = teamId;  // Фильтрация по team_id
-  // }
-
-
-  if (statuses && statuses.length > 0) {
-    // статус **не** в списке statuses
-    filter.status = In(statuses);
-  }
-
-  // Выполняем запрос с фильтрацией
   const tCards = await tCardRepository.find({
-    where: filter,  // Применяем фильтр к запросу
-    // Указываем, какие поля нужно вернуть
+    where: { team_id: teamId, status: In(statuses) },
     select: ['id', 'date', 'idc', 'coment', 'status', 'max_idc'],
   });
 
-  // Проверяем, что карта существует
-  if (!tCards) return [] as TCardItem[];
-
-  // Преобразуем результат в TCardItem[]
-  const tCards_ = tCards.map(tCardtab => {
-    return {
-      id: tCardtab.id,
-      date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
-      idc: tCardtab.idc || 1,  // Если number не заполнен, возвращаем "1"
-      modified: false,
-      maxIdc: tCardtab.max_idc,
-      coment: tCardtab.coment,
-      status: tCardtab.status
-    } as TCardItem
-  })
-
-  return tCards_;
+  return (tCards || []).map(t => ({
+    id: t.id,
+    date: new Date(t.date).toLocaleDateString("en-CA"),
+    idc: t.idc || 1,
+    modified: false,
+    maxIdc: t.max_idc,
+    coment: t.coment,
+    status: t.status
+  }));
 }
+
 
 // КАРТА! только шапка
 export async function getTCard(
@@ -339,7 +385,7 @@ export async function getTCard(
   // Получаем карту по id
   const tCardtab = await tCardRepository.findOne({
     where: filter,  // Применяем фильтр к запросу
-    relations: ['team', 'user'],  // Указываем связанные таблицы (если необходимо)
+    // relations: ['team', 'user'],  // Указываем связанные таблицы (если необходимо)
   });
 
   // Проверяем, что карта существует
@@ -357,34 +403,48 @@ export async function getTCard(
   };
 
 }
+
+// &&&&
 // КАРТА! Вместе с составными частями карты
 export async function getTCardFull(
+  teamId: number,
   tcardId: number,
   tCardRepository: Repository<TCardTable>,
   tCardOperationRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
   tCardStageRepository: Repository<TCardStageTable>,
   productRepository: Repository<ProductTable>,
+  actionRepository: Repository<ActionTable>,
+
 ): Promise<TCardItem | undefined> {
 
-  // Строим фильтр для поиска по id карты
-  const filter: { id?: number; } = {};
-  if (tcardId) {
-    filter.id = tcardId;
-  }
 
-  // Получаем карту по id
-  const tCardtab = await tCardRepository.findOne({
-    where: filter,  // Применяем фильтр к запросу
-    relations: ['team', 'user'],  // Указываем связанные таблицы
-  });
+  const tCardtab = tcardId ? await tCardRepository.findOne({ where: { id: tcardId } }) : null;
 
   // Проверяем, что карта существует
   if (!tCardtab) return undefined;
 
+  // ДЕЙСТВИЯ
+  const actionstab = await actionRepository.find({
+    where: { team_id: teamId }
+  });
+
+  // Преобразуем действия
+  const actions = actionstab
+    .map(action => {
+      return {
+        id: action.id,
+        title: action.title,
+        code: action.code,
+        interruptible: action.interruptible,
+      } as ActionItem;
+    });
+
 
   // СТАДИИ
-  const tCardStagestab = await tCardStageRepository.find({ where: { tcard_id: tcardId } });
+  const tCardStagestab = await tCardStageRepository.find({
+    where: { tcard_id: tcardId }
+  });
 
   // Преобразуем стадии
   const tCardStages_ = tCardStagestab
@@ -396,159 +456,96 @@ export async function getTCardFull(
       } as TCardStageItem;
     });
 
-  //  КАТАЛОГ ПРодуктов
-  const productstab = await productRepository.find({
-    where: { tcard_id: tcardId },
-    relations: ['uom']
-  });
 
-  const products_ = productstab
-    .map(product => {
-      return {
-        id: product.id,
-        idc: product.idc,
-        title: product.title,
-        sync: product.sync,
-        uom: {
-          id: product.uom.id,
-          title: product.uom.title,
-          code: product.uom.code,
-        } as UOMItem
-      } as ProductItem;
-    });
+  //  КАТАЛОГ Продуктов
+  const productstab = await productRepository
+    .createQueryBuilder('product')
+    .leftJoin('uoms', 'uom', 'product.uom_id = uom.id') // ручной JOIN
+    .addSelect([
+      'uom.id',
+      'uom.title',
+      'uom.code'
+    ])
+    .where('product.tcard_id = :tcardId', { tcardId })
+    .getRawMany();
+
+  const products_: ProductItem[] = productstab.map(row => ({
+    id: row.product_id,
+    idc: row.product_idc,
+    title: row.product_title,
+    sync: row.product_sync,
+    uom: {
+      id: row.uom_id,
+      title: row.uom_title,
+      code: row.uom_code,
+    } as UOMItem,
+  }));
+
+
+  // Функция преобразования продукта
+  const mapTCardProduct = (tProduct: TCardProductTable): TCardProductItem => {
+    const product = products_.find(p => p.id === tProduct.product_id);
+    return {
+      id: tProduct.id,
+      code: tProduct.code,
+      qtu: tProduct.qtu,
+      product: product ?? {} as ProductItem
+    } as TCardProductItem;
+  };
+
   // ПРОДУКТЫ, МАТЕРИАЛЫ, ОТХОДЫ
   const tCardProductstab = await tCardProductRepository.find({
     where: { tcard_id: tcardId },
-    relations: ['product']
   });
 
-  // Преобразуем материалы
+  // Группировка по типам
   const tCardMaterials_ = tCardProductstab
-    .filter(tProduct => tProduct.type === TypeEnum.M)
-    .map(tProduct => {
-      const product = products_.find(product => product.id === tProduct.product_id)
-      return {
-        id: tProduct.id,
-        code: tProduct.code,
-        qtu: tProduct.qtu,
-        product: {
-          id: product?.id,
-          idc: product?.idc,
-          title: product?.title,
-          uom: {
-            id: product?.uom?.id,
-            title: product?.uom?.title,
-            code: product?.uom?.code
-          } as UOMItem
-        } as ProductItem
-      } as TCardProductItem;
-    });
-  // Преобразуем продукты
+    .filter(tp => tp.type === TypeEnum.M)
+    .map(mapTCardProduct);
+
   const tCardProducts_ = tCardProductstab
-    .filter(tProduct => tProduct.type === TypeEnum.P)
-    .map(tProduct => {
-      const product = products_.find(product => product.id === tProduct.product_id)
-      return {
-        id: tProduct.id,
-        code: tProduct.code,
-        qtu: tProduct.qtu,
-        product: {
-          id: product?.id,
-          idc: product?.idc,
-          title: product?.title,
-          uom: {
-            id: product?.uom?.id,
-            title: product?.uom?.title,
-            code: product?.uom?.code
-          } as UOMItem
-        } as ProductItem
-      } as TCardProductItem;
-    });
-  // Преобразуем отходы
+    .filter(tp => tp.type === TypeEnum.P)
+    .map(mapTCardProduct);
+
   const tCardWastes_ = tCardProductstab
-    .filter(product => product.type === TypeEnum.W)
-    .map(tProduct => {
-      const product = products_.find(product => product.id === tProduct.product_id)
-      return {
-        id: tProduct.id,
-        code: tProduct.code,
-        qtu: tProduct.qtu,
-        product: {
-          id: product?.id,
-          idc: product?.idc,
-          title: product?.title,
-          uom: {
-            id: product?.uom?.id,
-            title: product?.uom?.title,
-            code: product?.uom?.code
-          } as UOMItem
-        } as ProductItem
-      } as TCardProductItem;
-    });
+    .filter(tp => tp.type === TypeEnum.W)
+    .map(mapTCardProduct);
+
 
   // ОПЕРАЦИИ
-  const tCardOperationstab = await tCardOperationRepository.find({
-    where: { tcard_id: tcardId },
-    relations: ['action', 'stage']
-  });
+  const tCardOperationstab = await tCardOperationRepository
+    .createQueryBuilder('oper')
+    .leftJoin('actions', 'action', 'oper.action_id = action.id')
+    .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
+    .addSelect([
+      'action.id', 'action.title', 'action.code', 'action.interruptible',
+      'stage.id', 'stage.idc', 'stage.code'
+    ])
+    .where('oper.tcard_id = :tcardId', { tcardId })
+    .getRawMany();
+
   // Преобразуем операции
-  const tCardOperations_ = tCardOperationstab
-    .map(oper => {
-      const inn = tCardProductstab
-        .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
-        .map(tProduct => {
-          const product = products_.find(product => product.id === tProduct.product_id)
-          return {
-            id: tProduct.id,
-            code: tProduct.code,
-            qtu: tProduct.qtu,
-            product: {
-              id: product?.id,
-              idc: product?.idc,
-              title: product?.title,
-              uom: {
-                id: product?.uom?.id,
-                title: product?.uom?.title,
-                code: product?.uom?.code
-              } as UOMItem
-            } as ProductItem
-          } as TCardProductItem;
-        });
-
-      const out = tCardProductstab
-        .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
-        .map(tProduct => {
-          const product = products_.find(product => product.id === tProduct.product_id)
-          return {
-            id: tProduct.id,
-            code: tProduct.code,
-            qtu: tProduct.qtu,
-            product: {
-              id: product?.id,
-              idc: product?.idc,
-              title: product?.title,
-              uom: {
-                id: product?.uom?.id,
-                title: product?.uom?.title,
-                code: product?.uom?.code
-              } as UOMItem
-            } as ProductItem
-          } as TCardProductItem;
-        });
-
-      return {
-        id: oper.id,
-        idc: oper.idc,
-        stage: { id: oper.stage.id, idc: oper.stage.idc, code: oper.stage.code, } as TCardStageItem,
-        out: out,
-        inn: inn,
-        action: { id: oper.action.id, title: oper.action.title, interruptible: oper.action.interruptible, code: oper.action.code } as ActionItem,
-        duration: oper.duration, // в милисекундах   
-        status: oper.status,
-        coment: oper.coment,
-        fixOperIdc: oper.fix_oper_idc,
-      };
-    });
+  const tCardOperations_: TCardOperationItem[] = tCardOperationstab.map(raw => {
+    const stage = tCardStages_.find(s => s.id === raw.oper_stage_id);
+    const action = actions.find(s => s.id === raw.oper_action_id);
+    return {
+      id: raw.oper_id,
+      idc: raw.oper_idc,
+      stage: stage ?? {} as TCardStageItem,
+      order: raw.oper_order,
+      out: tCardProductstab
+        .filter(p => p.operation_id === raw.oper_id && p.type === TypeEnum.O)
+        .map(mapTCardProduct),
+      inn: tCardProductstab
+        .filter(p => p.operation_id === raw.oper_id && p.type === TypeEnum.I)
+        .map(mapTCardProduct),
+      action: action ?? {} as ActionItem,
+      duration: raw.oper_duration,
+      status: raw.oper_status,
+      coment: raw.oper_coment,
+      fixOperIdc: raw.oper_fix_oper_idc,
+    } as TCardOperationItem
+  });
 
   const tCard = {
     id: tCardtab.id,
@@ -611,7 +608,7 @@ export async function getTCardsTerms(
   // Создаем объект фильтра для карты
   const tCardFilter: FindManyOptions<TCardTable> = {
     where,
-    relations: ['team', 'user'],
+    // relations: ['team', 'user'],
   };
 
   // Получаем все карты для заданной компании с фильтрацией
@@ -622,20 +619,39 @@ export async function getTCardsTerms(
 
   // Загружаем операции для всех карт
   const tCardsIds = tCards.map(card => card.id);
-  const operationsData = await tCardOperationRepository.find({
-    where: { tcard_id: In(tCardsIds) },
-    relations: ['stage', 'action']
-  });
+  // const operationsData = await tCardOperationRepository.find({
+  //   where: { tcard_id: In(tCardsIds) },
+  //    relations: ['stage', 'action']
+  // });
+  const operationsData = await tCardOperationRepository
+    .createQueryBuilder('oper')
+    .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
+    .leftJoin('actions', 'action', 'oper.action_id = action.id')
+    .addSelect([
+      'stage.id', 'stage.code', 'stage.idc',
+      'action.id', 'action.title', 'action.code', 'action.interruptible'
+    ])
+    .where('oper.tcard_id IN (:...tCardsIds)', { tCardsIds })
+    .getRawMany();
 
 
   // Загружаем лоады для всех операций
   const operationsIds = operationsData.map(oper => oper.id);
 
-  const loadsData = await unitLoadRepository.find({
-    where: { id_oper: In(operationsIds) },
-    relations: ['unit', 'tCard']
-  });
-
+  // const loadsData = await unitLoadRepository.find({
+  //   where: { id_oper: In(operationsIds) },
+  //   relations: ['unit', 'tCard']
+  // });
+  const loadsData = await unitLoadRepository
+    .createQueryBuilder('unitLoad')
+    .leftJoin('units', 'unit', 'unitLoad.unit_id = unit.id')
+    .leftJoin('t_card', 'tCard', 'unitLoad.id_tCard = tCard.id')
+    .addSelect([
+      'unit.id', 'unit.title', 'unit.code', // только нужные поля
+      'tCard.id', 'tCard.idc', 'tCard.date' // то же самое
+    ])
+    .where('unitLoad.id_oper IN (:...operationsIds)', { operationsIds })
+    .getRawMany();
   // лоады
   const loads = loadsData.map(lo => {
     return {
@@ -756,6 +772,7 @@ export async function getTCardsTerms(
 
   return { terms: tCardTerms, loads: loads };
 }
+// &&&&
 // исключения расписания команды
 export async function getExceptions(
   teamId: number,
@@ -763,19 +780,11 @@ export async function getExceptions(
   unitId?: number
 ): Promise<UnitExceptionItem[]> {
 
-  // Строим фильтр для поиска
-  const filter: Partial<UnitExceptionTable> = {};
-  if (teamId) {
-    filter.team_id = teamId;
-  }
-
-  if (unitId) {
-    filter.unit_id = unitId;
-  }
-
   const receivedExceptions = await unitExceptionsRepository.find({
-    where: filter,  // Применяем фильтр к запросу
-    // relations: ['unit'], // Добавляем связь с таблицей Unit
+    where: {
+      team_id: teamId,
+      ...(unitId ? { unit_id: unitId } : {})
+    }
   });
 
   if (!receivedExceptions) return [] as UnitExceptionItem[]
@@ -785,8 +794,10 @@ export async function getExceptions(
 
       return {
         id: exception.id,
+        idc: exception.idc,
         unitId: exception.unit_id,
-        date: String(exception.date),
+        unitIdc: exception.unit_idc,
+        date: new Date(exception.date).toLocaleDateString('en-CA'),
         type: exception.type as TimeTypeEnum,
         timeStart: exception.timeStart,
         timeFinish: exception.timeFinish,
@@ -796,6 +807,8 @@ export async function getExceptions(
 
   return excertions;
 }
+
+// &&&&  ??
 // возможные операции юнита
 export async function getUnitActions(
   teamId: number,
@@ -803,110 +816,96 @@ export async function getUnitActions(
   unitId?: number
 ): Promise<UnitActionItem[]> {
 
-  // Строим фильтр для поиска
-  const filter: Partial<UnitActionTable> = {};
-
-  if (teamId) {
-    filter.team_id = teamId;
-  }
-
-  if (unitId) {
-    filter.unit_id = unitId;
-  }
-
-  const receivedUnitActions = await unitActionsRepository.find({
-    where: filter,  // Применяем фильтр к запросу
-    relations: ['unit', "action"], // Добавляем связь с таблицей Unit
-  });
+  const receivedUnitActions = await unitActionsRepository
+    .createQueryBuilder('ua')
+    .leftJoin('units', 'unit', 'ua.unit_id = unit.id')
+    .leftJoin('actions', 'action', 'ua.action_id = action.id')
+    .addSelect([
+      'unit.id', 'unit.idc',
+      'action.id', 'action.title', 'action.code', 'action.interruptible'
+    ])
+    .where('ua.team_id = :teamId', { teamId })
+    .andWhere(unitId ? 'ua.unit_id = :unitId' : '1=1', { unitId }) // условие безопасное
+    .getRawMany();
 
   if (!receivedUnitActions) return [] as UnitActionItem[]
 
   const unitActions = receivedUnitActions
     .map(ac => {
       const action = {
-        id: ac.action.id,
-        title: ac.action.title,
-        code: ac.action.code,
+        id: ac.action_id,
+        title: ac.action_title,
+        code: ac.action_code,
         modified: false,
-        interruptible: ac.action.interruptible,
+        interruptible: ac.action_interruptible,
       } as ActionItem
+
       return {
-        id: ac.id,
+        id: ac.unit_id,
+        idc: ac.ua_unit_idc,
         action: action,
-        koef: ac.koef,
+        koef: ac.ua_koef,
         unitId: ac.unit_id,
-        unitIdc: ac.unit.idc,
+        unitIdc: ac.unit_idc,
       } as UnitActionItem;
     });
 
   return unitActions;
 }
+
+
+// &&&&
 // расписание команды
 export async function getTeamShedule(
   teamId: number,
-  teamScheduleRepository: Repository<TeamScheduleTable>
+  teamScheduleRepository: Repository<TeamScheduleTable>,
+  teamsRepository: Repository<TeamTable>
 ): Promise<ScheduleItem> {
+  const [scheduleTable, team] = await Promise.all([
+    teamScheduleRepository.findOne({ where: { team_id: teamId } }),
+    teamsRepository.findOne({ where: { id: teamId } })
+  ]);
 
-  const filter: FindOptionsWhere<TeamScheduleTable> = { team_id: teamId };
+  if (!scheduleTable || !team) return {} as ScheduleItem;
 
-  const receivedSchedule = await teamScheduleRepository.find({
-    where: filter,  // Применяем фильтр к запросу
-    relations: ['team'], // Добавляем связь с таблицей team
-  });
-
-  if (!receivedSchedule || receivedSchedule.length === 0) return {} as ScheduleItem;
-
-  const scheduleTable = receivedSchedule[0]
-  const schedule = {
-    team: scheduleTable.team,
+  return {
+    team: {
+      id: team.id,
+      title: team.title,
+      coment: team.coment,
+      prefix: team.prefix
+    },
     timeStartWork: scheduleTable.timeStartWork,
     timeFinishWork: scheduleTable.timeFinishWork,
-    breaks: scheduleTable.breaks,
-    holidays: scheduleTable.holidays.map(date => date.toLocaleDateString('en-CA')),
-    weekends: scheduleTable.weekends,
-    workdays: scheduleTable.workdays.map(workday => {
-      return {
-        date: new Date(workday.date).toLocaleDateString('en-CA'),
-        timeStart: workday.timeStart,
-        timeFinish: workday.timeFinish
-      }
-    }),
+    breaks: scheduleTable.breaks ?? [],
+    holidays: (scheduleTable.holidays ?? []).map(date =>
+      new Date(date).toLocaleDateString('en-CA')
+    ),
+    weekends: scheduleTable.weekends ?? [],
+    workdays: (scheduleTable.workdays ?? []).map(wd => ({
+      date: new Date(wd.date).toLocaleDateString('en-CA'),
+      timeStart: wd.timeStart,
+      timeFinish: wd.timeFinish,
+    })),
     timeZone: scheduleTable.timeZone as TimeZoneEnum,
-  } as ScheduleItem;
-
-
-  return schedule;
+  };
 }
+
+// &&&&&
 // настройки команды
 export async function getSettings(
   teamId: number,
   settingsRepository: Repository<SettingsTable>
 ): Promise<SettingsItem> {
-  // Строим фильтр для поиска
-  const filter: Partial<SettingsTable> = {};
-  if (teamId) {
-    filter.team_id = teamId;
-  }
+  const settingsTable = await settingsRepository.findOne({ where: { team_id: teamId } });
 
-  const receivedSettings = await settingsRepository.find({
-    where: filter,  // Применяем фильтр к запросу
-    relations: ['team'], // Добавляем связь с таблицей team
-  });
-
-  if (!receivedSettings || receivedSettings.length === 0) return {} as SettingsItem;
-
-  const settingsTable = receivedSettings[0]
-  const settings = {
-    team: settingsTable.team,
-    timeStartWork: settingsTable.timeStartWork,
-    timeFinishWork: settingsTable.timeFinishWork,
-    showHoliday: settingsTable.showHoliday,
-    showWeekend: settingsTable.showWeekend,
-    isQualControl: settingsTable.isQualControl,
-  } as SettingsItem;
-
-
-  return settings;
+  return {
+    timeStartWork: settingsTable?.timeStartWork ?? 540,
+    timeFinishWork: settingsTable?.timeFinishWork ?? 1080,
+    showHoliday: settingsTable?.showHoliday ?? false,
+    showWeekend: settingsTable?.showWeekend ?? false,
+    isQualControl: settingsTable?.isQualControl ?? true,
+  };
 }
 
 //  ПОЛУЧЕНИЕ ОПЕРАЦИИ ПО ID
@@ -922,10 +921,20 @@ export async function getTCardOperation(
   }
 
   // Получаем карту по id
-  const tCardOpertab = await tCardOperationsRepository.findOne({
-    where: filter,  // Применяем фильтр к запросу
-    relations: ['stage', 'action'],  // Указываем связанные таблицы (если необходимо)
-  });
+  // const tCardOpertab = await tCardOperationsRepository.findOne({
+  //   where: filter,  // Применяем фильтр к запросу
+  //   relations: ['stage', 'action'],  // Указываем связанные таблицы (если необходимо)
+  // });
+  const tCardOpertab = await tCardOperationsRepository
+    .createQueryBuilder('oper')
+    .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
+    .leftJoin('actions', 'action', 'oper.action_id = action.id')
+    .addSelect([
+      'stage.id', 'stage.code', 'stage.idc',
+      'action.id', 'action.title', 'action.code', 'action.interruptible'
+    ])
+    .where('oper.id = :id', { id: filter.id }) // или другой фильтр по необходимости
+    .getRawOne();
 
   // Проверяем, что карта существует
   if (!tCardOpertab) return undefined;
@@ -947,46 +956,53 @@ export async function getTCardOperation(
 
 }
 
+// &&&&&
 // получение операций по ID ОПЕРАЦИЙ
 export async function getTCardOperations(
   operIds: number[],
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem[]> {
 
+  if (operIds.length === 0) return [];
 
-  if (operIds.length === 0) {
-    // Если нет  карт то нет и операций по ним
-    return [] as TCardOperationItem[];
-  }
+  const tCardOperstab = await tCardOperationsRepository
+    .createQueryBuilder('oper')
+    .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
+    .leftJoin('actions', 'action', 'oper.action_id = action.id')
+    .leftJoin('t_card', 'tcard', 'oper.tcard_id = tcard.id')
+    .addSelect([
+      'oper.id', 'oper.idc', 'oper.order', 'oper.duration', 'oper.status', 'oper.coment',
+      'stage.id', 'stage.code', 'stage.idc',
+      'action.id', 'action.title', 'action.code', 'action.interruptible',
+      'tcard.id', 'tcard.idc', 'tcard.date'
+    ])
+    .where('oper.id IN (:...ids)', { ids: operIds })
+    .getRawMany();
 
-  const tCardOperstab = await tCardOperationsRepository.find({
-    where: { id: In(operIds) }, // Фильтруем по полю unit_id для всех заданных юнитов
-    relations: ['stage', 'action', 'tcard'],
-  });
-
-  const tCardOpers = tCardOperstab.map(tCardOpertab => {
-
-    return {
-      id: tCardOpertab.id,
-      idc: tCardOpertab.idc,
-      stage: tCardOpertab.stage,
-      order: tCardOpertab.order,
-      out: [],
-      inn: [],
-      action: {
-        id: tCardOpertab.action.id,
-        title: tCardOpertab.action.title,
-        code: tCardOpertab.action.code,
-        interruptible: tCardOpertab.action.interruptible,
-      } as ActionItem,
-      duration: tCardOpertab.duration,
-      status: tCardOpertab.status,
-      coment: tCardOpertab.coment,
-    } as TCardOperationItem;
-  });
-
-  return tCardOpers;
+  return tCardOperstab.map(row => ({
+    id: row.oper_id,
+    idc: row.oper_idc,
+    stage: {
+      id: row.stage_id,
+      idc: row.stage_idc,
+      code: row.stage_code
+    } as TCardStageItem,
+    order: row.oper_order,
+    out: [],
+    inn: [],
+    action: {
+      id: row.action_id,
+      title: row.action_title,
+      code: row.action_code,
+      interruptible: row.action_interruptible,
+    } as ActionItem,
+    duration: row.oper_duration,
+    status: row.oper_status,
+    coment: row.oper_coment,
+  } as TCardOperationItem));
 }
+
+
 // получение операций по ID карт
 export async function getTCardOperationsByCardId(
 
@@ -994,33 +1010,43 @@ export async function getTCardOperationsByCardId(
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem[]> {
 
-  const tCardOperstab = await tCardOperationsRepository.find({
-    where: { tcard_id: tCardId }, // Фильтруем по полю tcard_id все операции
-    relations: ['stage', 'action', 'tcard'],
-  });
+  const tCardOperstab = await tCardOperationsRepository
+    .createQueryBuilder('oper')
+    .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
+    .leftJoin('actions', 'action', 'oper.action_id = action.id')
+    .leftJoin('t_cards', 'tcard', 'oper.tcard_id = tcard.id')
+    .addSelect([
+      'stage.id', 'stage.code', 'stage.idc',
+      'action.id', 'action.title', 'action.code', 'action.interruptible',
+      'tcard.id', 'tcard.idc', 'tcard.date'
+    ])
+    .where('oper.tcard_id = :tCardId', { tCardId })
+    .getRawMany();
 
-  const tCardOpers = tCardOperstab.map(tCardOpertab => {
-
+  const tCardOpers = tCardOperstab.map(tOper => {
     return {
-      id: tCardOpertab.id,
-      idc: tCardOpertab.idc,
-      stage: tCardOpertab.stage,
-      order: tCardOpertab.order,
+      id: tOper.oper_id,
+      idc: tOper.oper_idc,
+      stage: {
+        id: tOper.stage_id,
+        idc: tOper.stage_idc, 
+        code: tOper.stage_code,
+      } as TCardStageItem,
+      order: tOper.oper_order,
       out: [],
       inn: [],
       action: {
-        id: tCardOpertab.action.id,
-        title: tCardOpertab.action.title,
-        code: tCardOpertab.action.code,
-        interruptible: tCardOpertab.action.interruptible,
+        id: tOper.action_id,
+        title: tOper.action_title,
+        code: tOper.action_code,
+        interruptible: tOper.action_interruptible,
       } as ActionItem,
-      duration: tCardOpertab.duration,
-      status: tCardOpertab.status,
-      coment: tCardOpertab.coment,
-      fixOperIdc: tCardOpertab.fix_oper_idc,
-    }
+      duration: tOper.oper_duration,
+      status: tOper.oper_status,
+      coment: tOper.oper_coment,
+      fixOperIdc: tOper.oper_fix_oper_idc,
+    } as TCardOperationItem
   });
-
   return tCardOpers;
 }
 // получение юнитов пользователей команды
@@ -1032,15 +1058,15 @@ export async function getUsersUnits(
   userId?: number, // Добавляем необязательный параметр userId
 ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
 
-  try {    
+  try {
     //  Шаг 1: Формируем строго типизированное условие для поиска пользователей
     const userCondition: FindOptionsWhere<UserTable> = {
       team_id: teamId,
       active: true,
     };
-    if (userId) {  userCondition.id = userId; }
+    if (userId) { userCondition.id = userId; }
 
-    if (withoutAdmin) {userCondition.isAdmin = false;}
+    if (withoutAdmin) { userCondition.isAdmin = false; }
 
     // Получаем активных пользователей по сформированному условию
     const activeUsers = await usersRepository.find({ where: userCondition });
@@ -1054,10 +1080,16 @@ export async function getUsersUnits(
       };
     }
 
-    const usersUnits = await usersUnitsRepository.find({
-      where: { team_id: teamId },
-      relations: ['user', 'unit']
-    });
+    const usersUnits = await usersUnitsRepository
+      .createQueryBuilder('uu')
+      .leftJoin('users', 'user', 'uu.user_id = user.id')
+      .leftJoin('units', 'unit', 'uu.unit_id = unit.id')
+      .addSelect([
+        'user.id', 'user.name', 'user.login', // добавь нужные поля
+        'unit.id', 'unit.title', 'unit.code', // добавь нужные поля
+      ])
+      .where('uu.team_id = :teamId', { teamId })
+      .getRawMany();
 
     // Шаг 3: Преобразуем данные в формат UserUnitItem 
     const userUnits: UserUnitItem[] = activeUsers.map(user => {
@@ -1109,7 +1141,6 @@ export async function getUsersUnits(
     };
   }
 }
-
 
 // получение пользователей команды
 export async function getUsers(
@@ -1168,7 +1199,6 @@ export async function getUsers(
   }
 
 }
-
 
 // счета
 export async function getBills(

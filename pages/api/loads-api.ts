@@ -36,14 +36,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
       case 'GET':
 
-        // запросим юнита        
+        // запросим юнитов                
         const units = await getUnits(Number(teamId), unitRepository, unitIdNumber)
-        // если отбор по юниту и jy gjkexty то проверим может это контролер
+        // если отбор по юниту и он получен то проверим может это контролер
         const isControler = (unitIdNumber && units.length > 0) ? (units[0].type === UnitTypeEnum.control) : false
-
-
         // если это контролер то запросим всех юнитов поскольку проверяем его лоады а иначе оставим старый массив 
-
         const allunits = (isControler) ? await getUnits(Number(teamId), unitRepository) : units
 
 
@@ -51,7 +48,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository, unitIdNumber)
 
         //  получим юниты с загрузкой  до планирования новой карты         
-        const unitsLoads = await getUnitLoads(allunits, unitLoadRepository, isControler)
+        const unitsLoads = await getUnitLoads(
+          Number(teamId),
+          allunits,
+          unitLoadRepository,
+          unitActionsRepository,
+          isControler,)
         // запросим операции  чтобы дополнить информацию по лоадам
         const operIds = Array.from(new Set(unitsLoads.map(load => load.id_oper)));
 

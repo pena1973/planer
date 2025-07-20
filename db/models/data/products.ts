@@ -1,8 +1,5 @@
 // Каталог номенклатуры в пределах карты. Уникальный ключ карта idc + продукт idc
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne,  } from 'typeorm';
-import { TCardTable } from './t_cards'; 
-import { UOMsTable } from '../../models/catalogs/uoms';
-import { TypeEnum } from './../../../types/types';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('products')
 export class ProductTable {
@@ -12,24 +9,18 @@ export class ProductTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
-  @Column()
+  @Column('int')
   idc!: number; // id на клиенте
 
-  @Column()
+  @Column('varchar')
   title!: string;
 
-  @Column()
+  @Column('varchar')
   sync!: string;
 
-  @ManyToOne(() => UOMsTable) 
-  @JoinColumn({ name: 'uom_id' }) 
-  uom!: UOMsTable;  
-  @Column()
+  @Column('int')
   uom_id!: number;
 
-  @ManyToOne(() => TCardTable)
-  @JoinColumn({ name: 'tcard_id' })
-  tcard!: TCardTable;
-  @Column()
+  @Column('int')
   tcard_id!: number;
 }

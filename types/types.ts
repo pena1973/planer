@@ -115,8 +115,7 @@ export interface UnitItem {
     id?: number,
     idc: number,
     title: string,
-    code: string, // для синхронизации , заполнение обязательно и должен быть уникален
-    // actions: UnitActionItem[],
+    code: string, // для синхронизации , заполнение обязательно и должен быть уникален    
     retool: number, // общее время на переналадку станка между каждой операцией  в минутах
     modified?: boolean, // указание что модифицирована и не сохранена
     belong: UnitBelongEnum,
@@ -274,7 +273,6 @@ export interface SettingsItem {
     showWeekend: boolean, // показывать выходные дни
     showHoliday: boolean,// показывать праздники 
     isQualControl: boolean,// применяется ли контроль качества  
-
 }
 
 
