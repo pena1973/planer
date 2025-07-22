@@ -39,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // Извлекаем данные из тела запроса
         const { tCardId, operId, version, status, teamId, userId } = req.body as RequestBody;
 
-        //Обновляем СТАТУС ОПЕРАЦИИ
+        //Обновляем СТАТУС ОПЕРАЦИИ       
         const resOperation = await updateStatusOperationByOperId(tCardOperationsRepository, operId, status)
         if (!resOperation.success) {
           res.status(200).json({

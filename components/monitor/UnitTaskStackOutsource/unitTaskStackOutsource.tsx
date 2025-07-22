@@ -91,10 +91,10 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
       </div>
       </td>
       <td className={styles.button_row}>
-        <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(lo, StatusEnum.ready)}>{t('unitTaskStackOutsource.ready')}Готов</button>
+        <button className={styles.button_ready_top} onClick={() => setOperStatusHandler(lo, StatusEnum.ready)}>{t('unitTaskStackOutsource.ready')}</button>
       </td>
       <td className={styles.button_row}>
-        <button className={styles.button_defected_top} onClick={() => setOperStatusHandler(lo, StatusEnum.defective)}>{t('unitTaskStackOutsource.defect')}Брак</button>
+        <button className={styles.button_defected_top} onClick={() => setOperStatusHandler(lo, StatusEnum.defective)}>{t('unitTaskStackOutsource.defect')}</button>
       </td>
     </tr>)
   })

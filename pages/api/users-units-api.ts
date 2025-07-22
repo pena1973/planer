@@ -72,56 +72,56 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return;
         }
 
-        const savedUsersUnits = resUserUnits.savedUsersUnits as UserUnitTable[];
+        const remainingUsers_ = resUserUnits.savedUsersUnits as UserUnitItem[];
 
-        // Получаем всех пользователей для данной команды
-        const resUsers = await getUsers(teamId, usersRepository);
+        // // Получаем всех пользователей для данной команды
+        // const resUsers = await getUsers(teamId, usersRepository);
 
-        if (!resUsers.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUsers.message });
-          return;
-        }
+        // if (!resUsers.success) {
+        //   res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUsers.message });
+        //   return;
+        // }
 
-        // Все текущие юзеры
-        const users = resUsers.users as UserItem[];
+        // // Все текущие юзеры
+        // const users = resUsers.users as UserItem[];
 
-        // Фильтруем пользователей, которых нет в списке userUnits и исключаем пользователей с isAdmin === true
-        const usersToUnactive = users.filter(user =>
-          !savedUsersUnits.some(saved => saved.user_id === user.id) && user.isAdmin == false
-        );
+        // // Фильтруем пользователей, которых нет в списке userUnits и исключаем пользователей с isAdmin === true
+        // const usersToUnactive = users.filter(user =>
+        //   !savedUsersUnits.some(saved => saved.user_id === user.id) && user.isAdmin == false
+        // );
 
-        // Преобразуем пользователей в массив объектов с active = false
-        const usersToUnactive_ = usersToUnactive.map(user => { return { ...user, active: false } });
+        // // Преобразуем пользователей в массив объектов с active = false
+        // const usersToUnactive_ = usersToUnactive.map(user => { return { ...user, active: false } });
 
-        // let message = '';
-        // let remainingUsers: UserUnitTable[] = [];
+        // // let message = '';
+        // // let remainingUsers: UserUnitTable[] = [];
 
-        // Делаем удаленных юзеров неактивными
-        if (usersToUnactive_.length > 0) {
-          const resUsersDel = await updateUsers(usersRepository, usersToUnactive_, teamId)
+        // // Делаем удаленных юзеров неактивными
+        // if (usersToUnactive_.length > 0) {
+        //   const resUsersDel = await updateUsers(usersRepository, usersToUnactive_, teamId)
 
-          if (!resUsersDel.success) {
-            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUsersDel.message });
-            return;
-          }
+        //   if (!resUsersDel.success) {
+        //     res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUsersDel.message });
+        //     return;
+        //   }
 
-          // const savedUsersUnits = resUsersDel.savedUsers as UserTable[];
-          // неактивных никуда не передаем, просто помечаем их как неактивные
-        }
-        // Преобразуем оставшихся пользователей в необходимый формат для ответа
-        const remainingUsers_ = savedUsersUnits
-          .map(uu => {
-            const user = users.find(us => us.id === uu.user_id)
-            const unit = users_units.find(un => un.id === uu.unit_id)
-            return {
-              id: uu.id,
-              userId: uu.user_id,
-              name: user?.name,
-              unit: unit?unit:null,
-              active: uu.active,
-              unitId: uu.unit_id,
-            } as UserUnitItem
-          });
+        //   // const savedUsersUnits = resUsersDel.savedUsers as UserTable[];
+        //   // неактивных никуда не передаем, просто помечаем их как неактивные
+        // }
+        // // Преобразуем оставшихся пользователей в необходимый формат для ответа
+        // const remainingUsers_ = savedUsersUnits
+        //   .map(uu => {
+        //     const user = users.find(us => us.id === uu.user_id)
+        //     const unit = users_units.find(un => un.id === uu.unit_id)
+        //     return {
+        //       id: uu.id,
+        //       userId: uu.user_id,
+        //       name: user?.name,
+        //       unit: unit?unit:null,
+        //       active: uu.active,
+        //       unitId: uu.unit_id,
+        //     } as UserUnitItem
+        //   });
 
         // отправляем ответ
         res.status(200).json({

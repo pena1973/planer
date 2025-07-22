@@ -273,6 +273,7 @@ export async function getTCardOperationLoads(
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<number[]> {
 
+if (!tCardId) return [];
 
   // Получаем операции с фильтрацией по tCardId, operId и version
   const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
@@ -645,7 +646,7 @@ export async function getTCardsTerms(
   const loadsData = await unitLoadRepository
     .createQueryBuilder('unitLoad')
     .leftJoin('units', 'unit', 'unitLoad.unit_id = unit.id')
-    .leftJoin('t_card', 'tCard', 'unitLoad.id_tCard = tCard.id')
+    .leftJoin('t_cards', 'tCard', 'unitLoad.id_tCard = tCard.id')
     .addSelect([
       'unit.id', 'unit.title', 'unit.code', // только нужные поля
       'tCard.id', 'tCard.idc', 'tCard.date' // то же самое
@@ -841,8 +842,8 @@ export async function getUnitActions(
       } as ActionItem
 
       return {
-        id: ac.unit_id,
-        idc: ac.ua_unit_idc,
+        id: ac.ua_id,
+        idc: ac.ua_idc,
         action: action,
         koef: ac.ua_koef,
         unitId: ac.unit_id,
@@ -969,7 +970,7 @@ export async function getTCardOperations(
     .createQueryBuilder('oper')
     .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
     .leftJoin('actions', 'action', 'oper.action_id = action.id')
-    .leftJoin('t_card', 'tcard', 'oper.tcard_id = tcard.id')
+    .leftJoin('t_cards', 'tcard', 'oper.tcard_id = tcard.id')
     .addSelect([
       'oper.id', 'oper.idc', 'oper.order', 'oper.duration', 'oper.status', 'oper.coment',
       'stage.id', 'stage.code', 'stage.idc',
@@ -1029,7 +1030,7 @@ export async function getTCardOperationsByCardId(
       idc: tOper.oper_idc,
       stage: {
         id: tOper.stage_id,
-        idc: tOper.stage_idc, 
+        idc: tOper.stage_idc,
         code: tOper.stage_code,
       } as TCardStageItem,
       order: tOper.oper_order,
@@ -1059,17 +1060,17 @@ export async function getUsersUnits(
 ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
 
   try {
-    //  Шаг 1: Формируем строго типизированное условие для поиска пользователей
+
+    // Шаг 1: Получаем юзеров 
     const userCondition: FindOptionsWhere<UserTable> = {
       team_id: teamId,
-      active: true,
+      active: true
     };
     if (userId) { userCondition.id = userId; }
+    if (withoutAdmin) { userCondition.isAdmin = false;}
 
-    if (withoutAdmin) { userCondition.isAdmin = false; }
-
-    // Получаем активных пользователей по сформированному условию
     const activeUsers = await usersRepository.find({ where: userCondition });
+
 
     // Если активные пользователи не найдены
     if (activeUsers.length === 0) {
@@ -1079,17 +1080,18 @@ export async function getUsersUnits(
         message: 'Нет пользователей команды.',
       };
     }
-
+    // Шаг 2: Получаем юзеров с юнитами 
     const usersUnits = await usersUnitsRepository
       .createQueryBuilder('uu')
       .leftJoin('users', 'user', 'uu.user_id = user.id')
       .leftJoin('units', 'unit', 'uu.unit_id = unit.id')
       .addSelect([
         'user.id', 'user.name', 'user.login', // добавь нужные поля
-        'unit.id', 'unit.title', 'unit.code', // добавь нужные поля
+        'unit.id', 'unit.title', 'unit.code', 'unit.retool', 'unit.belong', 'unit.type', 'unit.coment', "unit.active",
       ])
       .where('uu.team_id = :teamId', { teamId })
       .getRawMany();
+
 
     // Шаг 3: Преобразуем данные в формат UserUnitItem 
     const userUnits: UserUnitItem[] = activeUsers.map(user => {
@@ -1106,20 +1108,20 @@ export async function getUsersUnits(
       } else
         // Если для пользователя есть один или несколько юнитов
         return {
-          id: userUnit.id,
+          id: userUnit.uu_id,
           userId: userUnit.user_id,
-          name: userUnit.user.name,
+          name: userUnit.user_name,
           unit: {
-            id: userUnit.unit?.id,              // ID юнита
-            title: userUnit.unit?.title,        // Название юнита
-            code: userUnit.unit?.code || '',    // Код юнита (если есть)
-            retool: userUnit.unit?.retool,      // Время на переналадку
-            belong: userUnit.unit?.belong,      // Принадлежность юнита (enum)
-            type: userUnit.unit?.type,          // Тип юнита (enum)
-            coment: userUnit.unit?.coment,      // Комментарий юнита (если есть)
-            active: userUnit.unit?.active,        // Статус активности
+            id: userUnit.unit_id,              // ID юнита
+            title: userUnit.unit_title,        // Название юнита
+            code: userUnit.unit_code,           // Код юнита (если есть)
+            retool: userUnit.unit_retool,      // Время на переналадку
+            belong: userUnit.unit_belong,      // Принадлежность юнита (enum)
+            type: userUnit.unit_type,          // Тип юнита (enum)
+            coment: userUnit.unit_coment,      // Комментарий юнита (если есть)
+            active: userUnit.unit_active,        // Статус активности
           } as UnitItem,
-          active: userUnit.active,
+          active: userUnit.uu_active,
         } as UserUnitItem;
     })
     return {

@@ -92,13 +92,12 @@ export default function LoadOperControl({
                     {outReactNodes}
                 </div>
                 <div className={styles.oper_content_container}>
-                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperControl.task')}</span></div>
-                    <div className={styles.oper_coment}>{(oper.coment) ? oper.coment : t('loadOperControl.noComents')}</div>
-                </div>
-
-                <div className={styles.oper_content_container}>
                     <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperControl.source')}</span></div>
                     {innReactNodes}
+                </div>
+                <div className={styles.oper_content_container}>
+                    <div className={styles.oper_title}><span className={styles.bold_text}>{t('loadOperControl.task')}</span></div>
+                    <div className={styles.oper_coment}>{(oper.coment) ? oper.coment : t('loadOperControl.noComents')}</div>
                 </div>
 
             </div>

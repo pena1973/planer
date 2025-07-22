@@ -31,11 +31,13 @@ export const setOperStatus = async (
                     'Content-Type': 'application/json'
                 }),
                 body: JSON.stringify({
+                    tCardId:currentLoad.id_tCard,
                     operId: currentLoad.id_oper,
+                    version:currentLoad.version,
                     loadsIds: operloadsIds,
                     status: status,
                     teamId: teamId,
-                    userId: userId,
+                    userId: userId                     
                 }),
             }
         );

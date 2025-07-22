@@ -12,7 +12,7 @@ export class UnitTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  
 
-  @Column('int', { unique: true })
+  @Column('bigint', { unique: true })
   idc!: number;
   
   @Column('varchar')

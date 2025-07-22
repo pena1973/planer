@@ -555,7 +555,7 @@ export async function updateUnitActions(
   })
   return { success: true, savedUnitActions: savedUnitActions_ };
 }
-
+// &&&&
 // ОТКЛОНЕНИЯ ОТ РАСПИСАНИЯ ЮНИТА
 export async function updateExceptions(
   unitExceptionsRepository: Repository<UnitExceptionTable>,
@@ -654,14 +654,14 @@ export async function updateExceptions(
   }
   const savedUnitExceptions_ = savedUnitExceptions.map(sue => {
     return {
-    id: sue.id,
-    idc: sue.idc,
-    date: new Date(sue.date).toLocaleDateString('en-CA'),
-    type: sue.type,
-    timeStart: sue.timeStart,
-    timeFinish: sue.timeFinish,
-    unitId: sue.unit_id,
-    unitIdc: sue.unit_idc, 
+      id: sue.id,
+      idc: sue.idc,
+      date: new Date(sue.date).toLocaleDateString('en-CA'),
+      type: sue.type,
+      timeStart: sue.timeStart,
+      timeFinish: sue.timeFinish,
+      unitId: sue.unit_id,
+      unitIdc: sue.unit_idc,
     } as UnitExceptionItem
   })
   return { success: true, savedUnitExceptions: savedUnitExceptions_ }
@@ -672,7 +672,7 @@ export async function updateUsersUnits(
   usersUnitsRepository: Repository<UserUnitTable>,
   users_units: UserUnitItem[],  // Новый массив юнитов для пользователей
   teamId: number
-) {
+): Promise<{ success: boolean; message?: string; savedUsersUnits?: UserUnitItem[] }> {
   // Получаем все существующие назначения юнитов в базе
   const existingUsersUnits = await usersUnitsRepository.find({
     where: { team_id: teamId },
@@ -778,8 +778,19 @@ export async function updateUsersUnits(
     console.log(error);
     return { success: false, message: error };
   }
+  const savedUsersUnits_ = savedUsersUnits.map(uusaved => {
+    const unit = users_units.find(uu => (uu.unit && uu.unit?.id === uusaved.unit_id))?.unit;
+    const uu = users_units.find(uu => (uu.userId === uusaved.user_id));
+    return {
+      id: uusaved.id,
+      userId: uusaved.user_id,
+      name: uu?.name,
+      unit: unit ?? null,
+      active: uusaved.active
 
-  return { success: true, savedUsersUnits: savedUsersUnits };
+    } as UserUnitItem
+  })
+  return { success: true, savedUsersUnits: savedUsersUnits_ };
 }
 
 // Пользователи  снимаю отметку активности
