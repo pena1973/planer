@@ -1,77 +1,75 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database'; // Подключение к базе данных
-import { TemplateTable } from './../../db/models/catalogs/templates';
-import { TemplateItem } from './../../types/types'; 
-import { updateTemplates } from './../../handlers/handlers-update';  
 
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
+import { TemplateTable } from './../../db/models/catalogs/templates';
+import { TemplateItem } from './../../types/types';
+import { updateTemplates } from './../../handlers/handlers-update';
+import { getTemplates } from './../../handlers/handlers-get';
 
 
 interface RequestBody {
-    teamId: number,
-    userId: number,
-    templates: TemplateItem[],
+  teamId: number,
+  userId: number,
+  templates: TemplateItem[],
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    try {
-        const dbConnection = await connectDb();  // Устанавливаем подключение
+  const db = await connectDb();
+  const templateRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
+  try {
+    const { teamId: getTeamId } = req.query;
 
-        // Репозиторий для работы с шаблонами
-        const templateRepository = dbConnection.getRepository(TemplateTable);
+    switch (req.method) {
+      case 'GET':
 
-        const { teamId: getTeamId } = req.query;
+        const templates_ = await getTemplates(Number(getTeamId), templateRepository);
 
-        switch (req.method) {
-            case 'GET':
-                // Получаем все шаблоны для команды
-                const templates_ = await templateRepository.find({ where: { team_id: Number(getTeamId) } });
+        res.status(200).json({
+          success: true,
+          templates: templates_,
+        });
+        break;
 
-                // Возвращаем найденные шаблоны
-                res.status(200).json({
-                    success: true,
-                    templates: templates_,
-                });
-                break;
-         
-            case 'POST':
-                  // Извлекаем данные из тела запроса
-                        const { templates, userId, teamId } = req.body as RequestBody;
-                
-                        // СПИСОК ДЕЙСТВИЙ 
-                        const resTemplates = await updateTemplates(
-                            templateRepository,
-                            templates,
-                             Number(teamId)
-                        )
-                        if (!resTemplates.success) {
-                          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTemplates.message });
-                          return;
-                        }
-                
-                        const savedTemplates = resTemplates.savedTemplates as TemplateTable[];
-                
-                        const templates__ = savedTemplates
-                          .map(template => {
-                            return {
-                              id: template.id,
-                              name: template.name,
-                              fileContent:template.fileContent
-                            };
-                          });
-                
-                        // отправляем ответ
-                        res.status(200).json({
-                          success: true,
-                          templates: templates__,
-                        });
-                        break;
-               default:
-                res.status(405).end(); // Метод не поддерживается
+      case 'POST':
+        // Извлекаем данные из тела запроса
+        const { templates, userId, teamId } = req.body as RequestBody;
+
+        // СПИСОК ДЕЙСТВИЙ 
+        const resTemplates = await updateTemplates(
+          templateRepository,
+          templates,
+          Number(teamId)
+        )
+        if (!resTemplates.success) {
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTemplates.message });
+          return;
         }
-    } catch (error) {
-        console.error('Ошибка подключения или выполнения запроса (templates-api):', error);
-        res.status(500).json({ error: 'Не удалось обработать запрос' });
+
+        const savedTemplates = resTemplates.savedTemplates as TemplateTable[];
+
+        const templates__ = savedTemplates
+          .map(template => {
+            return {
+              id: template.id,
+              name: template.name,
+              fileContent: template.fileContent
+            };
+          });
+
+        // отправляем ответ
+        res.status(200).json({
+          success: true,
+          templates: templates__,
+        });
+        break;
+      default:
+        res.status(405).end(); // Метод не поддерживается
     }
+  } catch (error) {
+    console.error('Ошибка подключения или выполнения запроса (templates-api):', error);
+    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  }
 }
 export default withAuth(handler)

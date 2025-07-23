@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-// import { getRepositoryByClass } from './../../lib/db/utils'; // Хелпер для репозиториев
 
 import connectDb from './../../db/database';  // Импортируем функцию подключения
 
@@ -11,6 +10,7 @@ import { UserUnitTable } from './../../db/models/catalogs/user_unit';
 
 import { UserItem } from './../../types/types';
 import { createAccessToken, createRefreshToken } from './../../lib/auth'
+import { getTypedRepository } from './../../lib/db/utilites'
 import { getUser, getTeam, getLastAgreement } from './../../handlers/handlers-auth';  // расчеты
 import { getUsersUnits } from './../../handlers/handlers-get';  // расчеты
 
@@ -24,32 +24,26 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
+  const db = await connectDb();
+
+  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
+  const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
+  const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
+
+  console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    // Используем названия сущностей как строки
-
-    const usersRepository = dbConnection.getRepository(UserTable);
-    const teamsRepository = dbConnection.getRepository(TeamTable);
-    const userAgreeRepository = dbConnection.getRepository(UserAgreeTable);
-    const agreementRepository = dbConnection.getRepository(AgreementTable);
-    const usersUnitsRepository = dbConnection.getRepository(UserUnitTable);
-
-    // const usersRepository = getRepositoryByClass<UserTable>(dbConnection, UserTable);
-    // const teamsRepository = getRepositoryByClass<TeamTable>(dbConnection, TeamTable);
-    // const userAgreeRepository = getRepositoryByClass<UserAgreeTable>(dbConnection, UserAgreeTable);
-    // const agreementRepository = getRepositoryByClass<AgreementTable>(dbConnection, AgreementTable);
-    // const usersUnitsRepository = getRepositoryByClass<UserUnitTable>(dbConnection, UserUnitTable);
 
     switch (req.method) {
-      // регистер
       case 'POST':
         // Извлекаем данные из тела запроса
         const { login, pass } = req.body as RequestBody;
 
-        console.log('👀 userRepository:', usersRepository.target);
-
+        // console.log('👀 userRepository:', usersRepository.target);
+        //&&&&&
         const resUser = await getUser(login, pass, usersRepository)
         if (!resUser.success) {
           res.status(200).json({
@@ -60,19 +54,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         const user = resUser.user as UserItem;
 
+        // &&&&&
         const resTeam = await getTeam(user.teamId, teamsRepository)
-
         if (!resTeam.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUser.message });
           return;
         }
-
         const team = resTeam.team;
 
 
         //  юзер получен проверяю актуальное соглашение
         const resAgreement = await getLastAgreement(user.id, userAgreeRepository, agreementRepository)
-        //  { text: string, signed: boolean, dateSigned?: string, message?: string }> 
+ 
+        if (!resAgreement.agreementId) {
+          res.status(200).json({
+            success: true,
+            team: team,
+            token: "",
+            user: user,
+            agreementText: "Нет соглашения",
+            agreementId: "",
+            signed: false,
+            dateSigned: "",
+            unit: undefined,            
+          });
+          return;
+        }
 
         const signed = resAgreement.signed;
         const agreementText = resAgreement.agreementText;
@@ -96,9 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
         const resUserUnits_ = await getUsersUnits(
           team.id,
+          false,
           usersRepository,
           usersUnitsRepository,
-        )
+          user.id)
 
         if (!resUserUnits_.success) {
           res.status(200).json({
@@ -110,7 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const userunit = resUserUnits_.userUnits.find((uu) => { return uu.userId === user.id; })
 
-        const unit = (userunit) ? userunit.unit : undefined;
+        const unit = (userunit && userunit.active) ? userunit.unit : undefined;
 
         // const unit = (resUserUnits_.userUnits.length > 0) ? resUserUnits_.userUnits[0].unit : undefined
 

@@ -10,11 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TCardProductTable = void 0;
+//  Это строка в которой продукт + количество + код - 
 const typeorm_1 = require("typeorm");
-const t_cards_1 = require("./t_cards"); // Импортируем зависимую сущность
-const uoms_1 = require("../../models/catalogs/uoms");
 const types_1 = require("./../../../types/types");
-const t_card_operations_1 = require("./t_card_operations"); // Импортируем зависимую сущность
 let TCardProductTable = class TCardProductTable {
 };
 exports.TCardProductTable = TCardProductTable;
@@ -27,11 +25,7 @@ __decorate([
     __metadata("design:type", Date)
 ], TCardProductTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], TCardProductTable.prototype, "idc", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
 ], TCardProductTable.prototype, "code", void 0);
 __decorate([
@@ -43,42 +37,21 @@ __decorate([
     __metadata("design:type", String)
 ], TCardProductTable.prototype, "type", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], TCardProductTable.prototype, "title", void 0);
-__decorate([
     (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardProductTable.prototype, "qtu", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => uoms_1.UOMsTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'uom_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", uoms_1.UOMsTable)
-], TCardProductTable.prototype, "uom", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], TCardProductTable.prototype, "uom_id", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => t_cards_1.TCardTable, { eager: true, cascade: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'tcard_id' }),
-    __metadata("design:type", t_cards_1.TCardTable)
-], TCardProductTable.prototype, "tcard", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardProductTable.prototype, "tcard_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => t_card_operations_1.TCardOperationTable, { eager: true, nullable: true, cascade: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'operation_id' }),
-    __metadata("design:type", Object)
-], TCardProductTable.prototype, "operation", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)('int', { nullable: true }),
     __metadata("design:type", Object)
 ], TCardProductTable.prototype, "operation_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int'),
+    __metadata("design:type", Number)
+], TCardProductTable.prototype, "product_id", void 0);
 exports.TCardProductTable = TCardProductTable = __decorate([
     (0, typeorm_1.Entity)('t_card_products')
 ], TCardProductTable);

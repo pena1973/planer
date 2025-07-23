@@ -46,14 +46,7 @@ export async function createNewTeam(
       },
       message: "Команда успешно создана",
     };
-    // } catch (e: any) {
-    //   // В случае ошибки возвращаем сообщение об ошибке
-    //   return {
-    //     success: false,
-    //     team: {} as TeamItem,
-    //     message: `Ошибка при создании команды: ${e.message}`,
-    //   };
-    // }
+    
   } catch (e: unknown) {
     let message = "Ошибка при создании команды.";
     if (e instanceof Error) {
@@ -131,8 +124,6 @@ export async function updateUser(
       };
     }
 
-
-
     // Обновляем данные пользователя, если что-то передано
     if (name !== undefined) {
       user.name = name; // Обновляем никнейм
@@ -169,15 +160,6 @@ export async function updateUser(
       },
       message: 'Пользователь успешно обновлен.',
     };
-
-    // } catch (e: any) {
-    //   // Обработка ошибок
-    //   return {
-    //     success: false,
-    //     savedUser: {} as UserItem,
-    //     message: `Ошибка при обновлении пользователя: ${e.message}`,
-    //   };
-    // }
   } catch (e: unknown) {
     let message = "Ошибка при обновлении пользователя.";
     if (e instanceof Error) {
@@ -192,7 +174,7 @@ export async function updateUser(
 
 }
 
-
+// &&&&&
 export async function getUser(
   login: string,
   pass: string,
@@ -201,7 +183,7 @@ export async function getUser(
 
   // Строим фильтр для поиска пользователя по логину
   const filter = { login };
-  console.log('💡 Репозиторий user:', usersRepository.metadata.name);
+  // console.log('💡 Репозиторий user:', usersRepository.metadata.name);
   // Ищем пользователя в базе данных
   const userRecord = await usersRepository.findOne({ where: filter });
 
@@ -249,7 +231,7 @@ export async function isUserExist(
   return !(!userRecord)
 
 }
-
+//&&&&&&
 export async function getTeam(
   teamId: number,
   teamsRepository: Repository<TeamTable>
@@ -265,7 +247,7 @@ export async function getTeam(
     };
   }
 
-  // Возвращаем успешный результат с данными команды
+ 
   return {
     success: true,
     team: {
@@ -278,7 +260,7 @@ export async function getTeam(
   };
 
 }
-
+// &&&&&
 export async function getLastAgreement(
   userId: number,
   userAgreeRepository: Repository<UserAgreeTable>,

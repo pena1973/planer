@@ -1,9 +1,11 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
-import { getSettings } from './../../handlers/handlers-get';  // расчеты
-import { updateSettings } from './../../handlers/handlers-update';  // расчеты
 
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
+import { getSettings } from './../../handlers/handlers-get';  
+import { updateSettings } from './../../handlers/handlers-update'; 
 import { SettingsTable} from './../../db/models/plan/settings'
 
 import { SettingsItem } from './../../types/types';
@@ -14,11 +16,11 @@ interface RequestBody {
   settings: SettingsItem
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение    
-    const settingsRepository = dbConnection.getRepository(SettingsTable);
+  const db = await connectDb();
+  const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
 
+  try {
+  
     switch (req.method) {
       case 'GET': 
       

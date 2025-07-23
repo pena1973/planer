@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import styles from "./reportTCardState.module.scss";
 import { getTCardsTerms } from '@/services/monitor/getTCardsTerms';
 
@@ -101,53 +101,56 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
 
     }
   }
-  const tCardsValueReactNodes = tCardsValue.map((tCard, index) => {
-    // лоады карты
-    const tCardLoads = unitLoadsValue.filter(lo => lo.id_tCard === tCard.id)
 
-    let commonDuration = 0;
-    let readyDuration = 0;
+  const tCardsValueReactNodes = useMemo(() => {
+    return tCardsValue.map((tCard) => {
+      const tCardLoads = unitLoadsValue.filter(lo => lo.id_tCard === tCard.id);
 
-    const tCardOperationsReactNodes = tCard.tCardOperations.map((oper, index) => {
+      let commonDuration = 0;
+      let readyDuration = 0;
 
-      // Группируем лоады по версии
-      const groupedLodes = tCardLoads
-        .filter(lo => lo.idc_oper === oper.idc) // Фильтруем лоады по операции
-        .filter(lo => !lo.isRetool) // Исключаем лоады с isRetool = true
-        .reduce<Record<number, { status: StatusEnum, dateStart: string, timeStart: number, dateFinish: string, timeFinish: number, version: number }>>((acc, load) => {
-          // Создаем уникальный ключ для группы по версии
-          const key = load.version;
+      interface GroupedLoad {
+        status: StatusEnum;
+        dateStart: string;
+        timeStart: number;
+        dateFinish: string;
+        timeFinish: number;
+        version: number;
+      }
 
-          // Если группа для этой версии еще не существует, создаем пустую группу
-          if (!acc[key]) {
-            // Для первого лоада в группе сохраняем статус и даты начала и завершения
-            acc[key] = {
-              status: load.status, // Статус из первого лоада
-              dateStart: load.date,
-              timeStart: load.timeStart,
-              dateFinish: load.date,
-              timeFinish: load.timeFinish,
-              version: load.version,
-            };
-          } else {
-            // Обновляем только даты начала и завершения, а статус не меняем
-            acc[key].dateStart = (acc[key].dateStart > load.date) ? load.date : acc[key].dateStart;
-            acc[key].dateStart = (acc[key].dateFinish < load.date) ? load.date : acc[key].dateStart;
-            acc[key].timeStart = Math.min(acc[key].timeStart, load.timeStart);
-            acc[key].timeFinish = Math.max(acc[key].timeFinish, load.timeFinish);
-          }
+      const tCardOperationsReactNodes = tCard.tCardOperations.map((oper, index) => {
 
-          return acc;
-        }, {});
-      // Преобразуем объект обратно в массив, если необходимо
-      const operLoads = Object.values(groupedLodes);
+        const groupedLodes = tCardLoads
+          .filter(lo => lo.idc_oper === oper.idc && !lo.isRetool)
+          .reduce<Record<number, GroupedLoad>>((acc, load) => {
+            const key = load.version;
 
-      // делаем реакт узел
-      const operLoadsReactNodes = operLoads
-        .map((lo) => {
+            if (!acc[key]) {
+              acc[key] = {
+                status: load.status,
+                dateStart: load.date,
+                timeStart: load.timeStart,
+                dateFinish: load.date,
+                timeFinish: load.timeFinish,
+                version: load.version,
+              };
+            } else {
+              acc[key].dateStart = acc[key].dateStart > load.date ? load.date : acc[key].dateStart;
+              acc[key].dateFinish = acc[key].dateFinish < load.date ? load.date : acc[key].dateFinish;
+              acc[key].timeStart = Math.min(acc[key].timeStart, load.timeStart);
+              acc[key].timeFinish = Math.max(acc[key].timeFinish, load.timeFinish);
+            }
+
+            return acc;
+          }, {});
+
+
+        const operLoads = Object.values(groupedLodes);
+
+        const operLoadsReactNodes = operLoads.map((lo) => {
           const loStatusStyle = getStyleStatus(lo.status);
           return (
-            <tr key={`${tCard.id}-${index}`}>
+            <tr key={`lo-${tCard.id}-${index}-${lo.version}`}>
               <td></td>
               <td className={styles.operation_title}>
                 &nbsp;&nbsp; {t('reportTCardState.start')} {lo.dateStart}: {convertMinutesToTime(lo.timeStart)} - {t('reportTCardState.finish')} {lo.dateFinish}: {convertMinutesToTime(lo.timeFinish)}</td>
@@ -158,89 +161,91 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
               </td>
               <td className={styles.operation_row}></td>
               <td className={styles.operation_row}></td>
-            </tr>)
+            </tr>
+          );
+        });
+
+        if (oper.status !== StatusEnum.cancelled && oper.status !== StatusEnum.defective) {
+          commonDuration += oper.duration;
         }
+
+        const operStatusStyle = getStyleStatus(oper.status);
+        let operReady = 0;
+        if (oper.status === StatusEnum.ready) {
+          operReady = 100;
+          readyDuration += oper.duration;
+        }
+        if (oper.status === StatusEnum.performed) {
+          operReady = 50;
+          readyDuration += oper.duration / 2;
+        }
+        const fixTitle = oper.fixOperIdc ? `, исправление A ${oper.fixOperIdc}` : "";
+
+        return (
+          <React.Fragment key={`oper-${tCard.id}-${index}`}>
+            <tr>
+              <td>
+                <div className={styles.expand_row}
+                  onClick={() => {
+                    if (expandOperValue.includes(oper.id ?? NaN)) {
+                      setExpandOperValue(expandOperValue.filter(id => id !== oper.id));
+                    } else {
+                      setExpandOperValue([...expandOperValue, oper.id ?? NaN]);
+                    }
+                  }}>
+                  &nbsp;&nbsp;{expandOperValue.includes(oper.id ?? NaN) ? "—" : "+"}
+                </div>
+              </td>
+              <td className={styles.operation_title}> A{oper.idc}, {oper.action.title}{fixTitle} </td>
+              <td className={styles.operation_row}>
+                <div className={styles.status_row}>
+                  <div className={operStatusStyle} />
+                  {oper.status}
+                </div>
+              </td>
+              <td className={styles.operation_row}>{(oper.readyTerm.date === '0001-01-01' || !oper.readyTerm.date) ? "" : `${oper.readyTerm.date} : ${convertMinutesToTime(Number(oper.readyTerm.time))}`}</td>
+              <td className={styles.operation_row}>{operReady}%</td>
+            </tr>
+            {expandOperValue.includes(oper.id ?? NaN) && operLoadsReactNodes}
+          </React.Fragment>
         );
+      });
 
-      if (oper.status !== StatusEnum.cancelled && oper.status !== StatusEnum.defective)
-        commonDuration += oper.duration;
+      const cardTitle = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}`;
+      const cardStatusStyle = getStyleStatus(tCard.status);
+      if (commonDuration === 0) commonDuration = 1;
+      const cardReady = Math.round(readyDuration / commonDuration * 100);
 
-      const operStatusStyle = getStyleStatus(oper.status);
-      let operReady = 0;
-      if (oper.status === StatusEnum.ready) {
-        operReady = 100;
-        readyDuration += oper.duration;
-      }
-      if (oper.status === StatusEnum.performed) {
-        operReady = 50;
-        readyDuration += (oper.duration / 2);
-      }
-      const fixTitle = (oper.fixOperIdc) ? `, исправление A ${oper.fixOperIdc}` : ``;
-
-      return (<>
-        <tr key={`${tCard.id}-${index}`}>
-          <td>
-            <div className={styles.expand_row}
-              onClick={() => {
-                if (expandOperValue.includes((oper.id) ? oper.id : NaN)) {
-                  // убираем из списка
-                  setExpandOperValue(expandCardValue.filter((id) => id !== oper.id));
-                } else {
-                  // добавляем в список
-                  setExpandOperValue([...expandOperValue, (oper.id) ? oper.id : NaN]);
-                }
-              }
-              }>&nbsp;&nbsp;{expandOperValue.includes((oper.id) ? oper.id : NaN) ? "—" : "+"}</div></td>
-          <td className={styles.operation_title}> A{oper.idc}, {oper.action.title} {fixTitle} </td>
-          <td className={styles.operation_row}>
-            <div className={styles.status_row}>
-              <div className={operStatusStyle} />
-              {oper.status}
-            </div>
-          </td>
-          <td className={styles.operation_row}>{(oper.readyTerm.date === '0001-01-01' || oper.readyTerm.date === '') ? "" : `${oper.readyTerm.date} : ${convertMinutesToTime(Number(oper.readyTerm.time))}`}</td>
-          <td className={styles.operation_row}>{operReady}%</td>
-        </tr>
-        {expandOperValue.includes((oper.id) ? oper.id : NaN) && operLoadsReactNodes}
-
-      </>
-      )
-    })
-    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
-    // статус
-    const cardStatusStyle = getStyleStatus(tCard.status);
-
-    if (commonDuration === 0) commonDuration = 1; // чтобы не делить на ноль
-    const cardReady = Math.round(readyDuration / commonDuration * 100);
-    const time = tCard.readyTerm.time;
-    return (<React.Fragment key={tCard.id}>
-
-      <tr key={index}>
-        <td>
-          <div className={styles.expand_row}
-            onClick={() => {
-              if (expandCardValue.includes(tCard.id)) {
-                // убираем из списка
-                setExpandCardValue(expandCardValue.filter((id) => id !== tCard.id));
-              } else {
-                // добавляем в список
-                setExpandCardValue([...expandCardValue, tCard.id]);
-              }
-            }
-            }>{expandCardValue.includes(tCard.id) ? "—" : "+"}</div></td>
-        <td> {cardTitle}</td>
-        <td> <div className={styles.status_row}>
-          <div className={cardStatusStyle} />
-          {tCard.status}
-        </div>
-        </td>
-        <td>{(tCard.readyTerm.date === '0001-01-01') ? "" : `${tCard.readyTerm.date} : ${convertMinutesToTime(Number(tCard.readyTerm.time))}`}</td>
-        <td> {cardReady}%</td>
-      </tr>
-      {expandCardValue.includes(tCard.id) && tCardOperationsReactNodes}
-    </React.Fragment>
-    )
-  })
+      return (
+        <React.Fragment key={`card-${tCard.id}`}>
+          <tr>
+            <td>
+              <div className={styles.expand_row}
+                onClick={() => {
+                  if (expandCardValue.includes(tCard.id)) {
+                    setExpandCardValue(expandCardValue.filter(id => id !== tCard.id));
+                  } else {
+                    setExpandCardValue([...expandCardValue, tCard.id]);
+                  }
+                }}>
+                {expandCardValue.includes(tCard.id) ? "—" : "+"}
+              </div>
+            </td>
+            <td>{cardTitle}</td>
+            <td>
+              <div className={styles.status_row}>
+                <div className={cardStatusStyle} />
+                {tCard.status}
+              </div>
+            </td>
+            <td>{(tCard.readyTerm.date === '0001-01-01') ? "" : `${tCard.readyTerm.date} : ${convertMinutesToTime(Number(tCard.readyTerm.time))}`}</td>
+            <td>{cardReady}%</td>
+          </tr>
+          {expandCardValue.includes(tCard.id) && tCardOperationsReactNodes}
+        </React.Fragment>
+      );
+    });
+  }, [tCardsValue, unitLoadsValue, expandCardValue, expandOperValue, t]);
 
 
   return (

@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TemplateTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("./teams");
 let TemplateTable = class TemplateTable {
 };
 exports.TemplateTable = TemplateTable;
@@ -24,21 +23,15 @@ __decorate([
     __metadata("design:type", Date)
 ], TemplateTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: '' }),
+    (0, typeorm_1.Column)('varchar', { default: '' }),
     __metadata("design:type", String)
 ], TemplateTable.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text' }),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], TemplateTable.prototype, "fileContent", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], TemplateTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TemplateTable.prototype, "team_id", void 0);
 exports.TemplateTable = TemplateTable = __decorate([

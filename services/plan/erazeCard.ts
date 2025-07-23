@@ -17,6 +17,12 @@ export const erazeCard = async (
 ) => {
 
     const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
+
+    if (tCardLoads.length === 0) {
+        setMessage("Нет лоадов для отмены");
+        return
+    }
+
     const unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
     try {
         const res = await fetch(`/api/eraze-card-plan-api`,

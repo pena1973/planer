@@ -27,11 +27,11 @@ __decorate([
     __metadata("design:type", Date)
 ], AgreementTable.prototype, "date", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "", type: "text" }),
+    (0, typeorm_1.Column)('text', { default: "" }),
     __metadata("design:type", String)
 ], AgreementTable.prototype, "text", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "en", type: "varchar" }),
+    (0, typeorm_1.Column)('varchar', { default: "en" }),
     __metadata("design:type", String)
 ], AgreementTable.prototype, "locale", void 0);
 exports.AgreementTable = AgreementTable = __decorate([

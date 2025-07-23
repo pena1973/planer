@@ -7,15 +7,15 @@ export class AgreementTable {
   id!: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
+  created_at!: Date;  
 
   @Column('date')
   date!: Date; // дата создания
 
-  @Column({default:"",type:"text"})
+  @Column('text',{default:""})
   text!: string;
   
-  @Column({default:"en",type:"varchar"})
+  @Column('varchar',{default:"en"})
   locale!: string;
  
 }

@@ -1,30 +1,30 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { updateUOMS } from './../../handlers/handlers-update';  // расчеты
 import { UOMsTable } from './../../db/models/catalogs/uoms';
 import { UOMItem } from './../../types/types';
 import { getUOMs } from './../../handlers/handlers-get';  // расчеты
 
 interface RequestBody {
-  userId:number,
-  teamId:number,
+  userId: number,
+  teamId: number,
   uoms: UOMItem[];
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const db = await connectDb();
+  const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    const uomsRepository = dbConnection.getRepository(UOMsTable);
-
-    const {teamId:getTeamId } = req.query;
+    const { teamId: getTeamId } = req.query;
     switch (req.method) {
       case 'GET':
-        const uoms__ = await getUOMs(Number(getTeamId),uomsRepository)
-      
+        const uoms__ = await getUOMs(Number(getTeamId), uomsRepository)
+
         uoms__.sort((a, b) => {
           // Проверяем, что id определено
           if (a.id === undefined || b.id === undefined) {
@@ -33,45 +33,45 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return a.id - b.id; // Сортировка по id
         });
 
-       // отправляем ответ
-       res.status(200).json({
-         success: true,
-         uoms: uoms__,
-       });
+        // отправляем ответ
+        res.status(200).json({
+          success: true,
+          uoms: uoms__,
+        });
 
-       break;
-       case 'POST':
-         // Извлекаем данные из тела запроса
-               const { uoms, userId, teamId } = req.body as RequestBody;
-       
-               // СПИСОК ДЕЙСТВИЙ 
-               const resUOMS = await updateUOMS(
-                 uomsRepository,
-                 uoms,
-                 Number(teamId)
-               )
-               if (!resUOMS.success) {
-                 res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUOMS.message });
-                 return;
-               }
-       
-               const savedUOMs = resUOMS.savedUOMS as UOMsTable[];
-       
-               const uoms_ = savedUOMs
-                 .map(uom => {
-                   return {
-                     id: uom.id,
-                     title: uom.title,
-                     code:uom.code
-                   };
-                 });
-       
-               // отправляем ответ
-               res.status(200).json({
-                 success: true,
-                 uoms: uoms_,
-               });
-               break;
+        break;
+      case 'POST':
+        // Извлекаем данные из тела запроса
+        const { uoms, userId, teamId } = req.body as RequestBody;
+
+        // СПИСОК ДЕЙСТВИЙ 
+        const resUOMS = await updateUOMS(
+          uomsRepository,
+          uoms,
+          Number(teamId)
+        )
+        if (!resUOMS.success) {
+          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUOMS.message });
+          return;
+        }
+
+        const savedUOMs = resUOMS.savedUOMS as UOMsTable[];
+
+        const uoms_ = savedUOMs
+          .map(uom => {
+            return {
+              id: uom.id,
+              title: uom.title,
+              code: uom.code
+            };
+          });
+
+        // отправляем ответ
+        res.status(200).json({
+          success: true,
+          uoms: uoms_,
+        });
+        break;
       default:
         res.status(405).end(); // Метод не поддерживается
     }

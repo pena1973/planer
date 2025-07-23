@@ -1,5 +1,4 @@
 "use strict";
-//  Управляет настройками видимости шкалы времени
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -11,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsTable = void 0;
+//  Управляет настройками видимости шкалы времени
 const typeorm_1 = require("typeorm");
-const teams_1 = require("../catalogs/teams"); // Подключаем сущность для связи
 let SettingsTable = class SettingsTable {
 };
 exports.SettingsTable = SettingsTable;
@@ -45,14 +44,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], SettingsTable.prototype, "isQualControl", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], SettingsTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], SettingsTable.prototype, "team_id", void 0);
 exports.SettingsTable = SettingsTable = __decorate([

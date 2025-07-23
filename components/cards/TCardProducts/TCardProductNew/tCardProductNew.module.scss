@@ -1,0 +1,64 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+.icon_del {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    margin-bottom: 2px;
+}
+
+.container_row {
+    display: flex;    
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-start;
+    //  background-color: aquamarine;
+    width: 100%;     
+    height: 24px;
+    
+}
+
+.tCardProduct_code {    
+    // width: 70px;
+    min-width: 70px;
+    max-width:  70px;
+    text-align: start;
+    font-weight: bold;
+    //  background-color: aqua;
+    font-size: $header4_font_size;
+    padding: 4px;
+    border: $border;
+    border-radius: $border-radius;
+    text-align: start;
+}
+
+.tCardProduct_qtu {
+
+    //   background-color: azure;
+    width: 50px;
+    text-align: end;
+    font-size: $header4_font_size;
+    padding: 2px;
+
+}
+
+.container_icon_edit_save{
+     display: flex;
+     flex-direction: row;
+     align-items: center;   
+    cursor: pointer;   
+}
+.icon_edit_save{       
+    border-top-left-radius: 5px;
+}
+
+
+.message{
+    font-size: 12px; /* Размер шрифта для информации о времени */
+    color: #666; /* Светло-серый цвет для дополнительной информации */    
+    text-align: center;    
+    width: 100%;
+    color: red;
+}

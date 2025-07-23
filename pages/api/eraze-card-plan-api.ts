@@ -1,7 +1,10 @@
 
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { getEarliestStart } from './../../handlers/handlers-plan';  // планирование карты
 import { Repository } from 'typeorm';
 
@@ -11,9 +14,10 @@ import { TCardTable } from './../../db/models/data/t_cards'
 
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
+import { ProductTable } from './../../db/models/data/products'
 import { getTCardFull } from './../../handlers/handlers-get';  // 
 import { updateStatusTCard } from './../../handlers/handlers-update';  // 
-
+import { ActionTable } from './../../db/models/catalogs/actions'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
 
 import { TCardOperationItem, UnitLoadItem, StatusEnum } from "./../../types/types";
@@ -26,17 +30,19 @@ interface RequestBody {
   userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+
+  const db = await connectDb();
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const TeamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+
   // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const TeamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
-    const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
 
     switch (req.method) {
 
@@ -44,7 +50,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       case 'POST':
         const { tCardLoads, tCardId, today, teamId, userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
-
         //tCardLoads //Это все лоады покарте
 
         // Убираем prepared
@@ -58,7 +63,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
+        const tCard = await getTCardFull( 
+          Number(teamId),
+          Number(tCardId), 
+          tCardRepository, 
+          tCardOperationsRepository, 
+          tCardProductRepository, 
+          tCardStagesRepository,
+          productRepository,
+          actionRepository
+        )
         if (!tCard) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return

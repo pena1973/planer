@@ -1,7 +1,9 @@
 // Это вариант АПИ по обработке карты оптимизированный того что без 1 в имени, потом надо остальное переделать
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
 
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
@@ -10,6 +12,10 @@ import { TCardProductTable } from './../../db/models/data/t_card_products'
 import { TeamTable } from './../../db/models/catalogs/teams'
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { UnitLoadTable } from './../../db/models/plan/unit_loads'
+import { ProductTable } from './../../db/models/data/products'
+import { UOMsTable } from './../../db/models/catalogs/uoms'
+import { UnitTable } from './../../db/models/catalogs/units'
+import { ActionTable } from './../../db/models/catalogs/actions'
 
 import {
   TCardItem, TCardProductItem,
@@ -19,12 +25,15 @@ import {
   UnitLoadItem,
   UnitTypeEnum,
   UnitBelongEnum,
-  TypeEnum
+  TypeEnum, ProductItem
 } from './../../types/types';
-import { getTCardFull, getTCardLoads, getUnitActions } from './../../handlers/handlers-get';  // 
-import { updateCard, updateStages, updateOperations, 
-  updateProducts, updateTCardLoads, updateStatusTCard, 
-  updateStatusOperationByTCardId } from './../../handlers/handlers-update';  // 
+
+import { getTCardFull, getTCardLoads, getUnitActions, getUnits } from './../../handlers/handlers-get';  // 
+import {
+  updateCard, updateStages, updateOperations, updateCatalogProducts,
+  updateProducts, updateTCardLoads, updateStatusTCard,
+  updateStatusOperationByTCardId
+} from './../../handlers/handlers-update';  // 
 
 // Определение перечисления
 
@@ -35,32 +44,36 @@ interface RequestBody {
   tCardStages: TCardStageItem[];
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-    const teamsRepository = dbConnection.getRepository(TeamTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-    const tCardOperationRepository = dbConnection.getRepository(TCardOperationTable);
-    const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const tCardStagesRepository = dbConnection.getRepository(TCardStageTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
+  const db = await connectDb();
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const tCardOperationRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+  const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
+  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
 
-    const { tCardId: tCardIdget } = req.query;
+  try {
+
+    const { teamId: teamIdget, tCardId: tCardIdget } = req.query;
 
     switch (req.method) {
       case 'GET':
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard_ = await getTCardFull(
+          Number(teamIdget),
           Number(tCardIdget),
           tCardRepository,
           tCardOperationRepository,
           tCardProductRepository,
-          tCardStageRepository
+          tCardStageRepository,
+          productRepository,
+          actionRepository
         )
         if (!tCard_) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
@@ -92,10 +105,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
           return;
         }
-        const savedTCard = resCard.savedTCard as TCardTable;
+        const savedTCard = resCard.savedTCard as TCardItem;
+
+        // КАТАЛОГ ПРОДУКТОВ  
+        let savedProducts: ProductItem[] = [];
+        if (tCard.products && tCard.products.length > 0) {
+          const resProducts = await updateCatalogProducts(
+            productRepository,
+            savedTCard,
+            tCard.products ?? [] as ProductItem[],
+          )
+
+          if (!resProducts.success) {
+            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resProducts.message });
+            return;
+          }
+          savedProducts = resProducts.savedProducts as ProductItem[];
+        }
 
         // СПИСОК СТАДИЙ  
-        let savedTCardStages = [] as TCardStageTable[];
+        let savedTCardStages = [] as TCardStageItem[];
         if (tCard.tCardStages && tCard.tCardStages.length > 0) {
           const resStages = await updateStages(
             tCardStageRepository,
@@ -108,11 +137,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             return;
           }
 
-          savedTCardStages = resStages.savedTCardStages as TCardStageTable[];
+          savedTCardStages = resStages.savedTCardStages as TCardStageItem[];
         }
 
-        //СПИСОК ОПЕРАЦИЙ
-        let savedTCardOperations = [] as TCardOperationTable[];
+        //СПИСОК ОПЕРАЦИЙ (без вложеных продуктов)
+        let savedTCardOperations = [] as TCardOperationItem[];
         if (tCard.tCardOperations && tCard.tCardOperations.length > 0) {
           const resOperations = await updateOperations(
             tCardOperationRepository,
@@ -124,17 +153,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOperations.message });
             return;
           }
-          savedTCardOperations = resOperations.savedTCardOperations as TCardOperationTable[];
+          savedTCardOperations = resOperations.savedTCardOperations as TCardOperationItem[];
         }
 
         //СПИСОК ПРОДУКТОВ
-        let savedTCardProducts = [] as TCardProductTable[];
+        let savedTCardProducts = [] as TCardProductItem[];
         if ((tCard.tCardProducts && tCard.tCardProducts.length > 0)
           || (tCard.tCardMaterials && tCard.tCardMaterials.length > 0)
           || (tCard.tCardWastes && tCard.tCardWastes.length > 0)
           || (tCard.tCardOperations && tCard.tCardOperations.length > 0)
         ) {
           const resProducts = await updateProducts(
+            savedProducts,
             tCardProductRepository,
             savedTCard,
             savedTCardOperations,
@@ -148,122 +178,34 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resProducts.message });
             return;
           }
-          savedTCardProducts = resProducts.savedTCardProducts as TCardProductTable[];
+          savedTCardProducts = resProducts.savedTCardProducts as TCardProductItem[];
         }
 
+        //  все записали а сейчас запросим полную карту
+        // получаем полную карту со всеми входящими и исходящими
+        const savedtCardItem = await getTCardFull(
+          Number(teamId),
+          Number(savedTCard.id),
+          tCardRepository,
+          tCardOperationRepository,
+          tCardProductRepository,
+          tCardStageRepository,
+          productRepository,
+          actionRepository
+        )
+        if (!savedtCardItem) {
+          res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
+          return
+        }
 
-        // если дошли сюда значит при сохранении ничего не слетело 
-
-        //  преобразуем  записи таблиц в наши типы но только с указанием  уже id базы
-        const tCardStages_ = savedTCardStages
-          .map(stage => { return { id: stage.id, idc: stage.idc, code: stage.code, mode: false }; });
-
-        const tCardProducts_ = savedTCardProducts
-          .filter(product => product.type === TypeEnum.P)
-          .map(product => {
-            return {
-              id: product.id,
-              idc: product.idc,
-              code: product.code,
-              title: product.title,
-              qtu: product.qtu,
-              uom: product.uom,  // Преобразуем UOMsTable в UOMItem
-            };
-          });
-
-        const tCardWastes_ = savedTCardProducts
-          .filter(product => product.type === TypeEnum.W)
-          .map(product => {
-            return {
-              id: product.id,
-              idc: product.idc,
-              code: product.code,
-              title: product.title,
-              qtu: product.qtu,
-              uom: product.uom,  // Преобразуем UOMsTable в UOMItem
-            };
-          });
-
-        const tCardMaterials_ = savedTCardProducts
-          .filter(product => product.type === TypeEnum.M)
-          .map(product => {
-            return {
-              id: product.id,
-              idc: product.idc,
-              code: product.code,
-              title: product.title,
-              qtu: product.qtu,
-              uom: product.uom,  // Преобразуем UOMsTable в UOMItem
-            };
-          });
-
-        const tCardOperations_ = savedTCardOperations
-          .map(oper => {
-            const staget = savedTCardStages.find(stage => stage.id === oper.stage_id) as TCardStageTable
-            const stage = { id: staget.id, idc: staget.idc, code: staget.code } as TCardStageItem
-
-            const inn = savedTCardProducts
-              .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.I) })
-              .map(product => {
-                return {
-                  id: product.id,
-                  idc: product.idc,
-                  code: product.code,
-                  title: product.title,
-                  qtu: product.qtu,
-                  uom: product.uom as UOMItem,  // Преобразуем UOMsTable в UOMItem
-                } as TCardProductItem;
-              });
-
-            const out = savedTCardProducts
-              .filter(product => { return (product.operation_id === oper.id && product.type === TypeEnum.O) })
-              .map(product => {
-                return {
-                  id: product.id,
-                  idc: product.idc,
-                  code: product.code,
-                  title: product.title,
-                  qtu: product.qtu,
-                  uom: product.uom as UOMItem,  // Преобразуем UOMsTable в UOMItem
-                } as TCardProductItem;
-              });
-
-            return {
-              id: oper.id,
-              idc: oper.idc,
-              order: oper.order,
-              stage: stage,
-              out: out,
-              inn: inn,
-              action: { id: oper.action.id, title: oper.action.title, code: oper.action.code } as ActionItem,
-              duration: oper.duration, // в милисекундах   
-              status: oper.status,
-              coment: oper.coment,
-              fixOperIdc: oper.fix_oper_idc,
-            } as TCardOperationItem; // Приводим к типу TCardOperationItem
-          });
-
-        const tCardItem_ = {
-          id: savedTCard.id,
-          date: new Date(savedTCard.date).toLocaleDateString("en-CA"),
-          idc: savedTCard.idc,
-          modified: false, // Например, установка true, так как мы только что сохранили
-          maxIdc: savedTCard.max_idc,
-          coment: savedTCard.coment,
-          status: savedTCard.status,
-          tCardProducts: tCardProducts_,
-          tCardWastes: tCardWastes_,
-          tCardMaterials: tCardMaterials_,
-          tCardOperations: tCardOperations_,
-          tCardStages: tCardStages_,
-        } as TCardItem; // Приводим к типу TCardItem
-
-
-        // отправляем ответ
+        // Отправляем ответ с данными
         res.status(200).json({
           success: true,
-          tCard: tCardItem_,
+          tCard: savedtCardItem,
+          messsage: ""
         });
+
+
         break;
 
       case 'DELETE':
@@ -271,20 +213,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const { tCardId: tCardIddel, teamId: teamIddel } = req.query;
         const tCardId = Number(tCardIddel);
-        const teamId_ = Number(teamIddel);
-
+        
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard__ = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository, tCardStagesRepository)
+        const tCard__ = await getTCardFull(Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository)
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(teamId_, unitActionsRepository)
+        const unitActions_ = await getUnitActions(Number(teamIddel), unitActionsRepository)
 
         if (!tCard__) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
 
-        const loads = await getTCardLoads(tCardId, unitLoadRepository)
+        const units = await getUnits(Number(teamIddel), unitRepository)
+
+        const loads = await getTCardLoads(tCard__,units, unitLoadRepository)
         if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
 
         // фильтруем лоады по сегодняшней дате
@@ -308,15 +251,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
 
         const allLoads = [...historyLoads, ...planLoads];
-
-        const resDel = await updateTCardLoads(teamId_, tCardId, allLoads, unitLoadRepository);
+        
+        // !!!!Проверить
+        const resDel = await updateTCardLoads(Number(teamIddel), tCardId, allLoads, unitLoadRepository);
         if (!resDel.success) { res.status(200).json({ success: false, message: resDel.message }); }
 
         // Переводим в тип UnitLoadItem[]                
         const loads_ = resDel.loads.map(lo => {
           const oper = tCard__.tCardOperations?.find(oper => oper.id === lo.id_oper);
 
-          const unit = lo.unit;
+
+          const unit = units.find(u => u.id = lo.unit_id);
+          if (!unit) return null;
           const unitAction = unitActions_.find(ac => ac.unitId === unit.id && ac.action.id === oper?.action.id);;
 
           return {
@@ -348,7 +294,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               tCardIdc: tCard__.idc,
               tCardDate: tCard__.date,
               title: oper?.action.title,
-              duration: (!oper) ? 0 : oper.duration/1000,
+              duration: (!oper) ? 0 : oper.duration / 1000,
               interruptible: oper?.action.interruptible,
               koef: unitAction?.koef ? unitAction.koef : 1,
             },
@@ -367,7 +313,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (loads_.length > 0) {
 
           // обновим статус операций
-          const resOpers = await updateStatusOperationByTCardId(tCardOperationsRepository, tCardId, StatusEnum.cancelled)
+          const resOpers = await updateStatusOperationByTCardId(tCardOperationRepository, tCardId, StatusEnum.cancelled)
           if (!resOpers.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
             break;
@@ -382,17 +328,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             });
             break;
           }
+
           // собираем все что осталось от карты
-          const tCard_ = await getTCardFull(tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository);
+          const tCard_ = await getTCardFull(Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository);
           // Возвращаем успешный ответ
           res.status(200).json({ success: true, tCard: tCard_, loads: loads_, message: `TCard canceled successfully` });
           break
         } else {
+
           // лоадов нет удаляем карту и все связанные с ней данные
           await tCardProductRepository.delete({ tcard_id: tCardId });
           // Удаляем все связанные данные: стадии, операции, продукты
           await tCardOperationRepository.delete({ tcard_id: tCardId });
           await tCardStageRepository.delete({ tcard_id: tCardId });
+          await productRepository.delete({ tcard_id: tCardId });
           // Теперь удаляем саму карту
           await tCardRepository.delete({ id: tCardId });
 

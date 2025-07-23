@@ -1,47 +1,51 @@
 import { withAuth } from './../../lib/withAuth'
 // Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './../../handlers/handlers-get';  // 
-import { planTCardFromOperINC,  getDependentOperationsIds} from './../../handlers/handlers-plan';  // 
+import { planTCardFromOperINC, getDependentOperationsIds } from './../../handlers/handlers-plan';  // 
 
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions';
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
 import { TCardTable } from './../../db/models/data/t_cards'
-
+import { TeamTable } from './../../db/models/catalogs/teams'
 import { UnitTable } from './../../db/models/catalogs/units'
 
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { ProductTable } from './../../db/models/data/products'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
-import {UnitLoadItem,} from "./../../types/types";
+import { ActionTable } from './../../db/models/catalogs/actions'
+import { UnitLoadItem, } from "./../../types/types";
 
 interface RequestBody {
-  userId:number,
-  teamId:number,
+  userId: number,
+  teamId: number,
   tCardId: number,
   operId: number, //  операция которую нужно открепить и перепланировать
   tCardLoads: UnitLoadItem[], // лоады по карте  
   today: string // дата раздела 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const db = await connectDb();
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+  const tCardOperationRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+  const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardProductRepository = dbConnection.getRepository(TCardProductTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
-    const unitExceptionsRepository = dbConnection.getRepository(UnitExceptionTable);
-    const tCardStageRepository = dbConnection.getRepository(TCardStageTable);
-    
 
     switch (req.method) {
 
@@ -49,7 +53,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       //  нужно перепланировать все операции начиная с этой
       case 'POST':
 
-        const { tCardId, operId, tCardLoads, today,userId,teamId } = req.body as RequestBody;
+        const { tCardId, operId, tCardLoads, today, userId, teamId } = req.body as RequestBody;
 
         // loads-Это все загрузки по карте которую перепланируем
         if (tCardLoads.length === 0) {
@@ -64,7 +68,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull(tCardId, tCardRepository, tCardOperationsRepository, tCardProductRepository,tCardStageRepository)
+        const tCard = await getTCardFull(
+          Number(teamId),
+          Number(tCardId),
+          tCardRepository,
+          tCardOperationRepository,
+          tCardProductRepository,
+          tCardStageRepository,
+          productRepository,
+          actionRepository
+        )
         if (!tCard) {
           res.status(200).json({
             success: false,
@@ -91,27 +104,31 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
           !(load.id_oper === operId || dependentOperationsIds.includes(load.id_oper as number))
         );
-        
+
         // сортируем по возрастанию
         cardLoadsWithoutOperEndDep.sort((a, b) =>
           a.date.localeCompare(b.date) || a.timeStart - b.timeStart
         );
-        
+
         let planedCardLoads = [...cardLoadsWithoutOperEndDep];
 
         // запросим юниты
         const units_ = await getUnits(Number(teamId), unitRepository)
-     
+
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(Number(teamId),  unitActionsRepository)
+        const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository)
 
         // запросим расписание компании
-        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository)
+        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
 
         //  получим исключения рабочего времени юнитов         
         const exceptionItems = await getExceptions(Number(teamId), unitExceptionsRepository)
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
-        const unitLoadItemsBD = await getUnitLoads(units_, unitLoadRepository)
+        const unitLoadItemsBD = await getUnitLoads(
+          Number(teamId),
+          units_,
+          unitLoadRepository,
+          unitActionsRepository)
         //  уберем из нее лоады нашей карты
         let unitLoadItemsFull = unitLoadItemsBD.filter(lo => tCardId !== lo.id)
         //  и добавим  лоады без операций которые надо перепланировать
@@ -119,8 +136,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // планируем все операции  начиная (включая) с нашей  (исключая пришпиленные)
 
-        const operationsToPlanIds= [...dependentOperationsIds,Number(oper.id)]
-        
+        const operationsToPlanIds = [...dependentOperationsIds, Number(oper.id)]
+
         // Планируем карту начиная с нашей операции (есключая ее саму)
         const resultPlaningNextOper = planTCardFromOperINC(operationsToPlanIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
         //  Если не удалось запланировать
@@ -132,7 +149,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           });
           break;
         }
-        planedCardLoads = [...planedCardLoads,...resultPlaningNextOper.planedCardLoads]
+        planedCardLoads = [...planedCardLoads, ...resultPlaningNextOper.planedCardLoads]
 
         // отправляем ответ
         res.status(200).json({

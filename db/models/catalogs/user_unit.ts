@@ -1,8 +1,5 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from './teams'
-import { UnitTable } from './units'
-import { UserTable } from './users'
 
 @Entity("users_units")
 export class UserUnitTable {
@@ -10,30 +7,18 @@ export class UserUnitTable {
   id!: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
+  created_at!: Date;  
 
-  @ManyToOne(() => UserTable, { eager: true })
-  @JoinColumn({ name: 'user_id' })
-  user!: UserTable;
-  @Column()
+  @Column('int')
   user_id!: number;
 
-  @ManyToOne(() => TeamTable, { eager: true })
-  @JoinColumn({ name: 'team_id' })
-  team!: TeamTable;
-  @Column()
+  @Column('int')
   team_id!: number;
 
- 
-  @ManyToOne(() => UnitTable, { eager: true, nullable: true })
-  @JoinColumn({ name: 'unit_id' }) // Указываем внешний ключ для поля unit_id
-  unit?: UnitTable|null;  // Ссылка на UnitTable, которая будет сгенерирована TypeORM
+  @Column('int',{ nullable: true })
+  unit_id?: number|null;     
 
-  @Column({ nullable: true })
-  unit_id?: number|null;  // unit_id теперь является необязательным и будет генерироваться автоматически
-    
-
-  @Column({type: 'boolean', default: false })
+  @Column('boolean',{ default: false })
   active!: boolean; //  запись действующая
 
 }

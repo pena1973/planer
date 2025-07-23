@@ -1,10 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne,  } from 'typeorm';
-import { TCardTable } from './t_cards'; // Импортируем зависимую сущность
-import { UOMsTable } from '../../models/catalogs/uoms';
-
+//  Это строка в которой продукт + количество + код - 
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { TypeEnum } from './../../../types/types';
-
-import { TCardOperationTable } from './t_card_operations'; // Импортируем зависимую сущность
 
 @Entity('t_card_products')
 export class TCardProductTable {
@@ -14,10 +10,7 @@ export class TCardProductTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
-  @Column()
-  idc!: number; // id на клиенте
-
-  @Column()
+  @Column('varchar',)
   code!: string;
 
   @Column({
@@ -27,28 +20,17 @@ export class TCardProductTable {
   })
   type!: TypeEnum;
 
-  @Column()
-  title!: string;
-
   @Column('int')
   qtu!: number;
 
-  @ManyToOne(() => UOMsTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'uom_id' }) // Указываем колонку, которая является внешним ключом
-  uom!: UOMsTable;  // Связь с таблицей UOMsTable
-  @Column()
-  uom_id!: number;
-
-  @ManyToOne(() => TCardTable,  { eager: true, cascade:true })
-  @JoinColumn({ name: 'tcard_id' })
-  tcard!: TCardTable;
-  @Column()
+  @Column('int')
   tcard_id!: number;
 
-
-  @ManyToOne(() => TCardOperationTable, { eager: true, nullable: true, cascade:true })
-  @JoinColumn({ name: 'operation_id' })
-  operation!: TCardOperationTable|null;
-  @Column({ nullable: true })
+  @Column('int', { nullable: true })
   operation_id!: number | null;
+
+  @Column('int')
+  product_id!: number;
+
+
 }

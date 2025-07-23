@@ -11,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TCardTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("../../models/catalogs/teams");
-const users_1 = require("../../models/catalogs/users");
 const types_1 = require("./../../../types/types");
 let TCardTable = class TCardTable {
 };
@@ -30,37 +28,23 @@ __decorate([
     __metadata("design:type", Date)
 ], TCardTable.prototype, "date", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => users_1.UserTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", users_1.UserTable)
-], TCardTable.prototype, "user", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardTable.prototype, "user_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], TCardTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardTable.prototype, "idc", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 0 }),
+    (0, typeorm_1.Column)('int', { default: 0 }),
     __metadata("design:type", Number)
 ], TCardTable.prototype, "max_idc", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text', default: "" }),
+    (0, typeorm_1.Column)('text', { default: "" }),
     __metadata("design:type", String)
 ], TCardTable.prototype, "coment", void 0);
 __decorate([

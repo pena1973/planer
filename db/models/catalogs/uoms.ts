@@ -1,6 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import {TeamTable} from './teams'
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity("uoms")
 export class UOMsTable {
@@ -8,20 +7,17 @@ export class UOMsTable {
   id!: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
+  created_at!: Date;  
 
-  @Column()
+  @Column('varchar')
   title!: string;
 
-  @Column({ type: 'text', default: "" })
+  @Column('text', { default: "" })
   coment!: string;
 
-  @Column({ default: "", nullable: true })
+  @Column('varchar',{ default: "", nullable: true })
   code!: string;
-
-  @ManyToOne(() => TeamTable, { eager: true, cascade: true,nullable: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей UOMsTable
-  @Column()
+  
+  @Column('int')
   team_id!: number;
 }

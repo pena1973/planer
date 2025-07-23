@@ -1,35 +1,32 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+import connectDb from './../../db/database';
 
+import { getTypedRepository } from './../../lib/db/utilites'
 import { ActionTable } from './../../db/models/catalogs/actions';
 import { ActionItem } from './../../types/types';
-import { getActions } from './../../handlers/handlers-get';  
-import { updateActions } from './../../handlers/handlers-update';  
+import { getActions } from './../../handlers/handlers-get';
+import { updateActions } from './../../handlers/handlers-update';
 
 interface RequestBody {
-  userId:number,
-  teamId:number,
+  userId: number,
+  teamId: number,
   actions: ActionItem[];
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const db = await connectDb();
+  const actionsRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+
   try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    const actionsRepository = dbConnection.getRepository(ActionTable);
-
-    // userId, teamId в любом случае
-    const {teamId:getTeamId } = req.query;
+    const { teamId: getTeamId } = req.query;
 
     switch (req.method) {
       case 'GET':
         const actions__ = await getActions(Number(getTeamId), actionsRepository)
-       
+
         actions__.sort((a, b) => a.id - b.id);
-        
+
         // отправляем ответ
         res.status(200).json({
           success: true,
@@ -59,7 +56,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           .map(action => {
             return {
               id: action.id,
-              code:action.code,
+              code: action.code,
               title: action.title,
               interruptible: action.interruptible,
             };

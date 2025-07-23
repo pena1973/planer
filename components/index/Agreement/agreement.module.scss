@@ -16,6 +16,7 @@
   color: $second_text_color;
   width: 100%;
   min-height: calc(100vh - 110px);
+  height:-webkit-fill-available;
 }
 
 .container_block {

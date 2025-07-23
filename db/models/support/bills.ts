@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from '../../models/catalogs/teams'
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity("bills")
 export class BillTable {
@@ -12,19 +11,15 @@ export class BillTable {
     @Column('date')
     date!: Date; // дата карты
 
-    @Column({ default: "" })
+    @Column('varchar', { default: "" })
     title!: string;
 
     @Column({ type: 'text' })
     fileContent!: string; // Содержимое файла в формате JSON (содержимое карты)
 
-    @Column({ default: false })
+    @Column('boolean', { default: false })
     paid!: boolean;
 
-    @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    team!: TeamTable;
-    @Column()
+    @Column('int')
     team_id!: number;
-
 }

@@ -1,0 +1,52 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+.container {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 310px;
+    height: auto;
+    margin: 5px;
+    background-color: $main_container_background_color;
+    border-radius: $border-radius;
+    border: $border;
+    box-shadow: $box-shadow;
+    transition: box-shadow 0.3s ease;
+    padding: 5px;
+    position: relative;
+    color: $second_text_color;
+    font-size: $header4_font_size;
+}
+
+
+.container_buttons_row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    border-top: $border;    
+    // background-color: aquamarine;
+    width: calc(100% - 4px);    
+    overflow: hidden;
+}
+
+.container_icon_edit_save {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
+}
+
+.icon_edit_save {
+    border-top-left-radius: 5px;
+}
+
+.message {
+    font-size: $header4_font_size;      
+    text-align: center;
+    width: 100%;
+    color: red;
+}

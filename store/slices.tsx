@@ -2,7 +2,7 @@ import {
     UOMItem, ActionItem, UnitItem, SettingsItem,
     TCardItem,  UnitLoadItem, ScheduleItem,
     UnitExceptionItem, UnitActionItem, UserItem,
-    TeamItem,TemplateItem
+    TeamItem,TemplateItem,ProductItem
 } from './../types/types';
 
 import { createSlice } from '@reduxjs/toolkit';
@@ -19,7 +19,7 @@ export type CatalogState = {
 export type DataState = {
     tCards: TCardItem[],
     tCardIndex:number,
-    templates:TemplateItem[],    
+    templates:TemplateItem[],        
 }
 export type AuthState = {
     token: string,
@@ -53,9 +53,9 @@ const catalogIntialState: CatalogState = {
     schedule: {} as ScheduleItem,
 }
 const dataIntialState: DataState = {
-    tCards: [] as TCardItem[],    
+    tCards: [] as TCardItem[],        
     tCardIndex:0,
-    templates:[] as TemplateItem[],    
+    templates:[] as TemplateItem[],        
 }
 const authIntialState: AuthState = {
     token: "",
@@ -140,7 +140,8 @@ const dataSlice = createSlice({
         }, 
         setTemplates: (state, action) => {
             state.templates = action.payload;
-        }, 
+        },
+               
 
     },
 

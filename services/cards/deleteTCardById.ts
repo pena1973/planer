@@ -1,12 +1,13 @@
 
 
 import { Dispatch } from "redux";
-import { TCardItem, UnitLoadItem } from "./../../types/types";
+import { TCardItem, UnitLoadItem,TeamItem } from "./../../types/types";
 import { setTCards, setUnitLoads } from "./../../store/slices";
 
 export const deleteTCardById = async (
     idToRemove: number,
     token: string,
+    team: TeamItem,
     tCards: TCardItem[],
     unitLoads: UnitLoadItem[],
     dispatch: Dispatch,
@@ -16,7 +17,7 @@ export const deleteTCardById = async (
 
     try {
         // запрос получение текста из БД вместе со словами     textId: number, userId:number      
-        const res = await fetch(`api/tcard-api?tCardId=${idToRemove}`,
+        const res = await fetch(`api/tcard-api?tCardId=${idToRemove}&teamId=${team.id}`,
             {
                 method: 'delete',
                 headers: new Headers({

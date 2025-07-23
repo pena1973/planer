@@ -45,12 +45,19 @@ export interface TCardOperationItem {
 }
 
 export interface TCardProductItem {
-    id?: number,  // id BD
-    idc: number, //  id на клиенте
+    id?: number,  // id BD   
     code: string, //  код источника    
+    qtu: number,   
+    product: ProductItem
+}
+
+export interface ProductItem {
+    id?: number,  // id BD
+    idc: number, //  id на клиенте    
     title: string,
-    qtu: number,
     uom: UOMItem,
+    sync: string,
+   
 }
 
 export interface TCardItem {
@@ -62,16 +69,20 @@ export interface TCardItem {
     tCardWastes?: TCardProductItem[],
     tCardOperations?: TCardOperationItem[],
     tCardMaterials?: TCardProductItem[],
-    // включаю потому что может быть 
-    // не заполненная операциями стадия на этапе редактирования  
     tCardStages?: TCardStageItem[],
+    products?: ProductItem[],
     // это счетчик id для подчиненных сущьностей в пределах карты  
     // -  обеспечивает сквозную idc в карте иначе получим очень большие номера
     maxIdc: number,
     coment?: string,
     status: StatusEnum
 }
-
+export interface ReadyProduct extends TCardProductItem {
+  date: string;
+  time: number;
+  reserved: number;
+  reservedTo: number;
+}
 export interface UOMItem {
     id: number,
     title: string,
@@ -104,8 +115,7 @@ export interface UnitItem {
     id?: number,
     idc: number,
     title: string,
-    code: string, // для синхронизации , заполнение обязательно и должен быть уникален
-    // actions: UnitActionItem[],
+    code: string, // для синхронизации , заполнение обязательно и должен быть уникален    
     retool: number, // общее время на переналадку станка между каждой операцией  в минутах
     modified?: boolean, // указание что модифицирована и не сохранена
     belong: UnitBelongEnum,
@@ -263,7 +273,6 @@ export interface SettingsItem {
     showWeekend: boolean, // показывать выходные дни
     showHoliday: boolean,// показывать праздники 
     isQualControl: boolean,// применяется ли контроль качества  
-
 }
 
 
@@ -324,38 +333,43 @@ export enum TimeZoneEnum {
 //// Интерфейсы для чтения карты из файла
 
 export interface ProductContent {
-    idc: number;
-    code: string;
+    idc: number;    
     title: string;
-    qtu: number;
     uom: { code: string; title: string };
+    sync: string,
+}
+
+export interface TProductContent {    
+    code: string;    
+    qtu: number;
+    productIdc:number,
 }
 
 export interface OperationContent {
     order: number,
-    idc: number;
-    stage: { idc: number, code: number };
-    out: ProductContent[];
-    inn: ProductContent[];
-    action: { code: string; title: string };
-    duration: number;
-
+    idc: number,
+    stage: { idc: number, code: number },
+    out: TProductContent[],
+    inn: TProductContent[],
+    action: { code: string, title: string },
+    duration: number,
     coment?: string;
 }
 
 export interface TCardContent {
-    date: string;
-    idc: number;
-    tCardProducts: ProductContent[];
-    tCardOperations: OperationContent[];
-    tCardWastes?: ProductContent[];
-    tCardStages: { idc: number, code: number }[];
+    date: string,
+    idc: number,
+    tCardProducts: TProductContent[],
+    tCardOperations: OperationContent[],
+    tCardWastes?: TProductContent[],
+    tCardStages: { idc: number, code: number }[],
+    products:ProductContent[],
     coment?: string;
 
 }
 
 export interface SupportMessageItem {
-    id:number, // если новое то - (Временный id) 
+    id: number, // если новое то - (Временный id) 
     date: string; // дата время писма
     title: string;
     body: string,
@@ -365,7 +379,7 @@ export interface SupportMessageItem {
     // idChain: number, // id цепочки - равен исходному писму
 }
 export interface BillItem {
-    id?:number,
+    id?: number,
     date: string; // период за который вымавлен счет
     title: string;
     file: string,

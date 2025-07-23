@@ -11,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UnitExceptionTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("../catalogs/teams"); // Подключаем сущность для связи
-const units_1 = require("../catalogs/units"); // Подключаем сущность для связи
 const types_1 = require("./../../../types/types"); // Подключаем сущность для связи
 // Это отклонения юнита от расписания предприятия
 let UnitExceptionTable = class UnitExceptionTable {
@@ -47,27 +45,15 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "timeFinish", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], UnitExceptionTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable, { eager: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'unit_id' }),
-    __metadata("design:type", units_1.UnitTable)
-], UnitExceptionTable.prototype, "unit", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "unit_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "unit_idc", void 0);
 exports.UnitExceptionTable = UnitExceptionTable = __decorate([

@@ -29,7 +29,8 @@
     "products": "Products",
     "wastes": "Waste",
     "comment": "Comment",
-    "materials": "Materials"
+    "materials": "Materials",
+    "catalog": "Catalog"
   },
   "service": {
     "loginNotEntered": "Please enter your login",
@@ -95,7 +96,11 @@
     "sourse": "Source",
     "action": "Action",
     "result": "Result",
-    "fillUOM": "Please specify the unit of measurement!"
+    "fillUOM": "Please specify the unit of measurement!",
+    "fillProduct": "Fill in the product",
+    "fillQtu": "Fill in the quantity",
+    "fillAction": "Fill in the action",
+    "fillDuration": "Fill in the duration"
   },
   "fileUpload": {
     "json": "Upload your JSON file here",
@@ -232,10 +237,9 @@
     "outerActions1": "Actions assigned to external performers",
     "readiness": "Card readiness",
     "kpi": "Units KPIs",
-    "kpi1": "KPIs of working units",
-    "syncCodes": "Sync codes",
-    "syncCodes1": "Product sync codes from cards",
-    "notes": "Notes"
+    "kpi1": "KPIs of working units",    
+    "notes": "Notes",
+    "notes1": "Position not assigned, please contact your supervisor"
   },
   "unitTaskStackProcess": {
     "loading": "Loading",
@@ -372,5 +376,10 @@
     "section3Title": "3. Profile",
     "section3Text1": "This section stores user information. You can change your name and password.",
     "section3Text2": "Important: You can't change your email or login here. Only the team admin can delete your account."
+  },
+  "agreement": {
+    "signAgreement": " Concent",
+    "cancelSignAgreement": "Cancel",
+    "agree": "Agree"
   }
 }

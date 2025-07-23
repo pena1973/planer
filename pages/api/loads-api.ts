@@ -1,7 +1,10 @@
 
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { getUnits, getUnitLoads, getTCardOperations, getUnitActions } from './../../handlers/handlers-get';  // расчеты
 
 import { UnitLoadTable } from '../../db/models/plan/unit_loads';
@@ -13,16 +16,13 @@ import { TCardOperationTable } from '../../db/models/data/t_card_operations'
 import { UnitTypeEnum } from './../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const db = await connectDb();
+  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+
   try {
-
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-
-    const unitRepository = dbConnection.getRepository(UnitTable);
-    const unitActionsRepository = dbConnection.getRepository(UnitActionTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
 
     // userId, teamId в любом случае
     const { userId, teamId, unitId } = req.query;
@@ -36,22 +36,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
       case 'GET':
 
-        // запросим юнита        
-        const units = await getUnits(Number(teamId), unitRepository,unitIdNumber )
-        // если отбор по юниту и jy gjkexty то проверим может это контролер
-        const isControler = (unitIdNumber && units.length > 0)? (units[0].type === UnitTypeEnum.control):false
-        
+        // запросим юнитов                
+        const units = await getUnits(Number(teamId), unitRepository, unitIdNumber)
+        // если отбор по юниту и он получен то проверим может это контролер
+        const isControler = (unitIdNumber && units.length > 0) ? (units[0].type === UnitTypeEnum.control) : false
+        // если это контролер то запросим всех юнитов поскольку проверяем его лоады а иначе оставим старый массив 
+        const allunits = (isControler) ? await getUnits(Number(teamId), unitRepository) : units
 
-    // если это контролер то запросим всех юнитов поскольку проверяем его лоады а иначе оставим старый массив 
-        
-     const allunits = (isControler)? await getUnits(Number(teamId), unitRepository):units
-        
 
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository,unitIdNumber)
+        const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository, unitIdNumber)
 
         //  получим юниты с загрузкой  до планирования новой карты         
-        const unitsLoads = await getUnitLoads(allunits, unitLoadRepository,isControler)
+        const unitsLoads = await getUnitLoads(
+          Number(teamId),
+          allunits,
+          unitLoadRepository,
+          unitActionsRepository,
+          isControler,)
         // запросим операции  чтобы дополнить информацию по лоадам
         const operIds = Array.from(new Set(unitsLoads.map(load => load.id_oper)));
 

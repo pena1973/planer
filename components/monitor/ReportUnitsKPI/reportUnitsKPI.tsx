@@ -1,13 +1,15 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import styles from "./reportUnitsKPI.module.scss";
 import { getUnitsKPI } from '@/services/monitor/getUnitsKPI';
 import Filter from "./Filter/filter";
-import { UnitKPIItem, UnitItem, UnitBelongEnum, UnitTypeEnum } from "@/types/types";
+import { UnitKPIItem, UnitItem } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { useTranslation } from 'react-i18next';
 
 import { convertMinutesToTime1 } from "@/lib/utils"
+
+import { UnitBelongEnum, UnitTypeEnum } from '@/types/types';
 
 interface ReportUnitsKPIProps {
   setMessage: (message: string) => void,
@@ -99,33 +101,34 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
 
 
   //  получаем юниты из общего массива
-  const uniqueUnits: UnitItem[] = [];
-  unitsKPIValue.forEach(item => {
-    // Предполагается, что у каждого юнита есть уникальное поле id
-    if (!uniqueUnits.some(u => u.id === item.unit.id) && item.unit.belong === UnitBelongEnum.inner && item.unit.type === UnitTypeEnum.process) {
-      uniqueUnits.push(item.unit);
-    }
-  });
+  const uniqueUnits = useMemo<UnitItem[]>(() => {
+    const uniq: UnitItem[] = [];
+    unitsKPIValue.forEach(item => {
+      if (
+        !uniq.some(u => u.id === item.unit.id) &&
+        item.unit.belong === UnitBelongEnum.inner &&
+        item.unit.type === UnitTypeEnum.process
+      ) {
+        uniq.push(item.unit);
+      }
+    });
+    return uniq;
+  }, [unitsKPIValue]);
 
-  //  получаем месяца в которых есть инфо по юниту из общего массива
-  interface UnitMonthPair {
-    unit: UnitItem;
-    month: number; // номер месяца (0-11, где 0 — январь, 11 — декабрь)
-  }
-  const unitMonthPairs: UnitMonthPair[] = [];
-  unitsKPIValue.forEach(item => {
-    const unit = item.unit;
-    // Получаем месяц из строки даты. new Date(item.date) корректно работает, если дата имеет формат "YYYY-MM-DD"
-    const month = new Date(item.date).getMonth();
-    // Проверяем, что для данного юнита и месяца пары ещё не было добавлено
-    if (!unitMonthPairs.some(pair => pair.unit.id === unit.id && pair.month === month)) {
-      unitMonthPairs.push({ unit, month });
-    }
-  });
+  // пары «юнит‑месяц»
+  const unitMonthPairs = useMemo(() => {
+    const pairs: { unit: UnitItem; month: number }[] = [];
+    unitsKPIValue.forEach(item => {
+      const month = new Date(item.date).getMonth();
+      if (!pairs.some(p => p.unit.id === item.unit.id && p.month === month)) {
+        pairs.push({ unit: item.unit, month });
+      }
+    });
+    return pairs;
+  }, [unitsKPIValue]);
 
   // дерево отчета
   const unitsReactNodes = uniqueUnits.map((unitKey, index) => {
-
 
     let unitProductionTime = 0
     let unitOccupiedTime = 0

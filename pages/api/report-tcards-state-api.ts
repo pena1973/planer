@@ -1,6 +1,8 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
 
 import { getTCardsTerms } from './../../handlers/handlers-get';  // 
 import { TCardTable } from './../../db/models/data/t_cards'
@@ -10,26 +12,23 @@ import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { StatusEnum } from './../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-    // Используем репозиторий для работы с сущностью TCardTable
-    const teamRepository = dbConnection.getRepository(TeamTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
+  const db = await connectDb();
+  const teamRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
 
-    // userId, teamId в любом случае
+  try {    
     const { userId, teamId, tCardNumber, tCardDateFrom, tCardDateTo, tCardStatus } = req.query;
+    
     // Проверяем, что tCardStatus является допустимым значением для StatusEnum
-
     const status = Object.values(StatusEnum).includes(tCardStatus as StatusEnum) ? tCardStatus as StatusEnum : undefined;
 
     switch (req.method) {
       case 'GET':
 
         // получаем карты с операциями
-        const { terms, loads } = await getTCardsTerms(
+        const { tCardsTerms, loads } = await getTCardsTerms(
           Number(teamId),
           Number(tCardNumber),
           tCardDateFrom as string,
@@ -40,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // tCardProductRepository,
           unitLoadRepository
         )
-        if (!terms) {
+        if (!tCardsTerms) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
@@ -48,7 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // Отправляем ответ с данными
         res.status(200).json({
           success: true,
-          tCards: terms,
+          tCards: tCardsTerms,
           unitLoadItems: loads,
           messsage: ""
         });

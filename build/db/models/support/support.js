@@ -11,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SupportTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("../../models/catalogs/teams");
-const users_1 = require("../../models/catalogs/users");
 let SupportTable = class SupportTable {
 };
 exports.SupportTable = SupportTable;
@@ -30,41 +28,27 @@ __decorate([
     __metadata("design:type", Date)
 ], SupportTable.prototype, "date", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "" }),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
 ], SupportTable.prototype, "title", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text' }),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], SupportTable.prototype, "body", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
+    (0, typeorm_1.Column)('boolean', { default: false }),
     __metadata("design:type", Boolean)
 ], SupportTable.prototype, "fromUser", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)('int', { nullable: true }),
     __metadata("design:type", Number)
 ], SupportTable.prototype, "basedOn", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], SupportTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], SupportTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => users_1.UserTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], SupportTable.prototype, "user", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], SupportTable.prototype, "user_id", void 0);
 exports.SupportTable = SupportTable = __decorate([

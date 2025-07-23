@@ -45,7 +45,7 @@ export default function ContexMenuInner({
         <div className={styles.container_context_menu}
             style={{ left: `${left + width - width / 2 - 10}px` }} >
             {/* Треугольник (стрелка) */}
-            <div className={styles.contextMenuTriangle} />
+            {/* <div className={styles.contextMenuTriangle} /> */}
 
             <div className={styles.coment}>
                 <span className={styles.title}> {t('contexMenuI.card')}</span> {`: ${padNumberToFourDigits(load.loadInfo.tCardIdc)} - ${new Date(load.loadInfo.tCardDate).toLocaleDateString("en-CA")}`}

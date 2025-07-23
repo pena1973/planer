@@ -48,7 +48,7 @@ export default function LoadOperProcess({
         innReactNodes = oper.inn.map((elem) => {
             return (
                 <div key={elem.id} className={styles.inn_line}>
-                    <div className={styles.oper_title}>{elem.title} {elem.qtu} {elem.uom.title}</div>
+                    <div className={styles.oper_title}>{elem.product.title} {elem.qtu} {elem.product.uom.title}</div>
                     <div className={styles.oper_title}> code:  {elem.code} </div>
                 </div>
             )
@@ -59,7 +59,7 @@ export default function LoadOperProcess({
         outReactNodes = oper.out.map((elem) => {
             return (
                 <div key={elem.id} className={styles.inn_line}>
-                    <div className={styles.oper_title}>{elem.title} {elem.qtu} {elem.uom.title}</div>
+                    <div className={styles.oper_title}>{elem.product.title} {elem.qtu} {elem.product.uom.title}</div>
                     <div className={styles.oper_title}> code:  {elem.code} </div>
                 </div>
             )

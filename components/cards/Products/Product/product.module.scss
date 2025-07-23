@@ -1,0 +1,59 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+.title {
+    width: 100%;
+    //    background-color: antiquewhite;    
+    text-align: start;
+    font-weight: bold;
+    font-size: $header4_font_size;
+    padding: 3px;
+    // border: $border;
+    // border-radius: $border-radius;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.idc {
+    width: 120px;
+    text-align: end;
+    font-weight: bold;
+    // background-color: aqua;
+    font-size: $header4_font_size;
+    padding: 4px;
+    // border: $border;
+    // border-radius: $border-radius;
+}
+
+
+.sync {
+    min-width: 70px;
+    //   background-color: azure;
+
+    text-align: start;
+    font-size: $header4_font_size;
+    padding: 4px;
+    // border: $border;
+    // border-radius: $border-radius;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.uom {
+    width: 140px;
+    // background-color: rgb(255, 205, 226);
+    text-align: center;
+    font-size: $header4_font_size;
+    padding: 2px;
+    // border: $border;
+    // border-radius: $border-radius;
+}
+
+.container_row {
+    display: flex;
+    width: 100%;
+    height: 25px;
+}

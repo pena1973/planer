@@ -36,8 +36,8 @@ const DropdownSelectUnit: React.FC<DropdownSelectUnitProps> = ({ onSelect, selec
             <div className={styles.select} onClick={toggleDropdown}>
                 <div className={styles.selectedItem}>
                     {selectedValue !== null ?
-                        availableUnits.find(unit => unit.id === selectedValue)?.title || "Выберите юнит"
-                        : "Выберите юнит"}
+                        availableUnits.find(unit => unit.id === selectedValue)?.title || "Выберите"
+                        : "Выберите"}
                 </div>
                 <div className={styles.arrow}>&#9662;</div>
             </div>

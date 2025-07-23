@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UOMsTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("./teams");
 let UOMsTable = class UOMsTable {
 };
 exports.UOMsTable = UOMsTable;
@@ -24,26 +23,19 @@ __decorate([
     __metadata("design:type", Date)
 ], UOMsTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
 ], UOMsTable.prototype, "title", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text', default: "" }),
+    (0, typeorm_1.Column)('text', { default: "" }),
     __metadata("design:type", String)
 ], UOMsTable.prototype, "coment", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "", nullable: true }),
+    (0, typeorm_1.Column)('varchar', { default: "", nullable: true }),
     __metadata("design:type", String)
 ], UOMsTable.prototype, "code", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true, cascade: true, nullable: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], UOMsTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UOMsTable.prototype, "team_id", void 0);
 exports.UOMsTable = UOMsTable = __decorate([

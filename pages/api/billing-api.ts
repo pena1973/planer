@@ -1,16 +1,17 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { BillTable } from './../../db/models/support/bills';
 import { getBills } from './../../handlers/handlers-get';  // расчеты
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
+  const db = await connectDb();
+  const billsRepository = getTypedRepository(db, 'BillTable', BillTable);
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    const billsRepository = dbConnection.getRepository(BillTable);
+  try {
 
     const { teamId: getTeamId } = req.query;
     switch (req.method) {

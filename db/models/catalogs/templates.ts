@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert } from 'typeorm';
-import { TeamTable } from './teams';
+
+import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 
 @Entity("templates")
 export class TemplateTable {
@@ -9,16 +9,14 @@ export class TemplateTable {
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at!: Date; // Время создания записи
 
-    @Column({ default: '' })
+    @Column('varchar',{ default: '' })
     name!: string; // Название шаблона
 
-    @Column({ type: 'text' })
+    @Column('text')
     fileContent!: string; // Содержимое файла в формате JSON (содержимое карты)
 
-    @ManyToOne(() => TeamTable, { eager: true })
-    @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    team!: TeamTable;  // Ссылка на команду, к которой относится шаблон
-    @Column()
+    
+    @Column('int')
     team_id!: number; // Внешний ключ на команду
 
 }

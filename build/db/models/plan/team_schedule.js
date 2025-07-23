@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeamScheduleTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("../catalogs/teams"); // Подключаем сущность для связи
 const types_1 = require("./../../../types/types"); // Подключаем сущность для связи
 let TeamScheduleTable = class TeamScheduleTable {
 };
@@ -49,14 +48,7 @@ __decorate([
     __metadata("design:type", Array)
 ], TeamScheduleTable.prototype, "workdays", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }) // Указываем связь "многие к одному"
-    ,
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-    ,
-    __metadata("design:type", teams_1.TeamTable)
-], TeamScheduleTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TeamScheduleTable.prototype, "team_id", void 0);
 __decorate([

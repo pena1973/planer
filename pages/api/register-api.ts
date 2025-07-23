@@ -1,5 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { extractIdFromTeamNumber } from './../../lib/utils';
 
 import { UserTable } from './../../db/models/catalogs/users';
@@ -10,11 +13,14 @@ import { SettingsTable } from './../../db/models/plan/settings'
 
 import { updateSettings } from './../../handlers/handlers-update';  // расчеты
 
-import { TeamItem, UserItem, SettingsItem} from './../../types/types';
+import { TeamItem, UserItem } from './../../types/types';
 
 import { sign } from 'jsonwebtoken';
-import { createNewTeam, createNewUser, getTeam, 
-  isUserExist, getLastAgreement } from './../../handlers/handlers-auth';  // расчеты
+import {
+  createNewTeam, createNewUser, getTeam,
+  isUserExist, getLastAgreement
+} from './../../handlers/handlers-auth';
+
 
 interface RequestBody {
   login: string,
@@ -25,19 +31,19 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    const usersRepository = dbConnection.getRepository(UserTable);
-    const teamsRepository = dbConnection.getRepository(TeamTable);
-    const userAgreeRepository = dbConnection.getRepository(UserAgreeTable);
-    const agreementRepository = dbConnection.getRepository(AgreementTable);
-    const settingsRepository = dbConnection.getRepository(SettingsTable);
+  const db = await connectDb();
+
+  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
+  const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
+  const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
+
+
+  try {
 
     switch (req.method) {
-      // регистер
       case 'POST':
         // Извлекаем данные из тела запроса
         const { login, pass, teamNumber, createTeam, nickname } = req.body as RequestBody;
@@ -67,6 +73,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           team = resTeam.team
 
+          //  создаем настройки команды
+          const settings = {
+            timeStartWork: 540,
+            timeFinishWork: 1080,
+            showWeekend: false,
+            showHoliday: false,
+            isQualControl: true
+          }
+          const resSettings = await updateSettings(
+            settingsRepository,
+            settings,
+            team.id
+          )
+          if (!resSettings.success) {
+            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSettings.message });
+            return;
+          }
+
         } else {
           //  иначе ищем команду по номеру
           const teamId = extractIdFromTeamNumber(teamNumber);
@@ -80,27 +104,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           team = resTeam1.team;
         }
-
-
-        // Настройки команды
-        const settings = {
-          timeStartWork: 0,
-          timeFinishWork: 1440,
-          showWeekend: false,
-          showHoliday: false,
-          isQualControl: true
-        }
-        const resSettings = await updateSettings(
-          settingsRepository,
-          settings,
-          team.id
-        )
-        if (!resSettings.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSettings.message });
-          return;
-        }
-
-        const savedSettings = resSettings.savedSettings as SettingsItem;  //  можно сразу привести типы простые
 
         // Юзер
 

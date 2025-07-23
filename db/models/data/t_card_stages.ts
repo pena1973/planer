@@ -1,7 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, OneToMany, } from 'typeorm';
-
-// import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { TCardTable } from './t_cards'; // Импортируем зависимую сущность
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('t_card_stages')
 export class TCardStageTable {
@@ -11,16 +8,13 @@ export class TCardStageTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
-  @Column()
+  @Column('int')
   idc!: number; // id на клиенте
 
-  @Column()
+  @Column('varchar')
   code!: number;
 
-  @ManyToOne(() => TCardTable,  { eager: true, cascade:true })
-  @JoinColumn({ name: 'tcard_id' })
-  tcard!: TCardTable;
-  @Column()
+  @Column('int')
   tcard_id!: number;
 
 }

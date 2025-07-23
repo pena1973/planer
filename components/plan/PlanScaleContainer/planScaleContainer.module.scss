@@ -399,14 +399,15 @@
 ///// UNITS
 /// 
 .unit_name {
+  position: relative;
   padding: 20px 10px 10px;
   width: 100%;
-  // padding-left: 10px;
   background-color: $main_body_background_color;
   min-height: 30px;
   font-weight: bold;
+  cursor: pointer;
   // background-color: rgb(188, 188, 199);
-  // border: 1px solid #020202;
+  
 
 }
 

@@ -1,18 +1,20 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
+import { getStatusPriority } from "./../../lib/utils"
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
-
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 
 import { TCardOperationItem, StatusEnum } from './../../types/types';
 
 import { updateStatusOperationByOperId, updateStatusLoads, updateStatusTCard } from './../../handlers/handlers-update';
-
 import { getTCard, getTCardOperationsByCardId, getTCardOperationLoads } from './../../handlers/handlers-get';
 
-import { getStatusPriority } from "./../../lib/utils"
+
 
 interface RequestBody {
   tCardId: number,
@@ -24,18 +26,12 @@ interface RequestBody {
 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
+  const db = await connectDb();
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    // const companiesRepository = dbConnection.getRepository(TeamTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    // userId, teamId в любом случае
-    // const { userId, teamId, tcardId } = req.query;
+  try {
 
     switch (req.method) {
       case 'POST':
@@ -43,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // Извлекаем данные из тела запроса
         const { tCardId, operId, version, status, teamId, userId } = req.body as RequestBody;
 
-        //Обновляем СТАТУС ОПЕРАЦИИ
+        //Обновляем СТАТУС ОПЕРАЦИИ       
         const resOperation = await updateStatusOperationByOperId(tCardOperationsRepository, operId, status)
         if (!resOperation.success) {
           res.status(200).json({

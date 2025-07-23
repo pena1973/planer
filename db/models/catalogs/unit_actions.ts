@@ -1,17 +1,15 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from './teams'
-import { ActionTable } from './actions'
-import { UnitTable } from './units'
+import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
+
 @Entity("unit_actions")
 export class UnitActionTable {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
+  created_at!: Date;  
 
-  @Column('int', { unique: true })
+  @Column('bigint', { unique: true })
   idc!: number;
   
   @Column({
@@ -22,26 +20,18 @@ export class UnitActionTable {
   })
   koef!: number;
 
-  @Column({ default: "" })
+  @Column('varchar',{ default: "" })
   coment!: string;
 
-  @ManyToOne(() => ActionTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'action_id' }) // Указываем колонку, которая является внешним ключом
-  action!: ActionTable;  // Связь с таблицей UOMsTable
-  @Column()
+  
+  @Column('int')
   action_id!: number;
 
-  @ManyToOne(() => UnitTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'unit_id' }) // Указываем колонку, которая является внешним ключом
-  unit!: UnitTable;  // Связь с таблицей UOMsTable
-  @Column()
+  @Column('int')
   unit_id!: number;
-  @Column()
+  @Column('int')
   unit_idc!: number;
 
-  @ManyToOne(() => TeamTable, { eager: true, cascade: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей UOMsTable
-  @Column()
+  @Column('int')
   team_id!: number;
 }

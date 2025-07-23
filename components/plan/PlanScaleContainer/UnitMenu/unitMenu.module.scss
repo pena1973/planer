@@ -1,0 +1,60 @@
+@import '@/styles/colors.scss';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+.container_menu_item {
+    display: flex;
+    flex-direction: row;
+    font-size: $header4_font_size;
+    margin: 3px;
+    font-weight: 500;
+    font-style: normal;
+}
+
+.menu_title {
+    width: 70px;
+    overflow: hidden;
+}
+.menu_koef {
+    width: 53px;
+    overflow: hidden;
+}
+.container_unit_menu {
+  position: absolute;
+  z-index: 50;
+  top: 45px;
+  width: 130px;
+  padding: 3px;
+  font-size: $header4_font_size;
+  border-radius: $border-radius;
+  background-color: $menu_background_color;
+  border: $border;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  cursor: auto;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 6px; // сдвиг треугольника к левому краю
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid $border_color; // цвет обводки
+    z-index: 1;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    left: 7px; // чуть смещаем внутрь, чтобы "влез" в рамку
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid $menu_background_color; // цвет фона меню
+    z-index: 2;
+  }
+}

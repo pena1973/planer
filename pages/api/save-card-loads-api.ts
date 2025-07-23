@@ -1,7 +1,10 @@
 
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { getTCardOperationsByCardId } from './../../handlers/handlers-get';  // расчеты
 import { } from './../../handlers/handlers-plan';  // планирование карты
 import { updateStatusOperationsByOperIds,updateStatusTCard } from './../../handlers/handlers-update';  // 
@@ -12,9 +15,7 @@ import { Repository  } from 'typeorm';
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
 import { TCardTable } from './../../db/models/data/t_cards'
-
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
-
 import {getStatusPriority} from "./../../lib/utils"
 
 import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "./../../types/types";
@@ -27,15 +28,14 @@ interface RequestBody {
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
-    const unitLoadRepository = dbConnection.getRepository(UnitLoadTable);
-    const tCardRepository = dbConnection.getRepository(TCardTable);
-    const tCardOperationsRepository = dbConnection.getRepository(TCardOperationTable);
-    const teamScheduleRepository = dbConnection.getRepository(TeamScheduleTable);
+  const db = await connectDb();
+  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
 
+  try {
+  
     switch (req.method) {
       // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
       case 'POST':

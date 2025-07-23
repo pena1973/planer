@@ -1,6 +1,4 @@
-
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
-import {TeamTable} from './teams'
+import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 
 @Entity("users")
 export class UserTable {
@@ -13,34 +11,31 @@ export class UserTable {
   @Column({default:""})
   name!: string;
 
-  @Column()
+  @Column('varchar')
   login!: string;
 
-  @Column()
+  @Column('varchar')
   pass!: string;
 
-  @Column({default:""})
+  @Column('varchar',{default:""})
   loginhash!: string;
 
-  @Column({default:"en"})
+  @Column('varchar',{default:"en"})
   locale!: string;
 
-  @Column({default:false})
+  @Column('boolean',{default:false})
   isAdmin!: boolean;
   
-  @Column({default:false})
+  @Column('boolean',{default:false})
   confirmed!: boolean; //  е мейл подтвержден
 
-  @Column({default:""})
+  @Column('varchar',{default:""})
   coment!: string;
 
-  @Column({ default: true })
+  @Column('boolean',{ default: true })
   active!: boolean; //  запись действующая
   
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  
-  @Column()
+  @Column('int')
   team_id!: number;
 
 }

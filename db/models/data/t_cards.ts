@@ -1,6 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne,  } from 'typeorm';
-import { TeamTable } from '../../models/catalogs/teams'
-import { UserTable } from '../../models/catalogs/users'
+import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 import { StatusEnum } from './../../../types/types';
 
 @Entity('t_cards')
@@ -14,25 +12,19 @@ export class TCardTable {
   @Column('date')
   date!: Date; // дата карты
 
-  @ManyToOne(() => UserTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'user_id' }) // Указываем колонку, которая является внешним ключом
-  user!: UserTable;  // Связь с таблицей UOMsTable
-  @Column()
+  @Column('int')
   user_id!: number;
-
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей UOMsTable
-  @Column()
+  
+  @Column('int')
   team_id!: number;
 
-  @Column()
+  @Column('int')
   idc!: number;  // Номер для синхронизации с внешними системами
 
-  @Column({ default: 0 })
+  @Column('int',{ default: 0 })
   max_idc!: number;  // Счетчик IDс внутри сущьностей карты
 
-  @Column({ type: 'text', default: "" })
+  @Column('text',{ default: "" })
   coment?: string; 
   
   @Column({
@@ -41,5 +33,4 @@ export class TCardTable {
       default: StatusEnum.draft,  // Устанавливаем значение по умолчанию
     })
     status!: StatusEnum;
-  
 }

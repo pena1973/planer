@@ -1,11 +1,12 @@
 import { Dispatch } from "redux";
-import { TCardItem } from "./../../types/types";
+import { TCardItem,TeamItem } from "./../../types/types";
 import { setTCards } from "./../../store/slices";
 
 export const resetTCardById = async (
     idToReset: number,
     tCards: TCardItem[],
     token: string,
+        team: TeamItem,
     dispatch: Dispatch,
     t: (key: string) => string,
     setMessage: (msg: string) => void,
@@ -22,7 +23,7 @@ export const resetTCardById = async (
     const tCard = tCards[indexCardToSave]
 
     try {
-        const res = await fetch(`api/tcard-api?tCardId=${tCard.id}`,
+        const res = await fetch(`api/tcard-api?tCardId=${tCard.id}&teamId=${team.id}`,
             {
                 method: 'get',
                 headers: new Headers({

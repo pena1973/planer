@@ -22,7 +22,7 @@ import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
 export default function Monitor() {
 
   const { t, i18n } = useTranslation();
-  
+
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
@@ -33,7 +33,7 @@ export default function Monitor() {
     return date;
   });
 
- const token = useSelector((state: RootState) => {
+  const token = useSelector((state: RootState) => {
     return state.authSlice.token;
   })
 
@@ -65,7 +65,7 @@ export default function Monitor() {
     return state.dataSlice.tCards;
   })
 
-  
+
   useEffect(() => {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,
     // продолжаем увеличивать дату.
@@ -78,7 +78,7 @@ export default function Monitor() {
   }, []);
 
   //  меняем статус карты (если нужно) и операции и лоадов по событию
-   // На клиенте
+  // На клиенте
   const setStatusLoadsHandler = (tCardStatus: StatusEnum, tOperStatus: StatusEnum, operloadsIds: number[], operId: number, tCardId: number) => {
 
     const cardIndex = tCards.findIndex(card => card.id === tCardId);
@@ -106,7 +106,7 @@ export default function Monitor() {
   }
 
   //  временные границы операции по лоаду
-   // На клиенте
+  // На клиенте
   const getStartFinishOper = (load: UnitLoadItem)
     : { start: { date: string, time: number }, finish: { date: string, time: number } } => {
 
@@ -157,12 +157,12 @@ export default function Monitor() {
       // юниты работники
       if (unit.type === UnitTypeEnum.process) {
         return <UnitTaskStackProcess
-        key={unit.id}
+          key={unit.id}
           unit={unit}
           tCards={tCards}
           day={day.toLocaleDateString("en-CA")}
           unitLoads={unitLoads_}
-          containerHeight={400}          
+          containerHeight={400}
           settings={settings}
           schedule={schedule}
           unitExceptions={unitExceptions_}
@@ -180,7 +180,7 @@ export default function Monitor() {
         const performedLoads = unitLoads.filter((lo) => lo.status === StatusEnum.performed);
 
         return <UnitTaskStackControl
-        key={unit.id}
+          key={unit.id}
           unit={unit}
           tCards={tCards}
           day={day.toLocaleDateString("en-CA")}
@@ -210,7 +210,6 @@ export default function Monitor() {
             <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(2))}>{t('monitor.outerActions')}</div>
             <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(3))}>{t('monitor.readiness')}</div>
             <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(4))}>{t('monitor.kpi')}</div>
-            <div className="monitor_container_catalog" onClick={() => dispatch(setMonitorPoint(5))}>{t('monitor.syncCodes')}</div>
 
           </div>
           <div className="container_cards_title">{t('monitor.notes')}</div>
@@ -281,15 +280,10 @@ export default function Monitor() {
               setMessage={setMessage}
               teamId={team.id}
               userId={user.id}
-              units={units} 
+              units={units}
               token={token}
-              />
+            />
           </div>}
-          {monitorPoint === 5 && <div className="container_monitor">
-            <div className="catalog_title"> {t('monitor.kpi1')} </div>
-
-          </div>
-          }
         </div>
 
       </div>

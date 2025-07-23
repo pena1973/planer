@@ -1,6 +1,9 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database'; // Подключение к базе данных
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { TemplateTable } from './../../db/models/catalogs/templates';
 import { TCardItem, TemplateItem } from './../../types/types'; // Ваш тип TCardItem для работы с шаблонами
 
@@ -12,28 +15,14 @@ interface RequestBody {
     tCard: TCardItem,
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    try {
-        const dbConnection = await connectDb();  // Устанавливаем подключение
+    const db = await connectDb();
+    const tCardTemplateRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
 
-        // Репозиторий для работы с шаблонами
-        const tCardTemplateRepository = dbConnection.getRepository(TemplateTable);
+    try {
 
         const { teamId: getTeamId } = req.query;
 
         switch (req.method) {
-            // case 'GET':
-            //     // Получаем все шаблоны для команды
-            //     const templates = await tCardTemplateRepository.find({ where: { team_id: Number(getTeamId) } });
-
-            //     // Возвращаем найденные шаблоны
-            //     res.status(200).json({
-            //         success: true,
-            //         templates: templates,
-            //     });
-            //     break;
-
-            // нужно переименование
             case 'POST':
                 // Извлекаем данные из тела запроса
                 const { teamId, userId, tCard } = req.body as RequestBody;
@@ -44,25 +33,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 const exportData = {
                     date: tCard.date,
                     idc: tCard.idc,
-                    tCardProducts: tCard.tCardProducts?.map(product => ({
+                    products: tCard.products?.map(product => ({
                         idc: product.idc,
-                        code: product.code,
                         title: product.title,
-                        qtu: product.qtu,
+                        sync: product.sync,
                         uom: {
                             title: product.uom.title,
                             code: product.uom.code
-                        }
+                        },
+                    })) || [],
+                    tCardProducts: tCard.tCardProducts?.map(tProduct => ({
+                        code: tProduct.code,
+                        qtu: tProduct.qtu,
+                        productIdc: tProduct.product.idc,
+
                     })) || [],
                     tCardWastes: tCard.tCardWastes?.map(waste => ({
-                        idc: waste.idc,
                         code: waste.code,
-                        title: waste.title,
                         qtu: waste.qtu,
-                        uom: {
-                            title: waste.uom.title,
-                            code: waste.uom.code
-                        }
+                        productIdc: waste.product.idc,
+
                     })) || [],
                     tCardOperations: tCard.tCardOperations?.map(operation => ({
                         idc: operation.idc,
@@ -71,24 +61,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                             code: operation.stage.code
                         } : undefined,
                         out: operation.out?.map(outItem => ({
-                            idc: outItem.idc,
                             code: outItem.code,
-                            title: outItem.title,
                             qtu: outItem.qtu,
-                            uom: {
-                                title: outItem.uom.title,
-                                code: outItem.uom.code
-                            }
+                            productIdc: outItem.product.idc,
                         })) || [],
                         inn: operation.inn?.map(innItem => ({
-                            idc: innItem.idc,
                             code: innItem.code,
-                            title: innItem.title,
                             qtu: innItem.qtu,
-                            uom: {
-                                title: innItem.uom.title,
-                                code: innItem.uom.code
-                            }
+                            productIdc: innItem.product.idc,
+
                         })) || [],
                         action: operation.action ? {
                             code: operation.action.code,
@@ -119,10 +100,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 // Сохраняем в базу данных
                 const savedTemplate = await tCardTemplateRepository.save(newTemplate);
 
-                const template={
-                    id:savedTemplate.id,
-                    name:savedTemplate.name,
-                    fileContent:savedTemplate.fileContent
+                const template = {
+                    id: savedTemplate.id,
+                    name: savedTemplate.name,
+                    fileContent: savedTemplate.fileContent
                 } as TemplateItem;
 
                 // Возвращаем успешный ответ
@@ -131,8 +112,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                     template: template,
                 });
                 break;
-            
-                // Нужно Удаление
+
+            // Нужно Удаление
 
             default:
                 res.status(405).end(); // Метод не поддерживается

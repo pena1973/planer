@@ -1,11 +1,9 @@
 
 
 
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
-import { UnitTable } from '../catalogs/units'; // Подключаем сущность для связи
-
+import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 import { TimeTypeEnum } from './../../../types/types'; // Подключаем сущность для связи
+
 // Это отклонения юнита от расписания предприятия
 @Entity("unit_exceptions")
 export class UnitExceptionTable {
@@ -30,18 +28,11 @@ export class UnitExceptionTable {
   @Column('int')
   timeFinish!: number; // Время окончания отклонения в минутах с начала дня
 
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей TeamTable
-  @Column()
+  @Column('int')
   team_id!: number
   
-  @ManyToOne(() => UnitTable, { eager: true })
-  @JoinColumn({ name: 'unit_id' })
-  unit!: UnitTable;
-  @Column()
+  @Column('int')
   unit_id!: number
-  @Column()
+  @Column('int')
   unit_idc!: number;
-
 }

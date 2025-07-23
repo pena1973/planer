@@ -11,9 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserUnitTable = void 0;
 const typeorm_1 = require("typeorm");
-const teams_1 = require("./teams");
-const units_1 = require("./units");
-const users_1 = require("./users");
 let UserUnitTable = class UserUnitTable {
 };
 exports.UserUnitTable = UserUnitTable;
@@ -26,35 +23,19 @@ __decorate([
     __metadata("design:type", Date)
 ], UserUnitTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => users_1.UserTable, { eager: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
-    __metadata("design:type", users_1.UserTable)
-], UserUnitTable.prototype, "user", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UserUnitTable.prototype, "user_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => teams_1.TeamTable, { eager: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'team_id' }),
-    __metadata("design:type", teams_1.TeamTable)
-], UserUnitTable.prototype, "team", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UserUnitTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => units_1.UnitTable, { eager: true, nullable: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'unit_id' }) // Указываем внешний ключ для поля unit_id
-    ,
-    __metadata("design:type", Object)
-], UserUnitTable.prototype, "unit", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)('int', { nullable: true }),
     __metadata("design:type", Object)
 ], UserUnitTable.prototype, "unit_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'boolean', default: false }),
+    (0, typeorm_1.Column)('boolean', { default: false }),
     __metadata("design:type", Boolean)
 ], UserUnitTable.prototype, "active", void 0);
 exports.UserUnitTable = UserUnitTable = __decorate([

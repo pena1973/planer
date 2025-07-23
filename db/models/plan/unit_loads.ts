@@ -1,7 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { TeamTable } from '../catalogs/teams'; // Подключаем сущность для связи
-import { UnitTable } from '../catalogs/units'; // Подключаем сущность для связи
-import { TCardTable } from '../data/t_cards'; // Подключаем сущность для связи
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { StatusEnum } from './../../../types/types';
 
 @Entity("unit_loads")
@@ -24,9 +21,6 @@ export class UnitLoadTable {
   @Column('int')
   idc_oper!: number; // Идентификатор операции
 
-  @ManyToOne(() => TCardTable, { eager: true, cascade: true })
-  @JoinColumn({ name: 'id_tCard' })
-  tCard!: TCardTable;
   @Column('int')
   id_tCard!: number; // Идентификатор тех карты
 
@@ -36,17 +30,10 @@ export class UnitLoadTable {
   @Column('bigint')
   timeFinish!: number; // Время окончания в миллисекундах
 
-
-  @ManyToOne(() => TeamTable, { eager: true }) // Указываем связь "многие к одному"
-  @JoinColumn({ name: 'team_id' }) // Указываем колонку, которая является внешним ключом
-  team!: TeamTable;  // Связь с таблицей TeamTable
-  @Column()
+  @Column('int')
   team_id!: number
 
-  @ManyToOne(() => UnitTable, { eager: true })
-  @JoinColumn({ name: 'unit_id' })
-  unit!: UnitTable;
-  @Column()
+  @Column('int')
   unit_id!: number
 
   @Column({
@@ -56,7 +43,7 @@ export class UnitLoadTable {
   })
   status!: StatusEnum;
 
-  @Column('int', { nullable: true })
+  @Column('bigint', { nullable: true })
   version!: number; // Идентификатор версии планирования если лоад разбит на части (прерываемый)
 
   @Column('boolean', { default: true })

@@ -56,10 +56,10 @@ const ToPlanCardRow: React.FC<ToPlanCardRowProps> = ({
             : <Image className="icon_edit_save" src={light} alt="light"
               width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
         }
-        &nbsp;
-        &nbsp;
+        {/* &nbsp; */}
+        {/* &nbsp; */}
         <StatusCircle status={elem.status} />
-        &nbsp;
+        {/* &nbsp; */}
        
         <div className="container_plan_card_prepared_title draggable-item"
           style={{ cursor: isDragging ? 'grabbing' : 'grab' }}

@@ -1,11 +1,12 @@
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+
+import connectDb from './../../db/database';
+import { getTypedRepository } from './../../lib/db/utilites'
+
 import { UserTable } from './../../db/models/catalogs/users';
-
 import { UserItem } from './../../types/types';
-
-import { updateUser  } from './../../handlers/handlers-auth';  // расчеты
+import { updateUser } from './../../handlers/handlers-auth';  // расчеты
 
 interface RequestBody {
   userId: number,
@@ -15,13 +16,11 @@ interface RequestBody {
   name: string
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    // Убедимся, что подключение установлено    
-    const dbConnection = await connectDb();  // Получаем подключение
+  const db = await connectDb();
+  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
 
-    // Используем репозиторий для работы с сущностью TCardTable
-    const usersRepository = dbConnection.getRepository(UserTable);
-  
+  try {
+
     switch (req.method) {
       // регистер
       case 'POST':

@@ -40,7 +40,7 @@ export const saveUnits = async (
                     userId: user.id,
                     teamId: team.id,
                     units: unitsValue,
-                    actions: actionsValue,
+                    unitActions: actionsValue,
                     exceptions: exceptionsValue
                 }),
             }
