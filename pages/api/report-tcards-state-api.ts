@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'GET':
 
         // получаем карты с операциями
-        const { terms, loads } = await getTCardsTerms(
+        const { tCardsTerms, loads } = await getTCardsTerms(
           Number(teamId),
           Number(tCardNumber),
           tCardDateFrom as string,
@@ -39,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // tCardProductRepository,
           unitLoadRepository
         )
-        if (!terms) {
+        if (!tCardsTerms) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
@@ -47,7 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // Отправляем ответ с данными
         res.status(200).json({
           success: true,
-          tCards: terms,
+          tCards: tCardsTerms,
           unitLoadItems: loads,
           messsage: ""
         });

@@ -105,7 +105,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return;
         }
 
-        let savedUnitExceptions = resEx.savedUnitExceptions as UnitExceptionItem[];
+        const savedUnitExceptions = resEx.savedUnitExceptions as UnitExceptionItem[];
 
         // отправляем ответ
         res.status(200).json({

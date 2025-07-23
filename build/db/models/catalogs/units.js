@@ -24,7 +24,7 @@ __decorate([
     __metadata("design:type", Date)
 ], UnitTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int', { unique: true }),
+    (0, typeorm_1.Column)('bigint', { unique: true }),
     __metadata("design:type", Number)
 ], UnitTable.prototype, "idc", void 0);
 __decorate([
@@ -36,7 +36,7 @@ __decorate([
     __metadata("design:type", String)
 ], UnitTable.prototype, "code", void 0);
 __decorate([
-    (0, typeorm_1.Column)('boolean', { default: 0 }),
+    (0, typeorm_1.Column)('int', { default: 0 }),
     __metadata("design:type", Number)
 ], UnitTable.prototype, "retool", void 0);
 __decorate([

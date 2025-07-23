@@ -68,7 +68,7 @@ __decorate([
     __metadata("design:type", String)
 ], UnitLoadTable.prototype, "status", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int', { nullable: true }),
+    (0, typeorm_1.Column)('bigint', { nullable: true }),
     __metadata("design:type", Number)
 ], UnitLoadTable.prototype, "version", void 0);
 __decorate([

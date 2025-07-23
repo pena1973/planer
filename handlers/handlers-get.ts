@@ -273,7 +273,7 @@ export async function getTCardOperationLoads(
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<number[]> {
 
-if (!tCardId) return [];
+  if (!tCardId) return [];
 
   // Получаем операции с фильтрацией по tCardId, operId и version
   const unitLoads = await unitLoadRepository.createQueryBuilder('unitLoad')
@@ -578,7 +578,7 @@ export async function getTCardsTerms(
   tCardOperationRepository: Repository<TCardOperationTable>,
   // tCardProductRepository: Repository<TCardProductTable>,
   unitLoadRepository: Repository<UnitLoadTable>
-): Promise<{ terms: TCardTermsItem[], loads: UnitLoadItem[] }> {
+): Promise<{ tCardsTerms: TCardTermsItem[], loads: UnitLoadItem[] }> {
 
 
   const where: FindOptionsWhere<TCardTable> = {
@@ -607,10 +607,7 @@ export async function getTCardsTerms(
   }
 
   // Создаем объект фильтра для карты
-  const tCardFilter: FindManyOptions<TCardTable> = {
-    where,
-    // relations: ['team', 'user'],
-  };
+  const tCardFilter: FindManyOptions<TCardTable> = { where, };
 
   // Получаем все карты для заданной компании с фильтрацией
   const tCards = await tCardRepository.find(tCardFilter);
@@ -620,10 +617,7 @@ export async function getTCardsTerms(
 
   // Загружаем операции для всех карт
   const tCardsIds = tCards.map(card => card.id);
-  // const operationsData = await tCardOperationRepository.find({
-  //   where: { tcard_id: In(tCardsIds) },
-  //    relations: ['stage', 'action']
-  // });
+
   const operationsData = await tCardOperationRepository
     .createQueryBuilder('oper')
     .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
@@ -637,72 +631,83 @@ export async function getTCardsTerms(
 
 
   // Загружаем лоады для всех операций
-  const operationsIds = operationsData.map(oper => oper.id);
-
-  // const loadsData = await unitLoadRepository.find({
-  //   where: { id_oper: In(operationsIds) },
-  //   relations: ['unit', 'tCard']
-  // });
+  const operationsIds = operationsData.map(row => row.oper_id);
   const loadsData = await unitLoadRepository
     .createQueryBuilder('unitLoad')
     .leftJoin('units', 'unit', 'unitLoad.unit_id = unit.id')
     .leftJoin('t_cards', 'tCard', 'unitLoad.id_tCard = tCard.id')
     .addSelect([
-      'unit.id', 'unit.title', 'unit.code', // только нужные поля
-      'tCard.id', 'tCard.idc', 'tCard.date' // то же самое
+      'unit.id', 'unit.title', 'unit.code',
+      'unit.idc', 'unit.retool', 'unit.belong',
+      'unit.type', 'unit.coment', 'unit.active',
+      'tCard.id', 'tCard.idc', 'tCard.date'
     ])
     .where('unitLoad.id_oper IN (:...operationsIds)', { operationsIds })
     .getRawMany();
   // лоады
-  const loads = loadsData.map(lo => {
+  const loads = loadsData.map(row => {
+    const oper = operationsData.find(row1 => row1.oper_id === row.unitLoad_id_oper)
+    const unit = {
+      id: row.unit_id,
+      idc: row.unit_idc,
+      title: row.unit_title,
+      code: row.unit_code,
+      retool: row.unit_retool,
+      belong: row.unit_belong as UnitBelongEnum,
+      type: row.unit_type as UnitTypeEnum,
+      coment: row.unit_coment,
+      active: row.unit_active,
+    } as UnitItem
+
     return {
-      id: lo.id,
-      idc: lo.idc,
-      unit: lo.unit as UnitItem,
-      date: new Date(lo.date).toLocaleDateString('en-CA'),
-      idc_oper: lo.idc_oper,
-      id_oper: lo.id_oper,
-      id_tCard: lo.id_tCard,
-      timeStart: lo.timeStart, // здесь в минутах
-      timeFinish: lo.timeFinish,
-      status: lo.status,
-      isActive: lo.isActive,
-      isRetool: lo.isRetool,
-      isPinned: lo.isPinned,
-      isOuterStart: lo.isOuterStart,
-      isOuterFinish: lo.isOuterFinish,
-      version: lo.version,
-      isFirst: lo.isFirst,
+      id: row.unitLoad_id,
+      idc: row.unitLoad_idc,
+      unit: unit,
+      date: new Date(row.unitLoad_date).toLocaleDateString('en-CA'),
+      idc_oper: row.unitLoad_idc_oper,
+      id_oper: row.unitLoad_id_oper,
+      id_tCard: row.unitLoad_id_tCard,
+      timeStart: row.unitLoad_timeStart, // здесь в минутах
+      timeFinish: row.unitLoad_timeFinish,
+      status: row.unitLoad_status,
+      isActive: row.unitLoad_isActive,
+      isRetool: row.unitLoad_isRetool,
+      isPinned: row.unitLoad_isPinned,
+      isOuterStart: row.unitLoad_isOuterStart,
+      isOuterFinish: row.unitLoad_isOuterFinish,
+      version: row.unitLoad_version,
+      isFirst: row.unitLoad_isFirst,
       // частично заполняем инфо по карте
       loadInfo: {
-        tCardIdc: lo.tCard.idc,
-        tCardDate: new Date(lo.tCard.date).toLocaleDateString("en-CA"),
-        title: "",
-        duration: 0,
-        interruptible: false,
+        tCardIdc: row.tCard_idc,
+        tCardDate: new Date(row.tCard_date).toLocaleDateString("en-CA"),
+        title: oper.action_title,
+        duration: oper.oper_duration,
+        interruptible: oper.action_interruptible,
         koef: 1
       },
 
     }
   })
 
-  // функции вычисления сроков 
+  // функции вычисления сроков  
+  // на вход получаю дату и время окончания и выдаю позднее
   interface ReadyTerm {
     date: string; // Формат: "YYYY-MM-DD"
     time: number; // Время в минутах от начала дня
   }
-  function getLatestFinish(loads: UnitLoadTable[]): ReadyTerm {
+  function getLatestFinish(loads: {date:Date,time:number}[]): ReadyTerm {
     if (loads.length === 0) return { date: "", time: 0 };
     const latestLoad = loads.reduce((latest, current) => {
       // Сначала сравниваем дату (так как формат "YYYY-MM-DD" корректно сравнивается как строки)
       if (current.date > latest.date) {
         return current;
-      } else if (current.date === latest.date && current.timeFinish > latest.timeFinish) {
+      } else if (current.date === latest.date && current.time > latest.time) {
         return current;
       }
       return latest;
     }, loads[0]);
-    return { date: String(latestLoad.date), time: latestLoad.timeFinish };
+    return { date: new Date(latestLoad.date).toLocaleDateString('en-CA'), time: latestLoad.time };
   }
   function getLaterDateTime(dt1: ReadyTerm, dt2: ReadyTerm): ReadyTerm {
     // Сначала сравниваем даты (формат "YYYY-MM-DD" корректно сравнивается как строка)
@@ -724,33 +729,40 @@ export async function getTCardsTerms(
       time: 0
     } as ReadyTerm
 
-    const cardOperationsData = operationsData.filter(oper => oper.tcard_id === card.id);
+    const cardOperationsData = operationsData.filter(row => row.oper_tcard_id === card.id);
     const tCardOperations = [] as TCardOperationTermsItem[];
     // формируем массив операций по карте
-    for (const oper of cardOperationsData) {
+    for (const row of cardOperationsData) {
       // Отбираем все загрузки для данной операции
-      const loadsForOper = loadsData.filter(load => load.id_oper === oper.id && !load.isRetool);
+      const loadsForOper = loadsData
+        .filter(row1 => row1.unitLoad_id_oper === row.oper_id && !row1.unitLoad_isRetool)
+        .map(row => { return { date: row.unitLoad_date, time: row.unitLoad_timeFinish } });
       // Находим загрузку с максимально поздним временем завершения - это дата исполнения операции
       const latestTerm: ReadyTerm = getLatestFinish(loadsForOper);
 
       // обновляем срок готовности карты
       cardTerm = getLaterDateTime(cardTerm, latestTerm);
+      const stage = { id: row.stage_id, idc: row.stage_idc, code: row.stage_code, } as TCardStageItem
+      const action = {
+        id: row.action_id, title: row.action_title, code: row.action_code,
+        modified: row.action_modified, interruptible: row.action_interruptible
+      } as ActionItem
 
       tCardOperations.push({
-        id: oper.id,
-        idc: oper.idc,
-        stage: oper.stage,
-        order: oper.order,
+        id: row.oper_id,
+        idc: row.oper_idc,
+        stage: stage,
+        order: row.oper_order,
         out: [] as TCardProductItem[],
         inn: [] as TCardProductItem[],
-        action: oper.action as ActionItem,
-        duration: oper.duration,
+        action: action as ActionItem,
+        duration: row.oper_duration,
         mode: false,
-        status: oper.status,
-        coment: oper.coment,
+        status: row.oper_status as StatusEnum,
+        coment: row.oper_coment,
         readyTerm: latestTerm,
         expand: false,
-        fixOperIdc: oper.fix_oper_idc,
+        fixOperIdc: row.oper_fix_oper_idc,
       } as TCardOperationTermsItem);
     }
 
@@ -771,7 +783,7 @@ export async function getTCardsTerms(
     } as TCardTermsItem)
   }
 
-  return { terms: tCardTerms, loads: loads };
+  return { tCardsTerms: tCardTerms, loads: loads };
 }
 // &&&&
 // исключения расписания команды
@@ -1067,7 +1079,7 @@ export async function getUsersUnits(
       active: true
     };
     if (userId) { userCondition.id = userId; }
-    if (withoutAdmin) { userCondition.isAdmin = false;}
+    if (withoutAdmin) { userCondition.isAdmin = false; }
 
     const activeUsers = await usersRepository.find({ where: userCondition });
 

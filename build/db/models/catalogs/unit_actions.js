@@ -23,7 +23,7 @@ __decorate([
     __metadata("design:type", Date)
 ], UnitActionTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int', { unique: true }),
+    (0, typeorm_1.Column)('bigint', { unique: true }),
     __metadata("design:type", Number)
 ], UnitActionTable.prototype, "idc", void 0);
 __decorate([
