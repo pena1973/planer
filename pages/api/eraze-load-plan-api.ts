@@ -61,11 +61,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return
         }
 
+
         const oper = tCard.tCardOperations?.find(oper => oper.id === erazload?.id_oper);
-        if (!oper) {
-          res.status(200).json({ success: false, message: "Операция в базе не найдена" });
-          return
-        }
+         if (!oper) {
+           res.status(200).json({ success: false, message: "Операция в базе не найдена" });
+           return
+         }
 
         //  получаем список Id операций которые зависимы от нашей  -  
         // их будем удалять или отменять в зависимости от даты и статуса
