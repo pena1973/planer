@@ -25,7 +25,7 @@ __decorate([
     __metadata("design:type", Date)
 ], UnitExceptionTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int', { unique: true }),
+    (0, typeorm_1.Column)('bigint', { unique: true }),
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "idc", void 0);
 __decorate([
@@ -53,7 +53,7 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "unit_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int'),
+    (0, typeorm_1.Column)('bigint'),
     __metadata("design:type", Number)
 ], UnitExceptionTable.prototype, "unit_idc", void 0);
 exports.UnitExceptionTable = UnitExceptionTable = __decorate([
