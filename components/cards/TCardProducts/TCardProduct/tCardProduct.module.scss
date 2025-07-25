@@ -9,22 +9,19 @@
     padding: 5px;
     text-align: end;
     font-size: $header4_font_size;
-//     border: $border;
-//     border-radius: $border-radius;
- }
+    //     border: $border;
+    //     border-radius: $border-radius;
+}
 
 .tCardProduct_product {
     width: 150px;
     //  background-color: antiquewhite;    
     text-align: start;
-    // font-weight: bold;
-        padding: 4px;
+    padding: 4px;
 }
 
 .tCardProduct_code {
-    // width: 105px;    
     min-width: 80px;
-    // max-width:  70px;
     text-align: start;
     font-weight: bold;
     //   background-color: aqua;
@@ -65,7 +62,7 @@
     justify-content: flex-end;
     border-top: $border;
     // background-color: aquamarine;
-    width: calc(100% - 4px);    
+    width: calc(100% - 4px);
     overflow: hidden;
 }
 

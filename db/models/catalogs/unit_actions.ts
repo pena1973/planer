@@ -29,7 +29,7 @@ export class UnitActionTable {
 
   @Column('int')
   unit_id!: number;
-  @Column('int')
+  @Column('bigint')
   unit_idc!: number;
 
   @Column('int')

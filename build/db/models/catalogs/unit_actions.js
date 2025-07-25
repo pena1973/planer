@@ -48,7 +48,7 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitActionTable.prototype, "unit_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int'),
+    (0, typeorm_1.Column)('bigint'),
     __metadata("design:type", Number)
 ], UnitActionTable.prototype, "unit_idc", void 0);
 __decorate([
