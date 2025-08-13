@@ -9,7 +9,7 @@ import { downloadLoads } from '@/services/initial/downloadLoads';
 import { downloadSchedule } from '@/services/initial/downloadSchedule';
 import { downloadSettings } from '@/services/initial/downloadSettings';
 import { downloadTCards } from '@/services/initial/downloadTCards';
-import { downloadProducts } from '@/services/initial/downloadProducts';
+// import { downloadProducts } from '@/services/initial/downloadProducts';
 import { downloadUnits } from '@/services/initial/downloadUnits';
 import { downloadUnutsActions } from '@/services/initial/downloadUnutsActions';
 import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExceptions';
@@ -23,12 +23,12 @@ import { registerHandler } from '@/services/login/registerHandler';
 
 import { store } from '@/store' // путь к твоему Redux store
 
-import {
-  UnitItem,
-  UserItem,
-  SettingsItem,
-  TeamItem,
-} from "@/types/types";
+// import {
+//   UnitItem,
+//   UserItem,
+//   SettingsItem,
+//   TeamItem,
+// } from "@/types/types";
 
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import Agreement from "@/components/index/Agreement/agreement";
@@ -41,7 +41,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 import {
-  setTeam, setToken, setUser,
+  // setTeam, setToken, setUser,
   setSettings, setSignedAgreement,
   setUnit, setLoadingComplete
 } from '@/store/slices'

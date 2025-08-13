@@ -46,7 +46,7 @@ import {
 } from "@/types/types";
 import { checkReconcilation } from "@/lib/cardsHandlers";
 
-import { setTCards, setTCardIndex, setTemplates, setUnitLoads } from '@/store/slices'
+import { setTCards, setTCardIndex } from '@/store/slices'
 
 import delL from "@/public/del222-rem.png";
 import delD from "@/public/del2-rem.png";
@@ -102,28 +102,6 @@ export default function Cards() {
   const unitLoads = useSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
-
-
-
-  // const products = [
-  //   {
-  //     id: 4,
-  //     idc: 4,
-  //     title: "Прод",
-  //     uom: { id: 0, title: "шт", code: "8787" },
-  //     sync: "string",
-  //     cardId: 1
-  //   },
-  //   {
-  //     id: 3,
-  //     idc: 6,
-  //     title: "Прод25",
-  //     uom: { id: 0, title: "шт", code: "8787" },
-  //     sync: "str21ing",
-  //     cardId: 1
-  //   },
-  // ] as ProductItem[]
-
 
 
   // Начальный загруз
@@ -999,6 +977,7 @@ export default function Cards() {
     setSaveTemplateLoaderCard(false);
   };
 
+  //ЗДЕСТ ОШИБКА ШАБЛОНА
   // На клиенте
   const applyTemplate = (fileContent: string) => {
     // Очистка сообщения
@@ -1025,6 +1004,7 @@ export default function Cards() {
       tCardStages: [] as TCardStageItem[],
       coment: "",
       products: [] as ProductItem[],
+      
     } as TCardItem;
 
     try {
@@ -1034,6 +1014,7 @@ export default function Cards() {
       // Заполнение полей newTCard из template
       newTCard.coment = template.coment;
 
+      
       // Заполняем products
       if (template.products) {
         newTCard.products = template.products.map((product: ProductContent) => {
@@ -1048,7 +1029,8 @@ export default function Cards() {
       // const tProducts = (newTCard.tCardProducts) ? newTCard.tCardProducts : [] as TProductContent[];
       if (template.tCardProducts) {
         newTCard.tCardProducts = template.tCardProducts.map((tProduct: TProductContent) => {
-          const product = products.find(product => product.idc === tProduct.productIdc);
+          
+         const product = newTCard.products?.find(product => product.idc === tProduct.productIdc);
           return ({
             code: tProduct.code,
             qtu: tProduct.qtu,
@@ -1065,8 +1047,9 @@ export default function Cards() {
             ...operation,
             status: StatusEnum.draft,
             action: action ? action : undefined,
+           
             out: operation.out.map((outItem: TProductContent) => {
-              const product = products.find(product => product.idc === outItem.productIdc);
+              const product = newTCard.products?.find(product => product.idc === outItem.productIdc);
               return ({
                 code: outItem.code,
                 qtu: outItem.qtu,
@@ -1075,7 +1058,7 @@ export default function Cards() {
 
             }),
             inn: operation.inn.map((innItem: TProductContent) => {
-              const product = products.find(product => product.idc === innItem.productIdc);
+              const product = newTCard.products?.find(product => product.idc === innItem.productIdc);
               return ({
                 code: innItem.code,
                 qtu: innItem.qtu,
@@ -1521,7 +1504,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       return (<>
         {!(tCardOperation.mode) &&
           <TCardOper
-            key={index1}
+            key={'op'+tCardOperation.idc}
             index={index1}
             tCardOperation={tCardOperation}
             dragOverHandler={dragOverHandler}
@@ -1544,7 +1527,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
 
         {tCardOperation.mode && <TCardOperNew
           products={products}
-          key={index1}
+          key={'op'+tCardOperation.idc}
           tCardOperation={tCardOperation}
           deleteOperHandler={deleteOperHandler}
           cancelOperHandler={cancelOperHandler}
@@ -1588,7 +1571,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       date = formatDate(new Date(elem.date));
 
     return (
-      <div key={index4} className="container_card">
+      <div key={"card"+elem.date+elem.id} className="container_card">
         <div className="container_icon_edit_save">
           {resetLoaderCard === elem.id && <ButtonLoader />}
           {resetLoaderCard !== elem.id &&
@@ -1633,7 +1616,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
     return (
 
       <button
-        key={index4}
+        key={elem.id}
         className={`button_prepared`}
         onClick={() => {
           applyTemplate(elem.fileContent)

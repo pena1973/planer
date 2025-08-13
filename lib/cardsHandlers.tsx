@@ -49,7 +49,8 @@ export const checkReconcilation = (
       }// количество больше 0 и источник указан  распределяем
       else {
         while (qtuinn > 0) {
-          const itemoutIndex = outArr1.findIndex(itemout => { return (itemout.code === iteminn.code && itemout.product.idc === iteminn.product.idc && itemout.qtu > 0) })
+          const itemoutIndex = outArr1.findIndex(itemout => { 
+            return (itemout.code === iteminn.code && itemout.product.idc === iteminn.product.idc && itemout.qtu > 0) })
 
           // если не нашли - берем со склада
           if (itemoutIndex === -1) {
