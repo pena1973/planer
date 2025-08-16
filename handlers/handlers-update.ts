@@ -970,7 +970,7 @@ async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>)
 
 ///////////////////// ЗАПИСЬ КАРТЫ//////////////////
 // &&&&
-// ТКАРТА
+// ТКАРТА  //  ПРОВЕРИТЬ ПРИ ЗАПИСИ ПРАВИЛЬНОСТЬ СТАТУСА (если есть БРАК!!
 export async function updateCard(
   tCardRepository: Repository<TCardTable>,
   tCard: TCardItem,
@@ -987,6 +987,20 @@ export async function updateCard(
       if (!newCardNumber) {
         return { success: false, message: `Ошибка при генерации номера карты` };
       }
+    }
+    // проверка если есть брак и нет исправления то у карты статус брак  (если она приходит со статусом брак, планирован, подготовлен и драфт)
+    const opDefective = tCard.tCardOperations?.filter(op => op.status === StatusEnum.defective);
+
+    const hasUnfixedDefect = opDefective?.some(op => {
+      const fix = tCard.tCardOperations?.find(op1 => op1.fixOperIdc === op.idc);
+      return !fix; // true, если исправления нет
+    });
+
+    if (hasUnfixedDefect && 
+      (tCard.status === StatusEnum.draft 
+      || tCard.status === StatusEnum.planed
+      || tCard.status === StatusEnum.prepared) ) {
+      tCard.status = StatusEnum.defective;
     }
 
     // Если id карты > 0, обновляем, иначе создаём новую

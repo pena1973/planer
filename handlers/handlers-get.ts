@@ -139,67 +139,20 @@ export async function getTemplates(
 }
 
 
-// необходимо потом получить операции покартам и дополнить даннве info
+// &&&&
+// Статусы лоадов
+export async function getLoadStatuses(
+  teamId: number,
+  unitLoadRepository: Repository<UnitLoadTable>,
+): Promise<{ idc_load: number, status: StatusEnum }[]> {
 
-// // загрузка юнитов старая версия со связями
-// export async function getUnitLoads(
-//   units: UnitItem[],
-//   unitLoadRepository: Repository<UnitLoadTable>,
-//   isControler: boolean = false,
-
-// ): Promise<UnitLoadItem[]> {
-
-//   // const unitIds = units.map(unit => unit.id);
-
-//   // // Если нет юнитов, можно вернуть пустой результат или обработать ошибку
-//   // if (unitIds.length === 0) return [];
-
-//   // const query = unitLoadRepository
-//   //   .createQueryBuilder('unitLoad')
-//   //   .leftJoinAndSelect('unitLoad.tCard', 'tCard')
-//   //   .where('unitLoad.unit_id IN (:...unitIds)', { unitIds });
-
-//   // if (isControler) {
-//   //   query.andWhere('unitLoad.status = :status', { status: 'performed' });
-//   // }
-
-//   // const unitLoads = await query.getMany();
-
-//   // const unitLoadItems: UnitLoadItem[] = unitLoads.map(unitLoad => {
-
-//   //   const unit = units.find(unit => unit.id === unitLoad.unit_id)
-
-//   //   return {
-//   //     id: unitLoad.id,
-//   //     idc: unitLoad.idc,  // добавлено
-//   //     unit: unit ? unit : {} as UnitItem, // гарантированно существует
-//   //     date: String(unitLoad.date),
-//   //     id_oper: unitLoad.id_oper,
-//   //     idc_oper: unitLoad.idc_oper,
-//   //     id_tCard: unitLoad.id_tCard,
-//   //     timeStart: unitLoad.timeStart,
-//   //     timeFinish: unitLoad.timeFinish,
-//   //     status: unitLoad.status,
-//   //     version: unitLoad.version,
-//   //     isActive: unitLoad.isActive,
-//   //     isRetool: unitLoad.isRetool,
-//   //     isPinned: unitLoad.isPinned,
-//   //     isOuterFinish: unitLoad.isOuterFinish,
-//   //     isOuterStart: unitLoad.isOuterStart,
-//   //     isFirst: unitLoad.isFirst,
-//   //     // частично заполняем инфо по карте
-//   //     loadInfo: {
-//   //       tCardIdc: unitLoad.tCard.idc,
-//   //       tCardDate: new Date(unitLoad.tCard.date).toLocaleDateString("en-CA"),
-//   //       title: "",
-//   //       duration: 0,
-//   //       interruptible: false,
-//   //       koef: 1
-//   //     },
-//   //   };
-//   // });
-//   return unitLoadItems;
-// }
+   return await unitLoadRepository
+    .createQueryBuilder('unitLoad')
+    .select('unitLoad.idc', 'idc_load')  // поле + алиас
+    .addSelect('unitLoad.status', 'status')   // поле + алиас
+    .where('unitLoad.team_id = :teamId', { teamId })
+    .getRawMany<{ idc_load: number; status: StatusEnum }>();
+}
 
 // &&&&
 // загрузка юнитов
@@ -223,6 +176,7 @@ export async function getUnitLoads(
     .addSelect(['tCard.id', 'tCard.idc', 'tCard.date'])
     .leftJoin('t_card_operations', 'tOper', 'unitLoad.id_oper = tOper.id')
     .addSelect(['tOper.id', 'tOper.duration', 'tOper.action_id'])
+    .where('unitLoad.team_id = :teamId', { teamId })
     .where('unitLoad.unit_id IN (:...unitIds)', { unitIds });
 
   if (isControler) {
@@ -696,7 +650,7 @@ export async function getTCardsTerms(
     date: string; // Формат: "YYYY-MM-DD"
     time: number; // Время в минутах от начала дня
   }
-  function getLatestFinish(loads: {date:Date,time:number}[]): ReadyTerm {
+  function getLatestFinish(loads: { date: Date, time: number }[]): ReadyTerm {
     if (loads.length === 0) return { date: "", time: 0 };
     const latestLoad = loads.reduce((latest, current) => {
       // Сначала сравниваем дату (так как формат "YYYY-MM-DD" корректно сравнивается как строки)

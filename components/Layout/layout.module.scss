@@ -45,22 +45,37 @@
     /* Устанавливаем цвет ссылки унаследованным */
     text-decoration: none;
     /* Убираем подчеркивание */
-
     &:visited {
         color: inherit;
         /* Устанавливаем цвет для посещенной ссылки */
     }
-
     &:focus {
         outline: none;
         /* Убираем рамку при фокусе */
     }
-
     @media screen and (max-width: 650px) {
-
         margin-left: 5px;
     }
 }
+
+.header_menu_baner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: absolute;    
+    margin-left: 15px;
+    @media screen and (max-width: 650px) {
+        margin-left: 5px;
+    }
+    color: $load_baner;
+    // font-weight: 700;
+    left: 0;
+    top: 0;
+    z-index: 15;
+    font-size: $header4_font_size;
+}
+
 
 .profile_button {
     display: flex;

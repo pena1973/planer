@@ -23,13 +23,6 @@ import { registerHandler } from '@/services/login/registerHandler';
 
 import { store } from '@/store' // путь к твоему Redux store
 
-// import {
-//   UnitItem,
-//   UserItem,
-//   SettingsItem,
-//   TeamItem,
-// } from "@/types/types";
-
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import Agreement from "@/components/index/Agreement/agreement";
 import { useTranslation } from 'react-i18next';
@@ -40,11 +33,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
-import {
-  // setTeam, setToken, setUser,
-  setSettings, setSignedAgreement,
-  setUnit, setLoadingComplete
-} from '@/store/slices'
+import { setSignedAgreement, setLoadingComplete} from '@/store/slices'
 
 import ico1 from "@/public/ico1.png";
 import ico2 from "@/public/ico2.png";

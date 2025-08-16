@@ -11,7 +11,7 @@ import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButt
 import { formatDate, padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/utils"
 import { useEffect, useState } from "react";
 
-
+import { erazeLoad } from '@/services/plan/erazeLoad';
 import { deleteTCardById } from '@/services/cards/deleteTCardById';
 import { saveTCardById } from '@/services/cards/saveTCardById';
 import { resetTCardById } from '@/services/cards/resetTCardById';
@@ -41,7 +41,7 @@ import {
   StatusEnum,
   TProductContent,
   ProductItem,
-  
+
 
 } from "@/types/types";
 import { checkReconcilation } from "@/lib/cardsHandlers";
@@ -116,6 +116,8 @@ export default function Cards() {
   })
 
   const readonlyCardStatuses = [StatusEnum.closed, StatusEnum.cancelled, StatusEnum.performed, StatusEnum.ready, StatusEnum.planed]
+  const readyLoadStatuses = [StatusEnum.performed, StatusEnum.ready, StatusEnum.defective]
+  const planCancelLoadStatuses = [StatusEnum.cancelled, StatusEnum.planed]
 
   const updateIdc = (currentId: number) => {
     // setTCardCurrentValue({ ...tCardCurrentValue, maxIdc: currentId }); // обновляем состояние карты
@@ -675,8 +677,14 @@ export default function Cards() {
     const tCardStages = (tCards[tCardIndex].tCardStages) ? tCards[tCardIndex].tCardStages : [] as TCardStageItem[];
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
 
-    // Удаляем все операции стадии
+    // Проверяем есть ли операции в стадии    
     const tCardCurrentOperationsUpdated = tCardOperations.filter((tOper) => tOper.stage.idc !== stage.idc);
+    const tCardCurrentOperationsDeleted = tCardOperations.filter((tOper) => tOper.stage.idc === stage.idc);
+    // если есть операции в стадии ничего не делаем, сначала пользователь должен удалить операции из стадии
+    if (tCardCurrentOperationsDeleted.length > 0) {
+      setMessage("Невозможно удалить стадию, в ней есть операции. Сначала удалите операции из стадии.");
+      return;
+    }
 
     // Находим индекс стадии с нужным кодом
     const stageIndex = tCardStages.findIndex(stage1 => stage1.idc === stage.idc);
@@ -747,7 +755,7 @@ export default function Cards() {
       return
     }
 
-    await deleteTCardById(idToRemove, token,team, tCards, unitLoads, dispatch, t, setMessage)
+    await deleteTCardById(idToRemove, token, team, tCards, unitLoads, dispatch, t, setMessage)
 
     setRemoveLoaderCard(NaN);
 
@@ -790,7 +798,7 @@ export default function Cards() {
   // Он сбрасывает карту в начальное состояние с сервера, если она была модифицирована.
   const resetCardHandler = async (idToReset: number) => {
     setResetLoaderCard(idToReset);
-    await resetTCardById(idToReset, tCards, token, team,dispatch, t, setMessage)
+    await resetTCardById(idToReset, tCards, token, team, dispatch, t, setMessage)
     setResetLoaderCard(NaN);
   };
   // На сервере
@@ -809,7 +817,7 @@ export default function Cards() {
     }
     // если карта не была ранее подгружена, то вытаскиваем из базы
     setResetLoaderCard(selectedTCard.id)
-    await selectTCardById(selectedTCard.id, indexCurrentCard, tCards, token,team, dispatch, t, setMessage);
+    await selectTCardById(selectedTCard.id, indexCurrentCard, tCards, token, team, dispatch, t, setMessage);
     setResetLoaderCard(NaN)
 
   };
@@ -977,7 +985,7 @@ export default function Cards() {
     setSaveTemplateLoaderCard(false);
   };
 
-  //ЗДЕСТ ОШИБКА ШАБЛОНА
+
   // На клиенте
   const applyTemplate = (fileContent: string) => {
     // Очистка сообщения
@@ -1004,7 +1012,7 @@ export default function Cards() {
       tCardStages: [] as TCardStageItem[],
       coment: "",
       products: [] as ProductItem[],
-      
+
     } as TCardItem;
 
     try {
@@ -1014,7 +1022,7 @@ export default function Cards() {
       // Заполнение полей newTCard из template
       newTCard.coment = template.coment;
 
-      
+
       // Заполняем products
       if (template.products) {
         newTCard.products = template.products.map((product: ProductContent) => {
@@ -1029,8 +1037,8 @@ export default function Cards() {
       // const tProducts = (newTCard.tCardProducts) ? newTCard.tCardProducts : [] as TProductContent[];
       if (template.tCardProducts) {
         newTCard.tCardProducts = template.tCardProducts.map((tProduct: TProductContent) => {
-          
-         const product = newTCard.products?.find(product => product.idc === tProduct.productIdc);
+
+          const product = newTCard.products?.find(product => product.idc === tProduct.productIdc);
           return ({
             code: tProduct.code,
             qtu: tProduct.qtu,
@@ -1047,7 +1055,7 @@ export default function Cards() {
             ...operation,
             status: StatusEnum.draft,
             action: action ? action : undefined,
-           
+
             out: operation.out.map((outItem: TProductContent) => {
               const product = newTCard.products?.find(product => product.idc === outItem.productIdc);
               return ({
@@ -1134,29 +1142,29 @@ export default function Cards() {
 
   ////////////////// КАТАЛОГ продуктс
   // На клиенте (ДОПИСАТЬ ПРОВЕРКУ ПРИ УДАДЕНИИ ПРЕДМЕТА КАТАЛОГА ЧТОБЫ ОН НЕ БЫЛ ЗАДЕЙСТВОВАН В ОПЕР КАРТЫ)
- 
-const isPossibleToDelete = (indexToRemove: number): boolean => {
-  const tCard = tCards[tCardIndex];
-  const productToRemove = tCard.products?.[indexToRemove];
 
-  if (!productToRemove) return true; // если продукта нет — можно "удалить"
+  const isPossibleToDelete = (indexToRemove: number): boolean => {
+    const tCard = tCards[tCardIndex];
+    const productToRemove = tCard.products?.[indexToRemove];
 
-  const idcToRemove = productToRemove.idc;
+    if (!productToRemove) return true; // если продукта нет — можно "удалить"
 
-  // Проверка в products уровня карты
-  const usedInProducts = tCard.tCardProducts?.some(p => p.product.idc === idcToRemove);
-  const usedInWastes = tCard.tCardWastes?.some(p => p.product.idc === idcToRemove);
-  const usedInMaterials = tCard.tCardMaterials?.some(p => p.product.idc === idcToRemove);
+    const idcToRemove = productToRemove.idc;
 
-  const usedInOperations = tCard.tCardOperations?.some(op =>
-    op.inn.some(p => p.product.idc === idcToRemove) ||
-    op.out.some(p => p.product.idc === idcToRemove)
-  );
+    // Проверка в products уровня карты
+    const usedInProducts = tCard.tCardProducts?.some(p => p.product.idc === idcToRemove);
+    const usedInWastes = tCard.tCardWastes?.some(p => p.product.idc === idcToRemove);
+    const usedInMaterials = tCard.tCardMaterials?.some(p => p.product.idc === idcToRemove);
 
-  const isUsed = usedInProducts || usedInWastes || usedInMaterials || usedInOperations;
+    const usedInOperations = tCard.tCardOperations?.some(op =>
+      op.inn.some(p => p.product.idc === idcToRemove) ||
+      op.out.some(p => p.product.idc === idcToRemove)
+    );
 
-  return !isUsed; // если не используется — можно удалить (true)
-};
+    const isUsed = usedInProducts || usedInWastes || usedInMaterials || usedInOperations;
+
+    return !isUsed; // если не используется — можно удалить (true)
+  };
 
 
   const saveProductsHandler = (productsValue: ProductItem[]) => {
@@ -1191,6 +1199,37 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
     // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
     const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(tCardProducts, tCardOperationsFiltered);
 
+    // проверка если есть брак и нет исправления то у карты статус брак  (если она приходит со статусом брак, планирован, подготовлен и драфт)
+    const opDefective = tCards[tCardIndex].tCardOperations?.filter(op => op.status === StatusEnum.defective);
+
+    const hasUnfixedDefect = opDefective?.some(op => {
+      const fix = tCardOperationsFiltered.find(op1 => op1.fixOperIdc === op.idc);
+      return !fix; // true, если исправления нет
+    });
+
+    // проверка если у операции уже есть лоады, 
+    // если есть лоады со статусом готовности или брака то операцию удалить нельзя 
+    // если есть лоады со статусом запланированы то их надо отменить/ удалить и  после этого операция либо отменится либо удалится
+    const operLoads = unitLoads.filter(lo => lo.idc_oper === idcToRemove && lo.id_tCard === tCards[tCardIndex].id);
+
+    // Есть ли «готовые» или «с браком» — запрет на удаление операции
+    const hasReadyLoads = operLoads.some((lo) => readyLoadStatuses.includes(lo.status));
+
+    if (hasReadyLoads) {
+      setMessage("Невозможно удалить операцию, т.к. есть выполнение операции с результатом или браком.");
+      return;
+    }
+
+    // Исторические запланированные/отмененные — их надо отменить/удалить
+    const hasPlannedLoads = operLoads.filter(
+      (lo) => planCancelLoadStatuses.includes(lo.status)
+    );
+
+    if (hasPlannedLoads) {
+      setMessage("Невозможно удалить операцию, т.к. есть запланированное или отмененное время выполнения. Операацию можно перевести в статус отменить");
+      return;
+    }
+
     const tCard =
     {
       ...tCards[tCardIndex],
@@ -1199,7 +1238,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       tCardOperations: tCardOperationsUpdated,  // Обновляем массивы
       tCardWastes: tCardWastesUpdated,  // Обновляем массивы
       tCardMaterials: tCardMaterialsUpdated,  // Обновляем массивы
-      status: StatusEnum.draft,
+      status: hasUnfixedDefect ? StatusEnum.defective : StatusEnum.draft,
     }
 
     // setTCardCurrentValue(tCard);
@@ -1253,7 +1292,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       let oldProduct = oldOUT.find(p => p.code === outProduct.code);
       oldProduct = (oldProduct) ? oldProduct : outProduct;
       // Проверяем, изменился ли какой-либо атрибут, кроме количества
-      if (outProduct.product.idc !== oldProduct.product.idc) {       
+      if (outProduct.product.idc !== oldProduct.product.idc) {
         outProduct.code = outProduct.code.replace(/O(\d+)/, `O${outProduct.product.idc}`);
       }
     });
@@ -1262,7 +1301,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       let oldProduct = oldINN.find(p => p.code === innProduct.code);
       oldProduct = (oldProduct) ? oldProduct : innProduct;
       // Проверяем, изменился ли какой-либо атрибут, кроме количества
-      if (innProduct.product.idc !== oldProduct.product.idc) {       
+      if (innProduct.product.idc !== oldProduct.product.idc) {
         innProduct.code = innProduct.code.replace(/O(\d+)/, `O${innProduct.product.idc}`);
       }
     });
@@ -1436,7 +1475,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
     const inn = oper.inn.map(prod => {
       const code = `M${prod.product.idc}`;
       return { ...prod, code: code } as TCardProductItem
-      
+
     }
     )
     // поменяем операцию в кодах и сформируем выход и выход;
@@ -1445,6 +1484,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       return { ...prod, code: code } as TCardProductItem
     }
     )
+
     const newOper = {
       idc: newid,
       stage: oper.stage,
@@ -1465,6 +1505,15 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
     // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
     const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(tCardProducts, tCardOperationsUpdated1);
 
+
+    // проверка если есть брак и нет исправления то у карты статус брак  (если она приходит со статусом брак, планирован, подготовлен и драфт)
+    const opDefective = tCards[tCardIndex].tCardOperations?.filter(op => op.status === StatusEnum.defective);
+
+    const hasUnfixedDefect = opDefective?.some(op => {
+      const fix = tCardOperationsUpdated1.find(op1 => op1.fixOperIdc === op.idc);
+      return !fix; // true, если исправления нет
+    });
+
     // Обновляем карту в  redux
     const tCard =
     {
@@ -1475,7 +1524,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       tCardWastes: tCardWastesUpdated,
       tCardMaterials: tCardMaterialsUpdated,
       tCardProducts: tCardProductsUpdated,
-      status: StatusEnum.draft
+      status: hasUnfixedDefect ? StatusEnum.defective : StatusEnum.draft
 
     }
     const updatedTCards = [...tCards];
@@ -1484,6 +1533,13 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
     dispatch(setTCards(updatedTCards));
 
   };
+
+  // ЛОАДЫ
+  const cancelLoadHandler = async (load_idc: number) => {
+    if (!load_idc) return;
+    await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
+
+  }
 
   //  реакт узлы
   const tCardStages = (tCards[tCardIndex] && tCards[tCardIndex].tCardStages) ? tCards[tCardIndex].tCardStages : [] as TCardStageItem[];
@@ -1504,7 +1560,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       return (<>
         {!(tCardOperation.mode) &&
           <TCardOper
-            key={'op'+tCardOperation.idc}
+            key={'op' + tCardOperation.idc}
             index={index1}
             tCardOperation={tCardOperation}
             dragOverHandler={dragOverHandler}
@@ -1523,11 +1579,13 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
             fixDefect={fixDefect}
             lightProduct={lightProduct}
             fixed={fixed}
+            operLoads={unitLoads.filter(lo => lo.idc_oper === tCardOperation.idc && lo.id_tCard === tCards[tCardIndex].id)}
+            cancelLoadHandler={cancelLoadHandler}
           />}
 
         {tCardOperation.mode && <TCardOperNew
           products={products}
-          key={'op'+tCardOperation.idc}
+          key={'op' + tCardOperation.idc}
           tCardOperation={tCardOperation}
           deleteOperHandler={deleteOperHandler}
           cancelOperHandler={cancelOperHandler}
@@ -1571,7 +1629,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
       date = formatDate(new Date(elem.date));
 
     return (
-      <div key={"card"+elem.date+elem.id} className="container_card">
+      <div key={"card" + elem.date + elem.id} className="container_card">
         <div className="container_icon_edit_save">
           {resetLoaderCard === elem.id && <ButtonLoader />}
           {resetLoaderCard !== elem.id &&
@@ -1580,7 +1638,7 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
               alt="arrow" width={20} height={20}
               onClick={() => { resetCardHandler(elem.id) }}
             />}
-          &nbsp; &nbsp;
+          &nbsp;
           <StatusCircle status={elem.status} />
         </div>
 
@@ -1692,14 +1750,21 @@ const isPossibleToDelete = (indexToRemove: number): boolean => {
           <div className="container_right_inner">
             {/* Продукты */}
             <div className="container_products">
+
               <div className="container_stage_title">
-                {/* <div></div> */}
-                {t('cards.products')}
+                Карта  &nbsp; {padNumberToFourDigits(tCards[tCardIndex].idc)} - {tCards[tCardIndex].date}
                 <Image className="icon_add_stage"
                   src={add} alt="del" width={20} height={20}
                   onClick={() => addStage(0)}
                 />
               </div>
+
+              <div className="container_stage_title">
+                {/* <div></div> */}
+                {t('cards.products')}
+                
+              </div>
+
               <TCardProducts
                 products={products}
                 tCardProducts={tCardProducts}

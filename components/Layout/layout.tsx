@@ -43,7 +43,7 @@ export default function Layout({ children }: PropsWithChildren) {
         setDropdownOpen(false);
         i18n.changeLanguage(locale);
     }
-    
+
     const exit = () => {
         logout('/')
     }
@@ -57,12 +57,15 @@ export default function Layout({ children }: PropsWithChildren) {
 
             </Head>
             <CookieBanner />
+            <div className={styles.header_menu_baner}> 
+                17 августа с 22-00 по 23-00 по Рижскому времени будут производится технические работы, 
+                возможно отключение сервиса, Приносим извинение за неудобства</div>
             <div className={styles.header}>
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
 
                         {(!user.id) && !loadingComplete && <Link className={styles.header_menu_item} href="/">
-                        <Image className={styles.img} src={home} alt="home" />
+                            <Image className={styles.img} src={home} alt="home" />
                         </Link>}
                         {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
                         {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
@@ -93,7 +96,6 @@ export default function Layout({ children }: PropsWithChildren) {
                             </div>
                         )}
                     </div>
-                    {/* <button>{t('layout.profile')}</button> */}
                     {(user.id) && <button onClick={exit}>{t('layout.exit')}</button>}
                 </div>
             </div>

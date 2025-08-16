@@ -78,7 +78,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // Разделяю все наши операции по статусам и датам
         // все что ready, performed,defected - ничего не делаю  -  это уже пароизошло
 
-        // меняем в базе статус стертых операций на Prepared
+        // меняем в базе статус стертых операций на prepared
         const resSetOperStatus = await setOperStatus(dependentOperationsIds, StatusEnum.prepared, tCardOperationsRepository);
 
         if (!resSetOperStatus.success) {
@@ -92,16 +92,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(200).json({ success: false, message: "Не удалось  поменять статус карты" });
         }
 
-        // prepared - удаляю вообще без условий они даже не записаны
+        // если стираемый лоад в статусе prepared - удаляю вообще без условий они даже не записаны
         tCardLoadsUpdated = tCardLoadsUpdated.filter(lo => {
           return !(dependentOperationsIds.includes(lo.id_oper) && lo.status === StatusEnum.prepared)
         })
-
+      
+        // если стираемый лоад в статусе planed и он раньще текущей даты (в исторической части шкалы)
+        //  - можем просто отменить
         const tCardLoadsToCancel = tCardLoadsUpdated.filter(lo => {
           return (dependentOperationsIds.includes(lo.id_oper)
             && lo.date < today && lo.status === StatusEnum.planed)
         })
-
+        
+        // если стираемый лоад в статусе planed и он позже или равен текущей даты (в плановой части шкалы)
+        //   - можем просто стереть (удалить) из базы
         const tCardLoadsToDelete = tCardLoadsUpdated.filter(lo => {
           return (dependentOperationsIds.includes(lo.id_oper)
             && lo.date >= today && lo.status === StatusEnum.planed)

@@ -77,7 +77,7 @@ export interface PlanScaleContainerProps {
   moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => Promise<void>,
   pinLoadHandler: (oper_id: number, version: number) => void,
   unPinLoadHandler: (oper_id: number, tCardId: number, version: number) => void
-  unitActions:UnitActionItem[]
+  unitActions: UnitActionItem[]
 }
 
 export default function PlanScaleContainer({
@@ -433,7 +433,7 @@ export default function PlanScaleContainer({
   };
 
   // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
-  const handleDropOper = async (
+  const handleDropOper_Old = async (
     event: React.DragEvent,
     toUnitView: UnitItem
   ) => {
@@ -456,7 +456,7 @@ export default function PlanScaleContainer({
     const isDraggingRetul = draggingLoad.isRetool === true;
 
     // 🧩 Если тащим саму операцию, смещаем влево на toUnitView.retool
-    const retoolDurationPx = !isDraggingRetul && toUnitView.retool
+    const retoolDurationPx = !isDraggingRetul && toUnitView.retool && toUnitView.belong === UnitBelongEnum.inner
       ? toUnitView.retool * pxPerMinute
       : 0;
 
@@ -493,6 +493,87 @@ export default function PlanScaleContainer({
     setDraggingLoad(undefined);
     setIsLoadingDrop(NaN);
   };
+  const handleDropOper = async (
+    event: React.DragEvent,
+    toUnitView: UnitItem
+  ) => {
+    event.preventDefault();
+    if (!draggingLoad || !divRefPlus.current) return;
+
+    setIsLoadingDrop(draggingLoad.version);
+
+    const containerRect = divRefPlus.current.getBoundingClientRect();
+
+    const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
+    const startQuant = Math.floor(settings.timeStartWork / 5);
+    const finishQuant = Math.ceil(timeFinishWork / 5);
+    const quants = finishQuant - startQuant;
+
+    const fullDayWidth = dayWidth;
+    const pxPerQuant = fullDayWidth / quants;
+    const pxPerMinute = pxPerQuant / 5;
+
+    const isDraggingRetul = draggingLoad.isRetool === true;
+
+    // ✨ внеш/внутр:
+    const isExternal = toUnitView.belong === UnitBelongEnum.outer;
+    // ✨ какой конец тащим у внешнего:
+    const dragEdge: 'start' | 'finish' = (draggingLoad as any).edge ?? 'start';
+
+    // ✨ для внешнего короткий отрезок визуально = 1 квант (5 минут)
+    const quantWidth = fullDayWidth / quants;
+    const handleWidthPx = quantWidth;
+
+    // 🧩 смещение retool — только для ВНУТРЕННИХ и только когда тащим саму операцию
+    const retoolDurationPx =
+      !isDraggingRetul &&
+        toUnitView.retool &&
+        toUnitView.belong === UnitBelongEnum.inner
+        ? toUnitView.retool * pxPerMinute
+        : 0;
+
+    // ✨ главный фикс: выбираем якорь
+    // - inner: как было (курсор внутри элемента + retool)
+    // - external/start: якорь = 0 (левый край = время под курсором)
+    // - external/finish: якорь = ширина сегмента (правый край = время под курсором)
+    const anchorOffsetPx = isExternal
+      ? (dragEdge === 'start' ? 0 : handleWidthPx)
+      : (dragOffsetX.current + retoolDurationPx);
+
+    const leftEdgeX = event.clientX - anchorOffsetPx; // ✨
+    const relativeX = leftEdgeX - containerRect.left + divRefPlus.current.scrollLeft;
+
+    // День
+    const dayIndex = Math.floor(relativeX / fullDayWidth);
+    const calendarItem = calendarViewPlus[dayIndex];
+    if (!calendarItem) {
+      setIsLoadingDrop(NaN);
+      return;
+    }
+
+    const dayLeft = dayIndex * fullDayWidth;
+    const offsetWithinDay = relativeX - dayLeft;
+
+    // Кванты
+    // ✨ тут ничего спец. делать не нужно: для finish мы уже сдвинули leftEdgeX на ширину сегмента,
+    // поэтому вычисленный quantIndex соответствует ЛЕВОЙ границе короткого сегмента,
+    // а его правая граница (finish-момент) окажется ровно под курсором.
+    const quantIndex = Math.floor(offsetWithinDay / quantWidth);
+    const timeStart = (startQuant + quantIndex) * 5;
+    const timeFinish = timeStart + 5; // короткий внешний сегмент — 1 квант
+
+    await moveLoadHandler(
+      draggingLoad,
+      toUnitView,
+      calendarItem.date.toLocaleDateString("en-CA"),
+      timeStart,
+      timeFinish
+    );
+
+    setDraggingLoad(undefined);
+    setIsLoadingDrop(NaN);
+  };
+
 
   const handleMouseDownOper = (e: React.MouseEvent<HTMLDivElement>, load: UnitLoadItem) => {
     setDraggingLoad(load);
@@ -683,8 +764,6 @@ export default function PlanScaleContainer({
             />
           })
 
-
-
           // Это прорисовка загрузок 
           return (<div key={unitView.id}
             onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
@@ -779,11 +858,11 @@ export default function PlanScaleContainer({
     event.preventDefault(); // Отключаем стандартное контекстное меню
     if (contectMenuShow !== stopCloseMenuload) {
       setContectMenuShow(0);
-      stopCloseMenuload = 0;      
+      stopCloseMenuload = 0;
     }
     stopCloseMenuload = 0;
 
-     if (unitMenuShow !== stopCloseMenuUnit) {
+    if (unitMenuShow !== stopCloseMenuUnit) {
       setUnitMenuShow(0);
       stopCloseMenuUnit = 0;
     }
@@ -796,7 +875,7 @@ export default function PlanScaleContainer({
     if (idc) setContectMenuShow(idc);
   };
 
-   // контекстное меню
+  // контекстное меню
   const handletClickUnit = (event: React.MouseEvent, idc: number | undefined) => {
     event.preventDefault();
     event.stopPropagation();
@@ -804,7 +883,7 @@ export default function PlanScaleContainer({
   };
 
 
-   
+
 
   const timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
     // console.log("render день минус", elem.date);
@@ -859,7 +938,7 @@ export default function PlanScaleContainer({
   const unitsReactNodesInner = unitsViewInner.current.map(elem => {
     return (
       <div key={elem.id} className={styles.unit_name} onClick={(event) => handletClickUnit(event, elem.idc)}> {elem.title}
-       {unitMenuShow === elem.idc && ( <UnitMenu unitActions={unitActions.filter(a=>a.unitId===elem.id)}/>)}
+        {unitMenuShow === elem.idc && (<UnitMenu unitActions={unitActions.filter(a => a.unitId === elem.id)} />)}
       </div>
     )
   });

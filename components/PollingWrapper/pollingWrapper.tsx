@@ -12,6 +12,8 @@ import { downloadSchedule } from '@/services/initial/downloadSchedule';
 
 import { downloadLoads } from '@/services/initial/downloadLoads';
 import { downloadTCards } from '@/services/initial/downloadTCards';
+import { downloadLoadsStatuses } from '@/services/process/downloadLoadsStatuses';
+
 
 export const PollingWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { t, i18n } = useTranslation();
@@ -29,11 +31,15 @@ export const PollingWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
   const unit = useSelector((state: RootState) => {
     return state.authSlice.unit;
   })
+  const unitsLoads = useSelector((state: RootState) => {
+    return state.planSlice.unitLoads;
+  })
+
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     // Интервал из переменных окружения (в минутах)
-    const intervalMinutes = parseInt(process.env.NEXT_PUBLIC_POLL_INTERVAL_MINUTES || '5', 10);
+    const intervalMinutes = parseInt(process.env.NEXT_PUBLIC_POLL_INTERVAL_MINUTES || '1', 10);
     const intervalMs = intervalMinutes * 60 * 1000;
 
     const pollData = async () => {
@@ -47,9 +53,11 @@ export const PollingWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
         await downloadUnutExceptions(unit?.id, user.id, team.id, token, t, setMessage, dispatch);
         await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
         await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
+        await downloadLoads(user.id, team.id, token, t, setMessage, dispatch);
       }
-      //  состояние лоадов обновляем у всех юзеров
-      await downloadLoads(user.id, team.id, token, t, setMessage, dispatch);
+
+      //  Здесь обновлять только статусы  поскольку на клиенте идет оперативная работа
+      await downloadLoadsStatuses(user.id, team.id, token, unitsLoads, t, setMessage, dispatch);
       console.log('time', new Date().toLocaleTimeString());
       console.log('Polling server data...successful');
     };

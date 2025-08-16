@@ -1,6 +1,6 @@
 import {
   TCardProductItem, TCardOperationItem, ProductItem,
-  TCardItem, UnitLoadItem, UOMItem, UnitExceptionItem,
+  TCardItem, UnitLoadItem,  UnitExceptionItem,
   CalendarItem, TimeTypeEnum, StatusEnum,
   UnitItem, ScheduleItem, DaysOfWeek, UnitBelongEnum,
   UnitActionItem, ReadyProduct

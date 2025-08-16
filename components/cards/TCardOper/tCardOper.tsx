@@ -1,21 +1,19 @@
 import { useAppDispatch } from "@/pages/_app";
 import styles from "./tCardOper.module.scss";
-import { TCardOperationItem, StatusEnum } from '@/types/types'
-import { convertMillisecondsToTime} from '@/lib/utils'
+import { TCardOperationItem, StatusEnum, UnitLoadItem } from '@/types/types'
+import { convertMillisecondsToTime } from '@/lib/utils'
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
-
+import { useState } from "react";
 import Image from 'next/image';
+import { convertMinutesToTime } from "@/lib/utils"
 
 import edit from "@/public/edit-rem.png";
 import del from "@/public/del2.png";
+import load from "@/public/load-rem.png";
 import { useTranslation } from 'react-i18next';
 
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
 export interface TCardOperProps {
-    index:number
+    index: number
     tCardOperation: TCardOperationItem;
     dragOverHandler: (e: React.DragEvent<HTMLElement>) => void,
     dropHandler: (e: React.DragEvent<HTMLElement>) => void,
@@ -26,13 +24,15 @@ export interface TCardOperProps {
     currentDraggingElement: string,
     positionX: number,
     positionY: number,
-    handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,   
+    handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,
     deleteOperHandler: (id: number) => void,
     editOperHandler: (id: number) => void
     setOperStatus: (idc: number, status: StatusEnum) => void,
     fixDefect: (idc: number) => void,
     lightProduct: number,
     fixed: boolean,
+    operLoads: UnitLoadItem[],
+    cancelLoadHandler: (load_idc: number) => void
 }
 
 export default function TCardOper({
@@ -47,17 +47,20 @@ export default function TCardOper({
     currentDraggingElement,
     positionX,
     positionY,
-    handleDrop,    
+    handleDrop,
     deleteOperHandler,
     editOperHandler,
     setOperStatus,
     fixDefect,
     lightProduct,
-    fixed,    
+    fixed,
+    operLoads,
+    cancelLoadHandler
 }: TCardOperProps) {
     const { t, i18n } = useTranslation();
-    let outReactNodes;
+    const [showLoads, setShowLoads] = useState(NaN); // операция на которой надо лоады развернуть
 
+    let outReactNodes;
     if (tCardOperation.out) {
         outReactNodes = tCardOperation.out.map((elem2, index1) => {
             return (
@@ -82,11 +85,12 @@ export default function TCardOper({
                     <div className={styles.out_item_code}>{elem2.code}</div>
                     <div className={styles.in_out_item_product}>{`${elem2.product.title}(${elem2.product.uom.title})`}</div>
                     <div className={styles.in_out_item_qtu}>{elem2.qtu}</div>
-                    
+
                 </div>
             )
         })
     }
+
     let innReactNodes;
     if (tCardOperation.inn) {
         innReactNodes = tCardOperation.inn.map((elem3, index2) => {
@@ -113,7 +117,37 @@ export default function TCardOper({
                     <div className={styles.in_item_code}>{elem3.code}</div>
                     <div className={styles.in_out_item_product}>{`${elem3.product.title}(${elem3.product.uom.title})`}</div>
                     <div className={styles.in_out_item_qtu}>{elem3.qtu}</div>
-                    
+
+
+                </div>
+            )
+        })
+    }
+    let operLoadsReactNodes;
+    if (operLoads) {
+        operLoadsReactNodes = operLoads.map((lo, index1) => {
+            const color1 = (lo.date < new Date().toLocaleDateString("en-CA")) ? 'rgba(240, 240, 240, 1)' : '';
+            return (
+                <div key={index1} className={styles.container_row_load}
+                    style={{ background: color1 }}>
+                    <div className={styles.load_status}>
+                        <StatusCircle status={lo.status} />  &nbsp; {lo.status}
+                    </div>
+                    &nbsp; <div className={styles.load_retool}>{lo.isRetool ? "R" : ""}</div>
+                    &nbsp; <div className={styles.load_date}>{lo.date}</div>
+                    <div className={styles.load_start}>{convertMinutesToTime(Number(lo.timeStart))}</div>
+                    &nbsp; - &nbsp;
+                    <div className={styles.load_finish}>{convertMinutesToTime(Number(lo.timeFinish))}</div>
+                    <div className={styles.load_title}>{lo.loadInfo.title}</div>
+                    <div className={styles.load_title}>{lo.unit.title}</div>
+
+                    <div style={{ width: 25 }}>
+                        {lo.status === StatusEnum.planed &&
+                            <Image className={styles.icon_del}
+                                src={del} alt="del" width={20} height={20}
+                                onClick={() => cancelLoadHandler(lo.idc)}
+                            />}
+                    </div>
 
                 </div>
             )
@@ -183,6 +217,7 @@ export default function TCardOper({
             </div>
             <div className={styles.container_buttons_row}>
                 <div>
+
                     {(tCardOperation.status === StatusEnum.draft)
                         && <button className={styles.button_status}
                             onClick={() => setOperStatus(tCardOperation.idc, StatusEnum.prepared)}>
@@ -195,22 +230,41 @@ export default function TCardOper({
                             {t('cardsoper.repeat')}
                         </button>}
                 </div>
-                {
-                    (tCardOperation.status === StatusEnum.draft || tCardOperation.status === StatusEnum.prepared)
-                    && <div className={styles.container_icon_edit_save}>
-                        <Image className={styles.icon_edit_save}
+
+
+                <div className={styles.container_icon_edit_save}>
+
+                    <Image className={styles.icon_edit_save}
+                        src={load}
+                        alt="arrow" width={20} height={20}
+                        onClick={() => {
+                            if (!showLoads)
+                                setShowLoads(tCardOperation.idc)
+                            else
+                                setShowLoads(NaN)
+
+                        }}
+                    />
+                    {(tCardOperation.status === StatusEnum.draft || tCardOperation.status === StatusEnum.prepared)
+                        && <Image className={styles.icon_edit_save}
                             src={edit}
                             alt="arrow" width={20} height={20}
                             onClick={() => { editOperHandler(tCardOperation.idc) }}
-                        />
-                        <Image className={styles.icon_del}
+                        />}
+                    {(tCardOperation.status === StatusEnum.draft || tCardOperation.status === StatusEnum.prepared)
+                        && <Image className={styles.icon_del}
                             src={del} alt="del" width={20} height={20}
                             onClick={() => deleteOperHandler(tCardOperation.idc)}
-                        />
-                    </div>}
+                        />}
+                </div>
 
             </div>
-
+            {showLoads === tCardOperation.idc && <div className={styles.container_loads}>
+                <div className={styles.coment_title}>{t('cardsoper.loads')}</div>
+                <div className={styles._loads}>
+                    {operLoadsReactNodes}
+                </div>
+            </div>}
         </div >
     )
 }
