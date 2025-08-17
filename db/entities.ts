@@ -23,6 +23,7 @@ import { SettingsTable } from './models/plan/settings';
 
 import { SupportTable } from './models/support/support';
 import { BillTable } from './models/support/bills';
+import { BanerTable } from './models/support/baners';
 
 export const entities = {
   TCardTable,
@@ -46,6 +47,7 @@ export const entities = {
   SupportTable,
   BillTable,
   ProductTable,
+  BanerTable,
 };
 
 export const getEntities = () => Object.values(entities);

@@ -1,18 +1,18 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity("bills")
-export class BillTable {
+@Entity("baners")
+export class BanerTable {
     @PrimaryGeneratedColumn()
     id!: number;
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at!: Date;
 
-    @Column('dateFrom')
-    dateFrom!: Date; // дата начала показа банера
+    @Column('date')
+    date_from!: Date; // дата начала показа банера
 
-    @Column('dateTo')
-    dateTo!: Date; // дата окончания показа банера
+    @Column('date')
+    date_to!: Date; // дата окончания показа банера
 
     @Column('varchar', { default: "" })
     locale!: string;
