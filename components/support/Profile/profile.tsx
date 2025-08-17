@@ -35,14 +35,24 @@ export const Profile: React.FC<ProfileProps> = ({
   const [newPass2Value, setNewPass2Value] = useState(''); // новый пароль повтор
   const [loaderButtonName, setLoaderButtonName] = useState(false);
   const [loaderButtonPass, setLoaderButtonPass] = useState(false);
+  const [loaderButtonDel, setLoaderButtonDel] = useState(false);
+
   const [nameValue, setNameValue] = useState(''); // имя юзера
   const [changePassValue, setChangePassValue] = useState(false);
   const [changeNameValue, setChangeNameValue] = useState(false);
+  const [deleteProfileValue, setDeleteProfileValue] = useState(false);
 
   useEffect(() => {
     setUserValue(user)
   }, [user]);
 
+  const deleteProfileHandler = async () => {
+    setMessage("");
+    setLoaderButtonDel(true)
+
+    // const res = await changePassword(passValue, newPass1Value, user.id, team.id, token, t, dispatch, setMessage);
+    setLoaderButtonDel(false)
+  }
 
   // На сервере
   const changePassHandler = async () => {
@@ -72,9 +82,9 @@ export const Profile: React.FC<ProfileProps> = ({
 
     setLoaderButtonName(false)
   }
- // На клиенте
+  // На клиенте
   const teamNumberValue = generateTeamNumber(team.prefix, team.id);
-  
+
   return (
     <div className={styles.container}>
       <div className={styles.title}>
@@ -197,7 +207,32 @@ export const Profile: React.FC<ProfileProps> = ({
         {unit ? unit.code : ""}
       </div>}
 
+      {/* УДАЛЕНИЕ ПРОФИЛЯ */}
+      <div>
+        <div className={styles.checkbox_input_container}>
+          <label>{t('profile.delete')}</label>
+          &nbsp; &nbsp;
+          <input
 
+            id="showWeekend"
+            autoComplete="off"
+            checked={deleteProfileValue}
+            type="checkbox"
+            onChange={e => {
+              setDeleteProfileValue(!deleteProfileValue)
+            }}
+          />
+        </div>
+        {deleteProfileValue && <div className={styles._button_container}>
+          <button className={styles.profile_button}
+            onClick={(e) => deleteProfileHandler()}>
+            {loaderButtonDel && <ButtonLoader />}
+            {!loaderButtonDel && t('profile.buttondDeleteProfile')}
+          </button>
+        </div>}
+
+
+      </div>
 
 
     </div>

@@ -1557,6 +1557,7 @@ export default function Cards() {
 
     const operationsReactNodes = operations.map((tCardOperation, index1) => {
       const fixed = (operations.find(op => op.fixOperIdc === tCardOperation.idc) !== undefined);
+      const operLoads = unitLoads.filter(lo => lo.idc_oper === tCardOperation.idc && lo.id_tCard === tCards[tCardIndex].id)
       return (<>
         {!(tCardOperation.mode) &&
           <TCardOper
@@ -1579,7 +1580,7 @@ export default function Cards() {
             fixDefect={fixDefect}
             lightProduct={lightProduct}
             fixed={fixed}
-            operLoads={unitLoads.filter(lo => lo.idc_oper === tCardOperation.idc && lo.id_tCard === tCards[tCardIndex].id)}
+            operLoads={operLoads}
             cancelLoadHandler={cancelLoadHandler}
           />}
 
@@ -1762,7 +1763,7 @@ export default function Cards() {
               <div className="container_stage_title">
                 {/* <div></div> */}
                 {t('cards.products')}
-                
+
               </div>
 
               <TCardProducts

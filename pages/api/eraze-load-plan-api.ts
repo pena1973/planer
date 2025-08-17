@@ -3,7 +3,7 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utilites'
+import { getTypedRepository } from './../../db/utilites'
 
 import { getDependentOperationsIds } from './../../handlers/handlers-plan';  // планирование карты
 import { getTCardFull } from './../../handlers/handlers-get';  // 

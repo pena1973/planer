@@ -81,7 +81,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
     return (<tr key={index}>
 
       <td> {cardTitle}</td>
-      <td> {lo.loadInfo?.title}, C{lo.idc_oper}</td>
+      <td> {lo.loadInfo?.title}, A{lo.idc_oper}</td>
       <td> {lo.unit.title}</td>
       <td>{`${terms.start.date}: ${convertMinutesToTime1(terms.start.time)}`}</td>
       <td>{`${terms.finish.date}: ${convertMinutesToTime1(terms.finish.time)}`}</td>

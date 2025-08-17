@@ -1,6 +1,6 @@
 
 import { DataSourceOptions } from 'typeorm';
-import { getEntities } from './../lib/db/entities'; // путь без алиаса
+import { getEntities } from './entities'; // путь без алиаса
 
 const config: DataSourceOptions = {
   type: 'postgres',
@@ -14,7 +14,8 @@ const config: DataSourceOptions = {
   migrations: ['/db/migrations/**/*.ts'],
   subscribers: [],
   ssl: { rejectUnauthorized: false },
-  synchronize:true
+  synchronize:false, // отключение автосинхронизации моделей (Не рекомендуется в продакшене, но можно использовать в dev-режиме)
+  migrationsRun: false, // автоматически запускать миграции при старте приложения - не рекомендуется в продакшене
 };
 
 export default config;

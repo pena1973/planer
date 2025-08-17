@@ -9,7 +9,6 @@ import Filter from "./Filter/filter";
 
 import { useTranslation } from 'react-i18next';
 
-
 import { padNumberToFourDigits, convertMinutesToTime } from "@/lib/utils"
 
 interface ReportTCardStateProps {
@@ -179,7 +178,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
           operReady = 50;
           readyDuration += oper.duration / 2;
         }
-        const fixTitle = oper.fixOperIdc ? `, исправление A ${oper.fixOperIdc}` : "";
+        const fixTitle = oper.fixOperIdc ? `, исправление A${oper.fixOperIdc}` : "";
 
         return (
           <React.Fragment key={`oper-${tCard.id}-${index}`}>

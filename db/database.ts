@@ -2,7 +2,7 @@
 
 import { DataSource } from 'typeorm';
 import config from './ormconfig';
-import { getEntities } from '../lib/db/entities';
+import { getEntities } from './entities';
 
 // let dataSource: DataSource | null = null;
 

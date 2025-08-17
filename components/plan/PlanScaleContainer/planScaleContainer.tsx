@@ -432,67 +432,68 @@ export default function PlanScaleContainer({
     }
   };
 
-  // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
-  const handleDropOper_Old = async (
-    event: React.DragEvent,
-    toUnitView: UnitItem
-  ) => {
-    event.preventDefault();
-    if (!draggingLoad || !divRefPlus.current) return;
+  // // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
+  // const handleDropOper_Old = async (
+  //   event: React.DragEvent,
+  //   toUnitView: UnitItem
+  // ) => {
+  //   event.preventDefault();
+  //   if (!draggingLoad || !divRefPlus.current) return;
 
-    setIsLoadingDrop(draggingLoad.version);
+  //   setIsLoadingDrop(draggingLoad.version);
 
-    const containerRect = divRefPlus.current.getBoundingClientRect();
+  //   const containerRect = divRefPlus.current.getBoundingClientRect();
 
-    const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
-    const startQuant = Math.floor(settings.timeStartWork / 5);
-    const finishQuant = Math.ceil(timeFinishWork / 5);
-    const quants = finishQuant - startQuant;
+  //   const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
+  //   const startQuant = Math.floor(settings.timeStartWork / 5);
+  //   const finishQuant = Math.ceil(timeFinishWork / 5);
+  //   const quants = finishQuant - startQuant;
 
-    const fullDayWidth = dayWidth;
-    const pxPerQuant = fullDayWidth / quants;
-    const pxPerMinute = pxPerQuant / 5;
+  //   const fullDayWidth = dayWidth;
+  //   const pxPerQuant = fullDayWidth / quants;
+  //   const pxPerMinute = pxPerQuant / 5;
 
-    const isDraggingRetul = draggingLoad.isRetool === true;
+  //   const isDraggingRetul = draggingLoad.isRetool === true;
 
-    // 🧩 Если тащим саму операцию, смещаем влево на toUnitView.retool
-    const retoolDurationPx = !isDraggingRetul && toUnitView.retool && toUnitView.belong === UnitBelongEnum.inner
-      ? toUnitView.retool * pxPerMinute
-      : 0;
+  //   // 🧩 Если тащим саму операцию, смещаем влево на toUnitView.retool
+  //   const retoolDurationPx = !isDraggingRetul && toUnitView.retool && toUnitView.belong === UnitBelongEnum.inner
+  //     ? toUnitView.retool * pxPerMinute
+  //     : 0;
 
-    const adjustedOffset = dragOffsetX.current + retoolDurationPx;
+  //   const adjustedOffset = dragOffsetX.current + retoolDurationPx;
 
-    const leftEdgeX = event.clientX - adjustedOffset;
-    const relativeX = leftEdgeX - containerRect.left + divRefPlus.current.scrollLeft;
+  //   const leftEdgeX = event.clientX - adjustedOffset;
+  //   const relativeX = leftEdgeX - containerRect.left + divRefPlus.current.scrollLeft;
 
-    // 🧩 3. Определим день
-    const dayIndex = Math.floor(relativeX / fullDayWidth);
-    const calendarItem = calendarViewPlus[dayIndex];
-    if (!calendarItem) {
-      setIsLoadingDrop(NaN);
-      return
-    };
+  //   // 🧩 3. Определим день
+  //   const dayIndex = Math.floor(relativeX / fullDayWidth);
+  //   const calendarItem = calendarViewPlus[dayIndex];
+  //   if (!calendarItem) {
+  //     setIsLoadingDrop(NaN);
+  //     return
+  //   };
 
-    const dayLeft = dayIndex * fullDayWidth;
-    const offsetWithinDay = relativeX - dayLeft;
+  //   const dayLeft = dayIndex * fullDayWidth;
+  //   const offsetWithinDay = relativeX - dayLeft;
 
-    const quantWidth = fullDayWidth / quants;
-    const quantIndex = Math.floor(offsetWithinDay / quantWidth);
-    const timeStart = (startQuant + quantIndex) * 5;
-    const timeFinish = timeStart + 5;
+  //   const quantWidth = fullDayWidth / quants;
+  //   const quantIndex = Math.floor(offsetWithinDay / quantWidth);
+  //   const timeStart = (startQuant + quantIndex) * 5;
+  //   const timeFinish = timeStart + 5;
 
-    // 🧩 4. Перемещаем
-    await moveLoadHandler(
-      draggingLoad,
-      toUnitView,
-      calendarItem.date.toLocaleDateString("en-CA"),
-      timeStart,
-      timeFinish
-    );
+  //   // 🧩 4. Перемещаем
+  //   await moveLoadHandler(
+  //     draggingLoad,
+  //     toUnitView,
+  //     calendarItem.date.toLocaleDateString("en-CA"),
+  //     timeStart,
+  //     timeFinish
+  //   );
 
-    setDraggingLoad(undefined);
-    setIsLoadingDrop(NaN);
-  };
+  //   setDraggingLoad(undefined);
+  //   setIsLoadingDrop(NaN);
+  // };
+
   const handleDropOper = async (
     event: React.DragEvent,
     toUnitView: UnitItem
@@ -518,7 +519,7 @@ export default function PlanScaleContainer({
     // ✨ внеш/внутр:
     const isExternal = toUnitView.belong === UnitBelongEnum.outer;
     // ✨ какой конец тащим у внешнего:
-    const dragEdge: 'start' | 'finish' = (draggingLoad as any).edge ?? 'start';
+    const dragEdge: 'start' | 'finish' = (draggingLoad as UnitLoadItem).isOuterFinish ? 'finish' : 'start';
 
     // ✨ для внешнего короткий отрезок визуально = 1 квант (5 минут)
     const quantWidth = fullDayWidth / quants;
