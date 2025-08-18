@@ -32,5 +32,7 @@ export class TCardProductTable {
   @Column('int')
   product_id!: number;
 
+  @Column('int')
+  team_id!: number;
 
 }

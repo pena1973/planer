@@ -19,7 +19,7 @@ import { ActionTable } from './../../db/models/catalogs/actions'
 
 import {
   TCardItem, TCardProductItem,
-  TCardOperationItem, TCardStageItem,  
+  TCardOperationItem, TCardStageItem,
   StatusEnum, UnitItem,
   UnitLoadItem,
   UnitTypeEnum,
@@ -52,7 +52,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
   const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
   const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
-  const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
   const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
 
@@ -113,6 +112,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             productRepository,
             savedTCard,
             tCard.products ?? [] as ProductItem[],
+            Number(teamId)
           )
 
           if (!resProducts.success) {
@@ -130,7 +130,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             tCardOperationRepository,
             tCardProductRepository,
             tCard.tCardStages,
-            savedTCard)
+            savedTCard,
+            Number(teamId))
           if (!resStages.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resStages.message });
             return;
@@ -147,7 +148,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             tCardProductRepository,
             tCard.tCardOperations,
             savedTCard,
-            savedTCardStages)
+            savedTCardStages,
+           Number(teamId))
           if (!resOperations.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOperations.message });
             return;
@@ -171,6 +173,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             (!tCard.tCardMaterials) ? [] as TCardProductItem[] : tCard.tCardMaterials,
             (!tCard.tCardWastes) ? [] as TCardProductItem[] : tCard.tCardWastes,
             (!tCard.tCardOperations) ? [] as TCardOperationItem[] : tCard.tCardOperations,
+             Number(teamId)
           )
 
           if (!resProducts.success) {
@@ -212,7 +215,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const { tCardId: tCardIddel, teamId: teamIddel } = req.query;
         const tCardId = Number(tCardIddel);
-        
+
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard__ = await getTCardFull(Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository)
@@ -226,7 +229,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const units = await getUnits(Number(teamIddel), unitRepository)
 
-        const loads = await getTCardLoads(tCard__,units, unitLoadRepository)
+        const loads = await getTCardLoads(tCard__, units, unitLoadRepository)
         if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
 
         // фильтруем лоады по сегодняшней дате
@@ -250,7 +253,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
 
         const allLoads = [...historyLoads, ...planLoads];
-        
+
         // !!!!Проверить
         const resDel = await updateTCardLoads(Number(teamIddel), tCardId, allLoads, unitLoadRepository);
         if (!resDel.success) { res.status(200).json({ success: false, message: resDel.message }); }

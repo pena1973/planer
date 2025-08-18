@@ -17,6 +17,7 @@ import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExcepti
 import { downloadUnutActions } from '@/services/initial/downloadUnut-Actions';
 import { downloadUnutExceptions } from '@/services/initial/downloadUnut-Exceptions';
 import { downloadUnitLoads } from '@/services/initial/downloadUnit-Loads';
+import { downloadBaner } from '@/services/process/downloadBaner';
 
 import { loginHandler } from '@/services/login/loginHandler';
 import { registerHandler } from '@/services/login/registerHandler';
@@ -252,6 +253,7 @@ export default function Index() {
       if (team && user && token.trim() !== "" && signedAgreement) {
         setStep(4);
         if (user.isAdmin) {
+          await downloadBaner(user.id, team.id, token, t, setMessage, dispatch);
           await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
           await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
           await downloadTemplates(user.id, team.id, token, t, setMessage, dispatch);
@@ -268,7 +270,8 @@ export default function Index() {
           push("/cards");
         }
         else {
-          // Только для одного юнита 
+          // Только для одного юнита           
+          await downloadBaner(undefined, undefined, token, t, setMessage, dispatch);
           await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
           await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
           await downloadUnutActions(unit?.id, user.id, team.id, token, t, setMessage, dispatch);

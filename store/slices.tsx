@@ -4,6 +4,7 @@ import {
     UnitExceptionItem, UnitActionItem, UserItem,
     TeamItem,TemplateItem,ProductItem
 } from './../types/types';
+import { BanerItem } from './../types/service-types';
 
 import { createSlice } from '@reduxjs/toolkit';
 
@@ -42,6 +43,7 @@ export type ViewState = {
     resourcePoint: number,
     suportPoint: number,
     loadingComplete:boolean
+    baner:BanerItem[]
 }
 // Начальное состояние
 const catalogIntialState: CatalogState = {
@@ -75,7 +77,8 @@ const viewIntialState: ViewState = {
     monitorPoint: 1,
     resourcePoint: 1,
     suportPoint: 1,
-    loadingComplete:false
+    loadingComplete:false,
+    baner: [] as BanerItem[]
 }
 // хранилище
 const authSlice = createSlice({
@@ -185,9 +188,10 @@ const viewSlice = createSlice({
         },
         setLoadingComplete: (state, action) => {
             state.loadingComplete = action.payload;
+        },        
+        setBaner: (state, action) => {
+            state.baner = action.payload;
         },
-        
-
     },
 
 })
@@ -198,7 +202,7 @@ export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule }
 export const { setTCards,setTCardIndex, setTemplates } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement,setUnit} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
-export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete } = viewSlice.actions;
+export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete,setBaner } = viewSlice.actions;
 
 export { authSlice, catalogSlice, dataSlice, planSlice, viewSlice };
 

@@ -22,10 +22,11 @@ import { SettingsTable } from './../db/models/plan/settings';
 import { UserTable } from './../db/models/catalogs/users';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
 import { BillTable } from './../db/models/support/bills';
+
 import { SupportTable } from './../db/models/support/support';
 
 import { TeamTable } from './../db/models/catalogs/teams';
-
+import { BanerTable } from './../db/models/support/baners';
 // types
 import {
   StatusEnum, UserItem, UnitItem, UnitLoadItem,
@@ -35,6 +36,9 @@ import {
   TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem,
   TCardTermsItem, BillItem, ProductItem, TemplateItem
 } from './../types/types';
+import { BanerItem } from './../types/service-types';
+
+import { current } from '@reduxjs/toolkit';
 
 // &&&&
 // единицы измерения
@@ -146,7 +150,7 @@ export async function getLoadStatuses(
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<{ idc_load: number, status: StatusEnum }[]> {
 
-   return await unitLoadRepository
+  return await unitLoadRepository
     .createQueryBuilder('unitLoad')
     .select('unitLoad.idc', 'idc_load')  // поле + алиас
     .addSelect('unitLoad.status', 'status')   // поле + алиас
@@ -1167,6 +1171,35 @@ export async function getUsers(
   }
 
 }
+
+// банер
+export async function getBaner(
+  teamId: number | undefined, 
+  userId: number | undefined,
+  banerRepository: Repository<BanerTable>
+): Promise<BanerItem[]> {
+  const currentDate = new Date().toLocaleDateString("en-CA"); // Получаем текущую дату в формате "YYYY-MM-DD"
+
+  // собираем условия динамически
+  const where: any = {
+    date_from: MoreThanOrEqual(currentDate),
+    date_to: LessThanOrEqual(currentDate),
+    ...(teamId !== undefined ? { team_id: teamId } : {}),
+    ...(userId !== undefined ? { user_id: userId } : {}),
+  };
+
+  const receivedBaner = await banerRepository.find({ where });
+
+  const baner = receivedBaner.map(ban => ({
+    message: ban.message,
+    locale: ban.locale,
+    dateFrom: new Date(ban.date_from).toLocaleDateString("en-CA"),
+    dateTo: new Date(ban.date_to).toLocaleDateString("en-CA"),
+  }));
+
+  return baner;
+}
+
 
 // счета
 export async function getBills(

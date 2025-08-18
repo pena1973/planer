@@ -18,6 +18,10 @@ export class TeamTable {
 
   @Column()
   prefix!: string;
+  
+  @Column('boolean', { default: true })
+  active!: boolean;
+
  
   // Хук, который будет вызываться перед вставкой записи в базу данных
   @BeforeInsert()

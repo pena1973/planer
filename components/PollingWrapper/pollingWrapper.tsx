@@ -13,6 +13,7 @@ import { downloadSchedule } from '@/services/initial/downloadSchedule';
 import { downloadLoads } from '@/services/initial/downloadLoads';
 import { downloadTCards } from '@/services/initial/downloadTCards';
 import { downloadLoadsStatuses } from '@/services/process/downloadLoadsStatuses';
+import { downloadBaner } from '@/services/process/downloadBaner';
 
 
 export const PollingWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -58,6 +59,7 @@ export const PollingWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
 
       //  Здесь обновлять только статусы  поскольку на клиенте идет оперативная работа
       await downloadLoadsStatuses(user.id, team.id, token, unitsLoads, t, setMessage, dispatch);
+      await downloadBaner(undefined, undefined, token, t, setMessage, dispatch);
       console.log('time', new Date().toLocaleTimeString());
       console.log('Polling server data...successful');
     };

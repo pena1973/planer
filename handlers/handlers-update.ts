@@ -1056,7 +1056,8 @@ export async function updateStages(
   tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
   tCardStages: TCardStageItem[],
-  savedTCard: TCardItem
+  savedTCard: TCardItem,
+   teamId:number
 ): Promise<{ success: boolean, savedTCardStages?: TCardStageItem[], message?: string }> {
   try {
     // Получаем текущие стадии из БД
@@ -1101,6 +1102,7 @@ export async function updateStages(
         idc: stage.idc,
         code: stage.code,
         tcard_id: savedTCard.id,
+        team_id: teamId, 
       }));
 
     const savedNewStages = newStages.length > 0 ? await tCardStagesRepository.save(newStages) : [];
@@ -1146,7 +1148,8 @@ export async function updateOperations(
   tCardProductRepository: Repository<TCardProductTable>,
   tCardOperations: TCardOperationItem[],
   savedTCard: TCardItem,
-  savedTCardStages: TCardStageItem[]
+  savedTCardStages: TCardStageItem[],
+   teamId: number,
 ): Promise<{
   success: boolean;
   message?: string;
@@ -1194,6 +1197,7 @@ export async function updateOperations(
         status: op.status,
         coment: op.coment,
         fix_oper_idc: op.fixOperIdc,
+        team_id: teamId, // Добавляем team_id
       });
     }).filter(Boolean) as TCardOperationTable[];
 
@@ -1217,6 +1221,7 @@ export async function updateOperations(
         status: op.status,
         coment: op.coment,
         fix_oper_idc: op.fixOperIdc,
+        team_id: teamId, 
       };
     }).filter(Boolean) as TCardOperationTable[];
 
@@ -1277,7 +1282,8 @@ export async function updateProducts(
   tCardProducts: TCardProductItem[],
   tCardMaterials: TCardProductItem[],
   tCardWastes: TCardProductItem[],
-  tCardOperations: TCardOperationItem[]
+  tCardOperations: TCardOperationItem[],
+   teamId: number,
 ): Promise<{ success: boolean; savedTCardProducts?: TCardProductItem[], message?: string }> {
 
   interface TCardProductItemRecord extends TCardProductItem {
@@ -1353,6 +1359,7 @@ export async function updateProducts(
         qtu: tp.qtu,
         operation_id: operationId,
         tcard_id: savedTCard.id,
+        team_id: teamId, 
       });
     }).filter(Boolean) as TCardProductTable[];
 
@@ -1401,150 +1408,13 @@ export async function updateProducts(
   }
 }
 
-// &&&&
-// КАТАЛОГ
-// export async function updateCatalogProducts(
-//   uomsRepository: Repository<UOMsTable>,
-//   productRepository: Repository<ProductTable>,
-//   savedTCard: TCardTable,
-//   products: ProductItem[],
-//   teamId: number
-// ): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
-//   let error = ""; 
-
-//   const existingProductsRaw = await productRepository
-//     .createQueryBuilder('product')
-//     .leftJoin('uoms', 'uom', 'product.uom_id = uom.id')
-//     .addSelect([
-//       'uom.id',
-//       'uom.title',
-//       'uom.code'
-//     ])
-//     .where('product.tcard_id = :tcardId', { tcardId: savedTCard.id })
-//     .getRawMany();
-
-//   const existingProducts: (ProductTable & { uom?: UOMItem })[] = existingProductsRaw.map(row => ({
-//     created_at: row.product_created_at,
-//     id: row.product_id,
-//     idc: row.product_idc,
-//     title: row.product_title,
-//     sync: row.product_sync,
-//     tcard_id: row.product_tcard_id,
-//     uom_id: row.product_uom_id,
-
-//     uom: {
-//       id: row.uom_id,
-//       title: row.uom_title,
-//       code: row.uom_code,
-//     } as UOMItem,
-//   }));
-
-//   // 1. Найдем удаленные продукты
-//   const productsToDelete = existingProducts.filter(product =>
-//     !products.some(newProduct => { return (newProduct.id === product.id) })
-//   );
-
-//   // 2. Найдем новые продукты, которых нет в базе
-//   const productsToAdd = products.filter(product =>
-//     !existingProducts.some(existingProduct => { return (existingProduct.id === product.id) })
-//   );
-
-//   // 3. Найдем существующие продукты для обновления
-//   const productsToUpdate = products.filter(product =>
-//     existingProducts.some(existingProduct => { return (existingProduct.id === product.id) })
-//   );
-
-//   // Удаляем старые продукты
-//   if (productsToDelete.length > 0) await productRepository.remove(productsToDelete);
-
-//  // Добавляем новые продукты
-// let savedNewProducts: (ProductTable & { uom?: UOMItem })[] = [];
-
-// if (productsToAdd.length > 0) {
-//   try {
-//     const plainProducts = productsToAdd.map(product => ({
-//       idc: product.idc,
-//       title: product.title,
-//       uom_id: product.uom.id,   // только ID
-//       tcard_id: savedTCard.id,  // только ID
-//       sync: product.sync
-//     }));
-
-//     savedNewProducts = await productRepository.save(plainProducts);
-
-//     if (savedNewProducts.length === 0) {
-//       return { success: false, message: "Не удалось сохранить продукты из каталога" };
-//     }
-//   } catch (err) {
-//     console.error('Ошибка при сохранении новых продуктов:', err);
-//     return { success: false, message: 'Ошибка при сохранении продуктов каталога' };
-//   }
-// }
-
-//   // Обновляем существующие продукты
-//   const updatedProducts = productsToUpdate.map(product => {
-//     const existingProduct = existingProducts.find(existingProduct => existingProduct.id === product.id);
-//     if (existingProduct) {
-//       existingProduct.title = product.title;
-//       existingProduct.uom_id = product.uom.id;
-//       existingProduct.sync = product.sync;
-//       return productRepository.create(existingProduct);
-//     }
-//     return null;
-//   }).filter(product => product !== null);
-
-//   let savedUpdatedProducts = [] as (ProductTable & { uom?: UOMItem })[];
-//   if (updatedProducts.length > 0) {
-//     savedUpdatedProducts = await productRepository.save(updatedProducts);
-//     if (!savedUpdatedProducts) return { success: false, message: "Не удалось сохранить каталог" };
-//   }
-
-
-//   // Все продукты сохранены, проверка
-//   const savedProducts = [...savedNewProducts, ...savedUpdatedProducts] as (ProductTable & { uom?: UOMItem })[];
-
-//   // // Выполняем запрос с фильтрацией
-//   // const uoms = await uomsRepository.find({
-//   //   where: { team_id: teamId },  // Применяем фильтр к запросу
-//   // });
-
-//   // // Заполняем поле uom там где не заполнено
-//   // for (const product of savedProducts) {
-//   //   if (!product.uom_id) {
-//   //     const matched = uoms.find(uom => uom.id === product.uom_id)
-//   //     if (matched) {
-//   //       product.uom = matched;
-//   //     }
-//   //   }
-//   // }
-
-//   // если изначально был пустой массив продуктов уходим
-//   if (products.length === 0) return { success: true, savedProducts: savedProducts };
-
-//   // если изначально был НЕ пустой массив продуктов  проверка
-//   if (savedProducts.length > 0) {
-//     savedProducts.forEach((product, index) => {
-//       if (product.id) {
-//         console.log(`Предмет каталога ${index + 1} успешно сохранен с id: ${product.id}`);
-//       } else {
-//         error = `Ошибка при сохранении каталога ${index + 1}`;
-//         console.log(error);
-//         return { success: false, message: error };
-//       }
-//     });
-//   } else {
-//     error = `Не удалось сохранить каталог`;
-//     console.log(error);
-//     return { success: false, message: error };
-//   }
-
-//   return { success: true, savedProducts: savedProducts };
-// }
 // КАТАЛОГ
 export async function updateCatalogProducts(
+  
   productRepository: Repository<ProductTable>,
   savedTCard: TCardItem,
   products: ProductItem[],
+  teamId: number
 ): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
   let error = "";
 
@@ -1586,7 +1456,8 @@ export async function updateCatalogProducts(
         title: p.title,
         uom_id: p.uom.id,
         tcard_id: savedTCard.id,
-        sync: p.sync
+        sync: p.sync,
+        team_id:teamId
       }));
 
       const inserted = await productRepository.save(plainProducts);
@@ -1617,7 +1488,8 @@ export async function updateCatalogProducts(
       title: p.title,
       uom_id: p.uom.id,
       tcard_id: savedTCard.id,
-      sync: p.sync
+      sync: p.sync,
+      team_id: teamId
     }));
 
     const updated = await productRepository.save(updateEntities);
@@ -1628,7 +1500,7 @@ export async function updateCatalogProducts(
         idc: saved.idc,
         title: saved.title,
         sync: saved.sync,
-        uom: source.uom
+        uom: source.uom        
       };
     });
   }

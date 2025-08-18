@@ -355,7 +355,12 @@
     "team": "Команда",
     "teamNumber": "№ команды",
     "admin": "администратор",
-    "unitCode": "Код юнита"
+    "unitCode": "Код юнита",
+
+    "delete": "Удалить профиль",
+    "login": "Введите логин",
+    "buttondDeleteProfile": "Удалить профиль",
+    "loginError": "Вы ввели неверный логин для удаления профиля"
   },
   "manual": {
     "section1Title": "1. План",

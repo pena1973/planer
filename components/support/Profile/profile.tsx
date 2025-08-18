@@ -1,7 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from "./profile.module.scss";
-import { changePassword, changeName } from "@/services/login/profileService";
+import { changePassword, changeName, deleteProfile } from "@/services/login/profileService";
+// import { changePassword, changeName } from "@/services/login/profileService";
+import { logout } from '@/lib/logout'
 
 import { UserItem, TeamItem, UnitItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
@@ -42,15 +44,24 @@ export const Profile: React.FC<ProfileProps> = ({
   const [changeNameValue, setChangeNameValue] = useState(false);
   const [deleteProfileValue, setDeleteProfileValue] = useState(false);
 
+  const [loginValue, setLoginValue] = useState(''); // Удаление профиля
+
   useEffect(() => {
     setUserValue(user)
   }, [user]);
 
-  const deleteProfileHandler = async () => {
+  const deleteProfileHandler = async (login: string) => {
     setMessage("");
     setLoaderButtonDel(true)
+    if (loginValue !== user.login) { 
+      setLoaderButtonDel(false)
+      return setMessage(t('profile.loginError')) 
+    }
 
-    // const res = await changePassword(passValue, newPass1Value, user.id, team.id, token, t, dispatch, setMessage);
+    const res = await deleteProfile(user.isAdmin, user.id, team.id, token, t, setMessage);
+    if (res) {
+      logout('/')
+    }
     setLoaderButtonDel(false)
   }
 
@@ -223,17 +234,24 @@ export const Profile: React.FC<ProfileProps> = ({
             }}
           />
         </div>
+        {deleteProfileValue && <div className={styles._input_container}>
+          <input
+            className={styles._input}
+            type="text"
+            id="login"
+            value={loginValue}
+            placeholder={t('profile.login')}
+            onChange={(e) => { setLoginValue(e.target.value) }}
+            required autoComplete="off" />
+        </div>}
         {deleteProfileValue && <div className={styles._button_container}>
           <button className={styles.profile_button}
-            onClick={(e) => deleteProfileHandler()}>
+            onClick={(e) => deleteProfileHandler(loginValue)}>
             {loaderButtonDel && <ButtonLoader />}
             {!loaderButtonDel && t('profile.buttondDeleteProfile')}
           </button>
         </div>}
-
-
       </div>
-
 
     </div>
   );

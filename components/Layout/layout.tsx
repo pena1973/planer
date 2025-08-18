@@ -1,6 +1,6 @@
-import { PropsWithChildren, useState, useEffect, useRef } from "react";
+import { PropsWithChildren, useState, useMemo, useRef } from "react";
 import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { RootState } from "@/pages/_app";
 import styles from "./layout.module.scss";
 import { logout } from '@/lib/logout'
 import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
@@ -12,7 +12,7 @@ import Head from "next/head";
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { useRouter, usePathname } from 'next/navigation';
+// import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import '../../i18n'
 
@@ -20,9 +20,9 @@ const locales = ['en', 'ru'];
 
 export default function Layout({ children }: PropsWithChildren) {
     const { t, i18n } = useTranslation();
-    const { push, back } = useRouter();
-    const pathname = usePathname();
-    const dispatch = useAppDispatch();
+    // const { push, back } = useRouter();
+    // const pathname = usePathname();
+    // const dispatch = useAppDispatch();
 
     const loadingComplete = useSelector((state: RootState) => {
         return state.viewSlice.loadingComplete;
@@ -32,9 +32,14 @@ export default function Layout({ children }: PropsWithChildren) {
         return state.authSlice.user;
     })
 
+    const baner = useSelector((state: RootState) => {
+        return state.viewSlice.baner;
+    })
+
     // язык
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState(i18n.resolvedLanguage);
+
     const toggleDropdown = () => {
         setDropdownOpen(!isDropdownOpen);
     };
@@ -47,6 +52,11 @@ export default function Layout({ children }: PropsWithChildren) {
     const exit = () => {
         logout('/')
     }
+    const viewBaner = useMemo(() => {
+        const curentBaner = baner.find((item) => item.locale === i18n.resolvedLanguage);
+        return curentBaner ? (curentBaner.message) : '';
+    }, [baner, i18n.resolvedLanguage]);
+
     return (
         <>
             <Head>
@@ -57,13 +67,10 @@ export default function Layout({ children }: PropsWithChildren) {
 
             </Head>
             <CookieBanner />
-            <div className={styles.header_menu_baner}> 
-                17 августа с 22-00 по 23-00 по Рижскому времени будут производится технические работы, 
-                возможно отключение сервиса, Приносим извинение за неудобства</div>
+            <div className={styles.header_menu_baner}>{viewBaner}</div>
             <div className={styles.header}>
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
-
                         {(!user.id) && !loadingComplete && <Link className={styles.header_menu_item} href="/">
                             <Image className={styles.img} src={home} alt="home" />
                         </Link>}

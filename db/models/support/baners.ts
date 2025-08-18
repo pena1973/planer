@@ -17,12 +17,15 @@ export class BanerTable {
     @Column('varchar', { default: "" })
     locale!: string;
 
-    @Column( 'text' )
+    @Column('text')
     message!: string; // Содержимое файла в формате JSON (содержимое карты)
 
     @Column('boolean', { default: false })
     active!: boolean;
 
-    @Column('int')
+    @Column('int', { nullable: true })
     team_id!: number;
+    
+    @Column('int',{ nullable: true })
+    user_id!: number;
 }

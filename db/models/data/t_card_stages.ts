@@ -16,5 +16,7 @@ export class TCardStageTable {
 
   @Column('int')
   tcard_id!: number;
-
+ 
+  @Column('int')
+  team_id!: number;
 }
