@@ -16,11 +16,12 @@ import { ActionTable } from './../db/models/catalogs/actions';
 import { UOMsTable } from './../db/models/catalogs/uoms';
 import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
 import { SettingsTable } from './../db/models/plan/settings';
-
+import { TeamTable } from './../db/models/catalogs/teams';
 import { UserTable } from './../db/models/catalogs/users';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
 import { SupportTable } from './../db/models/support/support';
 
+import { ClientTable } from './../db/models/billing/clients';
 
 
 // types
@@ -30,8 +31,42 @@ import {
   ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
   SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum
 } from './../types/types';
-import { getUOMs } from './handlers-get';
 
+import { ClientItem } from './../types/service-types';
+
+
+// КЛИЕНТ
+export async function deactivateTeam(
+  teamRepository: Repository<TeamTable>,
+  teamId: number
+): Promise<{ success: boolean; message?: string; team?: TeamTable }> {
+
+  if (!Number.isFinite(teamId)) {
+    return { success: false, message: "Команда не указана." };
+  }
+
+  try {
+    // 1) Ищем по team_id — у команды один клиент
+    const existingTeam = await teamRepository.findOne({ where: { id: teamId } });
+
+    // 2) Если есть — обновляем поля
+    if (existingTeam) {
+      existingTeam.active = false;
+
+      const saved = await teamRepository.save(existingTeam);
+      if (!saved?.id) {
+        return { success: false, message: "Не удалось деактивировать команду." };
+      }
+      return { success: true, team: saved };
+    }
+
+    return { success: false, message: "Команда не найдена." };
+
+  } catch (err) {
+    console.error("updateClient error:", err);
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
 
 // НАСТРОЙКИ
 export async function updateSettings(
@@ -163,6 +198,60 @@ export async function updateTemplates(
     }
   }
   return { success: true, savedTemplates: savedTemplates, message: "" }
+}
+
+// КЛИЕНТ
+export async function updateClient(
+  clientRepository: Repository<ClientTable>,
+  client: ClientItem,
+  teamId: number
+): Promise<{ success: boolean; message?: string; savedClient?: ClientTable }> {
+
+  if (!Number.isFinite(teamId)) {
+    return { success: false, message: "Команда не указана." };
+  }
+
+  try {
+    // 1) Ищем по team_id — у команды один клиент
+    const existingClient = await clientRepository.findOne({ where: { team_id: teamId } });
+
+    // 2) Если есть — обновляем поля
+    if (existingClient) {
+      existingClient.title = client.title?.trim() ?? existingClient.title;
+      existingClient.reg_n = client.reg_n?.trim() ?? existingClient.reg_n;
+      existingClient.adress = client.adress?.trim() ?? existingClient.adress;
+      existingClient.email = client.email?.trim() ?? existingClient.email;
+      existingClient.phone = client.phone?.trim() ?? existingClient.phone;
+      existingClient.person = client.person?.trim() ?? existingClient.person;
+
+      const saved = await clientRepository.save(existingClient);
+      if (!saved?.id) {
+        return { success: false, message: "Не удалось сохранить реквизиты клиента (update)." };
+      }
+      return { success: true, savedClient: saved };
+    }
+
+    // 3) Если нет — создаём новую запись (upsert)
+    const toCreate = clientRepository.create({
+      title: client.title?.trim() ?? "",
+      reg_n: client.reg_n?.trim() ?? "",
+      adress: client.adress?.trim() ?? "",
+      email: client.email?.trim() ?? "",
+      phone: client.phone?.trim() ?? "",
+      person: client.person?.trim() ?? "",
+      team_id: teamId,
+    });
+
+    const saved = await clientRepository.save(toCreate);
+    if (!saved?.id) {
+      return { success: false, message: "Не удалось сохранить реквизиты клиента (create)." };
+    }
+    return { success: true, savedClient: saved };
+
+  } catch (err) {
+    console.error("updateClient error:", err);
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 // ЕДИНИЦЫ ИЗМЕРЕНИЯ
@@ -996,10 +1085,10 @@ export async function updateCard(
       return !fix; // true, если исправления нет
     });
 
-    if (hasUnfixedDefect && 
-      (tCard.status === StatusEnum.draft 
-      || tCard.status === StatusEnum.planed
-      || tCard.status === StatusEnum.prepared) ) {
+    if (hasUnfixedDefect &&
+      (tCard.status === StatusEnum.draft
+        || tCard.status === StatusEnum.planed
+        || tCard.status === StatusEnum.prepared)) {
       tCard.status = StatusEnum.defective;
     }
 
@@ -1057,7 +1146,7 @@ export async function updateStages(
   tCardProductRepository: Repository<TCardProductTable>,
   tCardStages: TCardStageItem[],
   savedTCard: TCardItem,
-   teamId:number
+  teamId: number
 ): Promise<{ success: boolean, savedTCardStages?: TCardStageItem[], message?: string }> {
   try {
     // Получаем текущие стадии из БД
@@ -1102,7 +1191,7 @@ export async function updateStages(
         idc: stage.idc,
         code: stage.code,
         tcard_id: savedTCard.id,
-        team_id: teamId, 
+        team_id: teamId,
       }));
 
     const savedNewStages = newStages.length > 0 ? await tCardStagesRepository.save(newStages) : [];
@@ -1149,7 +1238,7 @@ export async function updateOperations(
   tCardOperations: TCardOperationItem[],
   savedTCard: TCardItem,
   savedTCardStages: TCardStageItem[],
-   teamId: number,
+  teamId: number,
 ): Promise<{
   success: boolean;
   message?: string;
@@ -1221,7 +1310,7 @@ export async function updateOperations(
         status: op.status,
         coment: op.coment,
         fix_oper_idc: op.fixOperIdc,
-        team_id: teamId, 
+        team_id: teamId,
       };
     }).filter(Boolean) as TCardOperationTable[];
 
@@ -1283,7 +1372,7 @@ export async function updateProducts(
   tCardMaterials: TCardProductItem[],
   tCardWastes: TCardProductItem[],
   tCardOperations: TCardOperationItem[],
-   teamId: number,
+  teamId: number,
 ): Promise<{ success: boolean; savedTCardProducts?: TCardProductItem[], message?: string }> {
 
   interface TCardProductItemRecord extends TCardProductItem {
@@ -1359,7 +1448,7 @@ export async function updateProducts(
         qtu: tp.qtu,
         operation_id: operationId,
         tcard_id: savedTCard.id,
-        team_id: teamId, 
+        team_id: teamId,
       });
     }).filter(Boolean) as TCardProductTable[];
 
@@ -1410,7 +1499,7 @@ export async function updateProducts(
 
 // КАТАЛОГ
 export async function updateCatalogProducts(
-  
+
   productRepository: Repository<ProductTable>,
   savedTCard: TCardItem,
   products: ProductItem[],
@@ -1457,7 +1546,7 @@ export async function updateCatalogProducts(
         uom_id: p.uom.id,
         tcard_id: savedTCard.id,
         sync: p.sync,
-        team_id:teamId
+        team_id: teamId
       }));
 
       const inserted = await productRepository.save(plainProducts);
@@ -1500,7 +1589,7 @@ export async function updateCatalogProducts(
         idc: saved.idc,
         title: saved.title,
         sync: saved.sync,
-        uom: source.uom        
+        uom: source.uom
       };
     });
   }

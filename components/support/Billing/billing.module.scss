@@ -1,42 +1,124 @@
+
+
 @import '@/styles/colors.scss';
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
-
-
-/***********
- * Контейнер
- ***********/
 .container {
+  background-color: $main_container_background_color;
+  border-radius: $border-radius;
+  border: $border;
   margin: 10px 0;
-  padding: 10px;
-  background-color: #f8f7f2;
-  /* Светлый бежево-серый фон */
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  width: fit-content;
+  padding: 7px;
+  width: 435px;
+  font-size: $header3_font_size;
+}
+
+.section_title {
+  // font-weight: 700;
+  margin-bottom: 8px;
+  // color: #333;
 }
 
 
-/* Задаём индивидуальную ширину колонок */
+/* форма реквизитов */
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.form_row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  column-gap: 12px;
+  row-gap: 4px;
+  align-items: center;
+}
+
+.form_label {
+  color: #666;
+  text-align: right;
+}
+
+.form_actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+
+
+/* список прикрепленных команд */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.list_item {
+  padding: 4px 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 12px;
+  background: #eee;
+  border: 1px solid #ddd;
+  margin-right: 6px;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+.muted {
+  color: #888;
+}
+
+/* блок оплаты */
+.pay_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.balance {
+  color: #333;
+}
+
+.pay_controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* таблица — оставляю твои правила */
 ._table thead th:nth-child(1) {
-  width: 80px;  
+  width: 100px;
 }
 
 ._table thead th:nth-child(2) {
-  width: 200px;  
+  width: 250px;
 }
 
 ._table thead th:nth-child(3) {
-  width: 50px;  
+  width: 50px;
 }
-._table  td:nth-child(3) {
-  text-align: center;    
+
+._table td:nth-child(3) {
+  text-align: center;
 }
 
 ._table thead th:nth-child(4) {
-  width: 70px;  
+  width: 70px;
 }
 
-.icon_bill{
+.icon_bill {
   cursor: pointer;
+}
+
+.input{
+  flex: 1;
+  width: 100%;
 }

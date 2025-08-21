@@ -34,7 +34,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
-import { setSignedAgreement, setLoadingComplete} from '@/store/slices'
+import { setSignedAgreement, setLoadingComplete } from '@/store/slices'
 
 import ico1 from "@/public/ico1.png";
 import ico2 from "@/public/ico2.png";
@@ -74,6 +74,8 @@ export default function Index() {
   const [teamNumberValue, setTeamNumberValue] = useState('');
   const [loaderButtonRegister, setLoaderButtonRegister] = useState(false);
   const [createTeamValue, setCreateTeamValue] = useState(false);
+  const [basedOnTeamValue, setBasedOnTeamValue] = useState(false);
+  const [basedTeamNumberValue, setBasedTeamNumberValue] = useState('');
 
   // agreement для временного хранения
   // const [textAgreementValue, setTextAgreementValue] = useState("");
@@ -188,7 +190,7 @@ export default function Index() {
   }
   const registerClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonRegister(true)
-    
+
     // if (loginValue.length < 5) {
     //   setMessageRegister(t('service.loginLengthMustBe'));
     //   setMessageRegister("Длина логина должна быть не менее 5 символов и содержать @  и . ");
@@ -232,6 +234,8 @@ export default function Index() {
       pass: pass1Value,
       teamNumber: teamNumberValue,
       createTeam: createTeamValue,
+      basedOnTeam:basedOnTeamValue,
+      basedTeamNumber:basedTeamNumberValue,
       nickname: nicknameValue,
       token,
       t,
@@ -458,28 +462,57 @@ export default function Index() {
               </div>
 
               <div className="register_input_container">
-                <label>Create team
-                  &nbsp; &nbsp;
+                <div className="register_input_container_row">
+                  <label>
+                    Create team
+                    <input
+                      className="register_input"
+                      id="showWeekend"
+                      autoComplete="off"
+                      checked={createTeamValue}
+                      type="checkbox"
+                      onChange={e => setCreateTeamValue(!createTeamValue)}
+                    />
+                  </label>
+
+                  {createTeamValue && (
+                    <label>
+                      based on
+                      <input
+                        className="register_input"
+                        id="showWeekend"
+                        autoComplete="off"
+                        checked={basedOnTeamValue}
+                        type="checkbox"
+                        onChange={e => setBasedOnTeamValue(!basedOnTeamValue)}
+                      />
+                    </label>
+                  )}
+                </div>
+                {basedOnTeamValue && (
                   <input
                     className="register_input"
-                    id="showWeekend"
+                    type="text"
+                    id="role"
+                    placeholder="Based on team number"
+                    value={basedTeamNumberValue}
+                    onChange={e => setBasedTeamNumberValue(e.target.value)}
+                    required
                     autoComplete="off"
-                    checked={createTeamValue}
-                    type="checkbox"
-                    onChange={e => {
-                      setCreateTeamValue(!createTeamValue)
-                    }}
                   />
-                </label>
-
-                {!createTeamValue && <input
-                  className="register_input"
-                  type="text"
-                  id="role"
-                  placeholder="Team number"
-                  value={teamNumberValue}
-                  onChange={(e) => setTeamNumberValue(e.target.value)}
-                  required autoComplete="off" />}
+                )}
+                {!createTeamValue && (
+                  <input
+                    className="register_input"
+                    type="text"
+                    id="role"
+                    placeholder="Team number"
+                    value={teamNumberValue}
+                    onChange={e => setTeamNumberValue(e.target.value)}
+                    required
+                    autoComplete="off"
+                  />
+                )}
               </div>
 
               <div className="register_input_container">

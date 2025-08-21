@@ -39,6 +39,7 @@
     "recoveryMailSent": "Password recovery email has been sent"
   },
   "index": {
+    "downloadBaner": "Banner uploaded",
     "downloadUoms": "Measurement units loaded",
     "downloadActions": "Available actions loaded",
     "downloadTemplates": "Templates loaded",
@@ -237,7 +238,7 @@
     "outerActions1": "Actions assigned to external performers",
     "readiness": "Card readiness",
     "kpi": "Units KPIs",
-    "kpi1": "KPIs of working units",    
+    "kpi1": "KPIs of working units",
     "notes": "Notes",
     "notes1": "Position not assigned, please contact your supervisor"
   },
@@ -335,11 +336,31 @@
     "cookie": "Cookie policy",
     "docs": "Documentation"
   },
+  "client": {
+    "title": "Client name",
+    "vat": "VAT number",
+    "address": "Address",
+    "email": "Email",
+    "phone": "Phone",
+    "person": "Contact person",
+    "save": "Save"
+  },
   "bills": {
     "date": "Date",
     "title": "Invoice",
     "download": "Download",
-    "paid": "Paid"
+    "paid": "Paid",
+    "client_requisites": "Client details",
+    "payment": "Payment",
+    "pay": "Pay",
+    "balance": "Balance",
+    "amount": "Payment amount",
+    "attached_teams": "Attached teams",
+    "no_attached_teams": "No attached teams",
+    "teamNumber": "Team number",
+    "teamTitle": "Team name",
+    "teamDeactive": "Deactivate",
+    "invoises": "Invoices"
   },
   "profile": {
     "buttonChangePass": "Save",
@@ -355,7 +376,7 @@
     "teamNumber": "Team number",
     "admin": "administrator",
     "unitCode": "Unit code",
-     "delete": "Delete profile",
+    "delete": "Delete profile",
     "login": "Your login",
     "buttondDeleteProfile": "Delete profile",
     "loginError": "Incorrect login entered for profile deletion"

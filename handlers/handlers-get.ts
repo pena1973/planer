@@ -21,12 +21,14 @@ import { SettingsTable } from './../db/models/plan/settings';
 
 import { UserTable } from './../db/models/catalogs/users';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
-import { BillTable } from './../db/models/support/bills';
+import { BillTable } from './../db/models/billing/bills';
+import { ClientTable } from './../db/models/billing/clients';
 
 import { SupportTable } from './../db/models/support/support';
 
 import { TeamTable } from './../db/models/catalogs/teams';
 import { BanerTable } from './../db/models/support/baners';
+import { BalanceTable } from './../db/models/billing/balance';
 // types
 import {
   StatusEnum, UserItem, UnitItem, UnitLoadItem,
@@ -34,11 +36,77 @@ import {
   TimeTypeEnum, TimeZoneEnum, TCardOperationTermsItem,
   TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem,
   TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem,
-  TCardTermsItem, BillItem, ProductItem, TemplateItem
+  TCardTermsItem, ProductItem, TemplateItem, TeamItem
 } from './../types/types';
+
+import { BillItem, ClientItem } from './../types/service-types';
 import { BanerItem } from './../types/service-types';
 
-import { current } from '@reduxjs/toolkit';
+// баланс команды
+export async function getBalance(
+  teamId: number,
+  balanceRepository: Repository<BalanceTable>
+
+): Promise<number> {
+  
+  const receivedBalance = await balanceRepository.find({
+     where: { team_id: teamId },
+  });
+  let balance:number = 0;
+  for (let index = 0; index < receivedBalance.length; index++) {
+    const transaction = receivedBalance[index];
+
+    balance = (transaction.direction === "+") ? balance + Number(transaction.summa) : balance
+    balance = (transaction.direction === "-") ? balance - Number(transaction.summa) : balance
+  }
+  return balance;
+}
+
+// присоединенные команды
+export async function getAttachedTeams(
+  main_team: string,
+  teamsRepository: Repository<TeamTable>
+): Promise<TeamItem[]> {
+
+  const receivedAttachedTeams = await teamsRepository.find({
+    where: {
+      main_team: main_team,
+      active: true
+    },
+  });
+
+  const attachedTeams = receivedAttachedTeams
+    .map(team => {
+      return {
+        id: team.id,
+        title: team.title,
+        coment: team.coment,
+        prefix: team.prefix,
+        main_team: team.main_team
+      } as TeamItem;
+    });
+  return attachedTeams;
+}
+export async function getClient(
+  teamId: number,
+  clientRepository: Repository<ClientTable>
+): Promise<ClientItem> {
+
+  const receivedClient = await clientRepository.findOne({
+    where: { team_id: teamId },
+  });
+
+  const client = {
+    adress: receivedClient?.adress ?? "",
+    email: receivedClient?.email ?? "",
+    phone: receivedClient?.phone ?? "",
+    person: receivedClient?.person ?? "",
+    reg_n: receivedClient?.reg_n ?? "",
+    title: receivedClient?.title ?? "",
+  } as ClientItem;
+
+  return client;
+}
 
 // &&&&
 // единицы измерения
@@ -844,7 +912,8 @@ export async function getTeamShedule(
       id: team.id,
       title: team.title,
       coment: team.coment,
-      prefix: team.prefix
+      prefix: team.prefix,
+      main_team: team.main_team,
     },
     timeStartWork: scheduleTable.timeStartWork,
     timeFinishWork: scheduleTable.timeFinishWork,
@@ -1174,7 +1243,7 @@ export async function getUsers(
 
 // банер
 export async function getBaner(
-  teamId: number | undefined, 
+  teamId: number | undefined,
   userId: number | undefined,
   banerRepository: Repository<BanerTable>
 ): Promise<BanerItem[]> {
@@ -1227,7 +1296,6 @@ export async function getBills(
         id: bill.id,
         date: new Date(bill.date).toLocaleDateString('en-CA'),
         title: bill.title,
-        file: bill.fileContent,
         teamId: bill.team_id,
         paid: bill.paid,
       } as BillItem;

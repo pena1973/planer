@@ -28,6 +28,8 @@ interface RequestBody {
   teamNumber: string,
   createTeam: boolean,
   nickname: string,
+  basedOnTeam:boolean,
+  basedTeamNumber : string,
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -46,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
       case 'POST':
         // Извлекаем данные из тела запроса
-        const { login, pass, teamNumber, createTeam, nickname } = req.body as RequestBody;
+        const { login, pass, teamNumber, createTeam, nickname, basedOnTeam, basedTeamNumber } = req.body as RequestBody;
 
         // проверяем  есть ли такой логин  если есть - отказ
         const isUserExist_ = await isUserExist(login, usersRepository)
@@ -64,7 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // если создаем команду 
         if (Boolean(createTeam)) {
-          const resTeam = await createNewTeam(teamsRepository);
+
+          const resTeam = await createNewTeam(teamsRepository,(basedOnTeam)?basedTeamNumber:null);
 
           if (!resTeam.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });

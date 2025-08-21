@@ -1,7 +1,7 @@
 
 import styles from "./loadMonitorProcess.module.scss";
 
-import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
+import { StatusEnum, UnitLoadItem  } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 export interface LoadMonitorProcessProps {
     loadHeight: number,

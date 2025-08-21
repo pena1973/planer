@@ -21,8 +21,10 @@ export class TeamTable {
   
   @Column('boolean', { default: true })
   active!: boolean;
+  
+  @Column('varchar',{ default: "" })
+  main_team!: string; // основная команда в которой выставляем счет
 
- 
   // Хук, который будет вызываться перед вставкой записи в базу данных
   @BeforeInsert()
   generatePrefixAndUniqueId() {

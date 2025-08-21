@@ -22,8 +22,12 @@ import { UnitLoadTable } from './models/plan/unit_loads';
 import { SettingsTable } from './models/plan/settings';
 
 import { SupportTable } from './models/support/support';
-import { BillTable } from './models/support/bills';
+import { BillTable } from './models/billing/bills';
+import { BillRowTable } from './models/billing/bill_row';
+import { ClientTable } from './models/billing/clients';
 import { BanerTable } from './models/support/baners';
+import { BalanceTable } from './models/billing/balance';
+
 
 export const entities = {
   TCardTable,
@@ -48,6 +52,9 @@ export const entities = {
   BillTable,
   ProductTable,
   BanerTable,
+  BillRowTable,
+  ClientTable,
+  BalanceTable,
 };
 
 export const getEntities = () => Object.values(entities);

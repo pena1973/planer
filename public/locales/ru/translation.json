@@ -31,7 +31,6 @@
     "comment": "Комментарий",
     "materials": "Материалы",
     "catalog": "Каталог"
-    
   },
   "service": {
     "loginNotEntered": "Логин не введен",
@@ -40,6 +39,7 @@
     "recoveryMailSent": "Письмо для восстановления пароля отправлено"
   },
   "index": {
+    "downloadBaner":"загружен банер",
     "downloadUoms": "Загружены единицы измерения",
     "downloadActions": "Загружены возможные действия",
     "downloadTemplates": "Загружены шаблоны",
@@ -336,11 +336,31 @@
     "cookie": "Политика куки",
     "docs": "Справка"
   },
+  "client": {
+    "title": "Название/имя клиента",
+    "vat": "Рег. номер VAT",
+    "address": "Адрес",
+    "email": "Email",
+    "phone": "Телефон",
+    "person": "Контактное лицо",
+    "save": "Сохранить"
+  },
   "bills": {
     "date": " Дата",
     "title": "Счет",
     "download": " Скачать",
-    "paid": "Оплачен"
+    "paid": "Оплачен",
+    "client_requisites": "Реквизиты клиента",
+    "payment": "Оплата",
+    "pay": "Оплатить",
+    "balance": "Баланс",
+    "amount": "Сумма оплаты",
+    "attached_teams": "Прикрепленные команды",
+    "no_attached_teams": "Нет прикрепленных команд",
+    "teamNumber": "Номер команды",
+    "teamTitle":"Название команды",
+    "teamDeactive": "Деактивировать",
+    "invoises":"Инвойсы"
   },
   "profile": {
     "buttonChangePass": "Сохранить",
@@ -356,7 +376,6 @@
     "teamNumber": "№ команды",
     "admin": "администратор",
     "unitCode": "Код юнита",
-
     "delete": "Удалить профиль",
     "login": "Введите логин",
     "buttondDeleteProfile": "Удалить профиль",
@@ -387,6 +406,5 @@
     "signAgreement": " Подпись",
     "cancelSignAgreement": "Отказ",
     "agree": "Согласен"
-    
   }
 }

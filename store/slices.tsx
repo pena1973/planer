@@ -15,7 +15,7 @@ export type CatalogState = {
     actions: ActionItem[],
     units: UnitItem[],
     settings: SettingsItem,
-    schedule: ScheduleItem,
+    schedule: ScheduleItem,    
 }
 export type DataState = {
     tCards: TCardItem[],
@@ -53,6 +53,7 @@ const catalogIntialState: CatalogState = {
     units: [] as UnitItem[],
     settings: {} as SettingsItem,
     schedule: {} as ScheduleItem,
+    
 }
 const dataIntialState: DataState = {
     tCards: [] as TCardItem[],        

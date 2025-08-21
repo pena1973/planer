@@ -8,6 +8,7 @@ import { AgreementTable } from './../db/models/catalogs/agreements';
 
 // types
 import { UserItem, TeamItem, } from './../types/types';
+import { generateTeamNumber } from '@/lib/utils';
 
 // хеш функция 
 export const hashFoo = async (data: string) => {
@@ -19,22 +20,39 @@ export const hashFoo = async (data: string) => {
 
 
 export async function createNewTeam(
-  teamsRepository: Repository<TeamTable>
+  teamsRepository: Repository<TeamTable>,
+  main_team: string | null
 ): Promise<{ success: boolean, team: TeamItem, message?: string }> {
 
-  // Создаем новый объект команды
-  const team = new TeamTable();
+  // // Создаем новый объект команды
+  // const team = new TeamTable();
 
-  // Заполняем необходимые поля
-  team.title = "New Team";  // Пример названия, можно заменить на реальные данные
-  team.coment = "This is a new team.";  // Пример комментария
-  team.prefix = "";  // Префикс будет сгенерирован в методе generatePrefixAndUniqueId
+  // // Заполняем необходимые поля
+  // team.title = "New Team";  // Пример названия, можно заменить на реальные данные
+  // team.coment = "This is a new team.";  // Пример комментария
+  // team.prefix = "";  // Префикс будет сгенерирован в методе generatePrefixAndUniqueId
+  // // team.main_team = (basedTeamNumber) ? basedTeamNumber:""
 
   // Сохраняем команду в базе данных
   try {
     // Сохраняем объект команды и вызываем хук для генерации уникальных данных
-    const savedteam = await teamsRepository.save(team);
+    // const savedteam_ = await teamsRepository.save(team);
 
+    const team = teamsRepository.create({
+      title: "New Team",
+      coment: "This is a new team.",
+      prefix: "",           // хук заполнит
+      active: true,         // на всякий случай явно
+      main_team: ""         // временно пусто
+    });
+    
+    // 2) первый save -> сработает @BeforeInsert и заполнит prefix
+    const savedteam_ = await teamsRepository.save(team);
+
+    if (savedteam_) {
+      savedteam_.main_team = (main_team) ? main_team : generateTeamNumber(savedteam_.prefix, savedteam_.id)      
+    }
+    const savedteam = await teamsRepository.save(savedteam_);
     // Возвращаем успешный результат с данными команды
     return {
       success: true,
@@ -43,10 +61,11 @@ export async function createNewTeam(
         title: savedteam.title,
         coment: savedteam.coment,
         prefix: savedteam.prefix,
+        main_team: savedteam.main_team,
       },
       message: "Команда успешно создана",
     };
-    
+
   } catch (e: unknown) {
     let message = "Ошибка при создании команды.";
     if (e instanceof Error) {
@@ -156,7 +175,7 @@ export async function updateUser(
         name: savedUser.name,
         locale: savedUser.locale,
         isAdmin: Boolean(savedUser.isAdmin),
-        teamId: savedUser.team_id, 
+        teamId: savedUser.team_id,
       },
       message: 'Пользователь успешно обновлен.',
     };
@@ -247,7 +266,7 @@ export async function getTeam(
     };
   }
 
- 
+
   return {
     success: true,
     team: {
@@ -255,6 +274,7 @@ export async function getTeam(
       title: team.title,
       coment: team.coment,
       prefix: team.prefix,
+      main_team: team.main_team,
     },
     message: "Команда успешно найдена",
   };

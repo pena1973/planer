@@ -90,6 +90,7 @@ async function updateTeam(
         title: savedTeam.title,
         coment: savedTeam.coment,
         prefix: savedTeam.prefix,
+        main_team: savedTeam.main_team,
       },
       message: 'Команда успешно обновлена.',
     };

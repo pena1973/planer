@@ -193,6 +193,7 @@ export interface TeamItem {
     title: string;
     coment: string,
     prefix: string,
+    main_team: string, // номер команды на которую ссылаемся и на нее выставляем счета
 }
 
 // Шкала времени
@@ -377,13 +378,4 @@ export interface SupportMessageItem {
     fromUser: boolean, // направление истина от юзера, лож- от системы
     basedOn: number, // если это сообщение ответ то здесь id исходного письма.
     // idChain: number, // id цепочки - равен исходному писму
-}
-export interface BillItem {
-    id?: number,
-    date: string; // период за который вымавлен счет
-    title: string;
-    file: string,
-    teamId: number;
-    paid: boolean,
-
 }

@@ -72,8 +72,8 @@ export default function Support() {
           {suportPoint === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.billing1')}</div>
             <Billing
-              teamId={team.id}
-              userId={user.id}
+              team={team}
+              user={user}
               setMessage={setMessage}
               token={token}
             />
