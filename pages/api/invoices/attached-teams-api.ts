@@ -5,6 +5,7 @@ import connectDb from './../../../db/database';
 import { getTypedRepository } from './../../../db/utilites'
 import { generateTeamNumber } from '@/lib/utils'
 import { deactivateTeam } from './../../../handlers/handlers-update';  // расчеты
+import { ActiveTimeTable } from './../../../db/models/billing/active_time';
 import { TeamTable } from './../../../db/models/catalogs/teams';
 import { TeamItem, UOMItem } from './../../../types/types';
 import { getAttachedTeams } from './../../../handlers/handlers-get';  // расчеты
@@ -17,6 +18,7 @@ interface RequestBody {
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
+  const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
   try {
@@ -42,10 +44,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { attachedTeamId, userId, teamId } = req.body as RequestBody;
 
         // СПИСОК ДЕЙСТВИЙ 
-        const resTeam = await deactivateTeam(
-          teamsRepository,
-          Number(attachedTeamId),
-        )
+        const resTeam = await deactivateTeam(activeTimeRepository, Number(attachedTeamId))
         if (!resTeam.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });
           return;
@@ -56,7 +55,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const team = {
           id: savedTeam.id,
           title: savedTeam.title,
-          active: savedTeam.active,
           main_team: savedTeam.main_team,
           prefix: savedTeam.prefix,
           coment: savedTeam.coment,

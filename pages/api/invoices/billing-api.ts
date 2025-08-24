@@ -1,15 +1,21 @@
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { BillTable } from './../../db/models/billing/bills';
-import { getBills } from './../../handlers/handlers-get';  // расчеты
+import { BillTable } from './../../../db/models/billing/bills';
+import { getBills } from './../../../handlers/handlers-get';
+import { updateBill } from './../../../handlers/handlers-update';  // расчеты
+import { BillRowTable } from './../../../db/models/billing/bill_row';
+import { BillItem } from './../../../types/service-types';
+
+interface RequestBody { bill: BillItem }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
   const billsRepository = getTypedRepository(db, 'BillTable', BillTable);
+  const billRowsRepository = getTypedRepository(db, 'BillRowTable', BillRowTable);
 
   try {
 
@@ -30,6 +36,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         res.status(200).json({
           success: true,
           bills: bills__,
+          message: ""
+        });
+
+        break;
+      case 'POST':
+        const { bill } = req.body as RequestBody;
+        // создаем счет
+        const savedBill = await updateBill(billsRepository, billRowsRepository, bill)
+
+        // отправляем ответ
+        res.status(200).json({
+          success: true,
+          bill: savedBill,
           message: ""
         });
 

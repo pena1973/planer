@@ -27,7 +27,8 @@ import { BillRowTable } from './models/billing/bill_row';
 import { ClientTable } from './models/billing/clients';
 import { BanerTable } from './models/support/baners';
 import { BalanceTable } from './models/billing/balance';
-
+import { ActiveTimeTable } from './models/billing/active_time';
+import { MainTable } from './models/billing/main';
 
 export const entities = {
   TCardTable,
@@ -55,6 +56,8 @@ export const entities = {
   BillRowTable,
   ClientTable,
   BalanceTable,
+  ActiveTimeTable,
+  MainTable
 };
 
 export const getEntities = () => Object.values(entities);

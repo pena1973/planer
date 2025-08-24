@@ -8,8 +8,8 @@ export class BalanceTable {
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at!: Date;
 
-    @Column('date')
-    date!: Date; // дата транзакции
+    @Column('varchar', { default: "" })
+    date!: string; // дата транзакции
 
     @Column('decimal', { precision: 12, scale: 2, default: 0 })
     summa!: number; // сумма с 2 знаками после запятой

@@ -10,26 +10,30 @@ export class BillRowTable {
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
   @Column('int')
-  bill!: number; // id счета
+  billId!: number; // id счета
 
-  @Column('date')
+  @Column('varchar',{ default: "" })
   date_from!: Date; // Услуга с
-  
-  @Column('date')
+
+  @Column('varchar',{ default: "" })
   date_to!: Date; // Услуга по
-  
-  @Column('varchar')
-  billable_team_id!: string; // За какую команду выставлен счет
 
-  @Column('varchar')
-  discaunt!: number; // Процент скидки от базовой цены
+  @Column('int')
+  billable_team_id!: number; // За какую команду выставлен счет
 
-  @Column('varchar')
-  amount!: string; // сумма
+  // Скидка: либо целые проценты…
+  @Column('smallint', { default: 0 })
+  discount!: number;     // 0..100 (%)// Процент скидки от базовой цены
 
-  @Column('varchar')
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  amount!: number; // сумма с 2 знаками после запятой
+
+  @Column('smallint',{ default: 0 })
+  activeDays!: number; // сумма с 2 знаками после запятой 
+
+  @Column('varchar',{ default: "EUR" })
   carency!: string; // валюта
-  
+
   @Column('int')
   team_id!: number; // id основной команды
 }

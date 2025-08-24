@@ -360,7 +360,9 @@
     "teamNumber": "Team number",
     "teamTitle": "Team name",
     "teamDeactive": "Deactivate",
-    "invoises": "Invoices"
+    "invoises": "Invoices",
+    "invoises_notice": "Invoices are issued on the 1st for the previous month",
+    "forecast": "Projected expense"
   },
   "profile": {
     "buttonChangePass": "Save",

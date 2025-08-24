@@ -29,6 +29,8 @@ import { SupportTable } from './../db/models/support/support';
 import { TeamTable } from './../db/models/catalogs/teams';
 import { BanerTable } from './../db/models/support/baners';
 import { BalanceTable } from './../db/models/billing/balance';
+import { MainTable } from './../db/models/billing/main';
+import { ActiveTimeTable } from "./../db/models/billing/active_time";
 // types
 import {
   StatusEnum, UserItem, UnitItem, UnitLoadItem,
@@ -39,20 +41,95 @@ import {
   TCardTermsItem, ProductItem, TemplateItem, TeamItem
 } from './../types/types';
 
-import { BillItem, ClientItem } from './../types/service-types';
+import { BillItem, ClientItem, MainItem } from './../types/service-types';
 import { BanerItem } from './../types/service-types';
 
+
+//&&&&&&
+export async function getMain(
+  mainRepository: Repository<MainTable>,
+  at: Date | string
+): Promise<{ success: boolean; main: MainItem; message?: string }> {
+
+  const toYMD = (d: Date | string) => typeof d === "string" ? d : d.toISOString().slice(0, 10);
+
+  const date = toYMD(at);
+
+  const row = await mainRepository.findOne({
+    where: { from: LessThanOrEqual(date) as any }, // varchar 'YYYY-MM-DD' сравнивается лексикографически как дата
+    order: { from: "DESC" },                       // берём ближайшую к дате
+  });
+
+  if (!row) {
+    return {
+      success: false,
+      main: {} as MainItem, // если хочешь строже — лучше сделать тип main: MainItem | null
+      message: `Настройки платежей на дату ${date} не найдены.`,
+    };
+  }
+
+  const main: MainItem = {
+    title: row.title,
+    reg_n: row.reg_n,
+    adress: row.adress,
+    email: row.email,
+    phone: row.phone,
+    person: row.person,
+    price: row.price,
+    discount: row.discount,
+    from: row.from,
+  };
+
+  return {
+    success: true,
+    main,
+    message: "Настройки найдены.",
+  };
+}
+//&&&&&&
+export async function getActiveTime(
+  activeTimeRepository: Repository<ActiveTimeTable>,
+  at: Date | string,
+  teamIds: number[]
+): Promise<{ success: boolean; events: ActiveTimeTable[]; message?: string }> {
+  if (!teamIds?.length) {
+    return { success: true, events: [], message: "teamIds пуст" };
+  }
+
+  const uniqIds = Array.from(new Set(teamIds));
+
+  const toYMD = (d: Date | string) =>
+    typeof d === "string" ? d : d.toISOString().slice(0, 10);
+  const endOfMonthUTC = (y: number, m01: number) => new Date(Date.UTC(y, m01, 0));
+  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+
+  const atStr = toYMD(at);
+  const year = Number(atStr.slice(0, 4));
+  const month01 = Number(atStr.slice(5, 7));
+  const mEndStr = ymd(endOfMonthUTC(year, month01)); // 'YYYY-MM-DD'
+
+  const events = await activeTimeRepository.find({
+    where: {
+      team_id: In(uniqIds),
+      // 'date' — varchar в формате 'YYYY-MM-DD', лексикографическое сравнение корректно
+      date: LessThanOrEqual(mEndStr) as any,
+    },
+    order: { date: "ASC", created_at: "ASC" },
+  });
+
+  return { success: true, events };
+}
 // баланс команды
 export async function getBalance(
   teamId: number,
   balanceRepository: Repository<BalanceTable>
 
 ): Promise<number> {
-  
+
   const receivedBalance = await balanceRepository.find({
-     where: { team_id: teamId },
+    where: { team_id: teamId },
   });
-  let balance:number = 0;
+  let balance: number = 0;
   for (let index = 0; index < receivedBalance.length; index++) {
     const transaction = receivedBalance[index];
 
@@ -60,6 +137,25 @@ export async function getBalance(
     balance = (transaction.direction === "-") ? balance - Number(transaction.summa) : balance
   }
   return balance;
+}
+// все активные команды
+export async function getTeams(
+  teamsRepository: Repository<TeamTable>
+): Promise<TeamItem[]> {
+
+  const receivedTeams = await teamsRepository.find();
+
+  const activeTeams = receivedTeams
+    .map(team => {
+      return {
+        id: team.id,
+        title: team.title,
+        coment: team.coment,
+        prefix: team.prefix,
+        main_team: team.main_team
+      } as TeamItem;
+    });
+  return activeTeams;
 }
 
 // присоединенные команды
@@ -69,10 +165,7 @@ export async function getAttachedTeams(
 ): Promise<TeamItem[]> {
 
   const receivedAttachedTeams = await teamsRepository.find({
-    where: {
-      main_team: main_team,
-      active: true
-    },
+    where: { main_team: main_team },
   });
 
   const attachedTeams = receivedAttachedTeams
@@ -87,6 +180,7 @@ export async function getAttachedTeams(
     });
   return attachedTeams;
 }
+
 export async function getClient(
   teamId: number,
   clientRepository: Repository<ClientTable>
@@ -107,7 +201,28 @@ export async function getClient(
 
   return client;
 }
+export async function getClients(
+  clientRepository: Repository<ClientTable>
+): Promise<ClientItem[]> {
 
+  const receivedClients = await clientRepository.find({});
+  if (!receivedClients) { return [] as ClientItem[] }
+
+  const clients = receivedClients
+    .map(client => {
+      return {
+        adress: client.adress,
+        email: client.email,
+        phone: client.phone,
+        person: client.person,
+        reg_n: client.reg_n,
+        title: client.title,
+        teamId:client.team_id
+      } as ClientItem;
+    })
+
+  return clients;
+}
 // &&&&
 // единицы измерения
 export async function getUOMs(
@@ -1296,8 +1411,7 @@ export async function getBills(
         id: bill.id,
         date: new Date(bill.date).toLocaleDateString('en-CA'),
         title: bill.title,
-        teamId: bill.team_id,
-        paid: bill.paid,
+        teamId: bill.team_id,        
       } as BillItem;
     });
 

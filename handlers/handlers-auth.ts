@@ -5,7 +5,7 @@ import { UserTable } from './../db/models/catalogs/users'
 import { TeamTable } from './../db/models/catalogs/teams'
 import { UserAgreeTable } from './../db/models/catalogs/user_agree';
 import { AgreementTable } from './../db/models/catalogs/agreements';
-
+import { ActiveTimeTable } from './../db/models/billing/active_time'
 // types
 import { UserItem, TeamItem, } from './../types/types';
 import { generateTeamNumber } from '@/lib/utils';
@@ -21,17 +21,10 @@ export const hashFoo = async (data: string) => {
 
 export async function createNewTeam(
   teamsRepository: Repository<TeamTable>,
+  active_timeRepository: Repository<ActiveTimeTable>,
   main_team: string | null
 ): Promise<{ success: boolean, team: TeamItem, message?: string }> {
 
-  // // Создаем новый объект команды
-  // const team = new TeamTable();
-
-  // // Заполняем необходимые поля
-  // team.title = "New Team";  // Пример названия, можно заменить на реальные данные
-  // team.coment = "This is a new team.";  // Пример комментария
-  // team.prefix = "";  // Префикс будет сгенерирован в методе generatePrefixAndUniqueId
-  // // team.main_team = (basedTeamNumber) ? basedTeamNumber:""
 
   // Сохраняем команду в базе данных
   try {
@@ -41,19 +34,28 @@ export async function createNewTeam(
     const team = teamsRepository.create({
       title: "New Team",
       coment: "This is a new team.",
-      prefix: "",           // хук заполнит
-      active: true,         // на всякий случай явно
+      prefix: "",           // хук заполнит      
       main_team: ""         // временно пусто
     });
-    
+
     // 2) первый save -> сработает @BeforeInsert и заполнит prefix
     const savedteam_ = await teamsRepository.save(team);
 
     if (savedteam_) {
-      savedteam_.main_team = (main_team) ? main_team : generateTeamNumber(savedteam_.prefix, savedteam_.id)      
+      savedteam_.main_team = (main_team) ? main_team : generateTeamNumber(savedteam_.prefix, savedteam_.id)
     }
     const savedteam = await teamsRepository.save(savedteam_);
     // Возвращаем успешный результат с данными команды
+
+    const active_time = active_timeRepository.create({
+      date: new Date().toLocaleDateString('en-CA'),
+      direction: "start",
+      team_id: savedteam_.id
+    });
+
+    // 2) первый save -> сработает @BeforeInsert и заполнит prefix
+    const savedactive_time = await active_timeRepository.save(active_time);
+
     return {
       success: true,
       team: {

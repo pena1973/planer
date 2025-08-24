@@ -1,4 +1,4 @@
-import { BillItem } from "./../../types/types";
+import { BillItem } from "./../../types/service-types";
 
 export const getBills = async (
     userId: number,

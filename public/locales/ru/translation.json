@@ -360,7 +360,9 @@
     "teamNumber": "Номер команды",
     "teamTitle":"Название команды",
     "teamDeactive": "Деактивировать",
-    "invoises":"Инвойсы"
+    "invoises":"Инвойсы",
+    "invoises_notice": "Инвойс выставляется 1 числа за предыдущий месяц",
+    "forecast": "Прогнозируемый расход"
   },
   "profile": {
     "buttonChangePass": "Сохранить",

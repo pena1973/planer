@@ -1,7 +1,7 @@
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from "./billing.module.scss";
-import { getBills } from '@/services/suport/getBills';
+import { getBills } from '@/services/billing/getBills';
 import { downloadFile } from '@/services/invoice/downloadInvoice';
 import { BillItem, ClientItem } from "@/types/service-types";
 import { TeamItem, UserItem } from "@/types/types";
@@ -18,6 +18,7 @@ import { saveClient } from '@/services/billing/saveClient';
 import { getClient } from '@/services/billing/getClient';
 import { getAttachedTeams } from '@/services/billing/getAttachedTeams';
 import { getBalance } from '@/services/billing/getBalance';
+import { getForecast } from '@/services/billing/getForecast';
 import { deactiveAttachedTeam } from '@/services/billing/deactiveAttachedTeam';
 import { payByStripe } from '@/services/billing/payByStripe';
 
@@ -26,14 +27,16 @@ interface BillingProps {
   setMessage: (message: string) => void,
   team: TeamItem,
   user: UserItem,
-  token: string
+  token: string,
+  isMainTeam:boolean
 }
 
 export const Billing: React.FC<BillingProps> = ({
   setMessage,
   team,
   user,
-  token
+  token,
+  isMainTeam
 }) => {
   const { t } = useTranslation();
 
@@ -42,12 +45,10 @@ export const Billing: React.FC<BillingProps> = ({
   const [attachedTeams, setAttachedTeams] = useState<TeamItem[]>([]);
 
   const [balance, setBalance] = useState<number>(0);
+  const [forecast, setForecast] = useState<number>(0);
   const [amount, setAmount] = useState<string>("");
   const [loaderButtonSave, setLoaderButtonSave] = useState(false);
-
-  // команда / статус основной
-  const isMainTeam = useMemo(() => team ? team.main_team === generateTeamNumber(team.prefix, team.id) : false, [team]);
-
+  
   // сохранить реквизиты
   const onDeactiveAttachedTeam = async (attachedTeamId: number) => {
 
@@ -96,12 +97,15 @@ export const Billing: React.FC<BillingProps> = ({
   const getBalanceHandler = async () => {
     await getBalance(user.id, team.id, token, t, setMessage, setBalance);
   };
-
+const getForecastHandler = async () => {
+    await getForecast(user.id, team.id, token, t, setMessage, setForecast);
+  };
   useEffect(() => {
     getClientHandler();
     getBillsHandler();
     getAttachedTeamsHandler();
     getBalanceHandler();
+    getForecastHandler();
 
   }, [])
 
@@ -127,7 +131,7 @@ export const Billing: React.FC<BillingProps> = ({
               });
             }}
           />
-        </td>      
+        </td>
       </tr>
     );
   });
@@ -171,109 +175,105 @@ export const Billing: React.FC<BillingProps> = ({
   };
 
   return (<>
-    <div className={styles.container}>
+    {team && isMainTeam && <div className={styles.container}>
       <div className={styles.section}>
         <div className={styles.section_title}>{t('bills.client_requisites') || 'Invoice details'}</div>
-
-        {team && !isMainTeam && (
-          <div className={styles.note}>
-            {t('bills.main_team_notice') || 'Счет выставляется для основной команды'}
-          </div>
-        )}
         {/* // Форма реквизитов клиента */}
-        {team && isMainTeam && (
-          <form
-            className={styles.form}
-            onSubmit={(e) => { e.preventDefault(); onSaveClient(); }}
-          >
-            <div className={styles.form_row}>
-              <label className={styles.form_label}>{t('client.title') || 'Client'}</label>
-              <input
-                className={styles.input}
-                type="text"
-                value={clientForm?.title ?? ""}
-                onChange={e => setClientForm({ ...clientForm, title: e.target.value })}
-              />
-            </div>
 
-            <div className={styles.form_row}>
-              <label className={styles.form_label}>{t('client.vat') || 'VAT'}</label>
-              <input
-                className={styles.input}
-                type="text"
-                value={clientForm?.reg_n ?? ""}
-                onChange={e => setClientForm({ ...clientForm, reg_n: e.target.value })}
+        <form
+          className={styles.form}
+          onSubmit={(e) => { e.preventDefault(); onSaveClient(); }}
+        >
+          <div className={styles.form_row}>
+            <label className={styles.form_label}>{t('client.title') || 'Client'}</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={clientForm?.title ?? ""}
+              onChange={e => setClientForm({ ...clientForm, title: e.target.value })}
+            />
+          </div>
 
-              />
-            </div>
+          <div className={styles.form_row}>
+            <label className={styles.form_label}>{t('client.vat') || 'VAT'}</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={clientForm?.reg_n ?? ""}
+              onChange={e => setClientForm({ ...clientForm, reg_n: e.target.value })}
 
-            <div className={styles.form_row}>
-              <label className={styles.form_label}>{t('client.address') || 'Address'}</label>
-              <input
-                className={styles.input}
-                type="text"
-                value={clientForm?.adress ?? ""}
-                onChange={e => setClientForm({ ...clientForm, adress: e.target.value })}
+            />
+          </div>
 
-              />
-            </div>
+          <div className={styles.form_row}>
+            <label className={styles.form_label}>{t('client.address') || 'Address'}</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={clientForm?.adress ?? ""}
+              onChange={e => setClientForm({ ...clientForm, adress: e.target.value })}
 
-            <div className={styles.form_row}>
-              <label className={styles.form_label}>{t('client.email') || 'Email'}</label>
-              <input
-                className={styles.input}
-                type="text"
-                value={clientForm?.email ?? ""}
-                onChange={e => setClientForm({ ...clientForm, email: e.target.value })}
-                onBlur={e => {
-                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)) {
-                    alert("Некорректный email"); // тут своя нотификация
-                  }
-                }}
-              />
-            </div>
+            />
+          </div>
 
-            <div className={styles.form_row}>
-              <label className={styles.form_label}>{t('client.phone') || 'Phone'}</label>
-              <input
-                className={styles.input}
-                type="text"
-                value={clientForm?.phone ?? ""}
-                onChange={e => setClientForm({ ...clientForm, phone: e.target.value })}
+          <div className={styles.form_row}>
+            <label className={styles.form_label}>{t('client.email') || 'Email'}</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={clientForm?.email ?? ""}
+              onChange={e => setClientForm({ ...clientForm, email: e.target.value })}
+              onBlur={e => {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)) {
+                  alert("Некорректный email"); // тут своя нотификация
+                }
+              }}
+            />
+          </div>
 
-              />
-            </div>
+          <div className={styles.form_row}>
+            <label className={styles.form_label}>{t('client.phone') || 'Phone'}</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={clientForm?.phone ?? ""}
+              onChange={e => setClientForm({ ...clientForm, phone: e.target.value })}
 
-            <div className={styles.form_row}>
-              <label className={styles.form_label}>{t('client.person') || 'Contact person'}</label>
-              <input
-                className={styles.input}
-                type="text"
-                value={clientForm?.person ?? ""}
-                onChange={e => setClientForm({ ...clientForm, person: e.target.value })}
+            />
+          </div>
 
-              />
-            </div>
+          <div className={styles.form_row}>
+            <label className={styles.form_label}>{t('client.person') || 'Contact person'}</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={clientForm?.person ?? ""}
+              onChange={e => setClientForm({ ...clientForm, person: e.target.value })}
 
-            <div className={styles.form_actions}>
-              <button type="submit">
-                {loaderButtonSave && <ButtonLoader />}
-                {!loaderButtonSave && t('client.save')}
-              </button>
-            </div>
-          </form>
-        )}
+            />
+          </div>
+
+          <div className={styles.form_actions}>
+            <button type="submit">
+              {loaderButtonSave && <ButtonLoader />}
+              {!loaderButtonSave && t('client.save')}
+            </button>
+          </div>
+        </form>
+
 
       </div>
-    </div>
-    <div className={styles.container}>
+    </div>}
+    {team && isMainTeam && <div className={styles.container}>
       {/* === Оплата === */}
       <div className={styles.section_title}>{t('bills.payment') || 'Payment'}</div>
       <div className={styles.pay_row}>
         <div className={styles.balance}>
           {t('bills.balance') || 'Balance'}: <b>{balance}</b> EUR
         </div>
-
+        <div className={styles.balance}>
+          {t('bills.forecast') || 'Forecast'}: <b>{forecast}</b> EUR
+        </div>
         <div className={styles.pay_controls}>
           <input
 
@@ -290,9 +290,9 @@ export const Billing: React.FC<BillingProps> = ({
         </div>
       </div>
 
-    </div>
+    </div>}
     {/* === Перечень прикрепленных команд (только для основной) === */}
-    {team && isMainTeam && <div className={styles.container}>
+    {attachedTeams.length>0 && team && isMainTeam && <div className={styles.container}>
       <div className={styles.section_title}>{t('bills.attached_teams') || 'Attached teams'}</div>
       <table className={styles._table}>
         <thead>
@@ -307,21 +307,22 @@ export const Billing: React.FC<BillingProps> = ({
 
     </div>}
 
-    <div className={styles.container}>
+    {team && isMainTeam && <div className={styles.container}>
       {/* === Таблица счетов === */}
       <div className={styles.section_title}>{t('bills.invoises') || 'Invoices'}</div>
+      <div className={styles.section_title}>{t('bills.invoises_notice') || 'Invoices'}</div>
       <table className={styles._table}>
         <thead>
           <tr>
             <th>{t('bills.date')}</th>
             <th>{t('bills.title')}</th>
             <th>{t('bills.download')}</th>
-            
+
           </tr>
         </thead>
         <tbody>{billsReactNodes}</tbody>
       </table>
-    </div>
+    </div>}
   </>
   );
 };

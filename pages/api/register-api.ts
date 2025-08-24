@@ -10,6 +10,7 @@ import { TeamTable } from './../../db/models/catalogs/teams';
 import { UserAgreeTable } from './../../db/models/catalogs/user_agree';
 import { AgreementTable } from './../../db/models/catalogs/agreements';
 import { SettingsTable } from './../../db/models/plan/settings'
+import { ActiveTimeTable } from './../../db/models/billing/active_time'
 
 import { updateSettings } from './../../handlers/handlers-update';  // расчеты
 
@@ -41,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
   const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
   const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
+  const active_timeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
 
 
   try {
@@ -67,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // если создаем команду 
         if (Boolean(createTeam)) {
 
-          const resTeam = await createNewTeam(teamsRepository,(basedOnTeam)?basedTeamNumber:null);
+          const resTeam = await createNewTeam(teamsRepository,active_timeRepository,(basedOnTeam)?basedTeamNumber:null);
 
           if (!resTeam.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });

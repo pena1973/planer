@@ -4,8 +4,8 @@ import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
 import  Docs  from "@/components/support/Docs/docs";
-import { useEffect, useState } from "react";
-
+import { useEffect, useState,useMemo } from "react";
+import { generateTeamNumber } from '@/lib/utils'
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { useTranslation } from 'react-i18next';
@@ -37,6 +37,8 @@ export default function Support() {
     return state.authSlice.unit;
   })
 
+  const isMainTeam = useMemo(() => team ? team.main_team === generateTeamNumber(team.prefix, team.id) : false, [team]);
+  
   // Начальный загруз
   useEffect(() => {
 
@@ -48,7 +50,7 @@ export default function Support() {
         <div className="container_global_left">
           <div className="container_catalogs">
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(1))}>{t('support.messages')}</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(2))}>{t('support.billing')}</div>
+            {isMainTeam && <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(2))}>{t('support.billing')}</div>}
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(3))}>{t('support.profile')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(4))}>{t('support.cookie')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(5))}>{t('support.docs')}</div>
@@ -76,6 +78,7 @@ export default function Support() {
               user={user}
               setMessage={setMessage}
               token={token}
+              isMainTeam={isMainTeam}
             />
           </div>}
           {/* Профиль */}

@@ -22,22 +22,126 @@ import { UserUnitTable } from './../db/models/catalogs/user_unit';
 import { SupportTable } from './../db/models/support/support';
 
 import { ClientTable } from './../db/models/billing/clients';
-
+import { ActiveTimeTable } from "./../db/models/billing/active_time";
+import { BillTable } from "./../db/models/billing/bills";
+import { BillRowTable } from "./../db/models/billing/bill_row";
+import { BalanceTable } from "./../db/models/billing/balance";
 
 // types
 import {
   UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem,
   SupportMessageItem, TCardItem, TCardOperationItem, TCardProductItem,
   ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
-  SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum
+  SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum,
 } from './../types/types';
 
-import { ClientItem } from './../types/service-types';
+import { ClientItem, BillItem } from './../types/service-types';
 
+// Создание c строки баланса
+export async function updateBalance(
+  balanceRepository: Repository<BalanceTable>,
+  bill: BillItem,
+
+) {
+
+  // Получаем существующую транзакцию расписание для компании (предполагается, что только одно расписание для компании)
+  const existingBalance = await balanceRepository.findOne({ where: { date: bill.date } });
+
+  if (!existingBalance) {
+    // Если транзакции нет, создаем новую
+    const newBalance = balanceRepository.create({
+
+      team_id: bill.teamId,
+      date: bill.date,
+      summa: bill.amount,
+      direction: "-",
+      document: 'inv - ' + bill.date,
+      coment: bill.coment,
+      is_trial: false,
+    });
+    const savedNewBalance = await balanceRepository.save(newBalance);
+    if (!savedNewBalance) return { success: false, message: "Не удалось сохранить транзакцию " + bill };
+
+    return { success: true, savedNewBalance: savedNewBalance };
+
+  } else {
+    // Если транзакция существует, обновляем ее
+    existingBalance.team_id = bill.teamId,
+      existingBalance.date = bill.date,
+      existingBalance.summa = bill.amount,
+      existingBalance.direction = "-",
+      existingBalance.document = 'inv - ' + bill.date,
+      existingBalance.coment = bill.coment,
+      existingBalance.is_trial = false;
+    const savedUpdatedBalance = await balanceRepository.save(existingBalance);
+    if (!savedUpdatedBalance) return { success: false, message: "Не удалось обновить расписание" };
+  }
+  return {
+    success: true, savedSettings: []
+
+  };
+}
+
+// Создание счета
+export async function updateBill(
+  billRepository: Repository<BillTable>,
+  billRowRepository: Repository<BillRowTable>,
+  bill: BillItem,
+) {
+
+  // ищем существующей счет на дату
+  const existingBill = await billRepository.findOne({
+    where: {
+      team_id: bill.teamId,
+      date: bill.date
+    }
+  });
+
+  if (!existingBill) {
+    // Если нет, создаем новый
+    const newBill = billRepository.create({
+      // team: { id: teamId }, 
+      team_id: bill.teamId,
+      date: bill.date,
+      title: bill.title,
+      coment: bill.coment,
+    });
+
+    const savedBill = await billRepository.save(newBill);
+    if (!savedBill) return { success: false, message: "Не удалось сохранить данные шапки счета" };
+
+    /// Добавляем строки счета
+
+    const newBillRows = bill.rows.map(row => {
+      return billRowRepository.create({
+        amount: row.amount,
+        carency: 'EUR',
+        billId: savedBill.id,
+        billable_team_id: row.billableTeamId,
+        date_from: row.dateFrom,
+        date_to: row.dateTo,
+        discount: row.discount,
+        team_id: bill.teamId,
+        activeDays: row.activeDays,
+
+      });
+    });
+    let savedBillRows = [] as BillRowTable[]
+    if (newBillRows.length > 0) savedBillRows = await billRowRepository.save(newBillRows);
+    if (!savedBillRows) return { success: false, message: "Не удалось сохранить данные строк счета" }
+
+
+  } else {
+    // Если данные счета существует - выдаем просьбу удалить
+    return { success: false, message: "счет уже сущестувет, нельзя создать повторно, надо удалить сначала! " + bill };
+  }
+
+  return { success: true };
+}
 
 // КЛИЕНТ
 export async function deactivateTeam(
-  teamRepository: Repository<TeamTable>,
+  activeTimeRepository: Repository<ActiveTimeTable>,
   teamId: number
 ): Promise<{ success: boolean; message?: string; team?: TeamTable }> {
 
@@ -46,21 +150,16 @@ export async function deactivateTeam(
   }
 
   try {
-    // 1) Ищем по team_id — у команды один клиент
-    const existingTeam = await teamRepository.findOne({ where: { id: teamId } });
+    const active_time = activeTimeRepository.create({
+      date: new Date().toLocaleDateString('en-CA'),
+      direction: "finish",
+      team_id: teamId
+    });
 
-    // 2) Если есть — обновляем поля
-    if (existingTeam) {
-      existingTeam.active = false;
-
-      const saved = await teamRepository.save(existingTeam);
-      if (!saved?.id) {
-        return { success: false, message: "Не удалось деактивировать команду." };
-      }
-      return { success: true, team: saved };
+    if (!active_time?.id) {
+      return { success: false, message: "Не удалось деактивировать команду." };
     }
-
-    return { success: false, message: "Команда не найдена." };
+    return { success: true };
 
   } catch (err) {
     console.error("updateClient error:", err);
@@ -261,7 +360,7 @@ export async function updateUOMS(
   teamId: number
 ) {
 
-  // СПИСОК ДЕЙСТВИЙ в базе
+  //  в базе
   const existingUOMS = await uomsRepository.find({ where: { team_id: teamId } });
 
   // 1. Найдём удалённые единицы измерения
