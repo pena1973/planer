@@ -12,7 +12,7 @@ export const saveClient = async (
 
     try {
 
-             const res = await fetch(`api/invoices/client-api`,
+             const res = await fetch(`api/billing/client-api`,
                  {
                      method: 'post',
                      headers: new Headers({

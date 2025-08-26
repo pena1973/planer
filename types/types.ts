@@ -193,7 +193,7 @@ export interface TeamItem {
     title: string;
     coment: string,
     prefix: string,
-    main_team: string, // номер команды на которую ссылаемся и на нее выставляем счета
+    main_team: string, // номер команды на которую ссылаемся и на нее выставляем счета    
 }
 
 // Шкала времени

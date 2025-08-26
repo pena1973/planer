@@ -1,13 +1,13 @@
-import { withAuth } from './../../../lib/withAuth'
+import { withAuth } from '../../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../../db/database';
-import { TeamTable } from "./../../../db/models/catalogs/teams";
-import { ActiveTimeTable } from "./../../../db/models/billing/active_time";
-import { MainTable } from "./../../../db/models/billing/main";
-import { calcMonthlyTeamCosts } from "./../../../handlers/calcMonthlyTeamCosts";
-import { getTeam, } from './../../../handlers/handlers-auth';
-import { getTypedRepository } from './../../../db/utilites';
-import { getAttachedTeams } from './../../../handlers/handlers-get';
+import connectDb from '../../../db/database';
+import { TeamTable } from "../../../db/models/catalogs/teams";
+import { ActiveTimeTable } from "../../../db/models/billing/active_time";
+import { MainTable } from "../../../db/models/billing/main";
+import { calcMonthlyTeamCosts } from "../../../handlers/calcMonthlyTeamCosts";
+import { getTeam, } from '../../../handlers/handlers-auth';
+import { getTypedRepository } from '../../../db/utilites';
+import { getAttachedTeams } from '../../../handlers/handlers-get';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();

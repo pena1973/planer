@@ -9,53 +9,43 @@ export interface BanerItem {
 export interface BillItem {
   id?: number,
   date: string; // период за который вымавлен счет
+  dueDate: string,// оплатить до
   title: string; // название счета в таблице, например за август 2023
-  teamId: number; // id команды, для которой выдан счет
-  paid: boolean; // оплачен ли счет
+  teamId: number; // id команды, для которой выдан счет  
   amount: number; // общая сумма счета
-  client: {title: string, address: string, reg_n: string,email: string, phone: string, person: string}, // клиент, для которого выдан счет
-  seller: {title: string, address: string, reg_n: string,email: string, phone: string, person: string}; // продавец, который выставил счет
-  rows: Array<{ id?: string, billableTeamId: number; amount: number,discount:number,dateFrom:string,dateTo:string,activeDays:number }>; // товары или услуги в счете
-  coment:string
+  client: { title: string, address: string, reg_n: string, email: string, phone: string, person: string }, // клиент, для которого выдан счет
+  seller: { title: string, address: string, reg_n: string, email: string, phone: string, person: string }; // продавец, который выставил счет
+  rows: Array<{
+    id?: number,
+    billableTeamNumber: string;
+    amount: number,
+    discount: number,
+    dateFrom: string,
+    dateTo: string,
+    activeDays: number
+  }>; // товары или услуги в счете
+  coment: string
 }
-       
 
 
-// export interface InvoiceItem {
-//   id: string;
-//   title: string;
-//   qty: number;
-//   price: number;
-// }
-
-// export interface InvoiceData {
-//   id: string;
-//   issueDate: string;   // ISO
-//   dueDate?: string;    // ISO
-//   seller: Party;
-//   buyer: Party;
-//   currency: string;    // 'EUR' и т.п.
-//   items: InvoiceItem[];
-//   notes?: string;
-// }
-
-export interface ClientItem {  
-   title: string, 
-   reg_n: string, 
-   adress: string, 
-   email: string, 
-   phone: string, 
-   person: string,
-   teamId:number,
+export interface ClientItem {
+  title: string,
+  reg_n: string,
+  adress: string,
+  email: string,
+  phone: string,
+  person: string,
+  teamId: number,
 }
-export interface MainItem {    
-  title: string;
-  reg_n: string;
-  adress: string;        // оставляю имя поля как в сущности
-  email: string;
-  phone: string;
-  person: string;
-  price: number;         // decimal -> number (через transformer)
-  discount: number;      // 0..100 (%)
-  from: string;          // 'YYYY-MM-DD'
+export interface MainItem {
+  title: string,
+  reg_n: string,
+  adress: string,        // оставляю имя поля как в сущности
+  email: string,
+  phone: string,
+  person: string,
+  price: number,         // decimal -> number (через transformer)
+  discount: number,      // 0..100 (%)
+  from: string,          // 'YYYY-MM-DD'
+  VAT: number    // %
 }

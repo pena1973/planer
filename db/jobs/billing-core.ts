@@ -66,7 +66,7 @@ export async function runMonthlyBilling(
         //    Ищем клиента
         // const client = clients.find(cl => cl.teamId === mainTeam.id)
         // вычисляем строки счета
-        let rows = [] as { id?: string, billableTeamId: number; amount: number, discount: number, dateFrom: string, dateTo: string, activeDays: number }[];
+        let rows = [] as { id?: string, billableTeamNumber: string; amount: number, discount: number, dateFrom: string, dateTo: string, activeDays: number }[];
         for (let index = 0; index < teamsCost.length; index++) {
             const teamCost = teamsCost[index];
             const team = groupeTeam.find(team => team.id === teamCost.teamId) ?? {} as TeamItem
@@ -75,7 +75,7 @@ export async function runMonthlyBilling(
             const year_ = d.getUTCFullYear();
             const month_ = d.getUTCMonth() + 1;
             rows.push({
-                billableTeamId: team.id,
+                billableTeamNumber: generateTeamNumber(team.prefix,team.id),
                 dateFrom: `${year_}-${month_}-01`,
                 dateTo: `${year_}-${month_}-${teamCost.daysInMonth}`,
                 amount: teamCost.cost,
@@ -86,9 +86,10 @@ export async function runMonthlyBilling(
 
         const bill = {
             date: `${year}-${month}-01`,
+            dueDate: `${year}-${month}-10`,
             title: `Invoice ${year}-${month}`,
             teamId: mainTeam.id, // id команды, для которой выдан счет
-            paid: false,
+            // paid: false,
             amount: 10, // общая сумма счета
             // client: {
             //     title: client?.title ?? "",

@@ -117,7 +117,7 @@ export async function updateBill(
         amount: row.amount,
         carency: 'EUR',
         billId: savedBill.id,
-        billable_team_id: row.billableTeamId,
+        billable_team_number: row.billableTeamNumber,
         date_from: row.dateFrom,
         date_to: row.dateTo,
         discount: row.discount,

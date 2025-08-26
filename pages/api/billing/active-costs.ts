@@ -1,12 +1,12 @@
 // pages/api/billing/active-costs.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { AppDataSource } from "@/db/data-source";
-import { calcMonthlyTeamCosts, TeamMonthlyCost } from "./../../../handlers/calcMonthlyTeamCosts";
-import connectDb from './../../../db/database';
+import { calcMonthlyTeamCosts, TeamMonthlyCost } from "../../../handlers/calcMonthlyTeamCosts";
+import connectDb from '../../../db/database';
 
-import { TeamTable } from "./../../../db/models/catalogs/teams";
-import { ActiveTimeTable } from "./../../../db/models/billing/active_time";
-import { MainTable } from "./../../../db/models/billing/main";
+import { TeamTable } from "../../../db/models/catalogs/teams";
+import { ActiveTimeTable } from "../../../db/models/billing/active_time";
+import { MainTable } from "../../../db/models/billing/main";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const db = await connectDb();

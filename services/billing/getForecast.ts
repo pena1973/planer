@@ -15,7 +15,7 @@ export const getForecast = async (
         const base = 100; // перенести в генеральные настройки
         const disc = 20;  // перенести в генеральные настройки
 
-        const res = await fetch(`api/invoices/forecast-api?userId=${userId}&teamId=${teamId}&month=${month}&base=${base}&disc=${disc}&year=${year}`,
+        const res = await fetch(`api/billing/forecast-api?userId=${userId}&teamId=${teamId}&month=${month}&base=${base}&disc=${disc}&year=${year}`,
             {
                 method: 'get',
                 headers: new Headers({

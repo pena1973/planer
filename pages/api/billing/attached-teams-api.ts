@@ -1,20 +1,19 @@
-import { withAuth } from './../../../lib/withAuth'
+import { withAuth } from '../../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../../db/database';
-import { getTypedRepository } from './../../../db/utilites'
+import connectDb from '../../../db/database';
+import { getTypedRepository } from '../../../db/utilites'
 import { generateTeamNumber } from '@/lib/utils'
-import { deactivateTeam } from './../../../handlers/handlers-update';  // расчеты
-import { ActiveTimeTable } from './../../../db/models/billing/active_time';
-import { TeamTable } from './../../../db/models/catalogs/teams';
-import { TeamItem, UOMItem } from './../../../types/types';
-import { getAttachedTeams } from './../../../handlers/handlers-get';  // расчеты
+import { deactivateTeam } from '../../../handlers/handlers-update';  // расчеты
+import { ActiveTimeTable } from '../../../db/models/billing/active_time';
+import { TeamTable } from '../../../db/models/catalogs/teams';
+import { TeamItem } from '../../../types/types';
+import { getAttachedTeams } from '../../../handlers/handlers-get';  // расчеты
 
 interface RequestBody {
   userId: number,
   teamId: number,
-  attachedTeamId: number,
-  // mainTeam: string;
+  attachedTeamId: number,  
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();

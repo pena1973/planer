@@ -11,7 +11,7 @@ export const getBalance = async (
 
     try {
 
-        const res = await fetch(`api/invoices/balance-api?userId=${userId}&teamId=${teamId}`,
+        const res = await fetch(`api/billing/balance-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
                 headers: new Headers({

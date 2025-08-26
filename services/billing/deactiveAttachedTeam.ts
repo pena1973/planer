@@ -12,7 +12,7 @@ export const deactiveAttachedTeam = async (
 
     try {
 
-        const res = await fetch(`api/invoices/attached-teams-api`,
+        const res = await fetch(`api/billing/attached-teams-api`,
             {
                 method: 'post',
                 headers: new Headers({

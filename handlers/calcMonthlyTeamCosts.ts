@@ -1,5 +1,5 @@
 // services/calcMonthlyTeamCosts.ts
-import { Repository, DataSource } from "typeorm";
+import { Repository } from "typeorm";
 import { TeamTable } from "./../db/models/catalogs/teams";
 import { ActiveTimeTable } from "./../db/models/billing/active_time";
 import { MainTable } from "./../db/models/billing/main";
@@ -33,14 +33,13 @@ export async function calcMonthlyTeamCosts(
 ): Promise<TeamMonthlyCost[]> {
 
   // Заборем застройки
-  const resMain = await getMain(mainRepository, `${year}-${month}-01`)
-  if (resMain.success)
-
-    if (!resMain.success || !resMain.main) {
-      console.log('Не удалось обработать запрос. ' + resMain.message);
+  const main = await getMain(mainRepository, `${year}-${month}-01`)
+ 
+  if (!main) {
+      console.log('Не удалось обработать запрос calcMonthlyTeamCosts ' );
       return [];
     }
-  const main = resMain.main;
+  
   const price = main.price;
   const discount = main.discount;
 

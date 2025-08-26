@@ -1,16 +1,15 @@
-import { BillItem } from "./../../types/service-types";
 
-export const getBills = async (
+export const getTeamActivity = async (
     userId: number,
     teamId: number,
     token: string,
     t: (key: string) => string,
     setMessage: (msg: string) => void,
-    setBillsValue: (bills: BillItem[]) => void
-) => {
+    setTeamActivity: (val: { teamId: number, active: boolean }[]) => void,) => {
 
     try {
-        const res = await fetch(`api/billing/billing-api?userId=${userId}&teamId=${teamId}`,
+
+        const res = await fetch(`api/billing/team-activity-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -21,17 +20,16 @@ export const getBills = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-
             setMessage(receivedData.error);
         } else {
             const receivedData = await res.json();
-            setMessage(receivedData.message);
-
             if (receivedData.success) {
-                // проверили и вернули общий статус карты
-                const bills = receivedData.bills as BillItem[];
-                setBillsValue(bills);
-            }
+                const teamActivity = receivedData.teamActivity as { teamId: number, active: boolean }[]
+
+                setTeamActivity(teamActivity);
+
+                //   setMessage("Обновлены реквизиты клиента");
+            } else setMessage(receivedData.error);
         }
 
     } catch (e: unknown) {
@@ -42,4 +40,5 @@ export const getBills = async (
         setMessage(message);
     }
 
-}
+
+};

@@ -12,7 +12,7 @@ export const getAttachedTeams = async (
 
     try {
 
-        const res = await fetch(`api/invoices/attached-teams-api?userId=${userId}&mainTeam=${mainTeam}`,
+        const res = await fetch(`api/billing/attached-teams-api?userId=${userId}&mainTeam=${mainTeam}`,
             {
                 method: 'get',
                 headers: new Headers({

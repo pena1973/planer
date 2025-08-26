@@ -1,25 +1,25 @@
 import type { BillItem } from '@/types/service-types';
 
-export async function downloadFile(bill: BillItem, token?: string) {
+export async function downloadFile(
+  bill: BillItem,
+  token: string,
+  t: (key: string) => string,
+  setMessage: (msg: string) => void,) {
+
   if (!bill?.id || !bill?.teamId) {
-    throw new Error('Не хватает bill.id или teamId');
+    setMessage('Не хватает bill.id или teamId');
   }
-
-  // Передаём на сервер минимум — billId, teamId и (опционально) buyer,
-  // т.к. в твоей схеме BillTable нет явной связи с ClientTable
-  const payload = {
-    billId: bill.id,
-    teamId: bill.teamId,
-    buyer: bill.client ?? undefined, // если есть клиент в строке — отправим как override
-  };
-
-  const res = await fetch('/api/invoices/render', {
+  
+  const res = await fetch('/api/billing/render-inv-api', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Basic ${token}` } : {}),
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      billId: bill.id,
+      teamId: bill.teamId,
+    }),
   });
 
   if (!res.ok) {

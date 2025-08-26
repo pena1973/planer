@@ -1,14 +1,14 @@
-import { withAuth } from './../../../lib/withAuth'
+import { withAuth } from '../../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../../db/database';
-import { getTypedRepository } from './../../../db/utilites'
+import connectDb from '../../../db/database';
+import { getTypedRepository } from '../../../db/utilites'
 
-import { BillTable } from './../../../db/models/billing/bills';
-import { getBills } from './../../../handlers/handlers-get';
-import { updateBill } from './../../../handlers/handlers-update';  // расчеты
-import { BillRowTable } from './../../../db/models/billing/bill_row';
-import { BillItem } from './../../../types/service-types';
+import { BillTable } from '../../../db/models/billing/bills';
+import { getBills } from '../../../handlers/handlers-get';
+import { updateBill } from '../../../handlers/handlers-update';  // расчеты
+import { BillRowTable } from '../../../db/models/billing/bill_row';
+import { BillItem } from '../../../types/service-types';
 
 interface RequestBody { bill: BillItem }
 

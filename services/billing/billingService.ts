@@ -4,6 +4,7 @@ import { BillTable } from "./../../db/models/billing/bills";
 import { BillRowTable } from "./../../db/models/billing/bill_row";
 import { TeamTable } from "./../../db/models/catalogs/teams";
 import { BalanceTable } from "./../../db/models/billing/balance";
+import { extractIdFromTeamNumber } from "./../../lib/utils";
 
 function ymd(d: Date) { return d.toISOString().slice(0, 10); }
 function firstDayOfMonth(year: number, month01: number) {
@@ -56,19 +57,21 @@ export async function getMonthlyBillingSummary(
     const currency = String(opts?.currency ?? process.env.BILLING_CURRENCY ?? "EUR");
     const period = lastMonthPeriod(invoiceDate);
 
-    const billQB = ds.getRepository(BillTable).createQueryBuilder("b")
-        .where("b.date = :d", { d: ymd(invoiceDate) });
+    const billQB = ds.getRepository(BillTable)
+    .createQueryBuilder("b")
+    .where("b.date = :d", { d: ymd(invoiceDate) });
+    
     if (opts?.teamId) billQB.andWhere("b.team_id = :tid", { tid: opts.teamId });
     const bills = await billQB.getMany();
 
-    const invoiceIds = bills.map(b => b.id);
+    const billIds = bills.map(b => b.id);
     const mainTeamIds = bills.map(b => b.team_id);
-    const rows = invoiceIds.length
-        ? await ds.getRepository(BillRowTable).find({ where: { bill: In(invoiceIds) } })
+    const rows = billIds.length
+        ? await ds.getRepository(BillRowTable).find({ where: { billId: In(billIds) } })
         : [];
 
     // Соберём id всех команд, упомянутых в отчёте (основные + billable)
-    const billableIds = rows.map(r => Number(r.billable_team_id)).filter(n => Number.isFinite(n));
+    const billableIds = rows.map(r => Number(extractIdFromTeamNumber(r.billable_team_number))).filter(n => Number.isFinite(n));
     const teamIds = Array.from(new Set([...mainTeamIds, ...billableIds]));
     const teams = teamIds.length
         ? await ds.getRepository(TeamTable).find({ where: { id: In(teamIds) } })
@@ -88,9 +91,9 @@ export async function getMonthlyBillingSummary(
     let sum = 0;
 
     for (const bill of bills) {
-        const rws = rows.filter(r => r.bill === bill.id);
+        const rws = rows.filter(r => r.billId === bill.id);
         const normalizedRows = rws.map(r => {
-            const billableId = Number(r.billable_team_id);
+            const billableId = Number(extractIdFromTeamNumber(r.billable_team_number));
             const t = teamById.get(billableId);
 
             const amountStr = String((r as any).amount);           // ← всегда строка
@@ -142,7 +145,7 @@ export function summaryToCSV(summary: MonthlySummary): string {
         "main_team_id",
         "main_team_title",
         "row_idx",
-        "billable_team_id",
+        "billable_team_number",
         "billable_team_title",
         "discount_pct",
         "amount",

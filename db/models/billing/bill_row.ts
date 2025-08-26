@@ -18,8 +18,8 @@ export class BillRowTable {
   @Column('varchar',{ default: "" })
   date_to!: Date; // Услуга по
 
-  @Column('int')
-  billable_team_id!: number; // За какую команду выставлен счет
+  @Column('varchar',{ default: "" })
+  billable_team_number!: string; // За какую команду выставлен счет
 
   // Скидка: либо целые проценты…
   @Column('smallint', { default: 0 })

@@ -43,13 +43,15 @@ import {
 
 import { BillItem, ClientItem, MainItem } from './../types/service-types';
 import { BanerItem } from './../types/service-types';
+import { BillRowTable } from '@/db/models/billing/bill_row';
+
 
 
 //&&&&&&
 export async function getMain(
   mainRepository: Repository<MainTable>,
   at: Date | string
-): Promise<{ success: boolean; main: MainItem; message?: string }> {
+): Promise<MainItem> {
 
   const toYMD = (d: Date | string) => typeof d === "string" ? d : d.toISOString().slice(0, 10);
 
@@ -60,15 +62,9 @@ export async function getMain(
     order: { from: "DESC" },                       // берём ближайшую к дате
   });
 
-  if (!row) {
-    return {
-      success: false,
-      main: {} as MainItem, // если хочешь строже — лучше сделать тип main: MainItem | null
-      message: `Настройки платежей на дату ${date} не найдены.`,
-    };
-  }
+  if (!row) return {} as MainItem
 
-  const main: MainItem = {
+  const main = {
     title: row.title,
     reg_n: row.reg_n,
     adress: row.adress,
@@ -78,13 +74,9 @@ export async function getMain(
     price: row.price,
     discount: row.discount,
     from: row.from,
-  };
+  } as MainItem;
 
-  return {
-    success: true,
-    main,
-    message: "Настройки найдены.",
-  };
+  return main;
 }
 //&&&&&&
 export async function getActiveTime(
@@ -157,6 +149,42 @@ export async function getTeams(
     });
   return activeTeams;
 }
+// состояние активности команд
+export async function getActivityTeams(
+  teams: TeamItem[],
+  activeTimeRepository: Repository<ActiveTimeTable>
+): Promise<{ teamId: number; active: boolean }[]> {
+  if (!teams || teams.length === 0) return [];
+
+  const teamIds = teams.map(t => t.id);
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+
+  // Берём все события для нужных команд c датой <= сегодня
+  const rows = await activeTimeRepository.find({
+    where: {
+      team_id: In(teamIds),
+      date: LessThanOrEqual(today),
+    },
+    order: {
+      team_id: "ASC",
+      date: "ASC",        // строка формата YYYY-MM-DD сортируется корректно как по дате
+      created_at: "ASC",  // на случай нескольких записей в один день
+    },
+  });
+
+  // Последнее событие по каждой команде
+  const lastByTeam = new Map<number, ActiveTimeTable>();
+  for (const r of rows) {
+    lastByTeam.set(r.team_id, r); // т.к. отсортировано по возрастанию, последняя запись «перетрёт» предыдущую
+  }
+
+  // Сформировать ответ только по переданному списку команд
+  return teamIds.map((id) => {
+    const last = lastByTeam.get(id);
+    const active = !!last && last.direction === "start";
+    return { teamId: id, active };
+  });
+}
 
 // присоединенные команды
 export async function getAttachedTeams(
@@ -217,7 +245,7 @@ export async function getClients(
         person: client.person,
         reg_n: client.reg_n,
         title: client.title,
-        teamId:client.team_id
+        teamId: client.team_id
       } as ClientItem;
     })
 
@@ -1411,12 +1439,95 @@ export async function getBills(
         id: bill.id,
         date: new Date(bill.date).toLocaleDateString('en-CA'),
         title: bill.title,
-        teamId: bill.team_id,        
+        teamId: bill.team_id,
       } as BillItem;
     });
 
   return bills__;
 }
+// счета
+export async function getBillById(
+  teamId: number,
+  billId: number,
+  billsRepository: Repository<BillTable>,
+  billRowsRepository: Repository<BillRowTable>,
+  mainRepository: Repository<MainTable>,
+  clientRepository: Repository<ClientTable>
+): Promise<BillItem | null> {
+
+  // Выполняем запрос с фильтрацией
+  const receivedBill = await billsRepository.findOne({
+    where: {
+      id: billId,
+      team_id: teamId
+    },
+  });
+
+  if (!receivedBill) return null;
+
+  // собираем счет 
+
+  // продавец
+  const main = await getMain(mainRepository, receivedBill.date);
+  const seller = {
+    title: main.title,
+    address: main.adress,
+    reg_n: main.reg_n,
+    email: main.email,
+    phone: main.phone,
+    person: main.person
+  }
+  // покупатель
+  const client_ = await getClient(teamId, clientRepository);
+  const client = { title: client_.title, address: client_.adress, reg_n: client_.reg_n, email: client_.email, phone: client_.phone, person: client_.person }
+
+  // строки счета
+  // Выполняем запрос с фильтрацией
+  const receivedBillRows = await billRowsRepository.find({
+    where: {
+      billId: billId,
+    },
+  });
+  let amount = 0;
+  const rows = receivedBillRows
+    .map(row => {
+      amount = amount + Number(row.amount);
+      return {
+        id: row.id,
+        billableTeamNumber: row.billable_team_number,
+        amount: Number(row.amount),
+        discount: row.discount,
+        dateFrom: new Date(row.date_from).toLocaleDateString('en-CA'),
+        dateTo: new Date(row.date_to).toLocaleDateString('en-CA'),
+        activeDays: row.activeDays
+      };
+
+    });
+const addDaysISO=(date: string | Date, days: number): string =>{
+  // Приводим к UTC-полуночи, чтобы исключить смещения TZ/DST
+  const base = typeof date === 'string'
+    ? new Date(date + 'T00:00:00Z')
+    : new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toLocaleDateString('en-CA');
+}
+
+  const bill = {
+    id: receivedBill.id,
+    date: receivedBill.date, // период за который вымавлен счет
+    dueDate: addDaysISO(receivedBill.date,10),// оплатить до
+    title: receivedBill.title, // название счета в таблице, например за август 2023
+    teamId: receivedBill.team_id, // id команды, для которой выдан счет
+    coment: "",
+    amount: amount, // общая сумма счета
+    client: client, // клиент, для которого выдан счет
+    seller: seller, // продавец, который выставил счет
+    rows: rows,
+  } as BillItem;
+
+  return bill;
+}
+
 
 // тех поддержка
 export async function getSuportMessages(

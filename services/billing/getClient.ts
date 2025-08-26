@@ -12,7 +12,7 @@ export const getClient = async (
 
     try {
 
-             const res = await fetch(`api/invoices/client-api?userId=${userId}&teamId=${teamId}`,
+             const res = await fetch(`api/billing/client-api?userId=${userId}&teamId=${teamId}`,
                  {
                      method: 'get',
                      headers: new Headers({

@@ -1,14 +1,14 @@
-import { withAuth } from './../../../lib/withAuth'
+import { withAuth } from '../../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../../db/database';
-import { getTypedRepository } from './../../../db/utilites'
+import connectDb from '../../../db/database';
+import { getTypedRepository } from '../../../db/utilites'
 
-import { updateClient } from './../../../handlers/handlers-update';  // расчеты
-import { UOMsTable } from './../../../db/models/catalogs/uoms';
-import { ClientTable } from './../../../db/models/billing/clients';
-import { ClientItem } from './../../../types/service-types';
-import { getClient } from './../../../handlers/handlers-get';  // расчеты
+import { updateClient } from '../../../handlers/handlers-update';  // расчеты
+import { UOMsTable } from '../../../db/models/catalogs/uoms';
+import { ClientTable } from '../../../db/models/billing/clients';
+import { ClientItem } from '../../../types/service-types';
+import { getClient } from '../../../handlers/handlers-get';  // расчеты
 
 interface RequestBody {
   userId: number,

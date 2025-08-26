@@ -42,6 +42,9 @@ export class MainTable {
   @Column('varchar',{default:""})
   from!: string; // дата с которой действукт в формате YYYY-MM-DD
 
+  @Column('decimal', { precision: 12, scale: 2, default: 0, transformer: decimalToNumber })
+  VAT!: number;        // НДС в процентах
+
 }
 
 
