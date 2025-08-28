@@ -35,7 +35,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         res.status(405).end(); // Метод не поддерживается
     }
   } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (billing-api):', error);
+    console.error('Ошибка подключения или выполнения запроса (baner-api):', error);
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }

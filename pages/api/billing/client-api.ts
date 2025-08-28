@@ -17,8 +17,7 @@ interface RequestBody {
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
-  const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
-  const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
+    const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
 
   try {
 

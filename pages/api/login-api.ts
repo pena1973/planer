@@ -7,12 +7,13 @@ import { TeamTable } from './../../db/models/catalogs/teams';
 import { UserAgreeTable } from './../../db/models/catalogs/user_agree';
 import { AgreementTable } from './../../db/models/catalogs/agreements';
 import { UserUnitTable } from './../../db/models/catalogs/user_unit';
+import { ActiveTimeTable } from './../../db/models/billing/active_time';
 
 import { UserItem } from './../../types/types';
 import { createAccessToken, createRefreshToken } from './../../lib/auth'
 import { getTypedRepository } from './../../db/utilites'
 import { getUser, getTeam, getLastAgreement } from './../../handlers/handlers-auth';  // расчеты
-import { getUsersUnits } from './../../handlers/handlers-get';  // расчеты
+import { getUsersUnits,getTeamActivity } from './../../handlers/handlers-get';  // расчеты
 
 
 interface RequestBody {
@@ -32,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
   const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
   const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
+  const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
 
   console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
 
@@ -62,10 +64,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         const team = resTeam.team;
 
-
+        const resActiveTeam = await getTeamActivity([team],activeTimeRepository)
+        const activeTeam  = resActiveTeam.length>0?resActiveTeam[0].active:false;
         //  юзер получен проверяю актуальное соглашение
         const resAgreement = await getLastAgreement(user.id, userAgreeRepository, agreementRepository)
  
+
         if (!resAgreement.agreementId) {
           res.status(200).json({
             success: true,
@@ -76,7 +80,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             agreementId: "",
             signed: false,
             dateSigned: "",
-            unit: undefined,            
+            unit: undefined,    
+            activeTeam:activeTeam        
           });
           return;
         }
@@ -133,6 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           signed: signed,
           dateSigned: dateSigned,
           unit: unit,
+          activeTeam:activeTeam    
         });
         break;
       default:

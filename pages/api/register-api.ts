@@ -145,6 +145,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           user: savedUser,
           agreementText: agreementText,
           agreementId: agreementId,
+          activeTeam:true,
         });
         break;
       default:

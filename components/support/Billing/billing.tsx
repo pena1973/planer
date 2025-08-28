@@ -1,6 +1,10 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import styles from "./billing.module.scss";
+
+import { useSelector } from 'react-redux';
+import { RootState, useAppDispatch } from "@/pages/_app";
+
 import { getBills } from '@/services/billing/getBills';
 import { downloadFile } from '@/services/billing/downloadInvoice';
 import { BillItem, ClientItem } from "@/types/service-types";
@@ -9,7 +13,6 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 
 import download from "@/public/download2-rem.png";
-import del from "@/public/del2-rem.png";
 
 import { generateTeamNumber } from '@/lib/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
@@ -20,7 +23,7 @@ import { getAttachedTeams } from '@/services/billing/getAttachedTeams';
 import { getTeamActivity } from '@/services/billing/getTeamActivity';
 import { getBalance } from '@/services/billing/getBalance';
 import { getForecast } from '@/services/billing/getForecast';
-import { deactiveAttachedTeam } from '@/services/billing/deactiveAttachedTeam';
+import { changeStateTeam } from '@/services/billing/changeStateTeam';
 import { payByStripe } from '@/services/billing/payByStripe';
 
 
@@ -40,49 +43,36 @@ export const Billing: React.FC<BillingProps> = ({
   isMainTeam
 }) => {
   const { t } = useTranslation();
-
+  const dispatch = useAppDispatch();
   const [billsValue, setBillsValue] = useState<BillItem[]>([]);
   const [clientForm, setClientForm] = useState({} as ClientItem);
   const [attachedTeams, setAttachedTeams] = useState<TeamItem[]>([]);
-  const [teamActivity, setTeamActivity] = useState<{teamId:number,active:boolean}[]>([]);
+  const [teamActivity, setTeamActivity] = useState<{ teamId: number, active: boolean }[]>([]);
 
   const [balance, setBalance] = useState<number>(0);
   const [forecast, setForecast] = useState<number>(0);
   const [amount, setAmount] = useState<string>("");
   const [loaderButtonSave, setLoaderButtonSave] = useState(false);
+  const [loaderButtonChangeStateTeam, setLoaderButtonChangeStateTeam] = useState(NaN);
 
-  // сохранить реквизиты
-  const onDeactiveAttachedTeam = async (attachedTeamId: number) => {
+  const mainTeam = useMemo(() => generateTeamNumber(team.prefix, team.id), [team]);
+  const active = useMemo(() => teamActivity?.find(a => a.teamId === team.id)?.active ?? false, [team, teamActivity]);
 
-    await deactiveAttachedTeam(
-      user.id,
-      attachedTeamId,
-      attachedTeams,
-      token,
-      t,
-      setMessage,
-      setAttachedTeams
-    )
+  //  меняем активность команды
+  const onStateTeam = async (teamIdToChange: number, state: boolean) => {
+    setLoaderButtonChangeStateTeam(teamIdToChange);
+    await changeStateTeam(user.id, team.id, teamIdToChange, state, teamActivity, token, t, setMessage, setTeamActivity, dispatch)
+    setLoaderButtonChangeStateTeam(NaN);
   };
 
   // сохранить реквизиты
   const onSaveClient = async () => {
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientForm.email)) {
       setMessage("Некорректный email"); // тут своя нотификация
       return
     }
-
     setLoaderButtonSave(true);
-    const tt = await saveClient(
-      user.id,
-      team.id,
-      clientForm,
-      token,
-      t,
-      setMessage,
-      setClientForm)
-
+    await saveClient(user.id, team.id, clientForm, token, t, setMessage, setClientForm)
     setLoaderButtonSave(false);
   };
 
@@ -93,12 +83,11 @@ export const Billing: React.FC<BillingProps> = ({
     await getBills(user.id, team.id, token, t, setMessage, setBillsValue);
   };
   const getAttachedTeamsHandler = async () => {
-    const mainTeam = generateTeamNumber(team.prefix, team.id);
     await getAttachedTeams(user.id, mainTeam, token, t, setMessage, setAttachedTeams);
   };
   // возвращает информацию в каком состоянии команда активна или заморожена
-  const getTeamActivityHandler = async () => {  
-    await getTeamActivity(user.id, team.id, token, t, setMessage, setTeamActivity);
+  const getTeamActivityHandler = async () => {
+    await getTeamActivity(user.id, mainTeam, token, t, setMessage, setTeamActivity);
   }
   const getBalanceHandler = async () => {
     await getBalance(user.id, team.id, token, t, setMessage, setBalance);
@@ -121,11 +110,11 @@ export const Billing: React.FC<BillingProps> = ({
       <tr key={index}>
         <td>{bill.date}</td>
         <td>{bill.title}</td>
-        <td>         
+        <td>
           <Image
             className={styles.icon_bill}
             src={download}
-            alt="Скачать инвойс"
+            alt="invoice"
             width={20}
             height={20}
             role="button"
@@ -143,20 +132,17 @@ export const Billing: React.FC<BillingProps> = ({
     );
   });
   const attachedTeamsReactNodes = attachedTeams.map((team, index) => {
+    const active = teamActivity?.find(a => a.teamId === team.id)?.active ?? false;
     return (
       <tr key={index}>
         <td>{generateTeamNumber(team.prefix, team.id)}</td>
         <td>{team.title}</td>
-        <td>           
-          <Image
-            className={styles.icon_bill}
-            src={del}
-            alt="deactive"
-            width={20}
-            height={20}
-            role="button"
-            onClick={(e) => onDeactiveAttachedTeam(team.id)}
-          />
+        <td>{active ? "активная" : "-"}</td>
+        <td>
+          <button className={styles.bt} onClick={(e) => onStateTeam(team.id, !active)}>
+            {loaderButtonSave && <ButtonLoader />}
+            {!loaderButtonChangeStateTeam && active ? "деактивировать" : "активировать"}
+          </button>
         </td>
       </tr>
     );
@@ -274,6 +260,15 @@ export const Billing: React.FC<BillingProps> = ({
     {team && isMainTeam && <div className={styles.container}>
       {/* === Оплата === */}
       <div className={styles.section_title}>{t('bills.payment') || 'Payment'}</div>
+      <pre />
+      <div className={styles.notice}>
+        Списание денег производится каждое 1 число за прошлый месяц.
+      </div>
+      <pre />
+      <div className={styles.notice}>
+        Когда расход превысит баланс все команды перейдут в неактивное состояние.
+      </div>
+      <pre />
       <div className={styles.pay_row}>
         <div className={styles.balance}>
           {t('bills.balance') || 'Balance'}: <b>{balance}</b> EUR
@@ -298,6 +293,7 @@ export const Billing: React.FC<BillingProps> = ({
       </div>
 
     </div>}
+
     {/* === Перечень прикрепленных команд (только для основной) === */}
     {attachedTeams.length > 0 && team && isMainTeam && <div className={styles.container}>
       <div className={styles.section_title}>{t('bills.attached_teams') || 'Attached teams'}</div>
@@ -306,10 +302,26 @@ export const Billing: React.FC<BillingProps> = ({
           <tr>
             <th>{t('bills.teamNumber')}</th>
             <th>{t('bills.teamTitle')}</th>
-            <th>{t('bills.teamDeactive')}</th>
+            <th>{t('bills.stateActive')}</th>
+            <th></th>
           </tr>
         </thead>
-        <tbody>{attachedTeamsReactNodes}</tbody>
+        <tbody>
+
+          <tr key={0}>
+            <td className={styles.td_mainTeam}>{generateTeamNumber(team.prefix, team.id)}</td>
+            <td className={styles.td_mainTeam}>{team.title}</td>
+            <td className={styles.td_mainTeam}>{active ? "активная" : "-"}</td>
+            <td className={styles.td_mainTeam}>
+
+              <button className={styles.bt} onClick={(e) => onStateTeam(team.id, !active)}>
+                {loaderButtonSave && <ButtonLoader />}
+                {!loaderButtonChangeStateTeam && active ? "деактивировать" : "активировать"}
+              </button>
+            </td>
+          </tr>
+          {attachedTeamsReactNodes}
+        </tbody>
       </table>
 
     </div>}
@@ -317,7 +329,9 @@ export const Billing: React.FC<BillingProps> = ({
     {team && isMainTeam && <div className={styles.container}>
       {/* === Таблица счетов === */}
       <div className={styles.section_title}>{t('bills.invoises') || 'Invoices'}</div>
-      <div className={styles.section_title}>{t('bills.invoises_notice') || 'Invoices'}</div>
+      <pre />
+      <div className={styles.notice}>{t('bills.invoises_notice') || 'Invoices'}</div>
+      <pre />
       <table className={styles._table}>
         <thead>
           <tr>
@@ -329,6 +343,7 @@ export const Billing: React.FC<BillingProps> = ({
         </thead>
         <tbody>{billsReactNodes}</tbody>
       </table>
+
     </div>}
   </>
   );

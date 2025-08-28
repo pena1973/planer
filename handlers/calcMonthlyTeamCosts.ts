@@ -9,11 +9,12 @@ import { TeamItem } from "@/types/types";
 
 
 export type TeamMonthlyCost = {
-  teamId: number;
-  activeDays: number;   // активных дней в рассматриваемом месяце
-  daysInMonth: number;  // дней в месяце (всегда полный месяц)
-  rate: number;         // итоговая месячная ставка (со скидкой для подчинённых)
-  cost: number;         // rate * activeDays / daysInMonth, 2 знака
+  teamId: number,
+  activeDays: number,   // активных дней в рассматриваемом месяце
+  daysInMonth: number,  // дней в месяце (всегда полный месяц)
+  priceteam: number,        // итоговая месячная ставка (со скидкой для подчинённых)
+  discountteam:number,      // скидка
+  amountteam: number;         // priceteam * activeDays / daysInMonth, 2 знака
 };
 
 function startOfMonthUTC(y: number, m01: number) { return new Date(Date.UTC(y, m01 - 1, 1)); }
@@ -147,11 +148,15 @@ export async function calcMonthlyTeamCosts(
     const maxPossible = diffDaysInclusive(mStart, limitEnd);
     if (!Number.isFinite(activeDays) || activeDays < 0) activeDays = 0;
     if (activeDays > maxPossible) activeDays = maxPossible;
+   // цена для команды с учетом скидки
+    const priceteam = isSub.get(t.id) ? +(price * (1 - discount / 100)).toFixed(2) : +price.toFixed(2); 
+    // скидка для команды с учетом скидки
+    const discountteam = isSub.get(t.id) ? +discount : 0; 
+    const amountteam = +((priceteam * (activeDays / daysInMonth)).toFixed(2));
 
-    const rate = isSub.get(t.id) ? +(price * (1 - discount / 100)).toFixed(2) : +price.toFixed(2);
-    const cost = +((rate * (activeDays / daysInMonth)).toFixed(2));
-
-    result.push({ teamId: t.id, activeDays, daysInMonth, rate, cost });
+    // включаем в строки только активные дни
+    if (activeDays>0)
+    result.push({ teamId: t.id, activeDays, daysInMonth, discountteam, priceteam:price, amountteam });
   }
 
   result.sort((a, b) => a.teamId - b.teamId);

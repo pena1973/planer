@@ -244,7 +244,7 @@ export default function Index() {
       dispatch,
       setStep,
       agreementIdRef: agreementId,
-      agreementTextRef: textAgreement,
+      agreementTextRef: textAgreement,      
     });
     setLoaderButtonRegister(false)
   }

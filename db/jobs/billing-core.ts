@@ -16,6 +16,13 @@ import { calcMonthlyTeamCosts } from "./../../handlers/calcMonthlyTeamCosts";
 import { TeamItem } from './../../types/types'
 import { BillItem, MainItem } from "@/types/service-types";
 
+const shiftMonthBack = (year: number, month: number): { year: number, month: number } => {
+    if (month === 1) {
+        return { year: year - 1, month: 12 }; // январь → декабрь предыдущего года
+    }
+    return { year, month: month - 1 };
+}
+
 
 export type BillingRunResult = {
     billedTeams: Array<{ mainTeamId: number; mainCode: string; rows: number; total: string; billId: number }>;
@@ -39,16 +46,19 @@ export async function runMonthlyBilling(
     const mainRepository = getTypedRepository(db, 'MainTable', MainTable);
     const billsRepository = getTypedRepository(db, 'BillTable', BillTable);
     const billsRowRepository = getTypedRepository(db, 'BillRowTable', BillRowTable);
-    const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
+    // const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
     const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
     const teams: TeamItem[] = await getTeams(teamRepository);
-    const allCosts = await calcMonthlyTeamCosts(null, teamRepository, activeTimeRepository, mainRepository, year, month);
-    // ищем  клиентов
-    const clients = await getClients(clientRepository);
+
+    const { year: prevYear, month: prevMonth } = shiftMonthBack(year, month)
+
+    const allCosts = await calcMonthlyTeamCosts(null, teamRepository, activeTimeRepository, mainRepository, prevYear, prevMonth);
+    // // ищем  клиентов
+    // const clients = await getClients(clientRepository);
 
     // ищем собственные реквизиты
-    const mainRes = await getMain(mainRepository, `${year}-${month}-01`);
-    // const main = mainRes.success ? mainRes.main : {} as MainItem;
+    const main = await getMain(mainRepository, `${year}-${month}-01`);
+
 
     // Получим главные команды
     const mainTeams = teams.filter(team => team.main_team === generateTeamNumber(team.prefix, team.id))
@@ -65,61 +75,51 @@ export async function runMonthlyBilling(
         if (teamsCost.length === 0) continue;
         //    Ищем клиента
         // const client = clients.find(cl => cl.teamId === mainTeam.id)
+        let amount = 0;
         // вычисляем строки счета
-        let rows = [] as { id?: string, billableTeamNumber: string; amount: number, discount: number, dateFrom: string, dateTo: string, activeDays: number }[];
+        let rows = [] as { id?: string, billableTeamNumber: string; price: number, amount: number, discount: number, dateFrom: string, dateTo: string, activeDays: number }[];
         for (let index = 0; index < teamsCost.length; index++) {
             const teamCost = teamsCost[index];
+            amount = amount + Number(teamCost.amountteam);
             const team = groupeTeam.find(team => team.id === teamCost.teamId) ?? {} as TeamItem
-            //предыдущий месяц (потому что счет на 1 число след месяца) и месяц начинаем с 1
-            const d = new Date(Date.UTC(year, month - 2, 1));
-            const year_ = d.getUTCFullYear();
-            const month_ = d.getUTCMonth() + 1;
+            const prevMonthStr = String(prevMonth).padStart(2, '0');
             rows.push({
-                billableTeamNumber: generateTeamNumber(team.prefix,team.id),
-                dateFrom: `${year_}-${month_}-01`,
-                dateTo: `${year_}-${month_}-${teamCost.daysInMonth}`,
-                amount: teamCost.cost,
-                discount: teamCost.rate,
+                billableTeamNumber: generateTeamNumber(team.prefix, team.id),
+                dateFrom: `${prevYear}-${prevMonthStr}-01`,
+                dateTo: `${prevYear}-${prevMonthStr}-${teamCost.daysInMonth}`,
+                price: teamCost.priceteam,
+                amount: teamCost.amountteam,
+                discount: teamCost.discountteam,
                 activeDays: teamCost.activeDays,
             })
         }
 
-        const bill = {
-            date: `${year}-${month}-01`,
-            dueDate: `${year}-${month}-10`,
-            title: `Invoice ${year}-${month}`,
-            teamId: mainTeam.id, // id команды, для которой выдан счет
-            // paid: false,
-            amount: 10, // общая сумма счета
-            // client: {
-            //     title: client?.title ?? "",
-            //     address: client?.adress ?? "",
-            //     reg_n: client?.reg_n ?? "",
-            //     email: client?.email ?? "",
-            //     phone: client?.phone ?? "",
-            //     person: client?.person ?? ""
-            // }, // клиент, для которого выдан счет
-            // seller: {
-            //     title: main.title,
-            //     address: main.adress,
-            //     reg_n: main.reg_n,
-            //     email: main.email,
-            //     phone: main.phone,
-            //     person: main.person
-            // }, // продавец, который выставил счет
-            rows: rows, // товары или услуги в счете   
-        } as BillItem
+        // делаем счет если есть что начислить
 
-        const billRes = await updateBill(billsRepository, billsRowRepository, bill)
-        if (!billRes.success) {
-            console.log("счет не сформирован" + bill);
-        }
+        if (rows.length > 0) {
+            const bill = {
+                date: `${year}-${month}-01`,
+                dueDate: `${year}-${month}-10`,
+                title: `Invoice ${year}-${month}`,
+                teamId: mainTeam.id, // id команды, для которой выдан счет                       
+                amount: Number(amount.toFixed(2)), // общая сумма счета
+                vat: main.VAT,
+                vatAmount: Number((amount * main.VAT / 100).toFixed(2)),
+                totalAmount: Number((amount * (1 + main.VAT / 100)).toFixed(2)),
+                rows: rows, // товары или услуги в счете   
+            } as BillItem
 
-        // проводка списания баланса
-        const balanceRes = await updateBalance(balanceRepository, bill)
-        if (!billRes.success) {
-            console.log("баланс не списан" + bill);
-        }
+            const billRes = await updateBill(billsRepository, billsRowRepository, bill)
+            if (!billRes.success) {
+                console.log("счет не сформирован" + bill);
+            }
+
+            // проводка списания баланса
+            const balanceRes = await updateBalance(balanceRepository, bill)
+            if (!billRes.success) {
+                console.log("баланс не списан" + bill);
+            }
+        } else (console.log("Нечего начислять по команде: " + generateTeamNumber(mainTeam.prefix, mainTeam.id)))
 
     }
 

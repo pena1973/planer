@@ -12,17 +12,22 @@ export interface BillItem {
   dueDate: string,// оплатить до
   title: string; // название счета в таблице, например за август 2023
   teamId: number; // id команды, для которой выдан счет  
-  amount: number; // общая сумма счета
+  amount: number; // общая сумма счета без НДС
+  vat:number, // НДС в процентах
+  vatAmount:number, // НДС в сумме
+  totalAmount: number; // общая сумма счета c  НДС
   client: { title: string, address: string, reg_n: string, email: string, phone: string, person: string }, // клиент, для которого выдан счет
   seller: { title: string, address: string, reg_n: string, email: string, phone: string, person: string }; // продавец, который выставил счет
   rows: Array<{
     id?: number,
     billableTeamNumber: string;
+    price: number,
     amount: number,
     discount: number,
     dateFrom: string,
     dateTo: string,
     activeDays: number
+    carency:string,
   }>; // товары или услуги в счете
   coment: string
 }

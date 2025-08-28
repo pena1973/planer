@@ -1,7 +1,7 @@
 // pages/api/admin/create-bills.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withAuth } from "@/lib/withAuth";
-import { runMonthlyBilling } from "@/db/jobs/billing-core";
+import { withAuth } from "./../../../lib/withAuth";
+import { runMonthlyBilling } from "./../../../db/jobs/billing-core";
 
 //  принудительный запуск рег задания формирования счетов на начало  заданного месяца и года
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -14,6 +14,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
       case 'GET':
         const result = await runMonthlyBilling(Number(year),Number(month));
+        
         if (!result.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + result.message });
           return;

@@ -9,7 +9,7 @@ import { ForwardButton, BackwardButton } from "@/components/monitor/ArrowButton/
 import { useTranslation } from 'react-i18next';
 
 import { useEffect, useState } from "react";
-
+import { useRouter } from 'next/navigation';
 import { UnitBelongEnum, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types/types'
 
 
@@ -22,7 +22,7 @@ import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
 export default function Monitor() {
 
   const { t, i18n } = useTranslation();
-
+const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
@@ -64,7 +64,11 @@ export default function Monitor() {
   const tCards = useSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
-
+  //показывает текущее состояние активности команды
+  const activeTeam = useSelector((state: RootState) => {
+    return state.viewSlice.activeTeam;
+  })
+  if (!activeTeam) push('/support')
 
   useEffect(() => {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,

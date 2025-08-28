@@ -1,5 +1,3 @@
-
-
 @import '@/styles/colors.scss';
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -19,7 +17,12 @@
   // color: #333;
 }
 
-
+.td_mainTeam {
+  font-weight: bold;  
+}
+.bt{
+  width: 90px;
+}
 /* форма реквизитов */
 .form {
   display: grid;
@@ -59,20 +62,20 @@
   padding: 4px 0;
 }
 
-.badge {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 12px;
-  background: #eee;
-  border: 1px solid #ddd;
-  margin-right: 6px;
-  font-size: 0.85rem;
-  color: #444;
-}
+// .badge {
+//   display: inline-block;
+//   padding: 1px 6px;
+//   border-radius: $border-radius;
+//   background: rgb(238, 238, 238);
+//   border: $border;
+//   margin-right: 6px;
+//   font-size: 0.85rem;
+//   color: #444;
+// }
 
-.muted {
-  color: #888;
-}
+// .muted {
+//   color: #888;
+// }
 
 /* блок оплаты */
 .pay_row {
@@ -85,6 +88,11 @@
 
 .balance {
   color: #333;
+}
+.notice {
+  color: $text_color_italic;
+  font-size: $header4_font_size;
+  
 }
 
 .pay_controls {
@@ -118,7 +126,7 @@
   cursor: pointer;
 }
 
-.input{
+.input {
   flex: 1;
   width: 100%;
 }

@@ -10,6 +10,7 @@ import {
     setTeam,
     setSettings,
     setSignedAgreement,
+    setActiveTeam,
     
 } from './../../store/slices';
 
@@ -88,6 +89,7 @@ export const registerHandler = async ({
                 const agreementText_ = receivedData.agreementText as string;
                 const agreementId_ = receivedData.agreementId as number
                 const basedTeamNumber = receivedData.team as string;
+                const activeTeam = receivedData.setActiveTeam as boolean;
 
                 //   Обновим настройки
                 dispatch(setUser(user_));
@@ -95,6 +97,7 @@ export const registerHandler = async ({
                 dispatch(setTeam(team_));
                 dispatch(setSettings(settings_));
                 dispatch(setSignedAgreement(false));
+                dispatch(setActiveTeam(Boolean(activeTeam)));
                  
                 agreementIdRef.current = agreementId_;
                 agreementTextRef.current = agreementText_

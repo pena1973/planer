@@ -74,43 +74,12 @@ export async function getMain(
     price: row.price,
     discount: row.discount,
     from: row.from,
+    VAT:row.VAT
   } as MainItem;
 
   return main;
 }
-//&&&&&&
-export async function getActiveTime(
-  activeTimeRepository: Repository<ActiveTimeTable>,
-  at: Date | string,
-  teamIds: number[]
-): Promise<{ success: boolean; events: ActiveTimeTable[]; message?: string }> {
-  if (!teamIds?.length) {
-    return { success: true, events: [], message: "teamIds пуст" };
-  }
 
-  const uniqIds = Array.from(new Set(teamIds));
-
-  const toYMD = (d: Date | string) =>
-    typeof d === "string" ? d : d.toISOString().slice(0, 10);
-  const endOfMonthUTC = (y: number, m01: number) => new Date(Date.UTC(y, m01, 0));
-  const ymd = (d: Date) => d.toISOString().slice(0, 10);
-
-  const atStr = toYMD(at);
-  const year = Number(atStr.slice(0, 4));
-  const month01 = Number(atStr.slice(5, 7));
-  const mEndStr = ymd(endOfMonthUTC(year, month01)); // 'YYYY-MM-DD'
-
-  const events = await activeTimeRepository.find({
-    where: {
-      team_id: In(uniqIds),
-      // 'date' — varchar в формате 'YYYY-MM-DD', лексикографическое сравнение корректно
-      date: LessThanOrEqual(mEndStr) as any,
-    },
-    order: { date: "ASC", created_at: "ASC" },
-  });
-
-  return { success: true, events };
-}
 // баланс команды
 export async function getBalance(
   teamId: number,
@@ -130,7 +99,40 @@ export async function getBalance(
   }
   return balance;
 }
-// все активные команды
+// баланс всех команд
+// Вернёт [{ teamId: number, balance: number }, ...]
+export async function getBalances(
+  balanceRepository: Repository<BalanceTable>,
+  teamIds?: number[] // опционально: посчитать только для заданных команд
+): Promise<Array<{ teamId: number; balance: number }>> {
+  const qb = balanceRepository
+    .createQueryBuilder('b')
+    .select('b.team_id', 'teamId')
+    // summa может быть decimal/varchar — приводим к numeric и считаем плюсы/минусы
+    .addSelect(
+      `SUM(CASE WHEN b.direction = '+'
+                THEN (b.summa)::numeric
+                ELSE -(b.summa)::numeric
+           END)`,
+      'balance'
+    );
+
+  if (teamIds && teamIds.length > 0) {
+    qb.where('b.team_id IN (:...teamIds)', { teamIds });
+  }
+
+  qb.groupBy('b.team_id');
+
+  const rows = await qb.getRawMany<{ teamId: number; balance: string }>();
+
+  // приводим баланс к number
+  return rows.map(r => ({
+    teamId: Number(r.teamId),
+    balance: Number(r.balance ?? 0),
+  }));
+}
+
+// все команды
 export async function getTeams(
   teamsRepository: Repository<TeamTable>
 ): Promise<TeamItem[]> {
@@ -150,7 +152,7 @@ export async function getTeams(
   return activeTeams;
 }
 // состояние активности команд
-export async function getActivityTeams(
+export async function getTeamActivity(
   teams: TeamItem[],
   activeTimeRepository: Repository<ActiveTimeTable>
 ): Promise<{ teamId: number; active: boolean }[]> {
@@ -185,8 +187,42 @@ export async function getActivityTeams(
     return { teamId: id, active };
   });
 }
+//&&&&&&
+// события активености  используем для определения дней активности
+export async function getActiveTime(
+  activeTimeRepository: Repository<ActiveTimeTable>,
+  at: Date | string,
+  teamIds: number[]
+): Promise<{ success: boolean; events: ActiveTimeTable[]; message?: string }> {
+  if (!teamIds?.length) {
+    return { success: true, events: [], message: "teamIds пуст" };
+  }
 
-// присоединенные команды
+  const uniqIds = Array.from(new Set(teamIds));
+
+  const toYMD = (d: Date | string) =>
+    typeof d === "string" ? d : d.toISOString().slice(0, 10);
+  const endOfMonthUTC = (y: number, m01: number) => new Date(Date.UTC(y, m01, 0));
+  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+
+  const atStr = toYMD(at);
+  const year = Number(atStr.slice(0, 4));
+  const month01 = Number(atStr.slice(5, 7));
+  const mEndStr = ymd(endOfMonthUTC(year, month01)); // 'YYYY-MM-DD'
+
+  const events = await activeTimeRepository.find({
+    where: {
+      team_id: In(uniqIds),
+      // 'date' — varchar в формате 'YYYY-MM-DD', лексикографическое сравнение корректно
+      date: LessThanOrEqual(mEndStr) as any,
+    },
+    order: { date: "ASC", created_at: "ASC" },
+  });
+
+  return { success: true, events };
+}
+
+// все команды по главной
 export async function getAttachedTeams(
   main_team: string,
   teamsRepository: Repository<TeamTable>
@@ -251,6 +287,7 @@ export async function getClients(
 
   return clients;
 }
+
 // &&&&
 // единицы измерения
 export async function getUOMs(
@@ -1489,6 +1526,7 @@ export async function getBillById(
     },
   });
   let amount = 0;
+
   const rows = receivedBillRows
     .map(row => {
       amount = amount + Number(row.amount);
@@ -1499,27 +1537,35 @@ export async function getBillById(
         discount: row.discount,
         dateFrom: new Date(row.date_from).toLocaleDateString('en-CA'),
         dateTo: new Date(row.date_to).toLocaleDateString('en-CA'),
-        activeDays: row.activeDays
+        activeDays: row.activeDays,
+        price: row.price,
+        carency: row.carency
       };
 
     });
-const addDaysISO=(date: string | Date, days: number): string =>{
-  // Приводим к UTC-полуночи, чтобы исключить смещения TZ/DST
-  const base = typeof date === 'string'
-    ? new Date(date + 'T00:00:00Z')
-    : new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  base.setUTCDate(base.getUTCDate() + days);
-  return base.toLocaleDateString('en-CA');
-}
+  
+    const totalAmount = amount * (1 + Number(main.VAT) / 100);
+
+  const addDaysISO = (date: string | Date, days: number): string => {
+    // Приводим к UTC-полуночи, чтобы исключить смещения TZ/DST
+    const base = typeof date === 'string'
+      ? new Date(date + 'T00:00:00Z')
+      : new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    base.setUTCDate(base.getUTCDate() + days);
+    return base.toLocaleDateString('en-CA');
+  }
 
   const bill = {
     id: receivedBill.id,
     date: receivedBill.date, // период за который вымавлен счет
-    dueDate: addDaysISO(receivedBill.date,10),// оплатить до
+    dueDate: addDaysISO(receivedBill.date, 10),// оплатить до
     title: receivedBill.title, // название счета в таблице, например за август 2023
     teamId: receivedBill.team_id, // id команды, для которой выдан счет
     coment: "",
     amount: amount, // общая сумма счета
+    vat: Number(receivedBill.vat),
+    vatAmount: Number(receivedBill.vat_amount),
+    totalAmount: totalAmount,
     client: client, // клиент, для которого выдан счет
     seller: seller, // продавец, который выставил счет
     rows: rows,

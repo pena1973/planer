@@ -43,7 +43,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // 4) Считаем прогноз по всем активным командам, с учетом возможного фильтра
     const allCosts = await calcMonthlyTeamCosts(teams, teamsRepository, activeTimeRepository,mainRepository, year_, month_);
-    const forecast = +allCosts.reduce((acc, r) => acc + (r.cost ?? 0), 0).toFixed(2);
+    const forecast = +allCosts.reduce((acc, r) => acc + (r.amountteam ?? 0), 0).toFixed(2);
 
     return res.status(200).json({
       success: true,

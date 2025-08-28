@@ -31,6 +31,10 @@ export default function Layout({ children }: PropsWithChildren) {
     const user = useSelector((state: RootState) => {
         return state.authSlice.user;
     })
+    //показывает текущее состояние активности команды
+    const activeTeam = useSelector((state: RootState) => {
+        return state.viewSlice.activeTeam;
+    })
 
     const baner = useSelector((state: RootState) => {
         return state.viewSlice.baner;
@@ -52,8 +56,9 @@ export default function Layout({ children }: PropsWithChildren) {
     const exit = () => {
         logout('/')
     }
-    const viewBaner = useMemo(() => {
-        const curentBaner = baner.find((item) => item.locale === i18n.resolvedLanguage);
+
+    const viewBaner = useMemo(() => {        
+        const curentBaner = baner?.find((item) => item.locale === i18n.resolvedLanguage);
         return curentBaner ? (curentBaner.message) : '';
     }, [baner, i18n.resolvedLanguage]);
 
@@ -74,12 +79,12 @@ export default function Layout({ children }: PropsWithChildren) {
                         {(!user.id) && !loadingComplete && <Link className={styles.header_menu_item} href="/">
                             <Image className={styles.img} src={home} alt="home" />
                         </Link>}
-                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
-                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
-                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
-                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
                         {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/support">{t('layout.support')}</Link>}
-                        {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-interface">{t('layout.unit-interface')}</Link>}
+                        {(!user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/unit-interface">{t('layout.unit-interface')}</Link>}
                         {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-docs">{t('layout.unit-docs')}</Link>}
                         {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-profile">{t('layout.unit-profile')}</Link>}
 

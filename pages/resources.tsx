@@ -15,12 +15,13 @@ import { useTranslation } from 'react-i18next';
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
+import { useRouter } from 'next/navigation';
 
 import { setResourcePoint } from '@/store/slices';
 
 export default function Resources() {
   const { t, i18n } = useTranslation();
-
+const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
@@ -37,7 +38,11 @@ export default function Resources() {
   const user = useSelector((state: RootState) => {
     return state.authSlice.user;
   })
-
+  //показывает текущее состояние активности команды
+  const activeTeam = useSelector((state: RootState) => {
+    return state.viewSlice.activeTeam;
+  })
+  if (!activeTeam) push('/support')
   // Начальный загруз
   useEffect(() => {
 

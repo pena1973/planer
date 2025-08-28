@@ -3,7 +3,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { pdf, Font } from '@react-pdf/renderer';
 import path from 'node:path';
 import React from 'react';
-import PDFDoc from '../../../components/PDFDoc/pdfDoc';
+import PDFDoc from '../../../components/support/Billing/PDFDoc/pdfDoc';
+
+import fs from 'node:fs';
 
 import connectDb from '../../../db/database';
 import { getTypedRepository } from '../../../db/utilites';
@@ -14,16 +16,32 @@ import { ClientTable } from '../../../db/models/billing/clients';
 import { MainTable } from '../../../db/models/billing/main';
 import { getBillById } from '../../../handlers/handlers-get';
 
-// // === Шрифты (кириллица) ===
-// const fontRegular = path.join(process.cwd(), 'public', 'fonts', 'Inter-Regular.ttf');
-// const fontBold = path.join(process.cwd(), 'public', 'fonts', 'Inter-Bold.ttf');
-// Font.register({
-//   family: 'Inter',
-//   fonts: [
-//     { src: fontRegular, fontWeight: 'normal' },
-//     { src: fontBold, fontWeight: 'bold' },
-//   ],
-// });
+(() => {
+  try {
+    const fontsDir = path.join(process.cwd(), 'public', 'fonts');
+    const lightPath = path.join(fontsDir, 'Roboto_Condensed-Light.ttf');
+    const regularPath = path.join(fontsDir, 'Roboto_Condensed-Regular.ttf');
+
+    const hasLight = fs.existsSync(lightPath);
+    const hasRegular = fs.existsSync(regularPath);
+    // Выбираем, что считать "normal"
+    const normalSrc = hasRegular ? regularPath : (hasLight ? lightPath : null);
+    if (normalSrc) {
+      Font.register({
+        family: 'Roboto',
+        fonts: [{ src: normalSrc, fontWeight: 'normal' },
+        { src: normalSrc, fontWeight: 'bold' }
+        ],
+      });
+    } else {
+      // Нет ни одного файла Roboto — оставим всё на встроенной Helvetica
+      console.warn('[PDF] Roboto fonts not found, fallback to Helvetica.');
+    }
+  } catch (e) {
+    console.warn('[PDF] Font registration failed, fallback to Helvetica.', e);
+  }
+})();
+
 
 interface RequestBody {
   billId: number,

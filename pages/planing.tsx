@@ -17,6 +17,8 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 import { formatDate, } from "@/lib/utils"
 
+import { useRouter } from 'next/navigation';
+
 import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitTypeEnum, } from "@/types/types";
 import { setUnitLoads, setTCardLighted, setTCardPrepared } from '@/store/slices'
 
@@ -27,7 +29,7 @@ import { useTranslation } from 'react-i18next';
 export default function Planing() {
 
   const { t, i18n } = useTranslation();
-
+const { push } = useRouter();
   const dispatch = useAppDispatch();
 
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
@@ -73,6 +75,14 @@ export default function Planing() {
   const schedule = useSelector((state: RootState) => {
     return state.catalogSlice.schedule;
   })
+
+  //показывает текущее состояние активности команды
+  const activeTeam = useSelector((state: RootState) => {
+    return state.viewSlice.activeTeam;
+  })
+
+  if (!activeTeam) push('/support')
+
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
 
@@ -105,14 +115,14 @@ export default function Planing() {
   const erazLoadHandler = async (load_idc: number) => {
 
     await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
-   
+
   }
   // На сервере
   // перетаскивание лоада на шкале  возвращает измененное планирование карты
   const moveLoadHandler = async (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => {
 
     await moveLoad(load, unit, date, timeStart, timeFinish, unitLoads, tCardPrepared.id, token, user.id, team.id, today.toLocaleDateString("en-CA"), dispatch, t, setMessage);
-   
+
   }
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
@@ -128,7 +138,7 @@ export default function Planing() {
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
   const unPinLoadHandler = async (operId: number, tCardId: number, version: number) => {
     await unPinLoad(tCardId, operId, unitLoads, today.toLocaleDateString("en-CA"), version,
-      token, user.id, team.id, dispatch, t, setMessage); 
+      token, user.id, team.id, dispatch, t, setMessage);
   }
 
   /// ПЕРЕТАСКИВАНИЕ КАРТЫ НА ПОЛЕ ПЛАНИРОВАНИЯ

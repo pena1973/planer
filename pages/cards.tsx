@@ -102,7 +102,11 @@ export default function Cards() {
   const unitLoads = useSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
-
+  //показывает текущее состояние активности команды
+  const activeTeam = useSelector((state: RootState) => {
+    return state.viewSlice.activeTeam;
+  })
+  if (!activeTeam) push('/support')
 
   // Начальный загруз
 

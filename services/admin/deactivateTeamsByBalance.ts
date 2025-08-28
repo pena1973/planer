@@ -1,17 +1,14 @@
 
-// получает информацию о состоянии команды  активная на данный момент или нет
-// 
-export const getTeamActivity = async (
-    userId: number,
-    mainTeam: string,
-    token: string,
+
+
+export const deactivateTeamsByBalance = async (
+    token: string,    
     t: (key: string) => string,
     setMessage: (msg: string) => void,
-    setTeamActivity: (val: { teamId: number, active: boolean }[]) => void,) => {
+) => {
 
     try {
-
-        const res = await fetch(`api/billing/activity-teams-api?userId=${userId}&mainTeam=${mainTeam}`,
+        const res = await fetch(`api/admin/deactivate-teams-balance-api`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -26,11 +23,7 @@ export const getTeamActivity = async (
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
-                const teamActivity = receivedData.teamActivity as { teamId: number, active: boolean }[]
-
-                setTeamActivity(teamActivity);
-
-                //   setMessage("Обновлены реквизиты клиента");
+                setMessage("Успешно деактивированы команды неплательщики");
             } else setMessage(receivedData.error);
         }
 

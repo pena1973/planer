@@ -61,7 +61,13 @@ export default function Monitor() {
     return state.dataSlice.tCards;
   })
 
+  //показывает текущее состояние активности команды
+  const activeTeam = useSelector((state: RootState) => {
+    return state.viewSlice.activeTeam;
+  })
   
+  if (!activeTeam) push('/support')
+
   useEffect(() => {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,
     // продолжаем увеличивать дату.
@@ -155,7 +161,7 @@ export default function Monitor() {
   }
 
   const unitReactNode = () => {
-    if (!unit?.id)  return  <div className="unit_interfase_not_assigned_title" >{t('monitor.notes1')}</div>
+    if (!unit?.id) return <div className="unit_interfase_not_assigned_title" >{t('monitor.notes1')}</div>
     // фильтрую по юниту 
     const unitLoads_ = unitLoads.filter((load) => {
       return (

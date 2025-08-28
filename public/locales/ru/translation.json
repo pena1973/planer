@@ -355,14 +355,14 @@
     "pay": "Оплатить",
     "balance": "Баланс",
     "amount": "Сумма оплаты",
-    "attached_teams": "Прикрепленные команды",
-    "no_attached_teams": "Нет прикрепленных команд",
+    "attached_teams": "Команды",
+    "no_attached_teams": "Нет команд",
     "teamNumber": "Номер команды",
-    "teamTitle":"Название команды",
-    "teamDeactive": "Деактивировать",
+    "teamTitle":"Название команды",    
+    "stateActive": "Состояние", 
     "invoises":"Инвойсы",
     "invoises_notice": "Инвойс выставляется 1 числа за предыдущий месяц",
-    "forecast": "Прогнозируемый расход"
+    "forecast": "Расход"
   },
   "profile": {
     "buttonChangePass": "Сохранить",

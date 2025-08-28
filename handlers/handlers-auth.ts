@@ -21,7 +21,7 @@ export const hashFoo = async (data: string) => {
 
 export async function createNewTeam(
   teamsRepository: Repository<TeamTable>,
-  active_timeRepository: Repository<ActiveTimeTable>,
+  activeTimeRepository: Repository<ActiveTimeTable>,
   main_team: string | null
 ): Promise<{ success: boolean, team: TeamItem, message?: string }> {
 
@@ -47,14 +47,14 @@ export async function createNewTeam(
     const savedteam = await teamsRepository.save(savedteam_);
     // Возвращаем успешный результат с данными команды
 
-    const active_time = active_timeRepository.create({
+    const active_time = activeTimeRepository.create({
       date: new Date().toLocaleDateString('en-CA'),
       direction: "start",
       team_id: savedteam_.id
     });
 
     // 2) первый save -> сработает @BeforeInsert и заполнит prefix
-    const savedactive_time = await active_timeRepository.save(active_time);
+    const savedactive_time = await activeTimeRepository.save(active_time);
 
     return {
       success: true,

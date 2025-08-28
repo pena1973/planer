@@ -355,14 +355,14 @@
     "pay": "Pay",
     "balance": "Balance",
     "amount": "Payment amount",
-    "attached_teams": "Attached teams",
-    "no_attached_teams": "No attached teams",
+    "attached_teams": "Teams",
+    "no_attached_teams": "No teams",
     "teamNumber": "Team number",
-    "teamTitle": "Team name",
-    "teamDeactive": "Deactivate",
+    "teamTitle": "Team name",    
+    "stateActive": "State",    
     "invoises": "Invoices",
     "invoises_notice": "Invoices are issued on the 1st for the previous month",
-    "forecast": "Projected expense"
+    "forecast": "Expense"
   },
   "profile": {
     "buttonChangePass": "Save",

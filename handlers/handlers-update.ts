@@ -82,67 +82,143 @@ export async function updateBalance(
   };
 }
 
-// Создание счета
+// Создание/перезапись счета
 export async function updateBill(
   billRepository: Repository<BillTable>,
   billRowRepository: Repository<BillRowTable>,
   bill: BillItem,
 ) {
 
-  // ищем существующей счет на дату
+  const round2 = (n: number) => Number((n ?? 0).toFixed(2));
+
+  // Проверяем существование счета на дату для команды
   const existingBill = await billRepository.findOne({
-    where: {
-      team_id: bill.teamId,
-      date: bill.date
-    }
+    where: { team_id: bill.teamId, date: bill.date },
   });
 
   if (!existingBill) {
-    // Если нет, создаем новый
+    // --- Новый счёт ---
     const newBill = billRepository.create({
-      // team: { id: teamId }, 
       team_id: bill.teamId,
       date: bill.date,
       title: bill.title,
-      coment: bill.coment,
+      coment: bill.coment ?? '',
+      amount: round2(bill.amount),
+      vat: bill.vat,
+      vat_amount: round2(bill.vatAmount),
+      total_amount: round2(bill.totalAmount),
     });
 
     const savedBill = await billRepository.save(newBill);
     if (!savedBill) return { success: false, message: "Не удалось сохранить данные шапки счета" };
 
-    /// Добавляем строки счета
+    // Строки
+    const newBillRows = bill.rows.map(row => billRowRepository.create({
+      billId: savedBill.id,
+      team_id: bill.teamId,
+      billable_team_number: row.billableTeamNumber,
+      date_from: row.dateFrom,
+      date_to: row.dateTo,
+      discount: row.discount,
+      activeDays: row.activeDays,
+      amount: round2(row.amount),
+      price:row.price,
+      carency: 'EUR',
+    }));
 
-    const newBillRows = bill.rows.map(row => {
-      return billRowRepository.create({
-        amount: row.amount,
-        carency: 'EUR',
-        billId: savedBill.id,
-        billable_team_number: row.billableTeamNumber,
-        date_from: row.dateFrom,
-        date_to: row.dateTo,
-        discount: row.discount,
-        team_id: bill.teamId,
-        activeDays: row.activeDays,
+    const savedRows = newBillRows.length > 0 ? await billRowRepository.save(newBillRows) : [];
+    if (!savedRows) return { success: false, message: "Не удалось сохранить данные строк счета" };
 
-      });
-    });
-    let savedBillRows = [] as BillRowTable[]
-    if (newBillRows.length > 0) savedBillRows = await billRowRepository.save(newBillRows);
-    if (!savedBillRows) return { success: false, message: "Не удалось сохранить данные строк счета" }
-
-
-  } else {
-    // Если данные счета существует - выдаем просьбу удалить
-    return { success: false, message: "счет уже сущестувет, нельзя создать повторно, надо удалить сначала! " + bill };
+    return { success: true, billId: savedBill.id };
   }
 
-  return { success: true };
+  // --- Перезапись существующего счета ---
+  // 1) Обновляем «шапку»
+  existingBill.title = bill.title;
+  existingBill.coment = bill.coment ?? existingBill.coment;
+  existingBill.amount = round2(bill.amount);
+  existingBill.vat = bill.vat;
+  existingBill.vat_amount = round2(bill.vatAmount);
+  existingBill.total_amount = round2(bill.totalAmount);
+
+  const savedHeader = await billRepository.save(existingBill);
+  if (!savedHeader) return { success: false, message: "Не удалось обновить шапку счета" };
+
+  // 2) Удаляем все старые строки этого счета
+  await billRowRepository.delete({ billId: existingBill.id });
+
+  // 3) Создаём новые строки
+  const rebuiltRows = bill.rows.map(row => billRowRepository.create({
+    billId: existingBill.id,
+    team_id: bill.teamId,
+    billable_team_number: row.billableTeamNumber,
+    date_from: row.dateFrom,
+    date_to: row.dateTo,
+    discount: row.discount,
+    activeDays: row.activeDays,
+    amount: round2(row.amount),
+    price:round2(row.price),
+    carency: 'EUR',
+  }));
+
+  const savedRebuilt = rebuiltRows.length > 0 ? await billRowRepository.save(rebuiltRows) : [];
+  if (!savedRebuilt) return { success: false, message: "Не удалось сохранить строки при перезаписи счета" };
+
+  return { success: true, billId: existingBill.id };
+}
+// Состояние активности нескольких команд
+export async function changeStateTeamsByIds(
+  activeTimeRepository: Repository<ActiveTimeTable>,
+  teamIds: number[],
+  state: boolean
+): Promise<{ success: boolean; message?: string; failed?: number[] }> {
+  if (!teamIds || teamIds.length === 0) {
+    return { success: false, message: "Список команд пуст." };
+  }
+
+  const failed: number[] = [];
+  const dateStr = new Date().toLocaleDateString('en-CA');
+
+  try {
+    for (const id of teamIds) {
+      if (!Number.isFinite(id)) {
+        failed.push(id);
+        continue;
+      }
+
+      try {
+        const activityTime = activeTimeRepository.create({
+          date: dateStr,
+          direction: state ? 'start' : "finish",
+          team_id: id,
+        });
+
+        const saved = await activeTimeRepository.save(activityTime);
+        if (!saved?.id) {
+          failed.push(id);
+        }
+      } catch (e) {
+        console.error(`Ошибка при обновлении состояния для команды ${id}:`, e);
+        failed.push(id);
+      }
+    }
+
+    if (failed.length > 0) {
+      return { success: false, message: "Некоторые команды не удалось обновить", failed };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("changeStateTeamsByIds error:", err);
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
 }
 
-// КЛИЕНТ
-export async function deactivateTeam(
+// Состояние активности команды
+export async function changeStateTeambyId(
   activeTimeRepository: Repository<ActiveTimeTable>,
-  teamId: number
+  teamId: number,
+  state: boolean
 ): Promise<{ success: boolean; message?: string; team?: TeamTable }> {
 
   if (!Number.isFinite(teamId)) {
@@ -150,14 +226,16 @@ export async function deactivateTeam(
   }
 
   try {
-    const active_time = activeTimeRepository.create({
+    const activityTime = activeTimeRepository.create({
       date: new Date().toLocaleDateString('en-CA'),
-      direction: "finish",
+      direction: state ? 'start' : "finish",
       team_id: teamId
     });
+    // 2) первый save -> сработает @BeforeInsert и заполнит prefix
+    const savedActivityTime = await activeTimeRepository.save(activityTime);
 
-    if (!active_time?.id) {
-      return { success: false, message: "Не удалось деактивировать команду." };
+    if (!savedActivityTime?.id) {
+      return { success: false, message: "Не удалось изменить состояние активности команды." };
     }
     return { success: true };
 

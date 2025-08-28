@@ -21,6 +21,9 @@ export class BillRowTable {
   @Column('varchar',{ default: "" })
   billable_team_number!: string; // За какую команду выставлен счет
 
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  price!: number; // сумма с 2 знаками после запятой
+
   // Скидка: либо целые проценты…
   @Column('smallint', { default: 0 })
   discount!: number;     // 0..100 (%)// Процент скидки от базовой цены

@@ -36,13 +36,9 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 
 import { setSignedAgreement, setLoadingComplete } from '@/store/slices'
 
-import ico1 from "@/public/ico1.png";
-import ico2 from "@/public/ico2.png";
-import ico3 from "@/public/ico5.png";
-import ico4 from "@/public/ico3.png";
-import ico5 from "@/public/ico4.png";
-import ico6 from "@/public/ico6.png";
+
 import { createBills } from '@/services/admin/createBills';
+import { deactivateTeamsByBalance } from '@/services/admin/deactivateTeamsByBalance';
 import {
 
 } from '@/store/slices';
@@ -57,27 +53,92 @@ export default function Admin() {
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
   const { push } = useRouter();
   const dispatch = useAppDispatch();
-
+  const [period, setPeriod] = useState<string>(getCurrentYM()); // 'YYYY-MM'
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;
   })
-  
-  const createBillsHandler = async () => {
-    await createBills(token, 2025,8, t, setMessage);
 
+  const createBillsHandler = async () => {
+    if (!period || !/^\d{4}-\d{2}$/.test(period)) {
+      setMessage('Выберите год и месяц');
+      return;
+    }
+    const [yStr, mStr] = period.split('-');
+    const year = Number(yStr);
+    const month = Number(mStr); // 1..12
+
+    try {
+      setMessage('');
+      await createBills(token, year, month, t, setMessage);
+      // при необходимости: push('/billing');
+    } catch (e: any) {
+      setMessage(e?.message || 'Не удалось сформировать счета');
+    }
   };
+
+   const deactivateTeams = async () => {
+    await deactivateTeamsByBalance(token, t, setMessage);
+
+   };
 
 
   return (
     <Layout>
+      <div className="message_admin">{message}</div>
       <pre />
-      <div className="container_index">
+      <div className="container_admin">
+        <div className="container_admin_left" >
+          <div className="container_admin_block">
+            Генерирует счета в БД, Они потом появятся у админа основной команды в виде инвойса
+            счет на 1 число месяца генерит данные за предыдущий месяц.
+            Заранее счета генерить не нужно потому что тогда конец анализа - сегодняшний день, вперед не работает.
+            <label className="label_admin">
+              <span>Выберите год и месяц</span>
+              <input className="input_admin"
+                type="month"
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                min="2020-01"
+                max="2035-12"
+              />
+            </label>
 
-        <button
-          onClick={createBillsHandler}
-        >сформировать счeта</button>
+            <button
+              onClick={createBillsHandler}
+            >сформировать счeта</button>
+          </div>
+          <div className="container_admin_block">
+            Для команд у которых расход превышает баланс  кнопка переводит их в неактивные до пополнения баланса.
+            Соотвеьтственно команды не смогут пользоватся программой
+            <button
+              onClick={deactivateTeams}
+            >Деактивировать неплательшиков</button>
+
+          </div>
+          <div className="container_admin_block"></div>
+          <div className="container_admin_block"></div>
+        </div>
+        <div className="container_admin_midle">
+          <div className="container_admin_block">1</div>
+          <div className="container_admin_block"></div>
+          <div className="container_admin_block"></div>
+        </div>
+        <div className="container_admin_right">
+          <div className="container_admin_block">1</div>
+          <div className="container_admin_block"></div>
+          <div className="container_admin_block"></div>
+        </div>
+
       </div>
 
     </Layout>
   )
 }
+
+function getCurrentYM(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`; // 'YYYY-MM'
+}
+
