@@ -114,9 +114,16 @@ export async function runMonthlyBilling(
                 console.log("счет не сформирован" + bill);
             }
 
-            // проводка списания баланса
-            const balanceRes = await updateBalance(balanceRepository, bill)
-            if (!billRes.success) {
+            // проводка списания баланса            
+            const balanceRes = await updateBalance(
+                balanceRepository,
+                bill.teamId,
+                bill.amount,
+                bill.date,
+                false,
+                'inv - ' + bill.date,
+                "-","")
+            if (!balanceRes.success) {
                 console.log("баланс не списан" + bill);
             }
         } else (console.log("Нечего начислять по команде: " + generateTeamNumber(mainTeam.prefix, mainTeam.id)))

@@ -26,6 +26,7 @@ export const changeStateTeam = async (
                 }),
                 body: JSON.stringify({
                     userId: userId,
+                    teamId: teamId,
                     teamIdToChange: teamIdToChange,
                     state: state
                 }),
@@ -49,7 +50,7 @@ export const changeStateTeam = async (
 
 
                 // setMessage("Команда успешно деактивирована");
-            } else setMessage(receivedData.error);
+            } else setMessage(receivedData.message);
         }
     } catch (e: unknown) {
         let message = t('service.serverUnavailable');

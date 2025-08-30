@@ -6,7 +6,7 @@ import { getTypedRepository } from '../../../db/utilites'
 import { generateTeamNumber } from '@/lib/utils'
 import { ActiveTimeTable } from '../../../db/models/billing/active_time';
 import { TeamTable } from '../../../db/models/catalogs/teams';
-import { getAttachedTeams } from '../../../handlers/handlers-get';  // расчеты
+import { getTeamsByMainteamNumber } from '../../../handlers/handlers-get';  // расчеты
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
@@ -16,7 +16,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { mainTeam: mainTeam } = req.query;
     switch (req.method) {
       case 'GET':
-        const attachedTeams = await getAttachedTeams(String(mainTeam), teamsRepository)
+        const attachedTeams = await getTeamsByMainteamNumber(String(mainTeam), teamsRepository)
 
         const attachedTeams_ = attachedTeams
           .filter(team => generateTeamNumber(team.prefix, team.id) !== team.main_team)

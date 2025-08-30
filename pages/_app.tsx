@@ -14,6 +14,8 @@ import '@/styles/admin.scss';
 import { store, persistor } from '@/store'  // теперь работает
 
 import "reflect-metadata"
+import { I18nextProvider } from 'react-i18next'
+import i18n from '@/lib/i18n'
 
 import type { AppProps } from 'next/app'
 import React, { StrictMode, Suspense } from 'react';
@@ -21,26 +23,7 @@ import '../lib/globalFetch'
 // это пакет редукс
 import { Provider, useDispatch } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react'
-import {PollingWrapper} from "@/components/PollingWrapper/pollingWrapper";
-
-// export default function App({ Component, pageProps }: AppProps) {
-
-//   return <>
-//     <Provider store={store}>
-//       <StrictMode>
-//         <Suspense fallback="...loading">
-//           <PersistGate loading={null} persistor={persistor}>
-//             <Component {...pageProps} />
-//           </PersistGate>
-//         </Suspense>
-//       </StrictMode>
-//     </Provider>
-//   </>
-// }
-// export type RootState = ReturnType<typeof store.getState>
-// export type AppDispatch = typeof store.dispatch;
-// export const useAppDispatch: () => AppDispatch = useDispatch;
-
+import { PollingWrapper } from "@/components/PollingWrapper/pollingWrapper";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -48,9 +31,11 @@ export default function App({ Component, pageProps }: AppProps) {
       <StrictMode>
         <Suspense fallback="...loading">
           <PersistGate loading={null} persistor={persistor}>
-            <PollingWrapper>
-              <Component {...pageProps} />
-            </PollingWrapper>
+            <I18nextProvider i18n={i18n}>
+              <PollingWrapper>
+                <Component {...pageProps} />
+              </PollingWrapper>
+            </I18nextProvider>
           </PersistGate>
         </Suspense>
       </StrictMode>

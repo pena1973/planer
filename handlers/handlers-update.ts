@@ -40,41 +40,46 @@ import { ClientItem, BillItem } from './../types/service-types';
 // Создание c строки баланса
 export async function updateBalance(
   balanceRepository: Repository<BalanceTable>,
-  bill: BillItem,
-
+  teamId: number,
+  amount: number,
+  date: string,  
+  is_trial: boolean,
+  document: string,
+  direction: string,
+  coment: string,
 ) {
 
   // Получаем существующую транзакцию расписание для компании (предполагается, что только одно расписание для компании)
-  const existingBalance = await balanceRepository.findOne({ where: { date: bill.date } });
+  const existingBalance = await balanceRepository.findOne({ where: { date: date } });
 
   if (!existingBalance) {
     // Если транзакции нет, создаем новую
     const newBalance = balanceRepository.create({
 
-      team_id: bill.teamId,
-      date: bill.date,
-      summa: bill.amount,
-      direction: "-",
-      document: 'inv - ' + bill.date,
-      coment: bill.coment,
-      is_trial: false,
+      team_id: teamId,
+      date: date,
+      summa: amount,
+      direction: direction,
+      document: document,
+      coment: coment,
+      is_trial: is_trial,
     });
     const savedNewBalance = await balanceRepository.save(newBalance);
-    if (!savedNewBalance) return { success: false, message: "Не удалось сохранить транзакцию " + bill };
+    if (!savedNewBalance) return { success: false, message: "Не удалось сохранить транзакцию " + document };
 
     return { success: true, savedNewBalance: savedNewBalance };
 
   } else {
     // Если транзакция существует, обновляем ее
-    existingBalance.team_id = bill.teamId,
-      existingBalance.date = bill.date,
-      existingBalance.summa = bill.amount,
-      existingBalance.direction = "-",
-      existingBalance.document = 'inv - ' + bill.date,
-      existingBalance.coment = bill.coment,
-      existingBalance.is_trial = false;
+    existingBalance.team_id = teamId,
+      existingBalance.date = date,
+      existingBalance.summa = amount,
+      existingBalance.direction = direction,
+      existingBalance.document = document,
+      existingBalance.coment = coment,
+      existingBalance.is_trial = is_trial;
     const savedUpdatedBalance = await balanceRepository.save(existingBalance);
-    if (!savedUpdatedBalance) return { success: false, message: "Не удалось обновить расписание" };
+    if (!savedUpdatedBalance) return { success: false, message: "Не удалось обновить баланс" };
   }
   return {
     success: true, savedSettings: []
@@ -122,7 +127,7 @@ export async function updateBill(
       discount: row.discount,
       activeDays: row.activeDays,
       amount: round2(row.amount),
-      price:row.price,
+      price: row.price,
       carency: 'EUR',
     }));
 
@@ -157,7 +162,7 @@ export async function updateBill(
     discount: row.discount,
     activeDays: row.activeDays,
     amount: round2(row.amount),
-    price:round2(row.price),
+    price: round2(row.price),
     carency: 'EUR',
   }));
 

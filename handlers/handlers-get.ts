@@ -45,6 +45,8 @@ import { BillItem, ClientItem, MainItem } from './../types/service-types';
 import { BanerItem } from './../types/service-types';
 import { BillRowTable } from '@/db/models/billing/bill_row';
 
+import { getTeam } from './../handlers/handlers-auth';
+import { calcMonthlyTeamCosts } from './../handlers/calcMonthlyTeamCosts';
 
 
 //&&&&&&
@@ -74,10 +76,44 @@ export async function getMain(
     price: row.price,
     discount: row.discount,
     from: row.from,
-    VAT:row.VAT
+    VAT: row.VAT
   } as MainItem;
 
   return main;
+}
+// прогноз команды
+export async function getForecast(
+  teamId: number,
+  year_: number,
+  month_: number,
+  teamsRepository: Repository<TeamTable>,
+  activeTimeRepository: Repository<ActiveTimeTable>,
+  mainRepository: Repository<MainTable>,
+): Promise<number> {
+
+  // 1) Берём выбранную главную команду
+  const resTeam = await getTeam(Number(teamId), teamsRepository)
+
+  if (!resTeam.success || !resTeam.team) {
+    // res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });
+    return NaN;
+  }
+
+  const team = resTeam.team;
+
+  // 2) Определяем «код» главной группы
+  //    - у подчинённой в main_team уже лежит код главной
+  //    - у главной там её собственный код
+  let groupCode = team.main_team;
+
+  // 3) Получаем id всех команд этой группы (включая главную)
+  const teams = await getTeamsByMainteamNumber(String(groupCode), teamsRepository)
+ 
+  // 4) Считаем прогноз по всем активным командам, с учетом возможного фильтра
+  const allCosts = await calcMonthlyTeamCosts(teams, teamsRepository, activeTimeRepository, mainRepository, year_, month_);
+  const forecast = +allCosts.reduce((acc, r) => acc + (r.amountteam ?? 0), 0).toFixed(2);
+
+  return forecast;
 }
 
 // баланс команды
@@ -223,7 +259,7 @@ export async function getActiveTime(
 }
 
 // все команды по главной
-export async function getAttachedTeams(
+export async function getTeamsByMainteamNumber(
   main_team: string,
   teamsRepository: Repository<TeamTable>
 ): Promise<TeamItem[]> {
@@ -1543,8 +1579,8 @@ export async function getBillById(
       };
 
     });
-  
-    const totalAmount = amount * (1 + Number(main.VAT) / 100);
+
+  const totalAmount = amount * (1 + Number(main.VAT) / 100);
 
   const addDaysISO = (date: string | Date, days: number): string => {
     // Приводим к UTC-полуночи, чтобы исключить смещения TZ/DST

@@ -24,7 +24,8 @@ import { getTeamActivity } from '@/services/billing/getTeamActivity';
 import { getBalance } from '@/services/billing/getBalance';
 import { getForecast } from '@/services/billing/getForecast';
 import { changeStateTeam } from '@/services/billing/changeStateTeam';
-import { payByStripe } from '@/services/billing/payByStripe';
+import { createCheckoutSession } from '@/services/billing/payments';
+import { string } from 'zod';
 
 
 interface BillingProps {
@@ -147,25 +148,34 @@ export const Billing: React.FC<BillingProps> = ({
       </tr>
     );
   });
-  const onPay = async () => {
-    const val = Number(amount);
-    if (!Number.isFinite(val) || val <= 0) {
+
+
+
+  const onPay = async (amountEUR: number, userId: number, teamId: number) => {
+    // const [url, setURL] = useState("");
+
+    const amount = Number(amountEUR);
+    if (!Number.isFinite(amount) || amount <= 0) {
       setMessage("Введите корректную сумму оплаты.");
       return;
     }
+
     try {
-      const resp = await payByStripe(team.id, val, token);
-      if (resp.ok) {
-        setMessage("Переходим к оплате…");
-        // тут дальше редирект в Stripe (когда реализуешь)
-      } else {
-        setMessage("Оплата не выполнена.");
-      }
-    } catch (e) {
-      console.error(e);
-      setMessage("Ошибка при инициализации оплаты.");
+
+      const { redirectUrl } = await createCheckoutSession(
+        amount,
+        userId,
+        teamId,
+        token,
+        t,
+        setMessage,      
+      );
+      window.location.href = redirectUrl; // переходим на Stripe Checkout
+    } catch (e: any) {
+      alert(e?.message || 'Payment init failed');
     }
-  };
+
+  }
 
   return (<>
     {team && isMainTeam && <div className={styles.container}>
@@ -278,7 +288,6 @@ export const Billing: React.FC<BillingProps> = ({
         </div>
         <div className={styles.pay_controls}>
           <input
-
             type="number"
             min="0"
             step="0.01"
@@ -286,7 +295,7 @@ export const Billing: React.FC<BillingProps> = ({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           /> EUR
-          <button className={styles.btn} onClick={onPay}>
+          <button className={styles.btn} onClick={() => onPay(Number(amount), user.id, team.id)}>
             {t('bills.pay') || 'Pay'}
           </button>
         </div>
