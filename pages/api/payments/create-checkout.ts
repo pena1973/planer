@@ -40,8 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             quantity: 1,
           },
         ],
-        success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/billing/cancel`,
+        success_url: `${baseUrl}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/payments/cancel`,
         // Важно: прокидываем метаданные для вебхука
         metadata: {
           userId: String(userId),

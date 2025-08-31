@@ -19,13 +19,13 @@ import { downloadUnutExceptions } from '@/services/initial/downloadUnut-Exceptio
 import { downloadUnitLoads } from '@/services/initial/downloadUnit-Loads';
 import { downloadBaner } from '@/services/process/downloadBaner';
 
-import { loginHandler } from '@/services/login/loginHandler';
-import { registerHandler } from '@/services/login/registerHandler';
+
+
 
 import { store } from '@/store' // путь к твоему Redux store
 
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import Agreement from "@/components/index/Agreement/agreement";
+
 import { useTranslation } from 'react-i18next';
 
 import Image from 'next/image';
@@ -33,9 +33,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-
-import { setSignedAgreement, setLoadingComplete } from '@/store/slices'
-
 
 import { createBills } from '@/services/admin/createBills';
 import { deactivateTeamsByBalance } from '@/services/admin/deactivateTeamsByBalance';
@@ -50,13 +47,26 @@ _url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
 
 export default function Admin() {
   const { t, i18n } = useTranslation();
-  const [message, setMessage] = useState(''); // индикация сообщения об ошибках
+
   const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [period, setPeriod] = useState<string>(getCurrentYM()); // 'YYYY-MM'
+
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;
   })
+
+  const user = useSelector((state: RootState) => {
+    return state.authSlice.user;
+  })
+
+  const [message, setMessage] = useState('');
+  const [messageLogin, setMessageLogin] = useState('');
+  const [loginValue, setLoginValue] = useState('');
+  const [passValue, setPassValue] = useState('');
+  const [loaderButtonLogin, setLoaderButtonLogin] = useState(false);
+
+  
 
   const createBillsHandler = async () => {
     if (!period || !/^\d{4}-\d{2}$/.test(period)) {
@@ -76,10 +86,10 @@ export default function Admin() {
     }
   };
 
-   const deactivateTeams = async () => {
+  const deactivateTeams = async () => {
     await deactivateTeamsByBalance(token, t, setMessage);
 
-   };
+  };
 
 
   return (
@@ -88,7 +98,7 @@ export default function Admin() {
       <pre />
       <div className="container_admin">
         <div className="container_admin_left" >
-          <div className="container_admin_block">
+          {user.isSystem && <div className="container_admin_block">
             Генерирует счета в БД, Они потом появятся у админа основной команды в виде инвойса
             счет на 1 число месяца генерит данные за предыдущий месяц.
             Заранее счета генерить не нужно потому что тогда конец анализа - сегодняшний день, вперед не работает.
@@ -106,27 +116,28 @@ export default function Admin() {
             <button
               onClick={createBillsHandler}
             >сформировать счeта</button>
-          </div>
-          <div className="container_admin_block">
+          </div>}
+          {user.isSystem && <div className="container_admin_block">
             Для команд у которых расход превышает баланс  кнопка переводит их в неактивные до пополнения баланса.
             Соотвеьтственно команды не смогут пользоватся программой
             <button
               onClick={deactivateTeams}
             >Деактивировать неплательшиков</button>
 
-          </div>
-          <div className="container_admin_block"></div>
-          <div className="container_admin_block"></div>
+          </div>}
+          {user.isSystem && <div className="container_admin_block"></div>}
+          {user.isSystem && <div className="container_admin_block"></div>}
         </div>
         <div className="container_admin_midle">
-          <div className="container_admin_block">1</div>
-          <div className="container_admin_block"></div>
-          <div className="container_admin_block"></div>
+
+          {user.isSystem && <div className="container_admin_block"></div>}
+          {user.isSystem && <div className="container_admin_block"></div>}
+          {user.isSystem && <div className="container_admin_block"></div>}
         </div>
         <div className="container_admin_right">
-          <div className="container_admin_block">1</div>
-          <div className="container_admin_block"></div>
-          <div className="container_admin_block"></div>
+          {user.isSystem && <div className="container_admin_block">1</div>}
+          {user.isSystem && <div className="container_admin_block"></div>}
+          {user.isSystem && <div className="container_admin_block"></div>}
         </div>
 
       </div>

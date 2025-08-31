@@ -28,4 +28,8 @@ export class BalanceTable {
 
     @Column('int')
     team_id!: number;
+    
+    @Column('varchar', { default: "" })
+    transaction_id!: string;
+    
 }

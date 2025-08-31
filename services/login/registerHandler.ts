@@ -52,7 +52,7 @@ export const registerHandler = async ({
 
     try {
 
-        const res = await fetch(`api/register-api`,
+        const res = await fetch(`api/auth/register-api`,
             {
                 method: 'post',
                 headers: new Headers({

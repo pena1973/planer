@@ -31,7 +31,7 @@ export const getAttachedTeams = async (
 
                 setAttachedTeams(attachedTeams);
 
-                //   setMessage("Обновлены реквизиты клиента");
+                setMessage("");
             } else setMessage(receivedData.error);
         }
 

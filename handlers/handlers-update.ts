@@ -41,8 +41,9 @@ import { ClientItem, BillItem } from './../types/service-types';
 export async function updateBalance(
   balanceRepository: Repository<BalanceTable>,
   teamId: number,
+  transactionId: string,
   amount: number,
-  date: string,  
+  date: string,
   is_trial: boolean,
   document: string,
   direction: string,
@@ -50,7 +51,7 @@ export async function updateBalance(
 ) {
 
   // Получаем существующую транзакцию расписание для компании (предполагается, что только одно расписание для компании)
-  const existingBalance = await balanceRepository.findOne({ where: { date: date } });
+  const existingBalance = await balanceRepository.findOne({ where: { date: date, transaction_id: transactionId } });
 
   if (!existingBalance) {
     // Если транзакции нет, создаем новую
@@ -63,6 +64,7 @@ export async function updateBalance(
       document: document,
       coment: coment,
       is_trial: is_trial,
+      transaction_id: transactionId
     });
     const savedNewBalance = await balanceRepository.save(newBalance);
     if (!savedNewBalance) return { success: false, message: "Не удалось сохранить транзакцию " + document };
@@ -71,13 +73,15 @@ export async function updateBalance(
 
   } else {
     // Если транзакция существует, обновляем ее
-    existingBalance.team_id = teamId,
-      existingBalance.date = date,
-      existingBalance.summa = amount,
-      existingBalance.direction = direction,
-      existingBalance.document = document,
-      existingBalance.coment = coment,
-      existingBalance.is_trial = is_trial;
+    existingBalance.team_id = teamId;
+    existingBalance.date = date;
+    existingBalance.summa = amount;
+    existingBalance.direction = direction;
+    existingBalance.document = document;
+    existingBalance.coment = coment;
+    existingBalance.is_trial = is_trial;
+    existingBalance.transaction_id = transactionId;
+
     const savedUpdatedBalance = await balanceRepository.save(existingBalance);
     if (!savedUpdatedBalance) return { success: false, message: "Не удалось обновить баланс" };
   }

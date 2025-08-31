@@ -28,7 +28,7 @@ export const getBalance = async (
             if (receivedData.success) {
                 const balance = receivedData.balance as number
                 setBalance(balance);
-                //  setMessage("Обновлены реквизиты клиента");
+                setMessage("");
             } else setMessage(receivedData.error);
         }
 

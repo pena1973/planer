@@ -53,8 +53,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // Год и месяц (месяц нужно +1, потому что getMonth() возвращает 0–11)
           const year_ = now.getFullYear();
           const month_ = now.getMonth() + 1;
-
-          const balance = await getBalance(Number(teamId), balanceRepository);
+            
+          const balance = await getBalance(now.toLocaleDateString('en-CA'),Number(teamId), balanceRepository);
 
           const forecast = await getForecast(Number(teamId), year_, month_, teamsRepository, activeTimeRepository, mainRepository,);
           if (balance < forecast) {

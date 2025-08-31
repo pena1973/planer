@@ -31,7 +31,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
       case 'GET': {
         // 1) все балансы главных (или вообще всех) команд
-        const balances = await getBalances(balanceRepository); // [{teamId,balance}]
+        const balances = await getBalances(new Date().toLocaleDateString('en-CA'),balanceRepository); // [{teamId,balance}]
         const balanceByTeam = new Map<number, number>(
           balances.map(b => [b.teamId, round2(b.balance)])
         );

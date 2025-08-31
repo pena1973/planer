@@ -30,7 +30,7 @@ export const getTeamActivity = async (
 
                 setTeamActivity(teamActivity);
 
-                //   setMessage("Обновлены реквизиты клиента");
+                setMessage("");
             } else setMessage(receivedData.error);
         }
 

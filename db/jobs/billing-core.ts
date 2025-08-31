@@ -118,6 +118,7 @@ export async function runMonthlyBilling(
             const balanceRes = await updateBalance(
                 balanceRepository,
                 bill.teamId,
+                String(billRes.billId)??"",
                 bill.amount,
                 bill.date,
                 false,

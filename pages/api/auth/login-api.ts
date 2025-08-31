@@ -1,19 +1,19 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';  // Импортируем функцию подключения
+import connectDb from './../../../db/database';  // Импортируем функцию подключения
 
-import { UserTable } from './../../db/models/catalogs/users';
-import { TeamTable } from './../../db/models/catalogs/teams';
-import { UserAgreeTable } from './../../db/models/catalogs/user_agree';
-import { AgreementTable } from './../../db/models/catalogs/agreements';
-import { UserUnitTable } from './../../db/models/catalogs/user_unit';
-import { ActiveTimeTable } from './../../db/models/billing/active_time';
+import { UserTable } from './../../../db/models/catalogs/users';
+import { TeamTable } from './../../../db/models/catalogs/teams';
+import { UserAgreeTable } from './../../../db/models/catalogs/user_agree';
+import { AgreementTable } from './../../../db/models/catalogs/agreements';
+import { UserUnitTable } from './../../../db/models/catalogs/user_unit';
+import { ActiveTimeTable } from './../../../db/models/billing/active_time';
 
-import { UserItem } from './../../types/types';
-import { createAccessToken, createRefreshToken } from './../../lib/auth'
-import { getTypedRepository } from './../../db/utilites'
-import { getUser, getTeam, getLastAgreement } from './../../handlers/handlers-auth';  // расчеты
-import { getUsersUnits,getTeamActivity } from './../../handlers/handlers-get';  // расчеты
+import { UserItem } from './../../../types/types';
+import { createAccessToken, createRefreshToken } from './../../../lib/auth'
+import { getTypedRepository } from './../../../db/utilites'
+import { getUser, getTeam, getLastAgreement } from './../../../handlers/handlers-auth';  // расчеты
+import { getUsersUnits,getTeamActivity } from './../../../handlers/handlers-get';  // расчеты
 
 
 interface RequestBody {

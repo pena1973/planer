@@ -51,7 +51,7 @@ export const loginHandler = async ({
 
   try {
 
-    const res = await fetch(`api/login-api`,
+    const res = await fetch(`api/auth/login-api`,
       {
         method: 'post',
         headers: new Headers({

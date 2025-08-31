@@ -9,6 +9,7 @@ import '@/styles/support.scss';
 import '@/styles/cookies-policy.scss';
 import '@/styles/unit-interface.scss';
 import '@/styles/admin.scss';
+import '@/styles/payments.scss';
 
 
 import { store, persistor } from '@/store'  // теперь работает

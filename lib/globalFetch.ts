@@ -25,7 +25,7 @@ global.fetch = async function (
     if (res.status === 401 || res.status === 403) {
         console.warn(`[AUTH] ⛔ AccessToken истёк. Пробуем refresh...`)
 
-        const refreshRes = await originalFetch('/api/refresh-token')
+        const refreshRes = await originalFetch('/api/auth/refresh-token')
         if (refreshRes.ok) {
             const { token: newToken } = await refreshRes.json()
             store.dispatch(setToken(newToken))

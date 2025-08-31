@@ -4,8 +4,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '../../../db/database';
 import { getTypedRepository } from '../../../db/utilites'
 
-import { updateClient } from '../../../handlers/handlers-update';  // расчеты
-
 import { BalanceTable } from '../../../db/models/billing/balance';
 
 import { getBalance } from '../../../handlers/handlers-get';  // расчеты
@@ -24,7 +22,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { teamId: getTeamId } = req.query;
     switch (req.method) {
       case 'GET':
-        const balance_ = await getBalance(Number(getTeamId), balanceRepository)
+        const balance_ = await getBalance(new Date().toLocaleDateString('en-CA'),Number(getTeamId), balanceRepository)
 
         // отправляем ответ
         res.status(200).json({

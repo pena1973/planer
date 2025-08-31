@@ -118,26 +118,34 @@ export async function getForecast(
 
 // баланс команды
 export async function getBalance(
+  date: Date | string,   // yyyy-mm-dd
   teamId: number,
   balanceRepository: Repository<BalanceTable>
-
 ): Promise<number> {
+  // целевую дату приводим к yyyy-mm-dd (если пришёл Date)
+  const target = typeof date === 'string'
+    ? date
+    : date.toISOString().slice(0, 10) // yyyy-mm-dd
 
-  const receivedBalance = await balanceRepository.find({
-    where: { team_id: teamId },
-  });
-  let balance: number = 0;
-  for (let index = 0; index < receivedBalance.length; index++) {
-    const transaction = receivedBalance[index];
+  // тянем только нужные строки: команда + все транзакции на дату и раньше
+  const rows = await balanceRepository.find({
+    where: { team_id: teamId, date: LessThanOrEqual(target) },
+    select: ['summa', 'direction', 'date'],
+  })
 
-    balance = (transaction.direction === "+") ? balance + Number(transaction.summa) : balance
-    balance = (transaction.direction === "-") ? balance - Number(transaction.summa) : balance
-  }
-  return balance;
+  // суммируем с учётом направления
+  return rows.reduce((acc, tr) => {
+    const amount = Number(tr.summa) || 0
+    if (tr.direction === '+') return acc + amount
+    if (tr.direction === '-') return acc - amount
+    return acc // если вдруг другое значение — игнорируем
+  }, 0)
 }
+
 // баланс всех команд
 // Вернёт [{ teamId: number, balance: number }, ...]
-export async function getBalances(
+export async function getBalances_old(
+  date: Date | string,
   balanceRepository: Repository<BalanceTable>,
   teamIds?: number[] // опционально: посчитать только для заданных команд
 ): Promise<Array<{ teamId: number; balance: number }>> {
@@ -166,6 +174,57 @@ export async function getBalances(
     teamId: Number(r.teamId),
     balance: Number(r.balance ?? 0),
   }));
+}
+
+export async function getBalances(
+  date: Date | string,
+  balanceRepository: Repository<BalanceTable>,
+  teamIds?: number[] // опционально: посчитать только для заданных команд
+): Promise<Array<{ teamId: number; balance: number }>> {
+  const target = typeof date === 'string'
+    ? date
+    : date.toISOString().slice(0, 10) // yyyy-mm-dd
+
+  const qb = balanceRepository
+    .createQueryBuilder('b')
+    .select('b.team_id', 'teamId')
+    .addSelect(
+      `SUM(
+         CASE
+           WHEN b.direction = '+' THEN COALESCE((b.summa)::numeric, 0)
+           WHEN b.direction = '-' THEN -COALESCE((b.summa)::numeric, 0)
+           ELSE 0
+         END
+       )`,
+      'balance'
+    )
+    .where('b.date <= :target', { target })
+
+  if (teamIds && teamIds.length > 0) {
+    qb.andWhere('b.team_id IN (:...teamIds)', { teamIds })
+  }
+
+  qb.groupBy('b.team_id')
+
+  const rows = await qb.getRawMany<{ teamId: string; balance: string }>()
+
+  const result = rows.map(r => ({
+    teamId: Number(r.teamId),
+    balance: Number(r.balance ?? 0),
+  }))
+
+  // Если нужно вернуть нули для команд без транзакций — раскомментируй блок ниже:
+  /*
+  if (teamIds && teamIds.length > 0) {
+    const map = new Map(result.map(x => [x.teamId, x.balance]))
+    return teamIds.map(id => ({
+      teamId: id,
+      balance: Number(map.get(id) ?? 0),
+    }))
+  }
+  */
+
+  return result
 }
 
 // все команды

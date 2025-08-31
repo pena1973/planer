@@ -74,6 +74,7 @@
 .container_admin_block {
     display: flex;
     flex-direction: column;
+    align-items: center;
     margin: 10px 0;
     border: $border;
     border-radius: $border-radius;

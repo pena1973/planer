@@ -1,0 +1,47 @@
+@import '@/styles/colors.scss';
+
+.container_payments {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: inherit;
+    padding-top: 40px;
+
+    @media screen and (max-width: 650px) {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        align-items: center;
+        padding-top: 10px;
+    }
+}
+.back_button{
+    margin-top: 20px;
+    width: 150px;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: $button1_background_color;
+    color: $button1_text_color;
+    transition: background-color 0.3s;
+
+    &:hover {
+        background-color: $button1_hover_background_color;
+    }
+}
+
+.title{ 
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;    
+    color: $third_text_color;
+}
+.text{
+    font-size: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: $third_text_color;
+}

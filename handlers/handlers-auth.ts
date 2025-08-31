@@ -230,7 +230,7 @@ export async function getUser(
     locale: userRecord.locale,
     isAdmin: userRecord.isAdmin, // Конвертируем строку в булево значение
     teamId: userRecord.team_id, // Добавляем teamId, если нужно
-
+    isSystem: userRecord.isSystem, // Добавляем isSystem, если нужно
   };
 
   // Возвращаем результат

@@ -51,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const balanceRes = await updateBalance(
                         balanceRepository,
                         teamId,
+                        session.payment_intent as string,
                         amount,
                         new Date().toLocaleDateString('en-CA'),
                         false,
@@ -67,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // опционально: обработка возвратов
 
-            case 'charge.updated':            
+            case 'charge.updated':
             case 'charge.refunded':
             case 'refund.created':
                 // здесь можно уменьшить баланс и записать событие

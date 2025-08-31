@@ -1,27 +1,29 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { extractIdFromTeamNumber } from './../../lib/utils';
+import { extractIdFromTeamNumber } from './../../../lib/utils';
 
-import { UserTable } from './../../db/models/catalogs/users';
-import { TeamTable } from './../../db/models/catalogs/teams';
-import { UserAgreeTable } from './../../db/models/catalogs/user_agree';
-import { AgreementTable } from './../../db/models/catalogs/agreements';
-import { SettingsTable } from './../../db/models/plan/settings'
-import { ActiveTimeTable } from './../../db/models/billing/active_time'
+import { UserTable } from './../../../db/models/catalogs/users';
+import { TeamTable } from './../../../db/models/catalogs/teams';
+import { UserAgreeTable } from './../../../db/models/catalogs/user_agree';
+import { AgreementTable } from './../../../db/models/catalogs/agreements';
+import { SettingsTable } from './../../../db/models/plan/settings'
+import { ActiveTimeTable } from './../../../db/models/billing/active_time'
+import { BalanceTable } from './../../../db/models/billing/balance'
 
-import { updateSettings } from './../../handlers/handlers-update';  // расчеты
+import { updateSettings } from './../../../handlers/handlers-update';  // расчеты
 
-import { TeamItem, UserItem } from './../../types/types';
+import { TeamItem, UserItem } from './../../../types/types';
 
 import { sign } from 'jsonwebtoken';
 import {
   createNewTeam, createNewUser, getTeam,
   isUserExist, getLastAgreement
-} from './../../handlers/handlers-auth';
+} from './../../../handlers/handlers-auth';
 
+import { updateBalance } from './../../../handlers/handlers-update';
 
 interface RequestBody {
   login: string,
@@ -29,8 +31,8 @@ interface RequestBody {
   teamNumber: string,
   createTeam: boolean,
   nickname: string,
-  basedOnTeam:boolean,
-  basedTeamNumber : string,
+  basedOnTeam: boolean,
+  basedTeamNumber: string,
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -43,6 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
   const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
   const active_timeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
+  const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
 
 
   try {
@@ -69,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // если создаем команду 
         if (Boolean(createTeam)) {
 
-          const resTeam = await createNewTeam(teamsRepository,active_timeRepository,(basedOnTeam)?basedTeamNumber:null);
+          const resTeam = await createNewTeam(teamsRepository, active_timeRepository, (basedOnTeam) ? basedTeamNumber : null);
 
           if (!resTeam.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });
@@ -137,6 +140,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const agreementText = resAgreement.agreementText;
         const agreementId = resAgreement.agreementId;
 
+        // проводка пополнения  баланса  при создании новой независимой команды в режиме триал
+        if (!basedOnTeam) {
+          const balanceRes = await updateBalance(
+            balanceRepository, team.id, "", 100, new Date().toLocaleDateString('en-CA'),
+            true, 'trial - ' + new Date().toLocaleDateString('en-CA'), "+", "")
+          if (!balanceRes.success) {
+            console.log("баланс не пополнен  trial, teamId:" + team.id);
+          }
+        }
         // отправляем ответ
         res.status(200).json({
           success: true,
@@ -145,7 +157,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           user: savedUser,
           agreementText: agreementText,
           agreementId: agreementId,
-          activeTeam:true,
+          activeTeam: true,
         });
         break;
       default:
