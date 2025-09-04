@@ -34,7 +34,7 @@ export default function LoadOperControl({
     closeOperHandler,
 
 }: LoadOperControlProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     
     // На клиенте
     const formatMinutes = (totalMinutes: number | undefined): string => {

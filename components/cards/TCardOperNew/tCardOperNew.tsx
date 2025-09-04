@@ -54,7 +54,7 @@ export default function TCardOperNew({
     updateIdc,
     maxIdc
 }: TCardOperNewProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
     const idc = tCardOperation.idc;
     const inn = tCardOperation.inn;

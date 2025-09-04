@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
 import { setResourcePoint } from '@/store/slices';
 
 export default function Resources() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках

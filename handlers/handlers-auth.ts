@@ -6,10 +6,11 @@ import { TeamTable } from './../db/models/catalogs/teams'
 import { UserAgreeTable } from './../db/models/catalogs/user_agree';
 import { AgreementTable } from './../db/models/catalogs/agreements';
 import { ActiveTimeTable } from './../db/models/billing/active_time'
+import { VerificationCodeTable } from './../db/models/auth/verification_code';
 // types
 import { UserItem, TeamItem, } from './../types/types';
 import { generateTeamNumber } from '@/lib/utils';
-
+import { checkCode } from './../lib/code';
 // хеш функция 
 export const hashFoo = async (data: string) => {
   const { createHmac } = await import('node:crypto')
@@ -17,6 +18,7 @@ export const hashFoo = async (data: string) => {
     .digest('hex');
   return hash
 }
+
 
 
 export async function createNewTeam(
@@ -123,6 +125,149 @@ export async function createNewUser(
   };
 
 }
+// &&&&& проверяет код при подтверждении мейла либо восстаенволении пароля
+export async function verifyCode(
+  email: string,
+  code: string,
+  purpose: string,
+  verificationCodeRepository: Repository<VerificationCodeTable>,
+): Promise<{ success: boolean, reason?: string }> {
+
+  try {
+    const rec = await verificationCodeRepository.createQueryBuilder('v')
+      .where('v.email = :email', { email })
+      .andWhere('v.purpose = :purpose', { purpose })
+      .andWhere('v.used = false')
+      .orderBy('v.created_at', 'DESC')
+      .getOne();
+
+    const now = new Date();
+    if (!rec || rec.expires_at < now || rec.attempts >= rec.max_attempts) {
+      if (rec && rec.expires_at < now) { rec.used = true; await verificationCodeRepository.save(rec); }
+      return { success: false, reason: 'invalid_or_expired' };
+    }
+
+    const ok = await checkCode(code, rec.code_hash);
+    if (!ok) {
+      rec.attempts += 1; await verificationCodeRepository.save(rec);
+      return { success: false, reason: 'invalid_or_expired' };
+    }
+
+    rec.used = true;
+    await verificationCodeRepository.save(rec);
+
+  } catch (e: unknown) {
+    let message = "Ошибка при обновлении пользователя.";
+    if (e instanceof Error) {
+      message = `Ошибка при обновлении пользователя: ${e.message}`;
+      return { success: false, reason: message };
+    }
+  }
+  return { success: true }
+}
+export async function confirmUserEmail(
+  email: string,
+  usersRepository: Repository<UserTable>,
+): Promise<{ success: boolean, message?: string }> {
+
+  try {
+    // Ищем пользователя по ID
+    const user = await usersRepository.findOne({ where: { login: email } });
+
+    // Если пользователь не найден
+    if (!user) {
+      return {
+        success: false,
+        message: 'Пользователь не найден.',
+      };
+    }
+
+    user.confirmed = true; // подтверждаем е мейл
+    // Сохраняем обновленного пользователя
+    const savedUser = await usersRepository.save(user);
+
+    // Возвращаем результат
+    return {
+      success: true,
+
+      message: 'Пользователь успешно обновлен.',
+    };
+  } catch (e: unknown) {
+    let message = "Ошибка при обновлении пользователя.";
+    if (e instanceof Error) {
+      message = `Ошибка при обновлении пользователя: ${e.message}`;
+    }
+    return {
+      success: false,
+
+      message,
+    };
+  }
+
+}
+
+export async function resetUserPass(
+  login: string,
+  pass: string,
+  usersRepository: Repository<UserTable>,
+): Promise<{ success: boolean, savedUser: UserItem, message?: string }> {
+
+  try {
+    // Ищем пользователя по ID
+    const user = await usersRepository.findOne({ where: { login: login } });
+
+    // Если пользователь не найден
+    if (!user) {
+      return {
+        success: false,
+        savedUser: {} as UserItem,
+        message: 'Пользователь не найден.',
+      };
+    }
+
+    if (!pass) {
+      return {
+        success: false,
+        savedUser: {} as UserItem,
+        message: 'Пароль не задан.',
+      };
+    }
+    const hashNew = await hashFoo(pass)
+    user.pass = hashNew; // Обновляем пароль
+
+    // Сохраняем обновленного пользователя
+    const savedUser = await usersRepository.save(user);
+
+    // Возвращаем результат
+    return {
+      success: true,
+      savedUser: {
+        id: savedUser.id,
+        login: savedUser.login,
+        pass: "",
+        name: savedUser.name,
+        locale: savedUser.locale,
+        isAdmin: Boolean(savedUser.isAdmin),
+        teamId: savedUser.team_id,
+        confirmed: Boolean(savedUser.confirmed),
+        isSystem: Boolean(savedUser.isSystem),
+      },
+      message: 'Пользователь успешно обновлен.',
+    };
+  } catch (e: unknown) {
+    let message = "Ошибка при обновлении пользователя.";
+    if (e instanceof Error) {
+      message = `Ошибка при обновлении пользователя: ${e.message}`;
+    }
+    return {
+      success: false,
+      savedUser: {} as UserItem,
+      message,
+    };
+  }
+
+}
+
 
 export async function updateUser(
   userId: number,
@@ -178,6 +323,8 @@ export async function updateUser(
         locale: savedUser.locale,
         isAdmin: Boolean(savedUser.isAdmin),
         teamId: savedUser.team_id,
+        confirmed: Boolean(savedUser.confirmed),
+        isSystem: Boolean(savedUser.isSystem),
       },
       message: 'Пользователь успешно обновлен.',
     };
@@ -194,6 +341,7 @@ export async function updateUser(
   }
 
 }
+
 
 // &&&&&
 export async function getUser(
@@ -230,7 +378,9 @@ export async function getUser(
     locale: userRecord.locale,
     isAdmin: userRecord.isAdmin, // Конвертируем строку в булево значение
     teamId: userRecord.team_id, // Добавляем teamId, если нужно
-    isSystem: userRecord.isSystem, // Добавляем isSystem, если нужно
+
+    confirmed: Boolean(userRecord.confirmed),
+    isSystem: Boolean(userRecord.isSystem),
   };
 
   // Возвращаем результат
@@ -252,6 +402,7 @@ export async function isUserExist(
   return !(!userRecord)
 
 }
+
 //&&&&&&
 export async function getTeam(
   teamId: number,

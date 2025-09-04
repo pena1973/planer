@@ -14,7 +14,7 @@ import { } from '@/store/slices';
 import { setSuportPoint } from '@/store/slices';
 
 export default function Support() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 

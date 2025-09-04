@@ -13,7 +13,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 
 export default function Monitor() {
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();

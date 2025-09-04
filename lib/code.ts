@@ -1,4 +1,5 @@
-// lib/auth/code.ts
+// lib/auth/code.ts 
+// Утилиты для генерации, хэширования и проверки кодов верификации email/sms
 import crypto from 'crypto';
 import { scryptHash, scryptVerify } from '@/lib/scrypt';
 
@@ -11,4 +12,4 @@ export function genCode(len = 6) {
 export const hashCode = scryptHash;
 export const checkCode = scryptVerify;
 
-export const addMinutes = (d: Date, m: number) => new Date(d.getTime() + m * 60000);
+export const addMinutes = (d: Date, m: number) => new Date(d.getTime() + m * 60000); // m*60*1000

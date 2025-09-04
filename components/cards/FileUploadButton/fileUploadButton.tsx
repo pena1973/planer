@@ -21,7 +21,7 @@ const FileUploadButton = ({
   actions,
 }: FileUploadButtonProps) => {
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания drag&drop
 

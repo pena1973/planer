@@ -165,6 +165,7 @@ export interface UserItem {
     active?: boolean,
     teamId: number, // если не указан то юзер не в команде
     isSystem?: boolean, //  админ всей системы
+    confirmed?: boolean, //  е мейл подтвержден
 }
 
 //  users-units

@@ -34,7 +34,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
   token
 }) => {
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   // Меняем статус операции по нажатию кенопки юнитом 
   // На сервере

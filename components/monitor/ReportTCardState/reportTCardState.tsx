@@ -24,7 +24,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   userId,
   token
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [tCardsValue, setTCardsValue] = useState([] as TCardTermsItem[]);
   const [unitLoadsValue, setUnitLoadsValue] = useState([] as UnitLoadItem[]);

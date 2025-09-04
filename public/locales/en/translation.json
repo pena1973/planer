@@ -381,7 +381,8 @@
     "delete": "Delete profile",
     "login": "Your login",
     "buttondDeleteProfile": "Delete profile",
-    "loginError": "Incorrect login entered for profile deletion"
+    "loginError": "Incorrect login entered for profile deletion",
+    "passUpdated": "Password updated"
   },
   "manual": {
     "section1Title": "1. Plan",

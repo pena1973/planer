@@ -87,6 +87,8 @@
     display: flex;
     flex-direction: row;
     cursor: pointer;
+       height: 24px;
+       width: 30px;
 }
 
 // use
@@ -118,6 +120,7 @@
 // use
 .languageButton_container {
     position: relative;
+ 
 }
 
 .img {

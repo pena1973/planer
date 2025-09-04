@@ -18,7 +18,7 @@ import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
 
 export default function Monitor() {
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();

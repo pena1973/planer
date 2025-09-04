@@ -21,6 +21,7 @@ import { downloadBaner } from '@/services/process/downloadBaner';
 
 import { loginHandler } from '@/services/login/loginHandler';
 import { registerHandler } from '@/services/login/registerHandler';
+import { sendCodeHandler } from '@/services/login/sendCodeHandler';
 
 import { store } from '@/store' // путь к твоему Redux store
 
@@ -121,7 +122,7 @@ export default function Index() {
       return
     }
 
-    const tt = await loginHandler({
+    await loginHandler({
       login: loginValue,
       pass: passValue,
       token,
@@ -138,55 +139,18 @@ export default function Index() {
 
     setLoaderButtonLogin(false)
   }
-  // не сделана
+  // Восстановление пароля
   const loginRecovery = async (e: React.MouseEvent<HTMLElement>) => {
 
     if (loginValue.length < 5) {
       setMessage(t('service.loginNotEntered'));
       return
     };
-
-    // генерим ссылку восстановления и запоминаем юзера на восстановление   
-    // setLoaderButtonRecovery(true)
-    const URL_RECOVERY = process.env.NEXT_PUBLIC_URL_RECOVERY;
-    let _urlRecovery = String(URL_RECOVERY);
-    _urlRecovery = _urlRecovery.concat((_urlRecovery[_urlRecovery.length - 1] === "/") ? "" : "/");
-    const link = _urlRecovery + "recovery/";
-    try {
-      //  нужно отправить писмо на восстановление      
-      const res = await fetch(`${_url}auth/mailrecovery`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({ 'login': loginValue, 'link': link }),
-        }
-      );
-
-      if (res.status !== 200)
-        setMessage(t('service.serverUnavailable') + res.status);
-      else {
-        //  написать сообщение юзеру что писмо отправлено       
-        // setMessage('Вам на почту отправлено письмо со ссылкой на страницу восстановления пароля!');    
-        // setMessage(' An email with a link to the password recovery page has been sent to your email!');          
-        // setMessage(' Jums ir nosūtīts e-pasts ar saiti uz paroles atkopšanas lapu!');          
-        // setMessage(' Вам на пошту надіслано листа з посиланням на сторінку відновлення пароля!');          
-        setMessage(t('service.recoveryMailSent'));
+     if (loginValue ) {
+        
+         await sendCodeHandler(loginValue, 'password_reset', i18n.language,t, setMessageLogin);
       }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
 
-    // setLoaderButtonRecovery(false);
   }
   const registerClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonRegister(true)
@@ -197,7 +161,7 @@ export default function Index() {
     //   setLoaderButtonRegister(false);
     //   return
     // };
-
+     
     // if (pass1Value.length < 1) {
     //   setMessageRegister(t('service.passLengthMustBe'));
     //   setMessageRegister("Длина пароля должна быть не менее 12 символов. пароль должен содержать буквы, цифры  и специальные символы");
@@ -234,8 +198,8 @@ export default function Index() {
       pass: pass1Value,
       teamNumber: teamNumberValue,
       createTeam: createTeamValue,
-      basedOnTeam:basedOnTeamValue,
-      basedTeamNumber:basedTeamNumberValue,
+      basedOnTeam: basedOnTeamValue,
+      basedTeamNumber: basedTeamNumberValue,
       nickname: nicknameValue,
       token,
       t,
@@ -244,17 +208,36 @@ export default function Index() {
       dispatch,
       setStep,
       agreementIdRef: agreementId,
-      agreementTextRef: textAgreement,      
+      agreementTextRef: textAgreement,
     });
     setLoaderButtonRegister(false)
   }
 
+  useEffect(() => {
+    // мейла подтверждение юзера
+    const confirmEmailAndRedirect = async () => {
+      if (user.login && !user?.confirmed && token.trim() !== "") {
+        await sendCodeHandler(user.login, 'signup', i18n.language, t, setMessage);
+      }
+    };
+    confirmEmailAndRedirect();
+  }, [user]);
+
 
   useEffect(() => {
+    // ждем подтверждения мейла
+    if (team && user && token.trim() !== "" && !user?.confirmed) {
+      setMessageLogin("На почту " + user.login
+        + " отправлено письмо с кодом подтверждения. Подтвердите свой e-mail и после этого войдите в систему.");
+      setStep(2);
+      dispatch(setLoadingComplete(true))
+      return; // ждем подтверждения мейла
+    }
     const loadDataAndRedirect = async () => {
+
       dispatch(setLoadingComplete(false))
       // Если юзер залогинен и получен токен
-      if (team && user && token.trim() !== "" && signedAgreement) {
+      if (team && user && token.trim() !== "" && signedAgreement && user?.confirmed) {
         setStep(4);
         if (user.isAdmin) {
           await downloadBaner(user.id, team.id, token, t, setMessage, dispatch);
@@ -289,7 +272,6 @@ export default function Index() {
           // Переходим на страницу "cards"
           push("/unit-interface");
         }
-
         dispatch(setLoadingComplete(true))
       }
     };
@@ -383,7 +365,9 @@ export default function Index() {
                   value={loginValue}
                   placeholder={t('login.email')}
                   onChange={(e) => setLoginValue(e.target.value)}
-                  required autoComplete="off" />
+                  required 
+                  // autoComplete="off"
+                   />
               </div>
               <div className="login_input_container">
                 <input className="login_input"
@@ -429,7 +413,9 @@ export default function Index() {
                   id="email"
                   placeholder={t('register.email')}
                   value={loginValue} onChange={(e) => setLoginValue(e.target.value)}
-                  required autoComplete="off" />
+                  required 
+                  // autoComplete="off" 
+                  />
               </div>
 
               <div className="register_input_container">

@@ -14,7 +14,6 @@ import Link from 'next/link';
 
 // import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import '../../i18n'
 
 const locales = ['en', 'ru'];
 

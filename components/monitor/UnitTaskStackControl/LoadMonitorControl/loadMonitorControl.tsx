@@ -19,7 +19,7 @@ export default function LoadMonitorControl({
     openOperHandler,
     index,
 }: LoadMonitorControlProps) {
- const { t, i18n } = useTranslation();
+ const { t } = useTranslation();
     let intervalClass = `${styles.interval}`; // Класс по умолчанию
     let titleClass = `${styles.title_load}`; // Класс по умолчанию
     switch (load.status) {
