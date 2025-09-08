@@ -2,6 +2,7 @@
 import React, { useState, } from "react";
 import styles from './fileUploadButton.module.scss';
 import { generateUniqueId, calculateMaxIdc, validateFileContent } from "@/lib/utils"
+import { getCurrentDateInString } from "@/lib/timezone"
 import {
   TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem, ProductContent, TProductContent,
   ProductItem, TCardProductItem
@@ -13,12 +14,14 @@ export interface FileUploadButtonProps {
   onCardUpload: (tCard: TCardItem) => void,
   uoms: UOMItem[],
   actions: ActionItem[],
+  timezone: string, // Необязательное свойство timezone
 }
 
 const FileUploadButton = ({
   onCardUpload,
   uoms,
   actions,
+  timezone
 }: FileUploadButtonProps) => {
 
   const { t } = useTranslation();
@@ -68,7 +71,9 @@ const FileUploadButton = ({
 
   const transformToTCard = (content: TCardContent): TCardItem => {
     const tempId = generateUniqueId();
-    const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
+    // const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
+    const currentDate = getCurrentDateInString(timezone); // формат YYYY-MM-DD
+    
     const tCard: TCardItem = {
       id: -tempId,
       date: currentDate,

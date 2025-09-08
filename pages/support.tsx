@@ -3,8 +3,8 @@ import { SupportMessages } from "@/components/support/SupportMessages/supportMes
 import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
-import  Docs  from "@/components/support/Docs/docs";
-import { useEffect, useState,useMemo } from "react";
+import Docs from "@/components/support/Docs/docs";
+import { useEffect, useState, useMemo } from "react";
 import { generateTeamNumber } from '@/lib/utils'
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
@@ -37,8 +37,12 @@ export default function Support() {
     return state.authSlice.unit;
   })
 
+  const schedule = useSelector((state: RootState) => {
+    return state.catalogSlice.schedule;
+  })
+
   const isMainTeam = useMemo(() => team ? team.main_team === generateTeamNumber(team.prefix, team.id) : false, [team]);
-  
+
   // Начальный загруз
   useEffect(() => {
 
@@ -68,17 +72,20 @@ export default function Support() {
               teamId={team.id}
               userId={user.id}
               token={token}
+              timezone={schedule.timeZone}
             />
           </div>}
           {/* Счета */}
           {suportPoint === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.billing1')}</div>
             <Billing
+              timezone={schedule.timeZone}
               team={team}
               user={user}
               setMessage={setMessage}
               token={token}
               isMainTeam={isMainTeam}
+             
             />
           </div>}
           {/* Профиль */}

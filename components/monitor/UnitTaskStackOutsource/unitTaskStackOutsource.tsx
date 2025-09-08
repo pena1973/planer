@@ -76,7 +76,9 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
     const tCard = tCards.find(tCard => tCard.id === lo.id_tCard); // ищем карточку
     const terms = getStartFinishOper(lo);
 
-    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
+    // const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
+    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${tCard.date}` : "";
+    
     const statusStyle = lo.status === StatusEnum.ready ? styles.ready : lo.status === StatusEnum.defective ? styles.defective : styles.planed;
     return (<tr key={index}>
 

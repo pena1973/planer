@@ -146,10 +146,10 @@ export default function Index() {
       setMessage(t('service.loginNotEntered'));
       return
     };
-     if (loginValue ) {
-        
-         await sendCodeHandler(loginValue, 'password_reset', i18n.language,t, setMessageLogin);
-      }
+    if (loginValue) {
+
+      await sendCodeHandler(loginValue, 'password_reset', i18n.language, t, setMessageLogin);
+    }
 
   }
   const registerClick = async (e: React.MouseEvent<HTMLElement>) => {
@@ -161,7 +161,7 @@ export default function Index() {
     //   setLoaderButtonRegister(false);
     //   return
     // };
-     
+
     // if (pass1Value.length < 1) {
     //   setMessageRegister(t('service.passLengthMustBe'));
     //   setMessageRegister("Длина пароля должна быть не менее 12 символов. пароль должен содержать буквы, цифры  и специальные символы");
@@ -226,13 +226,22 @@ export default function Index() {
 
   useEffect(() => {
     // ждем подтверждения мейла
-    if (team && user && token.trim() !== "" && !user?.confirmed) {
-      setMessageLogin("На почту " + user.login
-        + " отправлено письмо с кодом подтверждения. Подтвердите свой e-mail и после этого войдите в систему.");
+    setMessageLogin("");
+    if (token.trim() !== "" && !user?.confirmed) {
+
+      if (team.id && user.id) {
+        setMessageLogin("На почту " + user.login
+          + " отправлено письмо с кодом подтверждения. Подтвердите свой e-mail и после этого войдите в систему.");
+      } else {
+        setMessageLogin("");
+      }
+
       setStep(2);
       dispatch(setLoadingComplete(true))
+
       return; // ждем подтверждения мейла
     }
+
     const loadDataAndRedirect = async () => {
 
       dispatch(setLoadingComplete(false))
@@ -365,9 +374,9 @@ export default function Index() {
                   value={loginValue}
                   placeholder={t('login.email')}
                   onChange={(e) => setLoginValue(e.target.value)}
-                  required 
-                  // autoComplete="off"
-                   />
+                  required
+                // autoComplete="off"
+                />
               </div>
               <div className="login_input_container">
                 <input className="login_input"
@@ -413,9 +422,9 @@ export default function Index() {
                   id="email"
                   placeholder={t('register.email')}
                   value={loginValue} onChange={(e) => setLoginValue(e.target.value)}
-                  required 
-                  // autoComplete="off" 
-                  />
+                  required
+                // autoComplete="off" 
+                />
               </div>
 
               <div className="register_input_container">

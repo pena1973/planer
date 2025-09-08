@@ -88,7 +88,8 @@
     "repeat": "Repeat",
     "sourse": "Source",
     "action": "Action",
-    "result": "Result"
+    "result": "Result",
+    "loads": "Loading time slots"
   },
   "cardsopernew": {
     "add": "Add",
@@ -362,7 +363,10 @@
     "stateActive": "State",    
     "invoises": "Invoices",
     "invoises_notice": "Invoices are issued on the 1st for the previous month",
-    "forecast": "Expense"
+    "forecast": "Expense",
+    "VAT": "with VAT",
+    "price": "Price per point",
+    "point": "point"
   },
   "profile": {
     "buttonChangePass": "Save",

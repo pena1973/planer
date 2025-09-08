@@ -251,7 +251,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
           let titleCard = "";
           const tCard = tCards.find(tCard => tCard.id === load.id_tCard); // ищем карточку          
           if (tCard)
-            titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+            // titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+            titleCard = `${padNumberToFourDigits(tCard.idc)} - ${tCard.date};`
 
           return <LoadMonitorProcess
             key={'quant' + i}

@@ -1,7 +1,7 @@
 
 
 import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "./../types/types";
-
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/timezone"
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
 const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
@@ -10,9 +10,9 @@ const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.team)
-  return schedule.workdays.some(workday =>
-    new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-  ); else return false
+    return schedule.workdays.some(workday =>
+      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+    ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
 const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
@@ -55,9 +55,9 @@ const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
 
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.team)
-  return schedule.holidays.some(holiday =>
-    new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-  ); else return false
+    return schedule.holidays.some(holiday =>
+      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+    ); else return false
 }
 
 // генерация привычной нам даты - ее использую как id дня
@@ -71,8 +71,9 @@ const idDay = (date: Date): string => {
 
 // генерация одного дня на шкале
 const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem => {
+  // просто делаем копию даты, чтобы не мутировать переданную 
   const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-  currentDate.setHours(0, 0, 0, 0);
+  // currentDate.setHours(0, 0, 0, 0);
 
   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
@@ -80,7 +81,7 @@ const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem =
 
   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-  let breaks = _isWeekend || _isHoliday || (!schedule.team)? [] : [...schedule.breaks];
+  let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
 
   if (_isAdditionalTime) {
     const workday = schedule.workdays.find(
@@ -122,33 +123,35 @@ export const getUnitsSchedule = (
   units: UnitItem[]
 ): UnitCalendarItem[] => {
   const result: UnitCalendarItem[] = [];
-  
+
   // Определяем диапазон: 90 дней до today и 90 дней после today
-  const startDate = new Date(today);
-  startDate.setHours(0, 0, 0, 0);
+  // const startDate = new Date(today);
+  // startDate.setHours(0, 0, 0, 0);
+  const startDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
   startDate.setDate(startDate.getDate() - 90);
-  
-  const endDate = new Date(today);
-  endDate.setHours(0, 0, 0, 0);
+
+  // const endDate = new Date(today);  
+  // endDate.setHours(0, 0, 0, 0);
+  const endDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
   endDate.setDate(endDate.getDate() + 90);
 
   // Итерируем по дням диапазона
   const currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     // Генерируем базовый CalendarItem для текущего дня (без учёта индивидуальных исключений)
-    const calendarItem = generateCalendarItem(new Date(currentDate), schedule);
-    
+    const calendarItem = generateCalendarItem(currentDate, schedule);
+
     // Для каждого юнита корректируем расписание с учетом его исключений
     for (const unit of units) {
       // Фильтруем исключения для данного юнита на текущую дату
-      const unitExs = exceptions.filter(ex => 
+      const unitExs = exceptions.filter(ex =>
         ex.unitId === unit.id &&
         ex.date === currentDate.toLocaleDateString("en-CA")
       );
-      
+
       // Создадим копию CalendarItem для дальнейших корректировок
       const adjustedCalendarItem: CalendarItem = { ...calendarItem };
-      
+
       // ПОПРАВИТЬ если интервал нот ворк скорректировать
       if (unitExs.length > 0) {
         // Если найдены исключения типа "not work" – считаем, что в этот день юнит не работает
@@ -175,7 +178,7 @@ export const getUnitsSchedule = (
           }
         }
       }
-      
+
       // Создаем объект UnitCalendarItem для юнита с корректированным расписанием
       const unitCalendarItem: UnitCalendarItem = {
         ...adjustedCalendarItem,
@@ -183,10 +186,10 @@ export const getUnitsSchedule = (
       };
       result.push(unitCalendarItem);
     }
-    
+
     // Переходим к следующему дню
     currentDate.setDate(currentDate.getDate() + 1);
   }
-  
+
   return result;
 };

@@ -13,6 +13,9 @@ import {
     setActiveTeam,
     
 } from './../../store/slices';
+import { getUserTimeZoneEnum } from './../../lib/timezone';
+
+
 
 interface RegisterPayload {
     login: string,
@@ -50,6 +53,8 @@ export const registerHandler = async ({
     agreementTextRef,
 }: RegisterPayload) => {
 
+    const tzValue = getUserTimeZoneEnum();
+
     try {
 
         const res = await fetch(`api/auth/register-api`,
@@ -67,6 +72,7 @@ export const registerHandler = async ({
                     nickname: nickname,
                     basedOnTeam: basedOnTeam,
                     basedTeamNumber : basedTeamNumber,
+                    timezone: tzValue,
                 }),
             }
         );

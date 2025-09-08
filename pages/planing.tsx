@@ -15,7 +15,7 @@ import DefectiveCardRow from "@/components/plan/DefectiveCardRow/defectiveCardRo
 import { useState, useCallback } from "react";
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-import { formatDate, } from "@/lib/utils"
+// import { formatDate, } from "@/lib/utils"
 
 import { useRouter } from 'next/navigation';
 
@@ -25,6 +25,7 @@ import { setUnitLoads, setTCardLighted, setTCardPrepared } from '@/store/slices'
 import { } from '@/store/slices';
 
 import { useTranslation } from 'react-i18next';
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/timezone";
 
 export default function Planing() {
 
@@ -86,9 +87,11 @@ const { push } = useRouter();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  // const today = new Date();
+  const today = getCurrentDateInDate(schedule.timeZone)
+  // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
 
+  
   // Выбор запланированной карты
   const lightTCardHandler = useCallback(async (selectedTCard: TCardItem, on: boolean) => {
     if (on) dispatch(setTCardLighted(selectedTCard))
@@ -247,7 +250,7 @@ const { push } = useRouter();
       tCardLighted={tCardLighted}
       lightTCardHandler={lightTCardHandler}
       erazCardHandler={erazCardHandler}
-      formatDate={formatDate}
+      // formatDate={formatDate}
     />)
   })
   // Карты
@@ -262,7 +265,7 @@ const { push } = useRouter();
       erazLoaderCard={erazLoaderCard}
       tCardLighted={tCardLighted}
       isDragging={isDragging}
-      formatDate={formatDate}
+      // formatDate={formatDate}
       lightTCardHandler={lightTCardHandler}
       saveCardHandler={saveCardHandler}
       erazCardHandler={erazCardHandler}
@@ -272,14 +275,14 @@ const { push } = useRouter();
 
   })
   // Карты
-  const tCardsDefectiveReactNodes = tCardsDefective.map((elem, index) => {
+  const tCardsDefectiveReactNodes = tCardsDefective.map((tCard, index) => {
     return (<DefectiveCardRow
       key={"defective" + index}
-      elem={elem}
+      tCard={tCard}
       droploaderCard={droploaderCard}
       erazLoaderCard={erazLoaderCard}
       tCardLighted={tCardLighted}
-      formatDate={formatDate}
+      // formatDate={formatDate}
       lightTCardHandler={lightTCardHandler}
       erazCardHandler={erazCardHandler}
     />)
@@ -324,6 +327,7 @@ const { push } = useRouter();
             pinLoadHandler={pinLoadHandler}
             unPinLoadHandler={unPinLoadHandler}
             unitActions={unitActions}
+            timezone={schedule.timeZone}
           />
         </div>
 

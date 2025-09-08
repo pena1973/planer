@@ -47,7 +47,7 @@ import { BillRowTable } from '@/db/models/billing/bill_row';
 
 import { getTeam } from './../handlers/handlers-auth';
 import { calcMonthlyTeamCosts } from './../handlers/calcMonthlyTeamCosts';
-
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/timezone"
 
 //&&&&&&
 export async function getMain(
@@ -108,7 +108,7 @@ export async function getForecast(
 
   // 3) Получаем id всех команд этой группы (включая главную)
   const teams = await getTeamsByMainteamNumber(String(groupCode), teamsRepository)
- 
+
   // 4) Считаем прогноз по всем активным командам, с учетом возможного фильтра
   const allCosts = await calcMonthlyTeamCosts(teams, teamsRepository, activeTimeRepository, mainRepository, year_, month_);
   const forecast = +allCosts.reduce((acc, r) => acc + (r.amountteam ?? 0), 0).toFixed(2);
@@ -878,9 +878,9 @@ export async function getTCardsTerms(
   tCardRepository: Repository<TCardTable>,
   tCardOperationRepository: Repository<TCardOperationTable>,
   // tCardProductRepository: Repository<TCardProductTable>,
-  unitLoadRepository: Repository<UnitLoadTable>
+  unitLoadRepository: Repository<UnitLoadTable>,
+  timezone: string,
 ): Promise<{ tCardsTerms: TCardTermsItem[], loads: UnitLoadItem[] }> {
-
 
   const where: FindOptionsWhere<TCardTable> = {
     team_id: teamId,
@@ -890,18 +890,31 @@ export async function getTCardsTerms(
     where.idc = tCardIdc;
   }
 
-  const dateFrom = tCardDateFrom ? new Date(tCardDateFrom) : undefined;
-  const dateTo = tCardDateTo ? new Date(tCardDateTo) : undefined;
+  // const dateFrom = tCardDateFrom ? new Date(tCardDateFrom) : undefined;
+  const dateFrom = tCardDateFrom ? getTimeZoneDateFromDateString(tCardDateFrom, timezone) : undefined;
+
+  // const dateTo = tCardDateTo ? new Date(tCardDateTo) : undefined;
+  const dateTo = tCardDateTo ? getTimeZoneDateFromDateString(tCardDateTo, timezone) : undefined;
+
   if (dateFrom) dateFrom.setHours(0, 0, 0, 0);
   if (dateTo) dateTo.setHours(23, 59, 59, 999);
 
+  const toYMD = (d: string | Date) => typeof d === "string" ? d : d.toISOString().slice(0, 10);
+
   if (dateFrom && dateTo) {
-    where.date = Between(dateFrom, dateTo);
+    where.date = Between(toYMD(dateFrom), toYMD(dateTo));
   } else if (dateFrom) {
-    where.date = MoreThanOrEqual(dateFrom);
+    where.date = MoreThanOrEqual(toYMD(dateFrom));
   } else if (dateTo) {
-    where.date = LessThanOrEqual(dateTo);
+    where.date = LessThanOrEqual(toYMD(dateTo));
   }
+  // if (dateFrom && dateTo) {
+  //   where.date = Between(dateFrom, dateTo);
+  // } else if (dateFrom) {
+  //   where.date = MoreThanOrEqual(dateFrom);
+  // } else if (dateTo) {
+  //   where.date = LessThanOrEqual(dateTo);
+  // }
 
   if (tCardStatus) {
     where.status = tCardStatus;
@@ -1205,6 +1218,50 @@ export async function getTeamShedule(
     timeZone: scheduleTable.timeZone as TimeZoneEnum,
   };
 }
+
+// // расписание команд
+// export async function getTeamsShedule(
+//   teams: TeamItem[],
+//   teamScheduleRepository: Repository<TeamScheduleTable>,
+
+// ): Promise<ScheduleItem[]> {
+
+//   const teamIds = teams.map(team => team.id)
+
+//   if (!teamIds || teamIds.length === 0) return [];
+//   const scheduleTables = await teamScheduleRepository.find({
+//     where: { team_id: In([...new Set(teamIds)]) },
+//   });
+
+//   const schedules = scheduleTables.map(scheduleTable => {
+//     const team = teams.find(team => team.id === scheduleTable.team_id) ?? {} as TeamItem
+
+//     return {
+//       team: {
+//         id: team.id,
+//         title: team.title,
+//         coment: team.coment,
+//         prefix: team.prefix,
+//         main_team: team.main_team,
+//       },
+//       timeStartWork: scheduleTable.timeStartWork,
+//       timeFinishWork: scheduleTable.timeFinishWork,
+//       breaks: scheduleTable.breaks ?? [],
+//       holidays: (scheduleTable.holidays ?? []).map(date =>
+//         new Date(date).toLocaleDateString('en-CA')
+//       ),
+//       weekends: scheduleTable.weekends ?? [],
+//       workdays: (scheduleTable.workdays ?? []).map(wd => ({
+//         date: new Date(wd.date).toLocaleDateString('en-CA'),
+//         timeStart: wd.timeStart,
+//         timeFinish: wd.timeFinish,
+//       })),
+//       timeZone: scheduleTable.timeZone as TimeZoneEnum,
+//     };
+//   })
+//   return schedules;
+// }
+
 
 // &&&&&
 // настройки команды

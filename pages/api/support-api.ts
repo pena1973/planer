@@ -56,7 +56,8 @@ const db = await connectDb();
 
         const supportMessage_ = {
           id: savedMessage.id,
-          date: new Date(savedMessage.date).toLocaleDateString('en-CA'),
+          // date: new Date(savedMessage.date).toLocaleDateString('en-CA'),
+          date: savedMessage.date,
           title: savedMessage.title,
           body: savedMessage.body,
           userId: savedMessage.user_id,

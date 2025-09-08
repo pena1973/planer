@@ -39,7 +39,7 @@
     "recoveryMailSent": "Письмо для восстановления пароля отправлено"
   },
   "index": {
-    "downloadBaner":"загружен банер",
+    "downloadBaner": "загружен банер",
     "downloadUoms": "Загружены единицы измерения",
     "downloadActions": "Загружены возможные действия",
     "downloadTemplates": "Загружены шаблоны",
@@ -88,7 +88,8 @@
     "repeat": "Повторить",
     "sourse": "Источник",
     "action": "Действие",
-    "result": "Результат"
+    "result": "Результат",
+    "loads": "Интервалы загрузки"
   },
   "cardsopernew": {
     "add": "Добавить",
@@ -358,11 +359,15 @@
     "attached_teams": "Команды",
     "no_attached_teams": "Нет команд",
     "teamNumber": "Номер команды",
-    "teamTitle":"Название команды",    
-    "stateActive": "Состояние", 
-    "invoises":"Инвойсы",
+    "teamTitle": "Название команды",
+    "stateActive": "Состояние",
+    "invoises": "Инвойсы",
     "invoises_notice": "Инвойс выставляется 1 числа за предыдущий месяц",
-    "forecast": "Расход"
+    "forecast": "Расход",
+    "VAT": "вкл НДС",
+    "price": "Цена 1 ед.",
+    "point": "ед"
+    
   },
   "profile": {
     "buttonChangePass": "Сохранить",

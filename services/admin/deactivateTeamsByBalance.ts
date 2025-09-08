@@ -2,13 +2,15 @@
 
 
 export const deactivateTeamsByBalance = async (
-    token: string,    
+    token: string,
+    year: number,
+    month: number,
     t: (key: string) => string,
     setMessage: (msg: string) => void,
 ) => {
 
     try {
-        const res = await fetch(`api/admin/deactivate-teams-balance-api`,
+        const res = await fetch(`api/admin/deactivate-teams-balance-api?month=${month}&year=${year}`,
             {
                 method: 'get',
                 headers: new Headers({

@@ -2,6 +2,7 @@
 // services/payments.ts
 export async function createCheckoutSession(
   amount: number,
+  vat: number,
   userId: number,
   teamId: number,
   token: string,
@@ -18,7 +19,8 @@ export async function createCheckoutSession(
     body: JSON.stringify({
       amount: amount,
       userId: userId,
-      teamId: teamId
+      teamId: teamId,
+      vat:vat
     }),
   });
   if (!res.ok) throw new Error(await res.text());

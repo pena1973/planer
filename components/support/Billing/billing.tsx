@@ -7,7 +7,7 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 
 import { getBills } from '@/services/billing/getBills';
 import { downloadFile } from '@/services/billing/downloadInvoice';
-import { BillItem, ClientItem } from "@/types/service-types";
+import { BillItem, ClientItem, MainItem } from "@/types/service-types";
 import { TeamItem, UserItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
@@ -34,6 +34,8 @@ interface BillingProps {
   user: UserItem,
   token: string,
   isMainTeam: boolean
+  timezone: string,
+
 }
 
 export const Billing: React.FC<BillingProps> = ({
@@ -41,7 +43,8 @@ export const Billing: React.FC<BillingProps> = ({
   team,
   user,
   token,
-  isMainTeam
+  isMainTeam,
+  timezone,
 }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -52,6 +55,7 @@ export const Billing: React.FC<BillingProps> = ({
 
   const [balance, setBalance] = useState<number>(0);
   const [forecast, setForecast] = useState<number>(0);
+  const [VAT, setVAT] = useState<number>(0);
   const [amount, setAmount] = useState<string>("");
   const [loaderButtonSave, setLoaderButtonSave] = useState(false);
   const [loaderButtonChangeStateTeam, setLoaderButtonChangeStateTeam] = useState(NaN);
@@ -94,8 +98,9 @@ export const Billing: React.FC<BillingProps> = ({
     await getBalance(user.id, team.id, token, t, setMessage, setBalance);
   };
   const getForecastHandler = async () => {
-    await getForecast(user.id, team.id, token, t, setMessage, setForecast);
+    await getForecast(timezone, user.id, team.id, token, t, setMessage, setForecast, setVAT);
   };
+
   useEffect(() => {
     getClientHandler();
     getBillsHandler();
@@ -164,19 +169,30 @@ export const Billing: React.FC<BillingProps> = ({
 
       const { redirectUrl } = await createCheckoutSession(
         amount,
+        VAT,
         userId,
         teamId,
         token,
         t,
-        setMessage,      
+        setMessage,
       );
       window.location.href = redirectUrl; // переходим на Stripe Checkout
-    } catch (e: any) {
-      alert(e?.message || 'Payment init failed');
+
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        alert(e.message || 'Payment init failed');
+      } else {
+        alert('Payment init failed');
+      }
     }
 
   }
-
+  const totalWithVAT = (forecast: number, VAT: number): number => {
+    const cents = Math.round(forecast * 100);       // приводим к копейкам/центам
+    const vatBp = Math.round(VAT * 100);            // VAT в б.п. (21% -> 2100)
+    const totalCents = Math.round(cents * (10000 + vatBp) / 10000);
+    return totalCents / 100;                        // обратно в валюту
+  }
   return (<>
     {team && isMainTeam && <div className={styles.container}>
       <div className={styles.section}>
@@ -281,25 +297,35 @@ export const Billing: React.FC<BillingProps> = ({
       <pre />
       <div className={styles.pay_row}>
         <div className={styles.balance}>
-          {t('bills.balance') || 'Balance'}: <b>{balance}</b> EUR
+          {t('bills.balance') || 'Balance'}: <b>{balance}</b>  {t('bills.point')}
         </div>
+
         <div className={styles.balance}>
-          {t('bills.forecast') || 'Forecast'}: <b>{forecast}</b> EUR
-        </div>
-        <div className={styles.pay_controls}>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder={t('bills.amount') || 'Amount'}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          /> EUR
-          <button className={styles.btn} onClick={() => onPay(Number(amount), user.id, team.id)}>
-            {t('bills.pay') || 'Pay'}
-          </button>
+          {t('bills.forecast') || 'Forecast'}: <b>{forecast}</b> {t('bills.point')}
         </div>
       </div>
+      <div className={styles.pay_row}>
+        <div className={styles.balance}>
+          {t('bills.price') || 'Price'}: <b>1</b> EUR + VAT({VAT}%) = <b>{totalWithVAT(1, VAT)}</b> EUR
+
+        </div>
+
+
+      </div>
+      <div className={styles.pay_controls}>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder={t('bills.amount') || 'Amount'}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        /> EUR
+        <button className={styles.btn} onClick={() => onPay(Number(amount), user.id, team.id)}>
+          {t('bills.pay') || 'Pay'}
+        </button>
+      </div>
+
 
     </div>}
 

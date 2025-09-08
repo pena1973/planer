@@ -7,8 +7,13 @@ import { UserAgreeTable } from './../db/models/catalogs/user_agree';
 import { AgreementTable } from './../db/models/catalogs/agreements';
 import { ActiveTimeTable } from './../db/models/billing/active_time'
 import { VerificationCodeTable } from './../db/models/auth/verification_code';
+import { SettingsTable } from './../db/models/plan/settings'
+import { TeamScheduleTable } from './../db/models/plan/team_schedule'
+
+
+
 // types
-import { UserItem, TeamItem, } from './../types/types';
+import { UserItem, TeamItem, SettingsItem, TimeZoneEnum, DaysOfWeek, ScheduleItem, } from './../types/types';
 import { generateTeamNumber } from '@/lib/utils';
 import { checkCode } from './../lib/code';
 // хеш функция 
@@ -19,13 +24,21 @@ export const hashFoo = async (data: string) => {
   return hash
 }
 
-
+import { getCurrentDateInString, } from "@/lib/timezone"
+// import { time } from 'node:console';
 
 export async function createNewTeam(
   teamsRepository: Repository<TeamTable>,
   activeTimeRepository: Repository<ActiveTimeTable>,
+  settingsRepository: Repository<SettingsTable>,
+  teamScheduleRepository: Repository<TeamScheduleTable>,
+  timezone: TimeZoneEnum,
   main_team: string | null
-): Promise<{ success: boolean, team: TeamItem, message?: string }> {
+): Promise<{
+  success: boolean,
+  team: TeamItem,  
+  message?: string
+}> {
 
 
   // Сохраняем команду в базе данных
@@ -48,16 +61,41 @@ export async function createNewTeam(
     }
     const savedteam = await teamsRepository.save(savedteam_);
     // Возвращаем успешный результат с данными команды
+    const dateStr = getCurrentDateInString(timezone);
 
+    // сохраним время активацими команды
     const active_time = activeTimeRepository.create({
-      date: new Date().toLocaleDateString('en-CA'),
+      date: dateStr,
       direction: "start",
       team_id: savedteam_.id
     });
-
-    // 2) первый save -> сработает @BeforeInsert и заполнит prefix
     const savedactive_time = await activeTimeRepository.save(active_time);
 
+    // сохраним таймзону и расписание команды (предустановка)
+    const newSchedule = teamScheduleRepository.create({
+      timeStartWork: 540,
+      timeFinishWork: 1080,
+      breaks: [{ timeStart: 780, timeFinish: 840 }],
+      holidays: [],
+      weekends: [DaysOfWeek.SATURDAY, DaysOfWeek.SUNDAY],
+      workdays: [],
+      team_id: team.id,
+      timeZone: timezone,
+    });
+    const saveTeamSchedule = await teamScheduleRepository.save(newSchedule);
+
+    // сохраним начальные настройки команды (предустановка)
+    const newSettings = settingsRepository.create({
+      team_id: team.id,
+      timeStartWork: 480,
+      timeFinishWork: 1140,
+      showWeekend: false,
+      showHoliday: false,
+      isQualControl: true,
+    });
+    const savedNewSettings = await settingsRepository.save(newSettings);
+
+    
     return {
       success: true,
       team: {
@@ -70,6 +108,8 @@ export async function createNewTeam(
       message: "Команда успешно создана",
     };
 
+
+
   } catch (e: unknown) {
     let message = "Ошибка при создании команды.";
     if (e instanceof Error) {
@@ -77,7 +117,7 @@ export async function createNewTeam(
     }
     return {
       success: false,
-      team: {} as TeamItem,
+      team: {} as TeamItem,     
       message,
     };
   }

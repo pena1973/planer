@@ -9,35 +9,48 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TCardStageTable = void 0;
+exports.ClientTable = void 0;
+// Каталог номенклатуры в пределах карты. Уникальный ключ карта idc + продукт idc
 const typeorm_1 = require("typeorm");
-let TCardStageTable = class TCardStageTable {
+let ClientTable = class ClientTable {
 };
-exports.TCardStageTable = TCardStageTable;
+exports.ClientTable = ClientTable;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], TCardStageTable.prototype, "id", void 0);
+], ClientTable.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
-], TCardStageTable.prototype, "created_at", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TCardStageTable.prototype, "idc", void 0);
+], ClientTable.prototype, "created_at", void 0);
 __decorate([
     (0, typeorm_1.Column)('varchar'),
-    __metadata("design:type", Number)
-], TCardStageTable.prototype, "code", void 0);
+    __metadata("design:type", String)
+], ClientTable.prototype, "title", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar'),
+    __metadata("design:type", String)
+], ClientTable.prototype, "reg_n", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar'),
+    __metadata("design:type", String)
+], ClientTable.prototype, "adress", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar'),
+    __metadata("design:type", String)
+], ClientTable.prototype, "email", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar'),
+    __metadata("design:type", String)
+], ClientTable.prototype, "phone", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar'),
+    __metadata("design:type", String)
+], ClientTable.prototype, "person", void 0);
 __decorate([
     (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
-], TCardStageTable.prototype, "tcard_id", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], TCardStageTable.prototype, "team_id", void 0);
-exports.TCardStageTable = TCardStageTable = __decorate([
-    (0, typeorm_1.Entity)('t_card_stages')
-], TCardStageTable);
+], ClientTable.prototype, "team_id", void 0);
+exports.ClientTable = ClientTable = __decorate([
+    (0, typeorm_1.Entity)('clients')
+], ClientTable);

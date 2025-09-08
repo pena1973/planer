@@ -9,35 +9,51 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TCardStageTable = void 0;
+exports.BillTable = void 0;
 const typeorm_1 = require("typeorm");
-let TCardStageTable = class TCardStageTable {
+let BillTable = class BillTable {
 };
-exports.TCardStageTable = TCardStageTable;
+exports.BillTable = BillTable;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], TCardStageTable.prototype, "id", void 0);
+], BillTable.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
-], TCardStageTable.prototype, "created_at", void 0);
+], BillTable.prototype, "created_at", void 0);
+__decorate([
+    (0, typeorm_1.Column)('date'),
+    __metadata("design:type", String)
+], BillTable.prototype, "date", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "Invoice" }),
+    __metadata("design:type", String)
+], BillTable.prototype, "title", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], BillTable.prototype, "coment", void 0);
 __decorate([
     (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
-], TCardStageTable.prototype, "idc", void 0);
+], BillTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar'),
+    (0, typeorm_1.Column)('decimal', { precision: 12, scale: 2, default: 0 }),
     __metadata("design:type", Number)
-], TCardStageTable.prototype, "code", void 0);
+], BillTable.prototype, "amount", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int'),
+    (0, typeorm_1.Column)('decimal', { precision: 12, scale: 2, default: 0 }),
     __metadata("design:type", Number)
-], TCardStageTable.prototype, "tcard_id", void 0);
+], BillTable.prototype, "vat_amount", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int'),
+    (0, typeorm_1.Column)('decimal', { precision: 12, scale: 2, default: 0 }),
     __metadata("design:type", Number)
-], TCardStageTable.prototype, "team_id", void 0);
-exports.TCardStageTable = TCardStageTable = __decorate([
-    (0, typeorm_1.Entity)('t_card_stages')
-], TCardStageTable);
+], BillTable.prototype, "total_amount", void 0);
+__decorate([
+    (0, typeorm_1.Column)('decimal', { precision: 12, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], BillTable.prototype, "vat", void 0);
+exports.BillTable = BillTable = __decorate([
+    (0, typeorm_1.Entity)("bills")
+], BillTable);

@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-    const { amount, userId } = req.body as { amount: number; userId: number, teamId: number };
+    const { amount, userId, vat, teamId } = req.body as { amount: number; userId: number, teamId: number, vat: number };
     if (!amount || amount <= 0) return res.status(400).send('Invalid amount');
     if (!userId) return res.status(400).send('Missing userId');
 
@@ -45,9 +45,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Важно: прокидываем метаданные для вебхука
         metadata: {
           userId: String(userId),
-          teamId: String(req.body.teamId),
+          teamId: String(teamId),
           amountInCents: String(amountInCents),
           purpose: 'balance_topup',
+          vat: Number(vat),
         },
       },
       // опционально защитимся от повторов
@@ -55,8 +56,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     return res.status(200).json({ redirectUrl: session.url! });
-  } catch (err: any) {
-    console.error('create-checkout error', err);
+
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('create-checkout error:', err.message, err.stack);
+    } else {
+      console.error('create-checkout error:', String(err));
+    }
     return res.status(500).send('Failed to create checkout session');
   }
+
 }

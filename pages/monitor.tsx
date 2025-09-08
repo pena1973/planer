@@ -18,20 +18,15 @@ import { RootState, useAppDispatch } from "@/pages/_app";
 
 import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/utils";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
-
+import { getCurrentDateInDate, getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone"
 export default function Monitor() {
 
   const { t, i18n } = useTranslation();
-const { push } = useRouter();
+  const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
-  const [day, setDay] = useState(() => {
-    const date = new Date();
-    date.setHours(0, 0, 0, 0);
 
-    return date;
-  });
 
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;
@@ -69,6 +64,14 @@ const { push } = useRouter();
     return state.viewSlice.activeTeam;
   })
   if (!activeTeam) push('/support')
+
+  const [day, setDay] = useState(() => {
+    const date = getCurrentDateInDate(schedule.timeZone)
+    // const date = new Date();
+    // date.setHours(0, 0, 0, 0);
+
+    return date;
+  });
 
   useEffect(() => {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,
@@ -286,6 +289,7 @@ const { push } = useRouter();
               userId={user.id}
               units={units}
               token={token}
+              timezone={schedule.timeZone}
             />
           </div>}
         </div>

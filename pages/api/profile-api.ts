@@ -24,12 +24,16 @@ import { ActionTable } from './../../db/models/catalogs/actions';
 import { UOMsTable } from './../../db/models/catalogs/uoms';
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions';
 import { SettingsTable } from './../../db/models/plan/settings';
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
 import { UserUnitTable } from './../../db/models/catalogs/user_unit';
+import { ActiveTimeTable } from './../../db/models/billing/active_time';
 
 import { UserItem } from './../../types/types';
 import { updateUser } from './../../handlers/handlers-auth';  // расчеты
 
 import { deleteDataTeam, deleteUser } from './../../handlers/handlers-delete';
+import { getTeamShedule } from '@/handlers/handlers-get';
+
 
 interface RequestBody {
   userId: number,
@@ -61,7 +65,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
   const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
   const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
-  const userUnitRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable); // Извлекаем данные из тела запроса
+  const userUnitRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
+
   const { teamId, userId, oldpass, newpass, name, isAdmin } = req.body as RequestBody;
   try {
 
@@ -102,10 +109,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             res.status(400).json({ error: 'teamId обязателен для админа и должен быть числом' });
             return;
           }
+          
+           // запросим расписание компании чтобы взять timezone
+           const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
 
           const resTeam = await deleteDataTeam(
             Number(teamId),
+            shedule_.timeZone,
             teamsRepository,
+            activeTimeRepository,
             {
               unitLoads: unitLoadsRepository,
               templates: templatesRepository,
@@ -121,6 +133,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               settings: settingsRepository,
               actions: actionsRepository,
               uoms: uomsRepository,
+              teamSchedule:teamScheduleRepository,
+              
             }
           );
 

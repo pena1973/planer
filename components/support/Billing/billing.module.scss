@@ -62,20 +62,6 @@
   padding: 4px 0;
 }
 
-// .badge {
-//   display: inline-block;
-//   padding: 1px 6px;
-//   border-radius: $border-radius;
-//   background: rgb(238, 238, 238);
-//   border: $border;
-//   margin-right: 6px;
-//   font-size: 0.85rem;
-//   color: #444;
-// }
-
-// .muted {
-//   color: #888;
-// }
 
 /* блок оплаты */
 .pay_row {
@@ -84,6 +70,7 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .balance {

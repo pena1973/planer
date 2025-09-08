@@ -7,6 +7,7 @@ import { generateTeamNumber } from "@/lib/utils"; // <- твоя функция
 import { getMain, getTeams, getActiveTime } from './../handlers/handlers-get';
 import { TeamItem } from "@/types/types";
 
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/timezone"
 
 export type TeamMonthlyCost = {
   teamId: number,
@@ -19,6 +20,7 @@ export type TeamMonthlyCost = {
 
 function startOfMonthUTC(y: number, m01: number) { return new Date(Date.UTC(y, m01 - 1, 1)); }
 function endOfMonthUTC(y: number, m01: number) { return new Date(Date.UTC(y, m01, 0)); } // последний день
+// Здесь расчет по времени сервера
 function todayUTC() { const n = new Date(); return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate())); }
 function ymd(d: Date) { return d.toISOString().slice(0, 10); }
 function diffDaysInclusive(a: Date, b: Date) { const ms = b.getTime() - a.getTime(); if (ms < 0) return 0; return Math.floor(ms / 86400000) + 1; }
@@ -44,7 +46,7 @@ export async function calcMonthlyTeamCosts(
   const price = main.price;
   const discount = main.discount;
 
-  // определяем даты расчета
+  // определяем даты расчета по времени сервера
   const now = todayUTC();
 
   const mStart = startOfMonthUTC(year, month); //начало переданного месяца

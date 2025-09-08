@@ -9,67 +9,64 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserTable = void 0;
+exports.MainTable = void 0;
+// Каталог номенклатуры в пределах карты. Уникальный ключ карта idc + продукт idc
 const typeorm_1 = require("typeorm");
-let UserTable = class UserTable {
+const decimalToNumber = {
+    to: (v) => v,
+    from: (v) => (v == null ? null : parseFloat(v)),
 };
-exports.UserTable = UserTable;
+let MainTable = class MainTable {
+};
+exports.MainTable = MainTable;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], UserTable.prototype, "id", void 0);
+], MainTable.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
-], UserTable.prototype, "created_at", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ default: "" }),
-    __metadata("design:type", String)
-], UserTable.prototype, "name", void 0);
+], MainTable.prototype, "created_at", void 0);
 __decorate([
     (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
-], UserTable.prototype, "login", void 0);
+], MainTable.prototype, "title", void 0);
 __decorate([
     (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
-], UserTable.prototype, "pass", void 0);
+], MainTable.prototype, "reg_n", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { default: "" }),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
-], UserTable.prototype, "loginhash", void 0);
+], MainTable.prototype, "adress", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { default: "en" }),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
-], UserTable.prototype, "locale", void 0);
+], MainTable.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)('boolean', { default: false }),
-    __metadata("design:type", Boolean)
-], UserTable.prototype, "isAdmin", void 0);
-__decorate([
-    (0, typeorm_1.Column)('boolean', { default: false }),
-    __metadata("design:type", Boolean)
-], UserTable.prototype, "confirmed", void 0);
-__decorate([
-    (0, typeorm_1.Column)('varchar', { default: "" }),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
-], UserTable.prototype, "coment", void 0);
+], MainTable.prototype, "phone", void 0);
 __decorate([
-    (0, typeorm_1.Column)('boolean', { default: true }),
-    __metadata("design:type", Boolean)
-], UserTable.prototype, "active", void 0);
+    (0, typeorm_1.Column)('varchar'),
+    __metadata("design:type", String)
+], MainTable.prototype, "person", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int'),
+    (0, typeorm_1.Column)('decimal', { precision: 12, scale: 2, default: 0, transformer: decimalToNumber }),
     __metadata("design:type", Number)
-], UserTable.prototype, "team_id", void 0);
+], MainTable.prototype, "price", void 0);
 __decorate([
-    (0, typeorm_1.Column)('boolean', { default: false }),
-    __metadata("design:type", Boolean)
-], UserTable.prototype, "isSystem", void 0);
+    (0, typeorm_1.Column)('smallint', { default: 0 }),
+    __metadata("design:type", Number)
+], MainTable.prototype, "discount", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'password_changed_at', type: 'timestamptz', nullable: true }),
-    __metadata("design:type", Object)
-], UserTable.prototype, "password_changed_at", void 0);
-exports.UserTable = UserTable = __decorate([
-    (0, typeorm_1.Entity)("users")
-], UserTable);
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], MainTable.prototype, "from", void 0);
+__decorate([
+    (0, typeorm_1.Column)('decimal', { precision: 12, scale: 2, default: 0, transformer: decimalToNumber }),
+    __metadata("design:type", Number)
+], MainTable.prototype, "VAT", void 0);
+exports.MainTable = MainTable = __decorate([
+    (0, typeorm_1.Entity)('main')
+], MainTable);

@@ -50,7 +50,8 @@ export default function Admin() {
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();
-  const [period, setPeriod] = useState<string>(getCurrentYM()); // 'YYYY-MM'
+  const [periodCreateInv, setPeriodCreateInv] = useState<string>(getCurrentYM()); // 'YYYY-MM'
+  const [periodDeactTeam, setPeriodDeactTeam] = useState<string>(getCurrentYM()); // 'YYYY-MM'
 
   const token = useSelector((state: RootState) => {
     return state.authSlice.token;
@@ -66,14 +67,14 @@ export default function Admin() {
   const [passValue, setPassValue] = useState('');
   const [loaderButtonLogin, setLoaderButtonLogin] = useState(false);
 
-  
+
 
   const createBillsHandler = async () => {
-    if (!period || !/^\d{4}-\d{2}$/.test(period)) {
+    if (!periodCreateInv || !/^\d{4}-\d{2}$/.test(periodCreateInv)) {
       setMessage('Выберите год и месяц');
       return;
     }
-    const [yStr, mStr] = period.split('-');
+    const [yStr, mStr] = periodCreateInv.split('-');
     const year = Number(yStr);
     const month = Number(mStr); // 1..12
 
@@ -81,14 +82,24 @@ export default function Admin() {
       setMessage('');
       await createBills(token, year, month, t, setMessage);
       // при необходимости: push('/billing');
-    } catch (e: any) {
-      setMessage(e?.message || 'Не удалось сформировать счета');
+    } catch (e: unknown) {
+      let message = "'Не удалось сформировать счета'";
+      if (e instanceof Error) {
+        message = `'Не удалось сформировать счета': ${e.message}`;
+        setMessage(message);
+      }
     }
   };
 
   const deactivateTeams = async () => {
-    await deactivateTeamsByBalance(token, t, setMessage);
-
+    if (!periodDeactTeam || !/^\d{4}-\d{2}$/.test(periodDeactTeam)) {
+      setMessage('Выберите год и месяц');
+      return;
+    }
+    const [yStr, mStr] = periodDeactTeam.split('-');
+    const year = Number(yStr);
+    const month = Number(mStr); // 1..12
+    await deactivateTeamsByBalance(token, year, month, t, setMessage);
   };
 
 
@@ -106,8 +117,8 @@ export default function Admin() {
               <span>Выберите год и месяц</span>
               <input className="input_admin"
                 type="month"
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
+                value={periodCreateInv}
+                onChange={(e) => setPeriodCreateInv(e.target.value)}
                 min="2020-01"
                 max="2035-12"
               />
@@ -120,6 +131,16 @@ export default function Admin() {
           {user.isSystem && <div className="container_admin_block">
             Для команд у которых расход превышает баланс  кнопка переводит их в неактивные до пополнения баланса.
             Соотвеьтственно команды не смогут пользоватся программой
+            <label className="label_admin">
+              <span>Выберите год и месяц</span>
+              <input className="input_admin"
+                type="month"
+                value={periodDeactTeam}
+                onChange={(e) => setPeriodDeactTeam(e.target.value)}
+                min="2020-01"
+                max="2035-12"
+              />
+            </label>
             <button
               onClick={deactivateTeams}
             >Деактивировать неплательшиков</button>

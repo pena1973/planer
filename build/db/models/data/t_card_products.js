@@ -52,6 +52,10 @@ __decorate([
     (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardProductTable.prototype, "product_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int'),
+    __metadata("design:type", Number)
+], TCardProductTable.prototype, "team_id", void 0);
 exports.TCardProductTable = TCardProductTable = __decorate([
     (0, typeorm_1.Entity)('t_card_products')
 ], TCardProductTable);

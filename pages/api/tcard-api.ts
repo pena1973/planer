@@ -10,12 +10,14 @@ import { TCardStageTable } from './../../db/models/data/t_card_stages'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
 import { TeamTable } from './../../db/models/catalogs/teams'
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { UnitLoadTable } from './../../db/models/plan/unit_loads'
 import { ProductTable } from './../../db/models/data/products'
 import { UOMsTable } from './../../db/models/catalogs/uoms'
 import { UnitTable } from './../../db/models/catalogs/units'
 import { ActionTable } from './../../db/models/catalogs/actions'
+import { getCurrentDateInString } from "./../../lib/timezone"
 
 import {
   TCardItem, TCardProductItem,
@@ -27,7 +29,7 @@ import {
   ProductItem
 } from './../../types/types';
 
-import { getTCardFull, getTCardLoads, getUnitActions, getUnits } from './../../handlers/handlers-get';  // 
+import { getTeamShedule, getTCardFull, getTCardLoads, getUnitActions, getUnits } from './../../handlers/handlers-get';  // 
 import {
   updateCard, updateStages, updateOperations, updateCatalogProducts,
   updateProducts, updateTCardLoads, updateStatusTCard,
@@ -54,7 +56,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
   const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
-
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   try {
 
     const { teamId: teamIdget, tCardId: tCardIdget } = req.query;
@@ -149,7 +151,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             tCard.tCardOperations,
             savedTCard,
             savedTCardStages,
-           Number(teamId))
+            Number(teamId))
           if (!resOperations.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOperations.message });
             return;
@@ -173,7 +175,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             (!tCard.tCardMaterials) ? [] as TCardProductItem[] : tCard.tCardMaterials,
             (!tCard.tCardWastes) ? [] as TCardProductItem[] : tCard.tCardWastes,
             (!tCard.tCardOperations) ? [] as TCardOperationItem[] : tCard.tCardOperations,
-             Number(teamId)
+            Number(teamId)
           )
 
           if (!resProducts.success) {
@@ -216,6 +218,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { tCardId: tCardIddel, teamId: teamIddel } = req.query;
         const tCardId = Number(tCardIddel);
 
+        const shedule_ = await getTeamShedule(Number(teamIddel), teamScheduleRepository, teamsRepository)
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard__ = await getTCardFull(Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository)
@@ -232,12 +235,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const loads = await getTCardLoads(tCard__, units, unitLoadRepository)
         if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
 
-        // фильтруем лоады по сегодняшней дате
-        const today = new Date().toLocaleDateString("en-CA");
+        // фильтруем лоады по сегодняшней дате  в таймзоне команды
+        // const today = new Date().toLocaleDateString("en-CA");
+          const today = getCurrentDateInString(shedule_.timeZone);
 
         // получаем исторические лоады и те которые еще не выполнены переводим в статус canceled
         const historyLoads = loads
-          .filter(load => new Date(load.date).toLocaleDateString("en-CA") < today)
+          // .filter(load => new Date(load.date).toLocaleDateString("en-CA") < today)
+          .filter(load => load.date < today)
           .map(load => {
             if (load.status === StatusEnum.planed) {
               return { ...load, status: StatusEnum.cancelled }; // Возвращаем объект с новым статусом
@@ -248,7 +253,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // получаем лоады которые в статусе уже сделанных и не в истории - они должны остаться
         // остальные удаляем
         const planLoads = loads.filter(load => {
-          return new Date(load.date).toLocaleDateString("en-CA") >= today &&
+          // return new Date(load.date).toLocaleDateString("en-CA") >= today &&
+          return load.date >= today &&
             (load.status === StatusEnum.performed || load.status === StatusEnum.defective || load.status === StatusEnum.ready);
         });
 
@@ -283,7 +289,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               active: unit.active,
 
             } as UnitItem,
-            date: new Date(lo.date).toLocaleDateString('en-CA'),
+            date: lo.date,
+            // date: new Date(lo.date).toLocaleDateString('en-CA'),
             idc_oper: lo.idc_oper,
             id_oper: lo.id_oper,
             id_tCard: lo.id_tCard,

@@ -8,7 +8,7 @@ import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 
-import { formatDate, padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/utils"
+import { padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/utils"
 import { useEffect, useState } from "react";
 
 import { erazeLoad } from '@/services/plan/erazeLoad';
@@ -102,10 +102,13 @@ export default function Cards() {
   const unitLoads = useSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
+  const schedule = useSelector((state: RootState) => {
+    return state.catalogSlice.schedule;
+  })
   //показывает текущее состояние активности команды
   const activeTeam = useSelector((state: RootState) => {
     return state.viewSlice.activeTeam;
-  })
+  })  
   if (!activeTeam) push('/support')
 
   // Начальный загруз
@@ -1586,6 +1589,7 @@ export default function Cards() {
             fixed={fixed}
             operLoads={operLoads}
             cancelLoadHandler={cancelLoadHandler}
+            timezone={schedule.timeZone}
           />}
 
         {tCardOperation.mode && <TCardOperNew
@@ -1631,8 +1635,8 @@ export default function Cards() {
   const tCardsReactNodes = tCards.map((elem, index4) => {
     let date = "";
     if (elem.date)
-      date = formatDate(new Date(elem.date));
-
+      // date = formatDate(new Date(elem.date));
+       date = elem.date;
     return (
       <div key={"card" + elem.date + elem.id} className="container_card">
         <div className="container_icon_edit_save">
@@ -1713,6 +1717,7 @@ export default function Cards() {
             onCardUpload={onCardUpload}
             uoms={uoms}
             actions={actions}
+            timezone={schedule.timeZone}
           />
 
         </div>

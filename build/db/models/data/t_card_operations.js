@@ -59,6 +59,10 @@ __decorate([
     (0, typeorm_1.Column)('int', { default: 0 }),
     __metadata("design:type", Number)
 ], TCardOperationTable.prototype, "fix_oper_idc", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int'),
+    __metadata("design:type", Number)
+], TCardOperationTable.prototype, "team_id", void 0);
 exports.TCardOperationTable = TCardOperationTable = __decorate([
     (0, typeorm_1.Entity)('t_card_operations')
 ], TCardOperationTable);

@@ -25,7 +25,7 @@ __decorate([
 ], TCardTable.prototype, "created_at", void 0);
 __decorate([
     (0, typeorm_1.Column)('date'),
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], TCardTable.prototype, "date", void 0);
 __decorate([
     (0, typeorm_1.Column)('int'),

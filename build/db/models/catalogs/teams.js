@@ -37,7 +37,7 @@ __decorate([
     __metadata("design:type", Date)
 ], TeamTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
 ], TeamTable.prototype, "title", void 0);
 __decorate([
@@ -45,9 +45,13 @@ __decorate([
     __metadata("design:type", String)
 ], TeamTable.prototype, "coment", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)('varchar'),
     __metadata("design:type", String)
 ], TeamTable.prototype, "prefix", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], TeamTable.prototype, "main_team", void 0);
 __decorate([
     (0, typeorm_1.BeforeInsert)(),
     __metadata("design:type", Function),

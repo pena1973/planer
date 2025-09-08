@@ -6,6 +6,7 @@ import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import { useState } from "react";
 import Image from 'next/image';
 import { convertMinutesToTime } from "@/lib/utils"
+import { getCurrentDateInString } from "@/lib/timezone"
 
 import edit from "@/public/edit-rem.png";
 import del from "@/public/del2.png";
@@ -32,7 +33,8 @@ export interface TCardOperProps {
     lightProduct: number,
     fixed: boolean,
     operLoads: UnitLoadItem[],
-    cancelLoadHandler: (load_idc: number) => void
+    cancelLoadHandler: (load_idc: number) => void,
+    timezone: string,
 }
 
 export default function TCardOper({
@@ -55,11 +57,12 @@ export default function TCardOper({
     lightProduct,
     fixed,
     operLoads,
-    cancelLoadHandler
+    cancelLoadHandler,
+    timezone
 }: TCardOperProps) {
     const { t, i18n } = useTranslation();
     const [showLoads, setShowLoads] = useState(NaN); // операция на которой надо лоады развернуть
-
+    const currentDateString = getCurrentDateInString(timezone); // формат YYYY-MM-DD
     let outReactNodes;
     if (tCardOperation.out) {
         outReactNodes = tCardOperation.out.map((elem2, index1) => {
@@ -126,7 +129,9 @@ export default function TCardOper({
     let operLoadsReactNodes;
     if (operLoads) {
         operLoadsReactNodes = operLoads.map((lo, index1) => {
-            const color1 = (lo.date < new Date().toLocaleDateString("en-CA")) ? 'rgba(240, 240, 240, 1)' : '';
+            // const color1 = (lo.date < new Date().toLocaleDateString("en-CA")) ? 'rgba(240, 240, 240, 1)' : '';
+            const color1 = (lo.date < currentDateString) ? 'rgba(240, 240, 240, 1)' : '';
+
             return (
                 <div key={index1} className={styles.container_row_load}
                     style={{ background: color1 }}>

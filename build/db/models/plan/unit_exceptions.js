@@ -30,7 +30,7 @@ __decorate([
 ], UnitExceptionTable.prototype, "idc", void 0);
 __decorate([
     (0, typeorm_1.Column)('date'),
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], UnitExceptionTable.prototype, "date", void 0);
 __decorate([
     (0, typeorm_1.Column)('enum', { enum: types_1.TimeTypeEnum }),

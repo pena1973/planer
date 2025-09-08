@@ -11,7 +11,7 @@ import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
 import DottedLine from "./DottedLine/dottedLine";
 import UnitMenu from "./UnitMenu/unitMenu";
-
+import { getCurrentDateInDate, addDaysInZone } from "@/lib/timezone"
 import { useTranslation } from 'react-i18next';
 
 import { useResizeObserver } from './useResizeObserver'; // Хук отслеживания расмеров окна
@@ -77,7 +77,8 @@ export interface PlanScaleContainerProps {
   moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => Promise<void>,
   pinLoadHandler: (oper_id: number, version: number) => void,
   unPinLoadHandler: (oper_id: number, tCardId: number, version: number) => void
-  unitActions: UnitActionItem[]
+  unitActions: UnitActionItem[],
+  timezone: string
 }
 
 export default function PlanScaleContainer({
@@ -92,7 +93,8 @@ export default function PlanScaleContainer({
   moveLoadHandler,
   pinLoadHandler,
   unPinLoadHandler,
-  unitActions
+  unitActions,
+  timezone
 
 }: PlanScaleContainerProps) {
 
@@ -130,18 +132,21 @@ export default function PlanScaleContainer({
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
 
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  // const today = new Date();
+  // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  let today = getCurrentDateInDate(timezone);
 
   // если  день приходится на выходные  и в настройках указано что мы скрываем выходные но нет доп часов на это время
   // крутим до первого буднего дня
   while (!settings.showWeekend && isWeekend(today, schedule) && !isAdditionalTime(today, schedule)) {
-    today.setDate(today.getDate() + 1);
+    // today.setDate(today.getDate() + 1);
+    today = addDaysInZone(today, 1, timezone);
   }
   // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
   // крутим до первого буднего дня
   while (!settings.showHoliday && isHoliday(today, schedule) && !isAdditionalTime(today, schedule)) {
-    today.setDate(today.getDate() + 1);
+    // today.setDate(today.getDate() + 1);
+    today = addDaysInZone(today, 1, timezone);
   }
 
   const todayDateRef = useRef(idDay(today));
@@ -162,14 +167,23 @@ export default function PlanScaleContainer({
     // setTimelineWidth(0); // убираю лишний рендер
     scaleRestart.current = true;
 
-    // реализуем ленивую загрузку
-    // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно
-    if (!calendarPlus.current.find(elem => elem.idDay === idDay(today))) {
-      calendarPlus.current = [...calendarPlus.current, generateCalendarItem(today, schedule)];
-    }
+    // Вычисляем видимые элементы  беру сегодня как стартовую дату
+    const _dayWidth = calculateWidthDay(timelineWidth, scale)
+    visibleItemsPlus.current = calculateVisibleItemsPlus(today, timelineWidth, _dayWidth, shift)
+
+    visibleItemsPlus.current.forEach(idDay => {
+      // реализуем ленивую загрузку видимых дней но сначала проверим чтоб не задвоить день случайно
+      if (!calendarPlus.current.find(elem => elem.idDay === idDay)) {
+        calendarPlus.current = [...calendarPlus.current, generateCalendarItem(idDay, schedule)];
+      }
+    })
+
+
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
-    const filteredCalendar = calendarPlus.current.filter(item => item.date >= today);
+    const filteredCalendar = calendarPlus.current.filter(item => {
+      return (item.date >= today)
+    });
     setCalendarViewPlus(filteredCalendar);
   }
 
@@ -222,7 +236,6 @@ export default function PlanScaleContainer({
     unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.inner);
     unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.outer);
 
-    // Стартовый масштаб всегда 100% и в нем помещается один день  
     // реализуем ленивую загрузку   
     // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно    
     if (!calendarPlus.current.find(elem => elem.idDay === idDay(today))) {
@@ -247,10 +260,12 @@ export default function PlanScaleContainer({
     setDayWidth(calculateWidthDay(timelineWidth, scale)) // //padding 20 с обоих сторон уже учтен в timelineWidth
 
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
-    visibleItemsPlus.current = calculateVisibleItemsPlus(new Date(today), timelineWidth, _dayWidth, shift)
+    // visibleItemsPlus.current = calculateVisibleItemsPlus(new Date(today), timelineWidth, _dayWidth, shift)
+    visibleItemsPlus.current = calculateVisibleItemsPlus(today, timelineWidth, _dayWidth, shift)
 
     // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный  
-    visibleItemsMinus.current = calculateVisibleItemsMinus(new Date(today), timelineWidth, _dayWidth, shift)
+    // visibleItemsMinus.current = calculateVisibleItemsMinus(new Date(today), timelineWidth, _dayWidth, shift)
+    visibleItemsMinus.current = calculateVisibleItemsMinus(today, timelineWidth, _dayWidth, shift)
 
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
@@ -271,7 +286,10 @@ export default function PlanScaleContainer({
   //scaleRestart.current  - принудительный рестарт
 
 
-  const calculateVisibleItemsPlus = (startDay: Date, timelineWidth: number, dayWidth: number, shift: number) => {
+  const calculateVisibleItemsPlus = (day: Date, timelineWidth: number, dayWidth: number, shift: number) => {
+
+    const startDay = addDaysInZone(day, 0, timezone); //  убираю мутабельность и остаюсь в таймзоне команды
+    // const startDay = new Date(day); // стартовый день для расчета видимых дней на шкале
     // если shift>0 тоэто сдвиг вперед
     // если shift<0 тоэто сдвиг назад
 
@@ -292,7 +310,7 @@ export default function PlanScaleContainer({
 
     let _timelineWidth = timelineWidth - shift;
     // console.log('✅ _timelineWidth', _timelineWidth);
-    const _day = startDay; // временная переменная для дней  буду ее инкрементировать
+    let _day = startDay; // временная переменная для дней  буду ее инкрементировать
     let countDay = 0;
 
     while (_timelineWidth > 0) {
@@ -303,12 +321,14 @@ export default function PlanScaleContainer({
       // если  день приходится на выходные  и в настройках указано что мы скрываем выходные
       // крутим до первого буднего дня
       while (!settings.showWeekend && isWeekend(_day, schedule) && !isAdditionalTime(_day, schedule)) {
-        _day.setDate(_day.getDate() + 1);
+        // _day.setDate(_day.getDate() + 1);
+        _day = addDaysInZone(_day, 1, timezone);
       }
       // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
       // крутим до первого буднего дня
       while (!settings.showHoliday && isHoliday(_day, schedule) && !isAdditionalTime(_day, schedule)) {
-        _day.setDate(_day.getDate() + 1);
+        // _day.setDate(_day.getDate() + 1);
+        _day = addDaysInZone(_day, 1, timezone);
       }
 
       // уменьшаем ширину на ширину дня
@@ -318,7 +338,8 @@ export default function PlanScaleContainer({
 
       // обрабатываем только в том случае если день попадает в видимый диапазон       
       if (_timelineWidth + shift > timelineWidth) {
-        _day.setDate(_day.getDate() + 1);
+        // _day.setDate(_day.getDate() + 1);
+         _day = addDaysInZone(_day,1,timezone);
         continue
       }
 
@@ -344,7 +365,8 @@ export default function PlanScaleContainer({
       }
 
       // Добавляем один день
-      _day.setDate(_day.getDate() + 1);
+      _day = addDaysInZone(_day, 1, timezone);
+      // _day.setDate(_day.getDate() + 1);
 
     }
     // setVisibleItems(_visibleItems)
@@ -369,22 +391,25 @@ export default function PlanScaleContainer({
     let countDay = 0;
     // если сдвиг положительный то нужно отстроить дни в прошлое
     //  буду сдвиг отсчитывать от сегодня
-    if (shift >= 0) {
+    if (shift > 0) {
       let _shift = shift; // сдвег в прошлое     
-      const _dayPast = new Date(startDay); // временная переменная для дней  буду ее инкрементировать  
-      _dayPast.setDate(today.getDate() - 1);
+      // const _dayPast = new Date(startDay); // временная переменная для дней  буду ее инкрементировать  
+      // _dayPast.setDate(today.getDate() - 1);
+      let _dayPast = addDaysInZone(startDay, -1, timezone);
 
       while (_shift > 0) {
 
         // если  день приходится на выходные  и в настройках указано что мы скрываем выходные и нет доп часов
         // крутим до первого буднего дня
         while (!settings.showWeekend && isWeekend(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
-          _dayPast.setDate(_dayPast.getDate() - 1);
+          // _dayPast.setDate(_dayPast.getDate() - 1);
+           _dayPast = addDaysInZone(_dayPast,-1,timezone);
         }
         // если  день приходится на праздники  и в настройках указано что мы скрываем праздники и нет доп часов
         // крутим до первого буднего дня
         while (!settings.showHoliday && isHoliday(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
-          _dayPast.setDate(_dayPast.getDate() - 1);
+          // _dayPast.setDate(_dayPast.getDate() - 1);
+          _dayPast = addDaysInZone(_dayPast,-1,timezone);
         }
 
         const id_day = idDay(_dayPast); //  сгенерили
@@ -409,8 +434,8 @@ export default function PlanScaleContainer({
           }
 
         }
-
-        _dayPast.setDate(_dayPast.getDate() - 1) // от сегодня сдвинули в прошлое день
+        _dayPast = addDaysInZone(_dayPast, -1, timezone);
+        // _dayPast.setDate(_dayPast.getDate() - 1) // от сегодня сдвинули в прошлое день
       }
     }
 
@@ -432,67 +457,6 @@ export default function PlanScaleContainer({
     }
   };
 
-  // // Хендлер для отпускания операции(лоада) на шкалу и предварительное  планирование
-  // const handleDropOper_Old = async (
-  //   event: React.DragEvent,
-  //   toUnitView: UnitItem
-  // ) => {
-  //   event.preventDefault();
-  //   if (!draggingLoad || !divRefPlus.current) return;
-
-  //   setIsLoadingDrop(draggingLoad.version);
-
-  //   const containerRect = divRefPlus.current.getBoundingClientRect();
-
-  //   const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
-  //   const startQuant = Math.floor(settings.timeStartWork / 5);
-  //   const finishQuant = Math.ceil(timeFinishWork / 5);
-  //   const quants = finishQuant - startQuant;
-
-  //   const fullDayWidth = dayWidth;
-  //   const pxPerQuant = fullDayWidth / quants;
-  //   const pxPerMinute = pxPerQuant / 5;
-
-  //   const isDraggingRetul = draggingLoad.isRetool === true;
-
-  //   // 🧩 Если тащим саму операцию, смещаем влево на toUnitView.retool
-  //   const retoolDurationPx = !isDraggingRetul && toUnitView.retool && toUnitView.belong === UnitBelongEnum.inner
-  //     ? toUnitView.retool * pxPerMinute
-  //     : 0;
-
-  //   const adjustedOffset = dragOffsetX.current + retoolDurationPx;
-
-  //   const leftEdgeX = event.clientX - adjustedOffset;
-  //   const relativeX = leftEdgeX - containerRect.left + divRefPlus.current.scrollLeft;
-
-  //   // 🧩 3. Определим день
-  //   const dayIndex = Math.floor(relativeX / fullDayWidth);
-  //   const calendarItem = calendarViewPlus[dayIndex];
-  //   if (!calendarItem) {
-  //     setIsLoadingDrop(NaN);
-  //     return
-  //   };
-
-  //   const dayLeft = dayIndex * fullDayWidth;
-  //   const offsetWithinDay = relativeX - dayLeft;
-
-  //   const quantWidth = fullDayWidth / quants;
-  //   const quantIndex = Math.floor(offsetWithinDay / quantWidth);
-  //   const timeStart = (startQuant + quantIndex) * 5;
-  //   const timeFinish = timeStart + 5;
-
-  //   // 🧩 4. Перемещаем
-  //   await moveLoadHandler(
-  //     draggingLoad,
-  //     toUnitView,
-  //     calendarItem.date.toLocaleDateString("en-CA"),
-  //     timeStart,
-  //     timeFinish
-  //   );
-
-  //   setDraggingLoad(undefined);
-  //   setIsLoadingDrop(NaN);
-  // };
 
   const handleDropOper = async (
     event: React.DragEvent,

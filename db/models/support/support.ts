@@ -9,7 +9,7 @@ export class SupportTable {
     created_at!: Date;
 
     @Column('date') // дата писма
-    date!: Date;
+    date!: string;
 
     @Column('varchar',{ default: "" })
     title!: string;

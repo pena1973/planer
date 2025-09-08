@@ -4,10 +4,8 @@ import connectDb from '../../../db/database';
 import { TeamTable } from "../../../db/models/catalogs/teams";
 import { ActiveTimeTable } from "../../../db/models/billing/active_time";
 import { MainTable } from "../../../db/models/billing/main";
-import { calcMonthlyTeamCosts } from "../../../handlers/calcMonthlyTeamCosts";
-import { getTeam, } from '../../../handlers/handlers-auth';
 import { getTypedRepository } from '../../../db/utilites';
-import { getTeamsByMainteamNumber, getForecast } from '../../../handlers/handlers-get';
+import { getForecast, getMain } from '../../../handlers/handlers-get';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
@@ -19,10 +17,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { teamId, month, year } = req.query;
 
     const forecast = await getForecast(Number(teamId), Number(year), Number(month), teamsRepository, activeTimeRepository, mainRepository,);
+    const endOfMonth = new Date(Number(year), Number(month), 0);
+    const ymd = endOfMonth.toLocaleDateString('en-CA'); // "YYYY-MM-DD"
+    const main = await getMain(mainRepository, ymd);
 
     return res.status(200).json({
       success: true,
       forecast: forecast,
+      VAT: main.VAT,
     });
   } catch (error) {
     console.error('Ошибка подключения или выполнения запроса (forecast-api):', error);

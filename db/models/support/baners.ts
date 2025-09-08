@@ -9,10 +9,10 @@ export class BanerTable {
     created_at!: Date;
 
     @Column('date')
-    date_from!: Date; // дата начала показа банера
+    date_from!: string; // дата начала показа банера
 
     @Column('date')
-    date_to!: Date; // дата окончания показа банера
+    date_to!: string; // дата окончания показа банера
 
     @Column('varchar', { default: "" })
     locale!: string;

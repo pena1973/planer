@@ -15,7 +15,7 @@ import DropdownSelectTimeType from "@/components/resources/UnitsCatalog/Dropdown
 
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
-
+import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone"
 import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
@@ -70,6 +70,10 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     const unitActions = useSelector((state: RootState) => {
         return state.planSlice.unitActions;
     })
+    const schedule = useSelector((state: RootState) => {
+        return state.catalogSlice.schedule;
+    })
+
     const [unitsValue, setUnitsValue] = useState([] as UnitItem[]); //временное хранилище юнитов
     const [exceptionsValue, setExceptionsValue] = useState([] as UnitExceptionItem[]); //отклонения распиания юнитов от общего расписания
     const [unitActionsValue, setUnitActionsValue] = useState([] as UnitActionItem[]); //действия юнитов  action
@@ -287,11 +291,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         unitModified();
         const unit = unitsValue[focusIndexUnit];
         const actionsValueUpdated = [
-            ...unitActionsValue, 
-            { idc: generateUniqueIdc(), 
-                unitId: unit.id, 
-                unitIdc: unit.idc, 
-                koef: 1 } as UnitActionItem]
+            ...unitActionsValue,
+            {
+                idc: generateUniqueIdc(),
+                unitId: unit.id,
+                unitIdc: unit.idc,
+                koef: 1
+            } as UnitActionItem]
         setUnitActionsValue(actionsValueUpdated);
     };
     // На клиенте
@@ -353,8 +359,10 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     // На клиенте
     const addExceptionHandler = () => {
         unitModified();
+         const todayStr = getCurrentDateInString(schedule.timeZone);
         const unit = unitsValue[focusIndexUnit];
-        const exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
+        // const exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
+        const exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: todayStr } as UnitExceptionItem]
         setExceptionsValue(exceptionsValueUpdated);
     };
     // На клиенте
@@ -483,9 +491,10 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                         value={elem.date ? (new Date(elem.date)).toLocaleDateString('en-CA') : ""}
                         type="date"
                         onChange={e => {
-                            const date = new Date(e.target.value);
-                            date.setHours(0, 0, 0, 0);
-                            changeExceptionHandler(elem.id, elem.idc, date.toLocaleDateString("en-CA"), "date");
+                            // const date = new Date(e.target.value);
+                            // date.setHours(0, 0, 0, 0);
+                            // changeExceptionHandler(elem.id, elem.idc, date.toLocaleDateString("en-CA"), "date");
+                            changeExceptionHandler(elem.id, elem.idc, e.target.value, "date");
                         }}
                     />
                 </td>
@@ -533,13 +542,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         )
 
         )
-  
+
     // Действия которые уже выбраны в списоке юнита
     const selectedValues = (unitActionsValue || [])
         .filter(elem => elem.unitIdc === unitsValue[focusIndexUnit]?.idc)
         .map((elem) =>
             elem.action?.id
-    )
+        )
     // Действия
     const unitFocusActionValueReactNodes = (unitActionsValue || [])
         .filter(elem => elem.unitIdc === unitsValue[focusIndexUnit]?.idc)

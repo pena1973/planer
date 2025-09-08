@@ -10,7 +10,7 @@ import { TeamTable } from '../../../db/models/catalogs/teams';
 
 import { ActiveTimeTable } from '../../../db/models/billing/active_time';
 import { MainTable } from '../../../db/models/billing/main';
-
+// import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
 import { calcMonthlyTeamCosts } from "../../../handlers/calcMonthlyTeamCosts";
 import { generateTeamNumber } from '@/lib/utils'
 import { changeStateTeamsByIds } from './../../../handlers/handlers-update';
@@ -30,8 +30,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     switch (req.method) {
       case 'GET': {
+        const { year, month } = req.query;
+
+        const endOfMonth = new Date(Number(year), Number(month), 0);
+        const ymd = endOfMonth.toLocaleDateString('en-CA'); // "YYYY-MM-DD"
+
         // 1) все балансы главных (или вообще всех) команд
-        const balances = await getBalances(new Date().toLocaleDateString('en-CA'),balanceRepository); // [{teamId,balance}]
+        // const balances = await getBalances(new Date().toLocaleDateString('en-CA'), balanceRepository); // [{teamId,balance}]
+        const balances = await getBalances(ymd, balanceRepository); // [{teamId,balance}]
+       
+        // const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+
         const balanceByTeam = new Map<number, number>(
           balances.map(b => [b.teamId, round2(b.balance)])
         );
@@ -39,12 +48,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // 2) все команды
         const teams: TeamItem[] = await getTeams(teamsRepository);
 
-        // 3) расходы текущего месяца по всем командам
-        const year  = new Date().getFullYear();
-        const month = new Date().getMonth() + 1;
+
+        // const mainTeamsIds = mainTeams.map(team => team.id);
+        // // запросим расписания компаний чтобы взять timezone
+        // const shedules = await getTeamsShedule(mainTeams, teamScheduleRepository)
+
+        // const today = getCurrentDateInString(shedule_.timeZone);
+
+        // // 3) расходы текущего месяца по всем командам
+        // const year = new Date().getFullYear();
+        // const month = new Date().getMonth() + 1;
 
         const costs: { teamId: number, amountteam: number }[] =
-          await calcMonthlyTeamCosts(teams, teamsRepository, activeTimeRepository, mainRepository, year, month);
+          await calcMonthlyTeamCosts(teams, teamsRepository, activeTimeRepository, mainRepository, Number(year), Number(month));
 
         // мапа затрат по команде
         const costByTeam = new Map<number, number>(

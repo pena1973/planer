@@ -37,6 +37,9 @@ import {
 
 import { ClientItem, BillItem } from './../types/service-types';
 
+
+import { getCurrentDateInString } from "../lib/timezone"
+
 // Создание c строки баланса
 export async function updateBalance(
   balanceRepository: Repository<BalanceTable>,
@@ -227,16 +230,18 @@ export async function changeStateTeamsByIds(
 export async function changeStateTeambyId(
   activeTimeRepository: Repository<ActiveTimeTable>,
   teamId: number,
-  state: boolean
+  state: boolean,
+  timezone:string,
 ): Promise<{ success: boolean; message?: string; team?: TeamTable }> {
 
   if (!Number.isFinite(teamId)) {
     return { success: false, message: "Команда не указана." };
   }
-
+const todayStr =   getCurrentDateInString(timezone);
   try {
     const activityTime = activeTimeRepository.create({
-      date: new Date().toLocaleDateString('en-CA'),
+      // date: new Date().toLocaleDateString('en-CA'),
+      date: todayStr,
       direction: state ? 'start' : "finish",
       team_id: teamId
     });
@@ -863,10 +868,10 @@ export async function updateExceptions(
 
   // Добавляем новые действия Юнита
   const newUnitException = unitExceptionsToAdd.map(unitException => {
-    const date = new Date(unitException.date);
+    // const date = new Date(unitException.date);
     return unitExceptionsRepository.create({
       idc: unitException.idc,
-      date: date,
+      date: unitException.date,
       type: unitException.type,
       timeStart: unitException.timeStart,
       timeFinish: unitException.timeFinish,
@@ -883,7 +888,8 @@ export async function updateExceptions(
   const updatedUnitExceptions = unitExceptionToUpdate.map(unitException => {
     const existingUnitException = existingUnitExceptions.find(existingUnitException => existingUnitException.id === unitException.id);
     if (existingUnitException) {
-      existingUnitException.date = new Date(unitException.date);
+      // existingUnitException.date = new Date(unitException.date);
+      existingUnitException.date = unitException.date;
       existingUnitException.timeFinish = unitException.timeFinish;
       existingUnitException.timeStart = unitException.timeStart;
       existingUnitException.type = unitException.type;
@@ -1225,11 +1231,12 @@ export async function updateTCardLoads(
 
 // получаю максимальный номер карты
 // не беру id потому что он в пределах таблицы
-async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>) {
+async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>,teamId:number) {
 
   const result = await tCardRepository
     .createQueryBuilder("tCard")
     .select("MAX(CAST(tCard.idc AS int))", "maxNumber")
+    .where({team_id:teamId})
     .getRawOne();
 
   // Если результат не null, возвращаем максимальное значение, иначе 
@@ -1258,7 +1265,7 @@ export async function updateCard(
     // Генерируем номер карты, если idc = 0
     let newCardNumber = Number(tCard.idc);
     if (tCard.idc === 0) {
-      newCardNumber = await generateNewNumberForTeam(tCardRepository);
+      newCardNumber = await generateNewNumberForTeam(tCardRepository,teamId);
       if (!newCardNumber) {
         return { success: false, message: `Ошибка при генерации номера карты` };
       }

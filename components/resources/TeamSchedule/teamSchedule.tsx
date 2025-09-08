@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from "@/pages/_app";
 
 import { useTranslation } from 'react-i18next';
-
+import { getCurrentDateInDate, getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone";
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";
@@ -247,7 +247,9 @@ export default function TeamSchedule({
     };
     // На клиенте
     const addHolidayHandler = () => {
-        const newHoliday = new Date().toLocaleDateString("en-CA").split(',')[0];
+        const dateString = getCurrentDateInString(schedule.timeZone);
+        const newHoliday = dateString.split(',')[0];
+        // const newHoliday = new Date().toLocaleDateString("en-CA").split(',')[0];
         setHolidaysValue([...holidaysValue, newHoliday])
         setModified(true);
     };

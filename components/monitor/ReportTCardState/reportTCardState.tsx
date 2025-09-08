@@ -210,7 +210,8 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
         );
       });
 
-      const cardTitle = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}`;
+      // const cardTitle = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}`;
+      const cardTitle = `${padNumberToFourDigits(tCard.idc)} - ${tCard.date}`;
       const cardStatusStyle = getStyleStatus(tCard.status);
       if (commonDuration === 0) commonDuration = 1;
       const cardReady = Math.round(readyDuration / commonDuration * 100);

@@ -9,47 +9,51 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BanerTable = void 0;
+exports.BalanceTable = void 0;
 const typeorm_1 = require("typeorm");
-let BanerTable = class BanerTable {
+let BalanceTable = class BalanceTable {
 };
-exports.BanerTable = BanerTable;
+exports.BalanceTable = BalanceTable;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], BanerTable.prototype, "id", void 0);
+], BalanceTable.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
-], BanerTable.prototype, "created_at", void 0);
-__decorate([
-    (0, typeorm_1.Column)('date'),
-    __metadata("design:type", String)
-], BanerTable.prototype, "date_from", void 0);
-__decorate([
-    (0, typeorm_1.Column)('date'),
-    __metadata("design:type", String)
-], BanerTable.prototype, "date_to", void 0);
+], BalanceTable.prototype, "created_at", void 0);
 __decorate([
     (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
-], BanerTable.prototype, "locale", void 0);
+], BalanceTable.prototype, "date", void 0);
 __decorate([
-    (0, typeorm_1.Column)('text'),
+    (0, typeorm_1.Column)('decimal', { precision: 12, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], BalanceTable.prototype, "summa", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
-], BanerTable.prototype, "message", void 0);
+], BalanceTable.prototype, "direction", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], BalanceTable.prototype, "document", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], BalanceTable.prototype, "coment", void 0);
 __decorate([
     (0, typeorm_1.Column)('boolean', { default: false }),
     __metadata("design:type", Boolean)
-], BanerTable.prototype, "active", void 0);
+], BalanceTable.prototype, "is_trial", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int', { nullable: true }),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
-], BanerTable.prototype, "team_id", void 0);
+], BalanceTable.prototype, "team_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int', { nullable: true }),
-    __metadata("design:type", Number)
-], BanerTable.prototype, "user_id", void 0);
-exports.BanerTable = BanerTable = __decorate([
-    (0, typeorm_1.Entity)("baners")
-], BanerTable);
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], BalanceTable.prototype, "transaction_id", void 0);
+exports.BalanceTable = BalanceTable = __decorate([
+    (0, typeorm_1.Entity)("balance")
+], BalanceTable);

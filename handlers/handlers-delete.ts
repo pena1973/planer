@@ -21,12 +21,13 @@ import { ActionTable } from './../db/models/catalogs/actions';
 import { UOMsTable } from './../db/models/catalogs/uoms';
 import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
 import { SettingsTable } from './../db/models/plan/settings';
+import { TeamScheduleTable } from './../db/models/plan/team_schedule';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
-
+import { ActiveTimeTable } from './../db/models/billing/active_time';
 // types
 import { UserItem, } from './../types/types';
 
-
+import { changeStateTeambyId } from './../handlers/handlers-update';  // расчеты
 
 // Пользователи
 export async function deleteUsers(
@@ -112,7 +113,9 @@ export async function deleteSupport(
 
 export async function deleteDataTeam(
   teamId: number,
+  timezone:string,
   teamRepository: Repository<TeamTable>,
+  activeTimeRepository: Repository<ActiveTimeTable>,
   repositories: {
     unitLoads: Repository<UnitLoadTable>,
     templates: Repository<TemplateTable>,
@@ -128,6 +131,7 @@ export async function deleteDataTeam(
     settings: Repository<SettingsTable>,
     actions: Repository<ActionTable>,
     uoms: Repository<UOMsTable>
+    teamSchedule: Repository<TeamScheduleTable>
   }
 ): Promise<{ success: boolean; message: string }> {
   if (!Number.isFinite(teamId)) {
@@ -141,9 +145,16 @@ export async function deleteDataTeam(
       throw new Error(`Команда с id=${teamId} не найдена`);
     }
 
-    // Деактивация команды
-    teamToUpdate.active = false;
-    await teamRepository.save(teamToUpdate);
+    // // Деактивация команды
+    // изменение состояния активности команды
+    const resTeam = await changeStateTeambyId(activeTimeRepository, Number(teamId), false,timezone)
+   
+    if (!resTeam.success) {
+      console.warn('Не удалось деактивировать команду перед удалением:', resTeam.message);
+      
+    }
+    // teamToUpdate.active = false;
+    // await teamRepository.save(teamToUpdate);
 
     // Список всех репозиториев с подписью
     const repoList: [string, Repository<any>][] = [
@@ -161,6 +172,7 @@ export async function deleteDataTeam(
       ['Settings', repositories.settings],
       ['Actions', repositories.actions],
       ['UOMs', repositories.uoms],
+      ['TeamSchedule', repositories.teamSchedule],
     ];
 
     let totalDeleted = 0;

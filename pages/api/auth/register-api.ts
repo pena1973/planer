@@ -10,12 +10,13 @@ import { TeamTable } from './../../../db/models/catalogs/teams';
 import { UserAgreeTable } from './../../../db/models/catalogs/user_agree';
 import { AgreementTable } from './../../../db/models/catalogs/agreements';
 import { SettingsTable } from './../../../db/models/plan/settings'
+import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
 import { ActiveTimeTable } from './../../../db/models/billing/active_time'
 import { BalanceTable } from './../../../db/models/billing/balance'
 
 import { updateSettings } from './../../../handlers/handlers-update';  // расчеты
-
-import { TeamItem, UserItem } from './../../../types/types';
+import { getCurrentDateInString } from "./../../../lib/timezone"
+import { TeamItem, UserItem, TimeZoneEnum, ScheduleItem, SettingsItem } from './../../../types/types';
 
 import { sign } from 'jsonwebtoken';
 import {
@@ -24,6 +25,7 @@ import {
 } from './../../../handlers/handlers-auth';
 
 import { updateBalance } from './../../../handlers/handlers-update';
+import { assert } from 'console';
 
 interface RequestBody {
   login: string,
@@ -33,6 +35,7 @@ interface RequestBody {
   nickname: string,
   basedOnTeam: boolean,
   basedTeamNumber: string,
+  timezone: TimeZoneEnum
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -44,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
   const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
   const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const active_timeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
   const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
 
@@ -53,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
       case 'POST':
         // Извлекаем данные из тела запроса
-        const { login, pass, teamNumber, createTeam, nickname, basedOnTeam, basedTeamNumber } = req.body as RequestBody;
+        const { login, pass, teamNumber, createTeam, nickname, basedOnTeam, basedTeamNumber, timezone } = req.body as RequestBody;
 
         // проверяем  есть ли такой логин  если есть - отказ
         const isUserExist_ = await isUserExist(login, usersRepository)
@@ -68,36 +72,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Команда
         let team = {} as TeamItem;
-
         // если создаем команду 
         if (Boolean(createTeam)) {
-
-          const resTeam = await createNewTeam(teamsRepository, active_timeRepository, (basedOnTeam) ? basedTeamNumber : null);
+          // Внутри создания команды автозаполнение настроек и расписания
+          const resTeam = await createNewTeam(
+            teamsRepository,
+            active_timeRepository,
+            settingsRepository,
+            teamScheduleRepository,
+            timezone,
+            (basedOnTeam) ? basedTeamNumber : null,);
 
           if (!resTeam.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });
             return;
           }
 
-          team = resTeam.team
+          team = resTeam.team;
 
-          //  создаем настройки команды
-          const settings = {
-            timeStartWork: 540,
-            timeFinishWork: 1080,
-            showWeekend: false,
-            showHoliday: false,
-            isQualControl: true
-          }
-          const resSettings = await updateSettings(
-            settingsRepository,
-            settings,
-            team.id
-          )
-          if (!resSettings.success) {
-            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSettings.message });
-            return;
-          }
 
         } else {
           //  иначе ищем команду по номеру
@@ -109,8 +101,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam1.message });
             return;
           }
-
           team = resTeam1.team;
+
         }
 
         // Юзер
@@ -140,11 +132,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const agreementText = resAgreement.agreementText;
         const agreementId = resAgreement.agreementId;
 
+        const todayStr = getCurrentDateInString(timezone)
         // проводка пополнения  баланса  при создании новой независимой команды в режиме триал
         if (!basedOnTeam) {
           const balanceRes = await updateBalance(
-            balanceRepository, team.id, "", 100, new Date().toLocaleDateString('en-CA'),
-            true, 'trial - ' + new Date().toLocaleDateString('en-CA'), "+", "")
+            balanceRepository,
+            team.id,
+            "",
+            100,
+            // new Date().toLocaleDateString('en-CA'),
+            todayStr,
+            true,
+            // 'trial - ' + new Date().toLocaleDateString('en-CA'), "+", "")
+            'trial - ' + todayStr, "+", "")
           if (!balanceRes.success) {
             console.log("баланс не пополнен  trial, teamId:" + team.id);
           }
