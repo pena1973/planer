@@ -13,6 +13,7 @@ import {
   setSettings,
   setSignedAgreement,
   setUnit,
+  setActiveTeam,
 } from './../../store/slices';
 
 interface LoginPayload {
@@ -50,7 +51,7 @@ export const loginHandler = async ({
 
   try {
 
-    const res = await fetch(`api/login-api`,
+    const res = await fetch(`api/auth/login-api`,
       {
         method: 'post',
         headers: new Headers({
@@ -81,6 +82,7 @@ export const loginHandler = async ({
         const signed_ = receivedData.signed as boolean;
         const agreementId_ = receivedData.agreementId as number
         const unit_ = receivedData.unit as UnitItem
+        const activeTeam = receivedData.activeTeam as boolean
 
         //   Обновим настройки
         dispatch(setUser(user_));
@@ -95,8 +97,11 @@ export const loginHandler = async ({
         dispatch(setSettings(settings_));
         dispatch(setSignedAgreement(signed_));
         dispatch(setUnit(unit_));
+        dispatch(setActiveTeam(activeTeam));
         agreementIdRef.current = agreementId_;
         agreementTextRef.current = agreementText_;
+        
+        
         setStep(3);
       } else setMessageLogin(receivedData.message);
     }

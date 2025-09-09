@@ -1,6 +1,6 @@
 
 import { CalendarItem, TCardContent, StatusEnum, ScheduleItem, DaysOfWeek } from "@/types/types";
-
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/timezone"
 
 export const ISOStringToLocalDateTime = (isoDate: string) => {
   const date = new Date(isoDate);
@@ -36,18 +36,18 @@ export function formatDateTime(date: Date) {
 
 }
 
-export function formatDate(date: Date) {
-  if (date instanceof Date && !isNaN(date.getTime())) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Месяцы начинаются с 0, поэтому добавляем 1
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
+// export function formatDate(date: Date) {
+//   if (date instanceof Date && !isNaN(date.getTime())) {
+//     const year = date.getFullYear();
+//     const month = String(date.getMonth() + 1).padStart(2, '0'); // Месяцы начинаются с 0, поэтому добавляем 1
+//     const day = String(date.getDate()).padStart(2, '0');
+//     const hours = String(date.getHours()).padStart(2, '0');
+//     const minutes = String(date.getMinutes()).padStart(2, '0');
+//     const seconds = String(date.getSeconds()).padStart(2, '0');
 
-    return `${year}-${month}-${day}`;
-  } else { return "" }
-}
+//     return `${year}-${month}-${day}`;
+//   } else { return "" }
+// }
 
 export function padNumberToFourDigits(number: number): string {
   if (!number) return "new";
@@ -194,8 +194,13 @@ export const idDay = (date: Date): string => {
 // генерация одного дня на шкале
 export const generateCalendarItem = (day: string | Date, schedule: ScheduleItem): CalendarItem => {
 
-  const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-  currentDate.setHours(0, 0, 0, 0);
+  const currentDate = (typeof day === 'string')
+    ? getTimeZoneDateFromDateString(day, schedule.timeZone)
+    : day
+
+
+  // const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
+  // currentDate.setHours(0, 0, 0, 0);
 
   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
@@ -306,12 +311,12 @@ export const validateFileContent = (content: TCardContent) => {
   if (!Array.isArray(content.tCardOperations)) missingFields.push("tCardOperations");
   if (!Array.isArray(content.tCardStages)) missingFields.push("tCardStages");
 
-   // Проверка на корректность значений
+  // Проверка на корректность значений
   if (content.products) {
     content.products.forEach((product, index) => {
       if (!product.idc || (typeof product.idc !== 'number')) invalidFields.push(`products[${index}].idc`);
-      if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);      
-       if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);
+      if (!product.title) invalidFields.push(`tCardProducts[${index}].title`);
+      if (!product.uom || !product.uom.code || !product.uom.title) invalidFields.push(`tCardProducts[${index}].uom`);
     });
   }
 
@@ -320,7 +325,7 @@ export const validateFileContent = (content: TCardContent) => {
     content.tCardProducts.forEach((tProduct, index) => {
       if (!tProduct.code) invalidFields.push(`tCardProducts[${index}].code`);
       if (!tProduct.productIdc) invalidFields.push(`tCardProducts[${index}].productIdc`);
-      if (typeof tProduct.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);      
+      if (typeof tProduct.qtu !== 'number') invalidFields.push(`tCardProducts[${index}].qtu`);
     });
   }
 

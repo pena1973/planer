@@ -34,7 +34,7 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
   token
 }) => {
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   // Меняем статус операции по нажатию кенопки юнитом 
   // На сервере
@@ -76,12 +76,14 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
     const tCard = tCards.find(tCard => tCard.id === lo.id_tCard); // ищем карточку
     const terms = getStartFinishOper(lo);
 
-    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
+    // const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}` : "";
+    const cardTitle = tCard ? `${padNumberToFourDigits(tCard.idc)} - ${tCard.date}` : "";
+    
     const statusStyle = lo.status === StatusEnum.ready ? styles.ready : lo.status === StatusEnum.defective ? styles.defective : styles.planed;
     return (<tr key={index}>
 
       <td> {cardTitle}</td>
-      <td> {lo.loadInfo?.title}, C{lo.idc_oper}</td>
+      <td> {lo.loadInfo?.title}, A{lo.idc_oper}</td>
       <td> {lo.unit.title}</td>
       <td>{`${terms.start.date}: ${convertMinutesToTime1(terms.start.time)}`}</td>
       <td>{`${terms.finish.date}: ${convertMinutesToTime1(terms.finish.time)}`}</td>

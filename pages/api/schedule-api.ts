@@ -2,13 +2,14 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utilites'
+import { getTypedRepository } from './../../db/utilites'
 
 import { getTeamShedule } from './../../handlers/handlers-get';  // расчеты
 
 import { Repository } from 'typeorm';
 import { TeamTable } from './../../db/models/catalogs/teams'
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
+import { getTimeZoneDateFromDateString } from './../../lib/timezone';
 
 import { ScheduleItem } from './../../types/types';
 
@@ -71,7 +72,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 
-// ДЕЙСТВИЯ
+// Расписание
 async function updateShedule(
   scheduleRepository: Repository<TeamScheduleTable>,
   schedule: ScheduleItem,
@@ -109,8 +110,8 @@ async function updateShedule(
     existingSchedule.timeStartWork = schedule.timeStartWork;
     existingSchedule.timeFinishWork = schedule.timeFinishWork;
     existingSchedule.breaks = schedule.breaks;
-    // existingSchedule.holidays = schedule.holidays.map(date => date.toLocaleDateString('en-CA'));
-    existingSchedule.holidays = schedule.holidays.map(date => new Date(date));
+    // existingSchedule.holidays = schedule.holidays.map(date => new Date(date));
+    existingSchedule.holidays = schedule.holidays.map(date => getTimeZoneDateFromDateString(date,schedule.timeZone));
     existingSchedule.weekends = schedule.weekends;
     existingSchedule.workdays = schedule.workdays.map(workday => ({
       date: String(workday.date).split('T')[0],

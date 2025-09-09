@@ -1,31 +1,34 @@
 
+import { Repository, In, MoreThanOrEqual } from "typeorm";
+
 import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utilites'
+import { getTypedRepository } from './../../db/utilites'
 
 import { getEarliestStart } from './../../handlers/handlers-plan';  // планирование карты
-import { Repository } from 'typeorm';
+
 
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
 import { TCardTable } from './../../db/models/data/t_cards'
-
+import { TeamTable } from './../../db/models/catalogs/teams'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
 import { ProductTable } from './../../db/models/data/products'
-import { getTCardFull } from './../../handlers/handlers-get';  // 
+import { getTCardFull, getTeamShedule } from './../../handlers/handlers-get';  // 
 import { updateStatusTCard } from './../../handlers/handlers-update';  // 
 import { ActionTable } from './../../db/models/catalogs/actions'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
 
 import { TCardOperationItem, UnitLoadItem, StatusEnum } from "./../../types/types";
+import { getCurrentDateInString } from "@/lib/timezone";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
   tCardId: number,
-  today: string,
+  // today: string,
   teamId: number,
   userId: number
 }
@@ -36,10 +39,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
-  const TeamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
   // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -49,8 +53,13 @@ const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
       // Стираем планирование всех плановых и отменяем все что в истории кроме выполненных
 
       case 'POST':
-        const { tCardLoads, tCardId, today, teamId, userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+      const { tCardLoads, tCardId, teamId, userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
         //tCardLoads //Это все лоады покарте
+
+        // запросим расписание компании чтобы взять timezone
+       const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
+        
+       const today =  getCurrentDateInString(shedule_.timeZone) // на всякий случай синхронизируем дату с серверной
 
         // Убираем prepared
         let tCardLoadsUpdated = tCardLoads.filter(lo => {
@@ -63,12 +72,12 @@ const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
 
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard = await getTCardFull( 
+        const tCard = await getTCardFull(
           Number(teamId),
-          Number(tCardId), 
-          tCardRepository, 
-          tCardOperationsRepository, 
-          tCardProductRepository, 
+          Number(tCardId),
+          tCardRepository,
+          tCardOperationsRepository,
+          tCardProductRepository,
           tCardStagesRepository,
           productRepository,
           actionRepository
@@ -189,10 +198,10 @@ const deleteLoads = async (
   if (delOperIds.length === 0) return { success: true, message: `Нет операций для удаления.` };
 
   try {
+
     const result = await unitLoadRepository
       .createQueryBuilder()
       .delete()
-      .from(UnitLoadTable)
       .where("id_oper IN (:...delOperIds)", { delOperIds })
       .andWhere("status = :status", { status: StatusEnum.planed })
       .andWhere("date >= :today", { today })
@@ -210,34 +219,28 @@ const deleteLoads = async (
 };
 
 
+
 const setOperStatus = async (
   operationIds: number[],
   newStatus: StatusEnum,
   tCardOperationsRepository: Repository<TCardOperationTable>
-): Promise<{ success: boolean, message: string }> => {
-  if (operationIds.length === 0) return { success: true, message: `Нет операций для изменения.` };
-  try {
-    const result = await tCardOperationsRepository
-      .createQueryBuilder()
-      .update(TCardOperationTable)
-      .set({ status: newStatus })
-      .where("id IN (:...operationIds)", { operationIds })
-      .execute();
+): Promise<{ success: boolean; message: string }> => {
+  if (operationIds.length === 0) {
+    return { success: true, message: "Нет операций для изменения." };
+  }
 
-    if (result.affected && result.affected > 0) {
-      return { success: true, message: `Обновлено ${result.affected} операций.` };
-    } else {
-      return { success: false, message: "Ни одна операция не обновлена." };
-    }
-  } catch (error: unknown) {
-    let message = "Ошибка обновления статуса операций.";
-    if (error instanceof Error) {
-      message = error.message;
-      console.error("Ошибка обновления операций:", error);
-    } else {
-      console.error("Неизвестная ошибка при обновлении операций:", error);
-    }
-    return { success: false, message };
+  try {
+    const result = await tCardOperationsRepository.update(
+      { id: In(operationIds) },   // WHERE id IN (...)
+      { status: newStatus }       // SET status = :newStatus
+    );
+
+    return result.affected && result.affected > 0
+      ? { success: true, message: `Обновлено ${result.affected} операций.` }
+      : { success: false, message: "Ни одна операция не обновлена." };
+  } catch (error) {
+    console.error("Ошибка обновления операций:", error);
+    return { success: false, message: "Ошибка обновления статуса операций." };
   }
 };
 

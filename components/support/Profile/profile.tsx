@@ -1,14 +1,17 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from "./profile.module.scss";
-import { changePassword, changeName } from "@/services/login/profileService";
+import { changePassword, changeName, deleteProfile } from "@/services/login/profileService";
+// import { changePassword, changeName } from "@/services/login/profileService";
+import { logout } from '@/lib/logout'
 
 import { UserItem, TeamItem, UnitItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import { generateTeamNumber } from '@/lib/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
-import { useAppDispatch } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 interface ProfileProps {
   setMessage: (message: string) => void,
@@ -35,14 +38,33 @@ export const Profile: React.FC<ProfileProps> = ({
   const [newPass2Value, setNewPass2Value] = useState(''); // новый пароль повтор
   const [loaderButtonName, setLoaderButtonName] = useState(false);
   const [loaderButtonPass, setLoaderButtonPass] = useState(false);
+  const [loaderButtonDel, setLoaderButtonDel] = useState(false);
+
   const [nameValue, setNameValue] = useState(''); // имя юзера
   const [changePassValue, setChangePassValue] = useState(false);
   const [changeNameValue, setChangeNameValue] = useState(false);
+  const [deleteProfileValue, setDeleteProfileValue] = useState(false);
+
+  const [loginValue, setLoginValue] = useState(''); // Удаление профиля
 
   useEffect(() => {
     setUserValue(user)
   }, [user]);
 
+  const deleteProfileHandler = async (login: string) => {
+    setMessage("");
+    setLoaderButtonDel(true)
+    if (loginValue !== user.login) { 
+      setLoaderButtonDel(false)
+      return setMessage(t('profile.loginError')) 
+    }
+
+    const res = await deleteProfile(user.isAdmin, user.id, team.id, token, t, setMessage);
+    if (res) {
+      logout('/')
+    }
+    setLoaderButtonDel(false)
+  }
 
   // На сервере
   const changePassHandler = async () => {
@@ -72,9 +94,9 @@ export const Profile: React.FC<ProfileProps> = ({
 
     setLoaderButtonName(false)
   }
- // На клиенте
+  // На клиенте
   const teamNumberValue = generateTeamNumber(team.prefix, team.id);
-  
+
   return (
     <div className={styles.container}>
       <div className={styles.title}>
@@ -197,8 +219,40 @@ export const Profile: React.FC<ProfileProps> = ({
         {unit ? unit.code : ""}
       </div>}
 
+      {/* УДАЛЕНИЕ ПРОФИЛЯ */}
+      <div>
+        <div className={styles.checkbox_input_container}>
+          <label>{t('profile.delete')}</label>
+          &nbsp; &nbsp;
+          <input
 
-
+            id="showWeekend"
+            autoComplete="off"
+            checked={deleteProfileValue}
+            type="checkbox"
+            onChange={e => {
+              setDeleteProfileValue(!deleteProfileValue)
+            }}
+          />
+        </div>
+        {deleteProfileValue && <div className={styles._input_container}>
+          <input
+            className={styles._input}
+            type="text"
+            id="login"
+            value={loginValue}
+            placeholder={t('profile.login')}
+            onChange={(e) => { setLoginValue(e.target.value) }}
+            required autoComplete="off" />
+        </div>}
+        {deleteProfileValue && <div className={styles._button_container}>
+          <button className={styles.profile_button}
+            onClick={(e) => deleteProfileHandler(loginValue)}>
+            {loaderButtonDel && <ButtonLoader />}
+            {!loaderButtonDel && t('profile.buttondDeleteProfile')}
+          </button>
+        </div>}
+      </div>
 
     </div>
   );

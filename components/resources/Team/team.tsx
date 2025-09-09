@@ -7,7 +7,8 @@ import { generateTeamNumber } from '@/lib/utils'
 import Image from 'next/image';
 import { useEffect, useState } from "react";
 
-import { useAppDispatch } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import { setTeam, } from '@/store/slices'
 
 import { useTranslation } from 'react-i18next';

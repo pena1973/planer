@@ -41,7 +41,7 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
 
 }) => {
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [supportMessageValue, setSupportMessageValue] = useState({} as SupportMessageItem); // переключатель между каталогами
 
   const [buttonLoader, setButtonLoader] = useState(false);

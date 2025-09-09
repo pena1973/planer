@@ -9,7 +9,6 @@ import Filter from "./Filter/filter";
 
 import { useTranslation } from 'react-i18next';
 
-
 import { padNumberToFourDigits, convertMinutesToTime } from "@/lib/utils"
 
 interface ReportTCardStateProps {
@@ -25,7 +24,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   userId,
   token
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [tCardsValue, setTCardsValue] = useState([] as TCardTermsItem[]);
   const [unitLoadsValue, setUnitLoadsValue] = useState([] as UnitLoadItem[]);
@@ -179,7 +178,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
           operReady = 50;
           readyDuration += oper.duration / 2;
         }
-        const fixTitle = oper.fixOperIdc ? `, исправление A ${oper.fixOperIdc}` : "";
+        const fixTitle = oper.fixOperIdc ? `, исправление A${oper.fixOperIdc}` : "";
 
         return (
           <React.Fragment key={`oper-${tCard.id}-${index}`}>
@@ -211,7 +210,8 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
         );
       });
 
-      const cardTitle = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}`;
+      // const cardTitle = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString('en-CA')}`;
+      const cardTitle = `${padNumberToFourDigits(tCard.idc)} - ${tCard.date}`;
       const cardStatusStyle = getStyleStatus(tCard.status);
       if (commonDuration === 0) commonDuration = 1;
       const cardReady = Math.round(readyDuration / commonDuration * 100);

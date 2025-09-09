@@ -23,4 +23,7 @@ export class ProductTable {
 
   @Column('int')
   tcard_id!: number;
+
+  @Column('int')
+  team_id!: number;
 }

@@ -10,15 +10,18 @@ export class TeamTable {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;  // Используем тип Date и задаем значение по умолчанию для UTC времени
 
-  @Column()
+  @Column('varchar')
   title!: string;
 
   @Column({ type: 'text', default: "" })
   coment!: string;
 
-  @Column()
+  @Column('varchar')
   prefix!: string;
- 
+      
+  @Column('varchar',{ default: "" })
+  main_team!: string; // основная команда в которой выставляем счет
+
   // Хук, который будет вызываться перед вставкой записи в базу данных
   @BeforeInsert()
   generatePrefixAndUniqueId() {

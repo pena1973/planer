@@ -5,10 +5,17 @@ import { UserTable } from './../db/models/catalogs/users'
 import { TeamTable } from './../db/models/catalogs/teams'
 import { UserAgreeTable } from './../db/models/catalogs/user_agree';
 import { AgreementTable } from './../db/models/catalogs/agreements';
+import { ActiveTimeTable } from './../db/models/billing/active_time'
+import { VerificationCodeTable } from './../db/models/auth/verification_code';
+import { SettingsTable } from './../db/models/plan/settings'
+import { TeamScheduleTable } from './../db/models/plan/team_schedule'
+
+
 
 // types
-import { UserItem, TeamItem, } from './../types/types';
-
+import { UserItem, TeamItem, SettingsItem, TimeZoneEnum, DaysOfWeek, ScheduleItem, } from './../types/types';
+import { generateTeamNumber } from '@/lib/utils';
+import { checkCode } from './../lib/code';
 // хеш функция 
 export const hashFoo = async (data: string) => {
   const { createHmac } = await import('node:crypto')
@@ -17,25 +24,78 @@ export const hashFoo = async (data: string) => {
   return hash
 }
 
+import { getCurrentDateInString, } from "@/lib/timezone"
+// import { time } from 'node:console';
 
 export async function createNewTeam(
-  teamsRepository: Repository<TeamTable>
-): Promise<{ success: boolean, team: TeamItem, message?: string }> {
+  teamsRepository: Repository<TeamTable>,
+  activeTimeRepository: Repository<ActiveTimeTable>,
+  settingsRepository: Repository<SettingsTable>,
+  teamScheduleRepository: Repository<TeamScheduleTable>,
+  timezone: TimeZoneEnum,
+  main_team: string | null
+): Promise<{
+  success: boolean,
+  team: TeamItem,  
+  message?: string
+}> {
 
-  // Создаем новый объект команды
-  const team = new TeamTable();
-
-  // Заполняем необходимые поля
-  team.title = "New Team";  // Пример названия, можно заменить на реальные данные
-  team.coment = "This is a new team.";  // Пример комментария
-  team.prefix = "";  // Префикс будет сгенерирован в методе generatePrefixAndUniqueId
 
   // Сохраняем команду в базе данных
   try {
     // Сохраняем объект команды и вызываем хук для генерации уникальных данных
-    const savedteam = await teamsRepository.save(team);
+    // const savedteam_ = await teamsRepository.save(team);
 
+    const team = teamsRepository.create({
+      title: "New Team",
+      coment: "This is a new team.",
+      prefix: "",           // хук заполнит      
+      main_team: ""         // временно пусто
+    });
+
+    // 2) первый save -> сработает @BeforeInsert и заполнит prefix
+    const savedteam_ = await teamsRepository.save(team);
+
+    if (savedteam_) {
+      savedteam_.main_team = (main_team) ? main_team : generateTeamNumber(savedteam_.prefix, savedteam_.id)
+    }
+    const savedteam = await teamsRepository.save(savedteam_);
     // Возвращаем успешный результат с данными команды
+    const dateStr = getCurrentDateInString(timezone);
+
+    // сохраним время активацими команды
+    const active_time = activeTimeRepository.create({
+      date: dateStr,
+      direction: "start",
+      team_id: savedteam_.id
+    });
+    const savedactive_time = await activeTimeRepository.save(active_time);
+
+    // сохраним таймзону и расписание команды (предустановка)
+    const newSchedule = teamScheduleRepository.create({
+      timeStartWork: 540,
+      timeFinishWork: 1080,
+      breaks: [{ timeStart: 780, timeFinish: 840 }],
+      holidays: [],
+      weekends: [DaysOfWeek.SATURDAY, DaysOfWeek.SUNDAY],
+      workdays: [],
+      team_id: team.id,
+      timeZone: timezone,
+    });
+    const saveTeamSchedule = await teamScheduleRepository.save(newSchedule);
+
+    // сохраним начальные настройки команды (предустановка)
+    const newSettings = settingsRepository.create({
+      team_id: team.id,
+      timeStartWork: 480,
+      timeFinishWork: 1140,
+      showWeekend: false,
+      showHoliday: false,
+      isQualControl: true,
+    });
+    const savedNewSettings = await settingsRepository.save(newSettings);
+
+    
     return {
       success: true,
       team: {
@@ -43,10 +103,13 @@ export async function createNewTeam(
         title: savedteam.title,
         coment: savedteam.coment,
         prefix: savedteam.prefix,
+        main_team: savedteam.main_team,
       },
       message: "Команда успешно создана",
     };
-    
+
+
+
   } catch (e: unknown) {
     let message = "Ошибка при создании команды.";
     if (e instanceof Error) {
@@ -54,7 +117,7 @@ export async function createNewTeam(
     }
     return {
       success: false,
-      team: {} as TeamItem,
+      team: {} as TeamItem,     
       message,
     };
   }
@@ -102,6 +165,149 @@ export async function createNewUser(
   };
 
 }
+// &&&&& проверяет код при подтверждении мейла либо восстаенволении пароля
+export async function verifyCode(
+  email: string,
+  code: string,
+  purpose: string,
+  verificationCodeRepository: Repository<VerificationCodeTable>,
+): Promise<{ success: boolean, reason?: string }> {
+
+  try {
+    const rec = await verificationCodeRepository.createQueryBuilder('v')
+      .where('v.email = :email', { email })
+      .andWhere('v.purpose = :purpose', { purpose })
+      .andWhere('v.used = false')
+      .orderBy('v.created_at', 'DESC')
+      .getOne();
+
+    const now = new Date();
+    if (!rec || rec.expires_at < now || rec.attempts >= rec.max_attempts) {
+      if (rec && rec.expires_at < now) { rec.used = true; await verificationCodeRepository.save(rec); }
+      return { success: false, reason: 'invalid_or_expired' };
+    }
+
+    const ok = await checkCode(code, rec.code_hash);
+    if (!ok) {
+      rec.attempts += 1; await verificationCodeRepository.save(rec);
+      return { success: false, reason: 'invalid_or_expired' };
+    }
+
+    rec.used = true;
+    await verificationCodeRepository.save(rec);
+
+  } catch (e: unknown) {
+    let message = "Ошибка при обновлении пользователя.";
+    if (e instanceof Error) {
+      message = `Ошибка при обновлении пользователя: ${e.message}`;
+      return { success: false, reason: message };
+    }
+  }
+  return { success: true }
+}
+export async function confirmUserEmail(
+  email: string,
+  usersRepository: Repository<UserTable>,
+): Promise<{ success: boolean, message?: string }> {
+
+  try {
+    // Ищем пользователя по ID
+    const user = await usersRepository.findOne({ where: { login: email } });
+
+    // Если пользователь не найден
+    if (!user) {
+      return {
+        success: false,
+        message: 'Пользователь не найден.',
+      };
+    }
+
+    user.confirmed = true; // подтверждаем е мейл
+    // Сохраняем обновленного пользователя
+    const savedUser = await usersRepository.save(user);
+
+    // Возвращаем результат
+    return {
+      success: true,
+
+      message: 'Пользователь успешно обновлен.',
+    };
+  } catch (e: unknown) {
+    let message = "Ошибка при обновлении пользователя.";
+    if (e instanceof Error) {
+      message = `Ошибка при обновлении пользователя: ${e.message}`;
+    }
+    return {
+      success: false,
+
+      message,
+    };
+  }
+
+}
+
+export async function resetUserPass(
+  login: string,
+  pass: string,
+  usersRepository: Repository<UserTable>,
+): Promise<{ success: boolean, savedUser: UserItem, message?: string }> {
+
+  try {
+    // Ищем пользователя по ID
+    const user = await usersRepository.findOne({ where: { login: login } });
+
+    // Если пользователь не найден
+    if (!user) {
+      return {
+        success: false,
+        savedUser: {} as UserItem,
+        message: 'Пользователь не найден.',
+      };
+    }
+
+    if (!pass) {
+      return {
+        success: false,
+        savedUser: {} as UserItem,
+        message: 'Пароль не задан.',
+      };
+    }
+    const hashNew = await hashFoo(pass)
+    user.pass = hashNew; // Обновляем пароль
+
+    // Сохраняем обновленного пользователя
+    const savedUser = await usersRepository.save(user);
+
+    // Возвращаем результат
+    return {
+      success: true,
+      savedUser: {
+        id: savedUser.id,
+        login: savedUser.login,
+        pass: "",
+        name: savedUser.name,
+        locale: savedUser.locale,
+        isAdmin: Boolean(savedUser.isAdmin),
+        teamId: savedUser.team_id,
+        confirmed: Boolean(savedUser.confirmed),
+        isSystem: Boolean(savedUser.isSystem),
+      },
+      message: 'Пользователь успешно обновлен.',
+    };
+  } catch (e: unknown) {
+    let message = "Ошибка при обновлении пользователя.";
+    if (e instanceof Error) {
+      message = `Ошибка при обновлении пользователя: ${e.message}`;
+    }
+    return {
+      success: false,
+      savedUser: {} as UserItem,
+      message,
+    };
+  }
+
+}
+
 
 export async function updateUser(
   userId: number,
@@ -156,7 +362,9 @@ export async function updateUser(
         name: savedUser.name,
         locale: savedUser.locale,
         isAdmin: Boolean(savedUser.isAdmin),
-        teamId: savedUser.team_id, 
+        teamId: savedUser.team_id,
+        confirmed: Boolean(savedUser.confirmed),
+        isSystem: Boolean(savedUser.isSystem),
       },
       message: 'Пользователь успешно обновлен.',
     };
@@ -173,6 +381,7 @@ export async function updateUser(
   }
 
 }
+
 
 // &&&&&
 export async function getUser(
@@ -210,6 +419,8 @@ export async function getUser(
     isAdmin: userRecord.isAdmin, // Конвертируем строку в булево значение
     teamId: userRecord.team_id, // Добавляем teamId, если нужно
 
+    confirmed: Boolean(userRecord.confirmed),
+    isSystem: Boolean(userRecord.isSystem),
   };
 
   // Возвращаем результат
@@ -231,6 +442,7 @@ export async function isUserExist(
   return !(!userRecord)
 
 }
+
 //&&&&&&
 export async function getTeam(
   teamId: number,
@@ -247,7 +459,7 @@ export async function getTeam(
     };
   }
 
- 
+
   return {
     success: true,
     team: {
@@ -255,6 +467,7 @@ export async function getTeam(
       title: team.title,
       coment: team.coment,
       prefix: team.prefix,
+      main_team: team.main_team,
     },
     message: "Команда успешно найдена",
   };

@@ -3,7 +3,7 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utilites'
+import { getTypedRepository } from './../../db/utilites'
 
 import { getUnits, getUnitLoads, getTCardOperations, getUnitActions } from './../../handlers/handlers-get';  // расчеты
 
@@ -62,7 +62,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const unitsLoads_ = unitsLoads.map(lo => {
           const oper = opers.find(op => op.id === lo.id_oper);
 
-          const unitAction = unitActions_.find(ac => ac.id === oper?.action.id && ac.unitId === lo.unit.id);
+          const unitAction = unitActions_.find(ac => {
+            return (ac.action.id === oper?.action.id && ac.unitId === lo.unit.id)
+          });
 
           if (!oper) return { ...lo }
 
@@ -75,7 +77,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 title: oper.action.title,
                 duration: Math.round(oper.duration / 60000), // инфо показываем в минутах
                 interruptible: oper.action.interruptible,
-                koef: (unitAction) ? unitAction.koef : 1
+                koef: (unitAction) ? unitAction.koef : 1.00
               },
             }
           }

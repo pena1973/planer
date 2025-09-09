@@ -2,7 +2,7 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utilites'
+import { getTypedRepository } from './../../db/utilites'
 
 import { updateSupportMessage } from './../../handlers/handlers-update';  // расчеты
 
@@ -56,7 +56,8 @@ const db = await connectDb();
 
         const supportMessage_ = {
           id: savedMessage.id,
-          date: new Date(savedMessage.date).toLocaleDateString('en-CA'),
+          // date: new Date(savedMessage.date).toLocaleDateString('en-CA'),
+          date: savedMessage.date,
           title: savedMessage.title,
           body: savedMessage.body,
           userId: savedMessage.user_id,

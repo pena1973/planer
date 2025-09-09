@@ -30,7 +30,8 @@
     "wastes": "Waste",
     "comment": "Comment",
     "materials": "Materials",
-    "catalog": "Catalog"
+    "catalog": "Catalog",
+    "card": "Card"
   },
   "service": {
     "loginNotEntered": "Please enter your login",
@@ -39,6 +40,7 @@
     "recoveryMailSent": "Password recovery email has been sent"
   },
   "index": {
+    "downloadBaner": "Banner uploaded",
     "downloadUoms": "Measurement units loaded",
     "downloadActions": "Available actions loaded",
     "downloadTemplates": "Templates loaded",
@@ -87,7 +89,8 @@
     "repeat": "Repeat",
     "sourse": "Source",
     "action": "Action",
-    "result": "Result"
+    "result": "Result",
+    "loads": "Loading time slots"
   },
   "cardsopernew": {
     "add": "Add",
@@ -237,7 +240,7 @@
     "outerActions1": "Actions assigned to external performers",
     "readiness": "Card readiness",
     "kpi": "Units KPIs",
-    "kpi1": "KPIs of working units",    
+    "kpi1": "KPIs of working units",
     "notes": "Notes",
     "notes1": "Position not assigned, please contact your supervisor"
   },
@@ -335,11 +338,41 @@
     "cookie": "Cookie policy",
     "docs": "Documentation"
   },
+  "client": {
+    "title": "Client name",
+    "vat": "VAT number",
+    "address": "Address",
+    "email": "Email",
+    "phone": "Phone",
+    "person": "Contact person",
+    "save": "Save"
+  },
   "bills": {
     "date": "Date",
     "title": "Invoice",
     "download": "Download",
-    "paid": "Paid"
+    "paid": "Paid",
+    "client_requisites": "Client details",
+    "payment": "Payment",
+    "pay": "Pay",
+    "balance": "Balance",
+    "amount": "Payment amount",
+    "attached_teams": "Teams",
+    "no_attached_teams": "No teams",
+    "teamNumber": "Team number",
+    "teamTitle": "Team name",
+    "stateActive": "State",
+    "invoises": "Invoices",
+    "invoises_notice": "Invoices are issued on the 1st for the previous month",
+    "forecast": "Expense",
+    "VAT": "with VAT",
+    "price": "Price per point",
+    "point": "point",
+    "notification1": "The charge is made on the 1st of each month for the previous month.",
+    "notification2": "When expenses exceed the balance, all teams will switch to inactive status.",
+    "active": "active",
+    "activate": "activate",
+    "deactivate": "deactivate"
   },
   "profile": {
     "buttonChangePass": "Save",
@@ -354,7 +387,12 @@
     "team": "Team",
     "teamNumber": "Team number",
     "admin": "administrator",
-    "unitCode": "Unit code"
+    "unitCode": "Unit code",
+    "delete": "Delete profile",
+    "login": "Your login",
+    "buttondDeleteProfile": "Delete profile",
+    "loginError": "Incorrect login entered for profile deletion",
+    "passUpdated": "Password updated"
   },
   "manual": {
     "section1Title": "1. Plan",

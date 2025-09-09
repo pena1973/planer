@@ -34,6 +34,10 @@ __decorate([
     (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], TCardStageTable.prototype, "tcard_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int'),
+    __metadata("design:type", Number)
+], TCardStageTable.prototype, "team_id", void 0);
 exports.TCardStageTable = TCardStageTable = __decorate([
     (0, typeorm_1.Entity)('t_card_stages')
 ], TCardStageTable);

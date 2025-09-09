@@ -10,7 +10,7 @@ export class TCardTable {
   created_at!: Date;
 
   @Column('date')
-  date!: Date; // дата карты
+  date!: string; // дата карты
 
   @Column('int')
   user_id!: number;

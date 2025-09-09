@@ -3,7 +3,7 @@ import UnitDoc from "@/components/support/UnitDoc/unitDoc";
 import { useTranslation } from 'react-i18next';
 export default function Monitor() {
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <Layout>

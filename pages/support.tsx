@@ -3,39 +3,46 @@ import { SupportMessages } from "@/components/support/SupportMessages/supportMes
 import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
-import  Docs  from "@/components/support/Docs/docs";
-import { useEffect, useState } from "react";
+import Docs from "@/components/support/Docs/docs";
+import { useEffect, useState, useMemo } from "react";
+import { generateTeamNumber } from '@/lib/utils'
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import { useTranslation } from 'react-i18next';
 import { } from '@/store/slices';
 
 import { setSuportPoint } from '@/store/slices';
 
 export default function Support() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
 
-  const suportPoint = useSelector((state: RootState) => {
+  const suportPoint = useAppSelector((state: RootState) => {
     return state.viewSlice.suportPoint;
   })
 
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
 
-  const unit = useSelector((state: RootState) => {
+  const unit = useAppSelector((state: RootState) => {
     return state.authSlice.unit;
   })
+
+  const schedule = useAppSelector((state: RootState) => {
+    return state.catalogSlice.schedule;
+  })
+
+  const isMainTeam = useMemo(() => team ? team.main_team === generateTeamNumber(team.prefix, team.id) : false, [team]);
 
   // Начальный загруз
   useEffect(() => {
@@ -48,7 +55,7 @@ export default function Support() {
         <div className="container_global_left">
           <div className="container_catalogs">
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(1))}>{t('support.messages')}</div>
-            <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(2))}>{t('support.billing')}</div>
+            {isMainTeam && <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(2))}>{t('support.billing')}</div>}
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(3))}>{t('support.profile')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(4))}>{t('support.cookie')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setSuportPoint(5))}>{t('support.docs')}</div>
@@ -66,16 +73,20 @@ export default function Support() {
               teamId={team.id}
               userId={user.id}
               token={token}
+              timezone={schedule.timeZone}
             />
           </div>}
           {/* Счета */}
           {suportPoint === 2 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.billing1')}</div>
             <Billing
-              teamId={team.id}
-              userId={user.id}
+              timezone={schedule.timeZone}
+              team={team}
+              user={user}
               setMessage={setMessage}
               token={token}
+              isMainTeam={isMainTeam}
+             
             />
           </div>}
           {/* Профиль */}

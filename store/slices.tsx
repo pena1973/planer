@@ -4,6 +4,7 @@ import {
     UnitExceptionItem, UnitActionItem, UserItem,
     TeamItem,TemplateItem,ProductItem
 } from './../types/types';
+import { BanerItem } from './../types/service-types';
 
 import { createSlice } from '@reduxjs/toolkit';
 
@@ -14,7 +15,7 @@ export type CatalogState = {
     actions: ActionItem[],
     units: UnitItem[],
     settings: SettingsItem,
-    schedule: ScheduleItem,
+    schedule: ScheduleItem,    
 }
 export type DataState = {
     tCards: TCardItem[],
@@ -42,6 +43,8 @@ export type ViewState = {
     resourcePoint: number,
     suportPoint: number,
     loadingComplete:boolean
+    baner:BanerItem[],
+    activeTeam:boolean,
 }
 // Начальное состояние
 const catalogIntialState: CatalogState = {
@@ -51,6 +54,7 @@ const catalogIntialState: CatalogState = {
     units: [] as UnitItem[],
     settings: {} as SettingsItem,
     schedule: {} as ScheduleItem,
+    
 }
 const dataIntialState: DataState = {
     tCards: [] as TCardItem[],        
@@ -75,7 +79,9 @@ const viewIntialState: ViewState = {
     monitorPoint: 1,
     resourcePoint: 1,
     suportPoint: 1,
-    loadingComplete:false
+    loadingComplete:false,
+    baner: [] as BanerItem[],
+    activeTeam:false
 }
 // хранилище
 const authSlice = createSlice({
@@ -185,9 +191,14 @@ const viewSlice = createSlice({
         },
         setLoadingComplete: (state, action) => {
             state.loadingComplete = action.payload;
+        },        
+        setBaner: (state, action) => {
+            state.baner = action.payload;
+        },
+        setActiveTeam: (state, action) => {
+            state.activeTeam = action.payload;
         },
         
-
     },
 
 })
@@ -198,7 +209,7 @@ export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule }
 export const { setTCards,setTCardIndex, setTemplates } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement,setUnit} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
-export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete } = viewSlice.actions;
+export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete,setBaner,setActiveTeam } = viewSlice.actions;
 
 export { authSlice, catalogSlice, dataSlice, planSlice, viewSlice };
 

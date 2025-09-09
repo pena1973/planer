@@ -10,7 +10,7 @@ export class AgreementTable {
   created_at!: Date;  
 
   @Column('date')
-  date!: Date; // дата создания
+  date!: string; // дата создания
 
   @Column('text',{default:""})
   text!: string;

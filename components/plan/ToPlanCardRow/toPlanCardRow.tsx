@@ -19,7 +19,7 @@ interface ToPlanCardRowProps {
   erazLoaderCard: number | null;
   tCardLighted: TCardItem;
   isDragging: boolean;
-  formatDate: (date: Date) => string;
+  // formatDate: (date: Date) => string;
   lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void;
   saveCardHandler: () => void;
   erazCardHandler: (id: number) => void;
@@ -35,14 +35,15 @@ const ToPlanCardRow: React.FC<ToPlanCardRowProps> = ({
   erazLoaderCard,
   tCardLighted,
   isDragging,
-  formatDate,
+  // formatDate,
   lightTCardHandler,
   saveCardHandler,
   erazCardHandler,
   handleMouseDownTCard,
   handleDragStartTCard
 }) => {
-  const date = elem.date ? formatDate(new Date(elem.date)) : "";
+  // const date = elem.date ? formatDate(new Date(elem.date)) : "";
+   const date = elem.date ? elem.date : "";
 
   return (
     <div className="container_plan_card_prepared">

@@ -1,7 +1,7 @@
 
 import styles from "./loadMonitorProcess.module.scss";
 
-import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
+import { StatusEnum, UnitLoadItem  } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 export interface LoadMonitorProcessProps {
     loadHeight: number,
@@ -20,7 +20,7 @@ export default function LoadMonitorProcess({
     openOperHandler,
     index,
 }: LoadMonitorProcessProps) {
- const { t, i18n } = useTranslation();
+ const { t } = useTranslation();
     let intervalClass = `${styles.interval}`; // Класс по умолчанию
     let titleClass = `${styles.title_load}`; // Класс по умолчанию
     switch (load.status) {

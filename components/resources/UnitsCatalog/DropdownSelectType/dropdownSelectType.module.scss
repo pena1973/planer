@@ -1,5 +1,5 @@
 @import '@/styles/colors.scss';
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .type_select {
     // flex: 1; /* Каждый элемент занимает равное пространство */
@@ -16,46 +16,6 @@
     // padding: 5px;
     border: 1px solid rgb(204, 204, 204);
 }
-// .type_select_placeholder {
-//     padding: 1px; /* Внутренние отступы для инпута */
-//    border: 1px solid #ccc; /* Серая граница */
-//    border-radius: 4px; /* Скругленные углы */
-//    font-size: 12px; /* Размер шрифта */    
-//    width: 90px; /* Ширина компонента */
-//    background-color: #fff; /* Белый фон для выпадающего списка */
-//    // color: #333; /* Цвет текста */    
-//    border-radius: 5px;
-//    border: 1px solid rgb(204, 204, 204);   
-//    color: gray;  /* Цвет текста плейсхолдера */
-//    font-style: italic;  /* Применяем курсив к плейсхолдеру */  
-  
-// }
-// /* Цвет фона и границы при фокусе */
-// .type_select:focus {
-//     // border-color: #007bff; /* Синий цвет границы при фокусе */
-//     outline: none; /* Убираем стандартное выделение */
-// }
-
-// /* Стиль для опций выпадающего списка */
-// .type_select option {
-//     font-size: 12px; /* Размер шрифта для опций */
-// }
-
-// /* Чтобы применить тот же цвет границы и для выпадающего списка */
-// .type_select {
-//     border-color: #ccc; /* Цвет границы, как у инпута */
-//     background-color: #fff; /* Белый фон для выпадающего списка */
-// }
-
-// /* Применение скругления для самого выпадающего списка */
-// .type_select::-ms-expand {
-//     display: none; /* Убираем стрелочку для IE */
-// }
-// .placeholder {
-//     color: gray;  /* Цвет текста плейсхолдера */
-//     font-style: italic;  /* Применяем курсив к плейсхолдеру */
-//   }
-
 //   ............
 .dropdownContainer{
     display: flex; /* Используем flexbox для выравнивания */

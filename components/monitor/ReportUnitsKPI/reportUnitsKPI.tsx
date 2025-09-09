@@ -8,7 +8,7 @@ import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { useTranslation } from 'react-i18next';
 
 import { convertMinutesToTime1 } from "@/lib/utils"
-
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/timezone"
 import { UnitBelongEnum, UnitTypeEnum } from '@/types/types';
 
 interface ReportUnitsKPIProps {
@@ -16,7 +16,8 @@ interface ReportUnitsKPIProps {
   teamId: number,
   userId: number,
   units: UnitItem[],
-  token: string
+  token: string,
+  timezone: string,
 }
 
 interface ExpandKey {
@@ -43,7 +44,8 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   teamId,
   userId,
   units,
-  token
+  token,
+  timezone
 }) => {
   const { t, i18n } = useTranslation();
 
@@ -53,8 +55,10 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   const [unitsKPIValue, setUnitsKPIValue] = useState([] as UnitKPIItem[]); // массив kpi по дням
   const [showLoader, setShowLoader] = useState(false);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  //  const today = new Date();  
+  // today.setHours(0, 0, 0, 0);
+
+  const today = getCurrentDateInDate(timezone);
 
   // На сервере
   const getUnitKPIHandler = async (
@@ -119,10 +123,13 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   const unitMonthPairs = useMemo(() => {
     const pairs: { unit: UnitItem; month: number }[] = [];
     unitsKPIValue.forEach(item => {
-      const month = new Date(item.date).getMonth();
+      const dateM = getTimeZoneDateFromDateString(item.date, timezone); // дата в нужном часовом поясе
+      const month = dateM.getMonth();
+      // const month = new Date(item.date).getMonth();
       if (!pairs.some(p => p.unit.id === item.unit.id && p.month === month)) {
         pairs.push({ unit: item.unit, month });
       }
+
     });
     return pairs;
   }, [unitsKPIValue]);
@@ -148,9 +155,15 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         let monthDefectTime = 0;
         // даты юнита
         const dateReactNodes = unitsKPIValue
-          .filter(dateKey =>
-            dateKey.unit.id === monthKey.unit.id &&
-            new Date(dateKey.date).getMonth() === monthKey.month)
+          // .filter(dateKey =>
+          //   dateKey.unit.id === monthKey.unit.id &&            
+          //   new Date(dateKey.date).getMonth() === monthKey.month)
+          .filter(dateKey => {
+            const dateM = getTimeZoneDateFromDateString(dateKey.date, timezone); // дата в нужном часовом поясе
+            const month = dateM.getMonth();
+            return (dateKey.unit.id === monthKey.unit.id && month === monthKey.month)
+          })
+
           .map((dateKey) => {
             const dateLoadind = Math.round(dateKey.occupiedTime / dateKey.productionTime * 100)
             const datePlan = (dateLoadind === 0) ? 0 : Math.round(dateKey.planedTime / dateKey.occupiedTime * 100)
@@ -284,7 +297,10 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
                       const expandKeys: ExpandKey[] = [];
                       unitsKPIValue.forEach(kpi => {
                         const unitId = Number(kpi.unit.id);
-                        const kpiMonth = new Date(kpi.date).getMonth();
+                        
+                        // const kpiMonth = new Date(kpi.date).getMonth();
+                        const dateM = getTimeZoneDateFromDateString(kpi.date, timezone); // дата в нужном часовом поясе
+                        const kpiMonth = dateM.getMonth();
 
                         // Если для этого юнита нет записи с month = undefined, добавляем её
                         if (!expandKeys.some(key => key.unitId === unitId && key.month === undefined)) {

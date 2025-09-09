@@ -1,5 +1,5 @@
 @import '@/styles/colors.scss';
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
 .container {
@@ -67,11 +67,18 @@
     flex-direction: column;
     // min-width:  60px;
     min-height: 50px;
+}
 
+.container_loads {
+    display: flex;
+    flex-direction: column;
+    // min-width:  60px;
+    min-height: 50px;
 }
 
 ._out,
-._in {
+._in,
+._loads {
     flex: 1;
     padding: 1px 1px;
     background-color: $second_container_background_color;
@@ -138,33 +145,34 @@
     width: 80%;
     // max-width: 98px;
     //  background-color: antiquewhite;    
-    text-align: start;    
+    text-align: start;
     padding: 4px;
     overflow: hidden;
 }
 
 .in_item_code {
     //  width: 105px;    
-     min-width: 60px;
-     max-width:  60px;
+    min-width: 60px;
+    max-width: 60px;
     text-align: start;
     font-weight: bold;
     //   background-color: aqua;
 }
+
 .out_item_code {
     // width: 105px;    
-     min-width: 60px;
-     max-width:  60px;
+    min-width: 60px;
+    max-width: 60px;
     text-align: start;
     font-weight: bold;
-    
+
     //   background-color: aqua;
 }
 
 .in_out_item_qtu {
     min-width: 20%;
-    max-width:  60px;
-    
+    max-width: 60px;
+
     //  background-color: azure;
 
 }
@@ -172,18 +180,10 @@
 .container_in_out_item {
     display: flex;
     width: 100%;
-    height: 24px;
+    // height: 24px;
     //  background-color: rgb(177, 152, 135);
 }
 
-// .container_in_out_item {
-//     display: flex;    
-//     justify-content: space-between;    
-//     padding: 2px;    
-//     border-bottom: 1px solid #ccc;    
-//     font-size: 12px;
-//     width: 100%;
-// }
 
 .container_in_out_item:last-child {
     border-bottom: none;
@@ -229,4 +229,42 @@
 
 .plug {
     width: 60px;
+}
+
+.container_row_load {
+    display: flex;
+    width: 100%;
+    height: 24px;
+    //  background-color: rgb(177, 152, 135);
+}
+
+.load_date{
+width: 100px;
+text-align: center;
+font-size: $header4_font_size;
+}
+
+.load_title{
+width: 20%;
+text-align: center;
+font-size: $header4_font_size;
+}
+.load_start,
+.load_finish{
+width: 40px;
+min-width: 40px;
+text-align: center;
+font-size: $header4_font_size;
+}
+.load_retool {
+    width: 10px;
+    text-align: center;
+    font-size: $header4_font_size;
+}
+
+.load_status {
+    display: flex;
+    flex-direction: row;
+    width: 100px;
+    font-size: $header4_font_size;
 }

@@ -18,7 +18,7 @@ interface UnitTaskStackProcessProps {
   performedLoads: UnitLoadItem[]; // Все которые ждут проверки
 
   containerHeight?: number; // высота контейнера в пикселях, например, 600
-   containerWidth?: number; // ширина контейнера в пикселях, например, 250
+  containerWidth?: number; // ширина контейнера в пикселях, например, 250
   isQualControl?: boolean // существует отдельно контроль качества
   setMessage: (message: string) => void,
   getStartFinishOper: (load: UnitLoadItem) => {
@@ -37,7 +37,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   day,
   performedLoads,
   containerHeight = 600,
-  containerWidth = 250, 
+  containerWidth = 250,
   isQualControl = false,
   setMessage,
   getStartFinishOper,
@@ -46,7 +46,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   userId,
   token
 }) => {
-   const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
 
   const [operView, setOperView] = useState(false);
@@ -65,10 +65,10 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // На сервере
   // Открываем операцию по нажатию кнопки юнитом 
   const openOperHandler = async (load: UnitLoadItem, id_oper: number, id_tCard: number) => {
-      setOperView(true);
-       await openOperation(load, id_oper, id_tCard, userId, teamId, token, t, setMessage,
-         setCurrentTCard, setCurrentOper, setCurrentLoad);
-   
+    setOperView(true);
+    await openOperation(load, id_oper, id_tCard, userId, teamId, token, t, setMessage,
+      setCurrentTCard, setCurrentOper, setCurrentLoad);
+
     // setOperView(true);
 
     // // получаем полную операцию и разворачиваем
@@ -131,12 +131,12 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // Меняем статус операции по нажатию кенопки юнитом 
   const setOperStatusHandler = async (status: StatusEnum) => {
     setOperView(false);
-    
-   await setOperationStatus( status, currentOper, currentLoad, currentTCard,  performedLoads,
-    token, teamId,  userId,  t,  setMessage,
-    setStatusLoadsHandler,
-   
-  );
+
+    await setOperationStatus(status, currentOper, currentLoad, currentTCard, performedLoads,
+      token, teamId, userId, t, setMessage,
+      setStatusLoadsHandler,
+
+    );
     // const operloadsIds = performedLoads
     //   .filter(lo => lo.id_oper === currentOper.id && lo.version === currentLoad.version && lo.status === StatusEnum.performed)
     //   .map(load => load.id as number); //  все лоады операции
@@ -178,7 +178,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     //       setMessage(receivedData.message);
     //     }
     //   }
-      
+
     // } catch (e: unknown) {
     //   let message = t('service.serverUnavailable');
     //   if (e instanceof Error) {
@@ -190,7 +190,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     setCurrentOper({} as TCardOperationItem);
     setCurrentTCard({} as TCardItem);
     setCurrentLoad({} as UnitLoadItem);
-    
+
   }
 
   function getFirstLoads(loads: UnitLoadItem[]): UnitLoadItem[] {
@@ -225,9 +225,10 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     let titleCard = "";
     const tCard = tCards.find(tCard => tCard.id === load.id_tCard); // ищем карточку          
     if (tCard)
-      titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+      // titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+      titleCard = `${padNumberToFourDigits(tCard.idc)} - ${tCard.date};`
 
-    
+
     return <LoadMonitorControl
       key={index}
       loadHeight={40}
@@ -254,8 +255,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   }
 
   return (
-    <div className={styles.container}      
-      style={{ minHeight: `${containerHeight}px`, height: `${containerHeight+120}px`,maxWidth: `${containerWidth}px`} } >
+    <div className={styles.container}
+      style={{ minHeight: `${containerHeight}px`, height: `${containerHeight + 120}px`, maxWidth: `${containerWidth}px` }} >
       <div className={styles.title_container}>
         <div className={styles.title}>{unit.title}</div>
         <div className={styles.title}>{day}</div>
@@ -296,7 +297,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
       }
 
       <div className={styles.bottom_container}>
-       
+
       </div>
     </div>
   );

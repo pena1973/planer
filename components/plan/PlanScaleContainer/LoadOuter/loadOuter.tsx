@@ -45,11 +45,33 @@ function LoadOuter({
 
     // старт и финиш -маленькимй треугольничек сверху ли снизу и другое контекстноке меню
     //  ширина лоада 5 минут  -  стандартная для сьтарта и ждля финиша
-    const blockwidth = dayWidth / quants; //это ширина блока на 5 минут
-    const shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
+    // const blockwidth = dayWidth / quants; //это ширина блока на 5 минут
+    // const shift = load.timeStart - intervTime; // сдвиг начала блока от начала интервала в минутах
 
-    const left = blockwidth / 5 * shift + (load.isOuterFinish ? -26 : 0); // тот же схвиг в пикселях
-    const width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
+    // const left = blockwidth / 5 * shift + (load.isOuterFinish ? -10 : 0); // тот же схвиг в пикселях
+
+    // const width = (load.timeFinish - load.timeStart) * blockwidth / 5; // длительность операции в пикселях           
+
+    // ширина одной 5-минутки
+    const blockwidth = dayWidth / quants;
+    const pxPerMin = blockwidth / 5;
+
+    // пиксельные координаты левого и правого края интервала
+    const xStartPx = (load.timeStart - intervTime) * pxPerMin;
+    const xFinishPx = (load.timeFinish - intervTime) * pxPerMin;
+
+    // ширина «хэндла» внешнего лоада = 1 квант (5 минут) на текущем масштабе
+    const handlePx = blockwidth;
+
+    // если нужно компенсировать визуальный бордер/скругление справа — подбери 0..2px
+    const RIGHT_VISUAL_EPS = 0; // попробуй 0.5 или 1, если видишь микросдвиг
+
+    // финальные координаты
+    const left = load.isOuterFinish ? (xFinishPx - handlePx - RIGHT_VISUAL_EPS) : xStartPx;
+    const width = (load.isOuterFinish || load.isOuterStart)
+        ? handlePx
+        : (load.timeFinish - load.timeStart) * pxPerMin;
+
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
     const triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
@@ -57,35 +79,22 @@ function LoadOuter({
 
     switch (load.status) {
         case StatusEnum.planed:
-            intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"
-            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPlaned}`; // Класс по умолчанию
-            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPlaned}`; // Класс по умолчанию                
+            intervalClass = `${styles.interval} ${styles.planed}`; // Если статус "planed"                    
             break;
         case StatusEnum.prepared:
-            intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"
-            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPrepared}`; // Класс по умолчанию
-            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPrepared}`; // Класс по умолчанию                
+            intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"            
             break;
         case StatusEnum.defective:
-            intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный
-            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDefected}`; // Класс по умолчанию
-            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDefected}`; // Класс по умолчанию                
+            intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный            
             break;
         case StatusEnum.ready:
             intervalClass = `${styles.interval} ${styles.ready}`; // готовый
-            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightReady}`; // Класс по умолчанию
-            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftReady}`; // Класс по умолчанию                
             break;
         case StatusEnum.performed:
             intervalClass = `${styles.interval} ${styles.performed}`; // получен от поставщика но не проверен
-            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightPerformed}`; // Класс по умолчанию
-            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftPerformed}`; // Класс по умолчанию                
             break;
         case StatusEnum.cancelled:
             intervalClass = `${styles.interval} ${styles.cancelled}`; // отменен
-            // triangleRightClass = `${styles.triangleRight} ${styles.triangleRightСancelled}`; // Класс по умолчанию
-            // triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftСancelled}`; // Класс по умолчанию                
-
             break;
         default:
             break;
@@ -97,33 +106,41 @@ function LoadOuter({
     let tCard = tCards.find(tCard => tCard.id === load.id_tCard);
     if (!tCard) tCard = {} as TCardItem;
 
+
     const saveLoadHandler = (
         load: UnitLoadItem,
         dateValue: string,
         timeStartValue: number,
-        timeFinisValue: number) => {
-        if (load.isOuterFinish)
-            moveLoadHandler(load, unitView, dateValue, timeFinisValue - 5, timeFinisValue);
-        if (load.isOuterStart) moveLoadHandler(load, unitView, dateValue, timeStartValue, timeStartValue + 5);
-    }
+        timeFinisValue: number
+    ) => {
+        if (load.isOuterFinish) {
+            // двигаем только финиш, старт оставляем как есть
+            moveLoadHandler(load, unitView, dateValue, load.timeStart, timeFinisValue);
+        }
+        if (load.isOuterStart) {
+            // двигаем только старт, финиш оставляем как есть
+            moveLoadHandler(load, unitView, dateValue, timeStartValue, load.timeFinish);
+        }
+    };
 
 
     return (
         <>
             {/* Треугольник (стрелка) */}
 
-            {load.isOuterFinish && <div className={triangleLeftClass} />}
-            {load.isOuterStart && <div className={triangleRightClass} />}
+            {load.isOuterFinish && <div className={triangleLeftClass} style={{ left: `-5px` }} />}
+            {load.isOuterStart && <div className={triangleRightClass} style={{ right: `-5px` }} />}
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}
                 onMouseUp={e => handleMouseUpOper()}
                 draggable={true}
                 id={String(load.idc)}
                 style={{
-                    minWidth: '30px', maxWidth: '30px', width: `${width}px`, left: `${left}px`,
+                    width: `${width}px`,
+                    left: `${left}px`,
                     cursor: (draggingLoad === load) ? "grabbing" : "grab"
-                }
-                }
+                }}
+
                 onContextMenu={(event) => handleRightClickMenu(event, load.idc)}>{`A${load.idc_oper}`}
             </div>
 

@@ -68,7 +68,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   userId,
   token
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
   const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
   const [operView, setOperView] = useState(false);
@@ -251,7 +251,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
           let titleCard = "";
           const tCard = tCards.find(tCard => tCard.id === load.id_tCard); // ищем карточку          
           if (tCard)
-            titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+            // titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+            titleCard = `${padNumberToFourDigits(tCard.idc)} - ${tCard.date};`
 
           return <LoadMonitorProcess
             key={'quant' + i}

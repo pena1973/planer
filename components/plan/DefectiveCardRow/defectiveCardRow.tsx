@@ -11,54 +11,55 @@ import lighton from "@/public/light-on-rem.png";
 import { padNumberToFourDigits } from "@/lib/utils";
 
 interface DefectiveCardRowProps {
-  elem: TCardItem;
+  tCard: TCardItem;
   droploaderCard: number | null;
   erazLoaderCard: number | null;
   tCardLighted: TCardItem;
-  formatDate: (date: Date) => string;
+  // formatDate: (date: Date) => string;
   lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void;
   erazCardHandler: (id: number) => void;
 }
 
 const DefectiveCardRow: React.FC<DefectiveCardRowProps> = ({
-  elem,
+  tCard,
   droploaderCard,
   erazLoaderCard,
   tCardLighted,
-  formatDate,
+  // formatDate,
   lightTCardHandler,
   erazCardHandler,
 }) => {
-  const date = elem.date ? formatDate(new Date(elem.date)) : "";
+
+  // const date = tCard.date ? formatDate(new Date(tCard.date)) : "";
 
   return (
     <div className="container_plan_card_planed">
       <div className="container_plan_card_icon_light">
-        {droploaderCard === elem.id && <ButtonLoader />}
-        {droploaderCard !== elem.id &&
-          (elem.id === tCardLighted.id ?
+        {droploaderCard === tCard.id && <ButtonLoader />}
+        {droploaderCard !== tCard.id &&
+          (tCard.id === tCardLighted.id ?
             <Image className="icon_edit_save" src={lighton} alt="lighton"
-              width={20} height={20} onClick={() => lightTCardHandler(elem, false)} />
+              width={20} height={20} onClick={() => lightTCardHandler(tCard, false)} />
             : <Image className="icon_edit_save" src={light} alt="light"
-              width={20} height={20} onClick={() => lightTCardHandler(elem, true)} />)
+              width={20} height={20} onClick={() => lightTCardHandler(tCard, true)} />)
         }
         &nbsp;
         &nbsp;
-        <StatusCircle status={elem.status} />
+        <StatusCircle status={tCard.status} />
         &nbsp;
         &nbsp;
-        <div className="container_plan_card_planed_title">{padNumberToFourDigits(elem.idc)} -  {date}</div>
+        <div className="container_plan_card_planed_title">{padNumberToFourDigits(tCard.idc)} -  {tCard.date}</div>
       </div>
 
       <div className="container_icon_edit_save">
-        {erazLoaderCard === elem.id && <ButtonLoader />}
-        {erazLoaderCard !== elem.id &&
+        {erazLoaderCard === tCard.id && <ButtonLoader />}
+        {erazLoaderCard !== tCard.id &&
           <Image className="icon_edit_save"
             src={eraz}
             alt="eraz" width={20} height={20}
-            onClick={() => erazCardHandler(elem.id)}
+            onClick={() => erazCardHandler(tCard.id)}
           />}
-        {tCardLighted?.id === elem.id}
+        {tCardLighted?.id === tCard.id}
       </div>
     </div>
   );

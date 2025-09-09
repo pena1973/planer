@@ -17,7 +17,7 @@ export class UnitExceptionTable {
   idc!: number;
   
   @Column('date')
-  date!: Date; // 
+  date!: string; // 
 
   @Column('enum', { enum: TimeTypeEnum })
   type!: TimeTypeEnum; // Тип времени

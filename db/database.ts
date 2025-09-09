@@ -1,12 +1,8 @@
-// import config from './ormconfig';
 
 import { DataSource } from 'typeorm';
 import config from './ormconfig';
-import { getEntities } from '../lib/db/entities';
-
-// let dataSource: DataSource | null = null;
-
-// let dataSource = globalThis.dataSource;
+import { getEntities } from './entities';
+import { startCleanupScheduler } from './jobs/cleanup-scheduler';
 
 const connectDb = async (): Promise<DataSource> => {
   try {
@@ -30,7 +26,11 @@ const connectDb = async (): Promise<DataSource> => {
     await globalThis.dataSource.initialize()
       .then(() => console.log('🟢 DataSource инициализирован'))
       .catch((err) => console.error('🔴 Ошибка инициализации', err));
+  
+      // >>> добавляем: стартуем планировщик очистки (включится только если CLEANUP_ENABLED=true)
+      startCleanupScheduler(globalThis.dataSource);
 
+    // <<<
     // console.log('Сущности в DataSource:', updatedConfig.entities);
 
     // console.log(

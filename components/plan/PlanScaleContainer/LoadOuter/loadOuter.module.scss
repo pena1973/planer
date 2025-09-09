@@ -1,5 +1,5 @@
 @import '@/styles/colors.scss';
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
 .interval {
@@ -80,7 +80,7 @@
 .triangleLeft {
   position: absolute;
   top: 62%; /* можно скорректировать для вертикального центрирования */
-  left: -30px;  /* отступ слева */
+  // left: -30px;  /* отступ слева */
   transform: translateY(-50%);
   width: 0;
   height: 0;
@@ -88,60 +88,15 @@
   border-bottom: 7.5px solid transparent;  
   z-index: 2;
   border-right: 7.5px solid $border-color;
+  right: 2px; /* отступ справа */
 }
-// .triangleLeftDraft{
-//   border-right: 7.5px solid $load_draft;
-// }
-// .triangleLeftPlaned{
-//   border-right: 7.5px solid $load_planed;
-// }
-// .triangleLeftPrepared{
-//   border-right: 7.5px solid $load_prepared;  
-// }
-// .triangleLeftDefected{
-//   border-right: 7.5px solid $load_defected;
-// }
-// .triangleLeftCancelled{
-//   border-right: 7.5px solid $load_cancelled;
-// }
-// .triangleLeftPerformed{
-//   border-right: 7.5px solid $load_performed;
-// }
-// .triangleLeftReady{
-//   border-right: 7.5px solid $load_ready;
-// }
 
-
-// .triangleRightDraft{
-//   border-left: 7.5px solid $load_draft;
-// }
-// .triangleRightPlaned{
-//   border-left: 7.5px solid $load_planed;
-// }
-// .triangleRightPrepared{
-//   border-left: 7.5px solid $load_prepared;
-// }
-// .triangleRightDefected{
-//   border-left: 7.5px solid $load_defected;
-// }
-
-// .triangleRightCancelled{
-//   border-left: 7.5px solid $load_cancelled;
-// }
-
-// .triangleRightPerformed{
-//   border-left: 7.5px solid $load_performed;
-// }
-
-// .triangleRightReady{
-//   border-left: 7.5px solid $load_ready;
-// }
 
 /* Треугольник справа (указывает вправо) */
 .triangleRight {
   position: absolute;
   top: 62%; /* можно скорректировать для вертикального центрирования */
-  left: 27px;  /* отступ справа */
+  // left: 27px;  /* отступ справа */
   transform: translateY(-50%);
   width: 0;
   height: 0;

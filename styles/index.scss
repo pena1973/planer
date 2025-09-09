@@ -201,7 +201,20 @@
     margin: 10px;
     // width: 180px;
 }
+.register_input_container_row {
+    display: flex;
+    flex-direction: row;
+    margin: 10px;
+    justify-content: center;
+    text-align: center;
+    gap: 10px; /* расстояние между блоками */
+}
 
+.register_input_container_row label {
+    display: flex;
+    align-items: center; /* вертикальное центрирование текста и чекбокса */
+    //  gap: 2px; /* маленький отступ между текстом и input */
+}
 .register_link_container {
     display: flex;
     justify-content: center;

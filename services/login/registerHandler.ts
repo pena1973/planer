@@ -10,22 +10,29 @@ import {
     setTeam,
     setSettings,
     setSignedAgreement,
+    setActiveTeam,
+    
 } from './../../store/slices';
+import { getUserTimeZoneEnum } from './../../lib/timezone';
+
+
 
 interface RegisterPayload {
-    login: string;
-    pass: string;
-    teamNumber: string;
-    createTeam: boolean;
-    nickname: string;
-    token: string;
-    t: (key: string) => string;
-    setMessage: (msg: string) => void;
-    setMessageRegister: (msg: string) => void;    
-    dispatch: Dispatch;
-    setStep: (step: number) => void;
-    agreementIdRef: React.MutableRefObject<number>;
-    agreementTextRef: React.MutableRefObject<string>;
+    login: string,
+    pass: string,
+    teamNumber: string,
+    createTeam: boolean,
+    basedOnTeam: boolean,
+    basedTeamNumber: string,
+    nickname: string,
+    token: string,
+    t: (key: string) => string,
+    setMessage: (msg: string) => void,
+    setMessageRegister: (msg: string) => void,    
+    dispatch: Dispatch,
+    setStep: (step: number) => void,
+    agreementIdRef: React.MutableRefObject<number>,
+    agreementTextRef: React.MutableRefObject<string>,
 }
 
 export const registerHandler = async ({
@@ -33,6 +40,8 @@ export const registerHandler = async ({
     pass,
     teamNumber,
     createTeam,
+    basedOnTeam,
+    basedTeamNumber,
     nickname,
     token,
     t,
@@ -44,9 +53,11 @@ export const registerHandler = async ({
     agreementTextRef,
 }: RegisterPayload) => {
 
+    const tzValue = getUserTimeZoneEnum();
+
     try {
 
-        const res = await fetch(`api/register-api`,
+        const res = await fetch(`api/auth/register-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -59,6 +70,9 @@ export const registerHandler = async ({
                     teamNumber: teamNumber,
                     createTeam: createTeam,
                     nickname: nickname,
+                    basedOnTeam: basedOnTeam,
+                    basedTeamNumber : basedTeamNumber,
+                    timezone: tzValue,
                 }),
             }
         );
@@ -80,6 +94,8 @@ export const registerHandler = async ({
                 const settings_ = receivedData.settings as SettingsItem;
                 const agreementText_ = receivedData.agreementText as string;
                 const agreementId_ = receivedData.agreementId as number
+                const basedTeamNumber = receivedData.team as string;
+                const activeTeam = receivedData.setActiveTeam as boolean;
 
                 //   Обновим настройки
                 dispatch(setUser(user_));
@@ -87,6 +103,8 @@ export const registerHandler = async ({
                 dispatch(setTeam(team_));
                 dispatch(setSettings(settings_));
                 dispatch(setSignedAgreement(false));
+                dispatch(setActiveTeam(Boolean(activeTeam)));
+                 
                 agreementIdRef.current = agreementId_;
                 agreementTextRef.current = agreementText_
                 //  далее адресуем на страницу соглашения и после этого переправляем на страницу настроек

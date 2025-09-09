@@ -1,6 +1,7 @@
 import { Dispatch } from "redux";
 import { UnitLoadItem, TCardItem } from "./../../types/types";
 import { setUnitLoads, setTCards } from "./../../store/slices";
+import { getCurrentDateInString, getTimeZoneDateFromDateString } from "./../../lib/timezone"
 
 export const erazeLoad = async (
   load_idc: number,
@@ -33,7 +34,7 @@ export const erazeLoad = async (
           body: JSON.stringify({
             erazload: erazload,
             tCardLoads: tCardLoads,
-            today: new Date().toLocaleDateString("en-CA"),
+            // today: new Date().toLocaleDateString("en-CA"),
             teamId: teamId,
             userId: userId,
           }),

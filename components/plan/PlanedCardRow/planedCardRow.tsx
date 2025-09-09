@@ -16,7 +16,7 @@ interface PlanedCardRowProps {
     tCardLighted: TCardItem;
     lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void;
     erazCardHandler: (id: number) => void;
-    formatDate: (date: Date) => string;
+    // formatDate: (date: Date) => string;
 }
 
 const PlanedCardRow: React.FC<PlanedCardRowProps> = ({
@@ -26,10 +26,11 @@ const PlanedCardRow: React.FC<PlanedCardRowProps> = ({
     tCardLighted,
     lightTCardHandler,
     erazCardHandler,
-    formatDate
+    // formatDate
 }) => {
 
-    const date = elem.date ? formatDate(new Date(elem.date)) : "";
+    // const date = elem.date ? formatDate(new Date(elem.date)) : "";
+     const date = elem.date ? elem.date:"";
     return (
         <div className="container_plan_card_planed">
             <div className="container_plan_card_icon_light">

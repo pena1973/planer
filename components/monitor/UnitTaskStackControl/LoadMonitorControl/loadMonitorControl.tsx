@@ -1,8 +1,7 @@
 
 import styles from "./loadMonitorControl.module.scss";
-import Image from 'next/image';
-import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
-
+import { StatusEnum, UnitLoadItem } from "@/types/types";
+import { useTranslation } from 'react-i18next';
 export interface LoadMonitorControlProps {
     loadHeight: number,
     showTitle: boolean,
@@ -20,7 +19,7 @@ export default function LoadMonitorControl({
     openOperHandler,
     index,
 }: LoadMonitorControlProps) {
-
+ const { t } = useTranslation();
     let intervalClass = `${styles.interval}`; // Класс по умолчанию
     let titleClass = `${styles.title_load}`; // Класс по умолчанию
     switch (load.status) {
@@ -70,9 +69,9 @@ export default function LoadMonitorControl({
             }}
         >
             {showTitle && <div className={titleClass}>
-                <div >Card: {titleCard}</div>
-                <div > Oper: C{load.idc_oper},{load.loadInfo?.title},
-                    {load.status},{load.loadInfo?.duration} мин</div>
+                <div >{t('loadMonitorProcess.card')}: {titleCard}</div>
+                <div > Oper: A{load.idc_oper},{load.loadInfo?.title},
+                    {load.status},{load.loadInfo?.duration} {t('loadMonitorProcess.min')}</div>
             </div>}
         </div>
 

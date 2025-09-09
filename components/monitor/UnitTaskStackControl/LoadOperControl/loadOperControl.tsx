@@ -34,7 +34,7 @@ export default function LoadOperControl({
     closeOperHandler,
 
 }: LoadOperControlProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     
     // На клиенте
     const formatMinutes = (totalMinutes: number | undefined): string => {
@@ -65,7 +65,8 @@ export default function LoadOperControl({
             )
         })
     }
-    const titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+    // const titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+     const titleCard = `${padNumberToFourDigits(tCard.idc)} - ${tCard.date};`
 
     return (
 

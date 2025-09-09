@@ -24,7 +24,7 @@ __decorate([
 ], AgreementTable.prototype, "created_at", void 0);
 __decorate([
     (0, typeorm_1.Column)('date'),
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], AgreementTable.prototype, "date", void 0);
 __decorate([
     (0, typeorm_1.Column)('text', { default: "" }),

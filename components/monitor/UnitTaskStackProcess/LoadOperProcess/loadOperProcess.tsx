@@ -65,7 +65,8 @@ export default function LoadOperProcess({
             )
         })
     }
-    const titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+    // const titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
+    const titleCard = `${padNumberToFourDigits(tCard.idc)} - ${tCard.date};`
 
     return (
 

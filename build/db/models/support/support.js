@@ -25,7 +25,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)('date') // дата писма
     ,
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], SupportTable.prototype, "date", void 0);
 __decorate([
     (0, typeorm_1.Column)('varchar', { default: "" }),

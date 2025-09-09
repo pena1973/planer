@@ -1,35 +1,27 @@
-
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "module": "esnext",
-    "moduleResolution": "node", // Вместо bundler
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+
+    // Для TypeORM-декораторов (ts-node/CLI их читает из этого файла)
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "plugins": [{ "name": "next" }]
   },
   "include": [
     "next-env.d.ts",
@@ -37,9 +29,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "db/models/**/*",
-    "types/**/*",
+    "types/**/*"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

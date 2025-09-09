@@ -1,6 +1,7 @@
-import { PropsWithChildren, useState, useEffect, useRef } from "react";
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { PropsWithChildren, useState, useMemo, useRef } from "react";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import styles from "./layout.module.scss";
 import { logout } from '@/lib/logout'
 import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
@@ -12,29 +13,37 @@ import Head from "next/head";
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { useRouter, usePathname } from 'next/navigation';
+// import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import '../../i18n'
 
 const locales = ['en', 'ru'];
 
 export default function Layout({ children }: PropsWithChildren) {
     const { t, i18n } = useTranslation();
-    const { push, back } = useRouter();
-    const pathname = usePathname();
-    const dispatch = useAppDispatch();
+    // const { push, back } = useRouter();
+    // const pathname = usePathname();
+    // const dispatch = useAppDispatch();
 
-    const loadingComplete = useSelector((state: RootState) => {
+    const loadingComplete = useAppSelector((state: RootState) => {
         return state.viewSlice.loadingComplete;
     })
 
-    const user = useSelector((state: RootState) => {
+    const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
+    })
+    //показывает текущее состояние активности команды
+    const activeTeam = useAppSelector((state: RootState) => {
+        return state.viewSlice.activeTeam;
+    })
+
+    const baner = useAppSelector((state: RootState) => {
+        return state.viewSlice.baner;
     })
 
     // язык
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState(i18n.resolvedLanguage);
+
     const toggleDropdown = () => {
         setDropdownOpen(!isDropdownOpen);
     };
@@ -43,10 +52,16 @@ export default function Layout({ children }: PropsWithChildren) {
         setDropdownOpen(false);
         i18n.changeLanguage(locale);
     }
-    
+
     const exit = () => {
         logout('/')
     }
+
+    const viewBaner = useMemo(() => {        
+        const curentBaner = baner?.find((item) => item.locale === i18n.resolvedLanguage);
+        return curentBaner ? (curentBaner.message) : '';
+    }, [baner, i18n.resolvedLanguage]);
+
     return (
         <>
             <Head>
@@ -57,19 +72,19 @@ export default function Layout({ children }: PropsWithChildren) {
 
             </Head>
             <CookieBanner />
+            <div className={styles.header_menu_baner}>{viewBaner}</div>
             <div className={styles.header}>
                 <div className={styles.header_menu_groupe}>
                     <ul className={styles.header_menu}>
-
                         {(!user.id) && !loadingComplete && <Link className={styles.header_menu_item} href="/">
-                        <Image className={styles.img} src={home} alt="home" />
+                            <Image className={styles.img} src={home} alt="home" />
                         </Link>}
-                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
-                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
-                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
-                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/cards">{t('layout.cards')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/planing">{t('layout.planing')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
+                        {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
                         {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/support">{t('layout.support')}</Link>}
-                        {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-interface">{t('layout.unit-interface')}</Link>}
+                        {(!user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/unit-interface">{t('layout.unit-interface')}</Link>}
                         {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-docs">{t('layout.unit-docs')}</Link>}
                         {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-profile">{t('layout.unit-profile')}</Link>}
 
@@ -93,7 +108,6 @@ export default function Layout({ children }: PropsWithChildren) {
                             </div>
                         )}
                     </div>
-                    {/* <button>{t('layout.profile')}</button> */}
                     {(user.id) && <button onClick={exit}>{t('layout.exit')}</button>}
                 </div>
             </div>

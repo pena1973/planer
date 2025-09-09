@@ -30,7 +30,8 @@
     "wastes": "Отходы",
     "comment": "Комментарий",
     "materials": "Материалы",
-    "catalog": "Каталог"
+    "catalog": "Каталог",
+    "card": "Карта"
     
   },
   "service": {
@@ -40,6 +41,7 @@
     "recoveryMailSent": "Письмо для восстановления пароля отправлено"
   },
   "index": {
+    "downloadBaner": "загружен банер",
     "downloadUoms": "Загружены единицы измерения",
     "downloadActions": "Загружены возможные действия",
     "downloadTemplates": "Загружены шаблоны",
@@ -88,7 +90,8 @@
     "repeat": "Повторить",
     "sourse": "Источник",
     "action": "Действие",
-    "result": "Результат"
+    "result": "Результат",
+    "loads": "Интервалы загрузки"
   },
   "cardsopernew": {
     "add": "Добавить",
@@ -336,11 +339,42 @@
     "cookie": "Политика куки",
     "docs": "Справка"
   },
+  "client": {
+    "title": "Название/имя клиента",
+    "vat": "Рег. номер VAT",
+    "address": "Адрес",
+    "email": "Email",
+    "phone": "Телефон",
+    "person": "Контактное лицо",
+    "save": "Сохранить"
+  },
   "bills": {
     "date": " Дата",
     "title": "Счет",
     "download": " Скачать",
-    "paid": "Оплачен"
+    "paid": "Оплачен",
+    "client_requisites": "Реквизиты клиента",
+    "payment": "Оплата",
+    "pay": "Оплатить",
+    "balance": "Баланс",
+    "amount": "Сумма оплаты",
+    "attached_teams": "Команды",
+    "no_attached_teams": "Нет команд",
+    "teamNumber": "Номер команды",
+    "teamTitle": "Название команды",
+    "stateActive": "Состояние",
+    "invoises": "Инвойсы",
+    "invoises_notice": "Инвойс выставляется 1 числа за предыдущий месяц",
+    "forecast": "Расход",
+    "VAT": "вкл НДС",
+    "price": "Цена 1 ед.",
+    "point": "ед",
+
+    "notification1": "Списание денег производится каждое 1 число за прошлый месяц.",
+    "notification2": " Когда расход превысит баланс все команды перейдут в неактивное состояние.",
+    "active": "активная",
+    "activate": "активировать",
+    "deactivate": "деактивировать"
   },
   "profile": {
     "buttonChangePass": "Сохранить",
@@ -355,7 +389,12 @@
     "team": "Команда",
     "teamNumber": "№ команды",
     "admin": "администратор",
-    "unitCode": "Код юнита"
+    "unitCode": "Код юнита",
+    "delete": "Удалить профиль",
+    "login": "Введите логин",
+    "buttondDeleteProfile": "Удалить профиль",
+    "loginError": "Вы ввели неверный логин для удаления профиля",
+    "passUpdated": "Пароль обновлен"
   },
   "manual": {
     "section1Title": "1. План",
@@ -382,6 +421,5 @@
     "signAgreement": " Подпись",
     "cancelSignAgreement": "Отказ",
     "agree": "Согласен"
-    
   }
 }

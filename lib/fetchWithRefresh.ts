@@ -23,7 +23,7 @@ export async function fetchWithRefresh(input: RequestInfo, init: RequestInit = {
   })
 
   if (res.status === 401 || res.status === 403) {
-    const refreshRes = await fetch('/api/refresh-token')
+    const refreshRes = await fetch('/api/auth/refresh-token')
     if (refreshRes.ok) {
       const { token: newToken } = await refreshRes.json()
       tokenSetter(newToken)

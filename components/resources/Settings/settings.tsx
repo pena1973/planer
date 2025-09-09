@@ -6,8 +6,9 @@ import Image from 'next/image';
 
 import { useEffect, useState } from "react";
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import { useTranslation } from 'react-i18next';
 import cancel from "@/public/cancel.png";
 import save from "@/public/save-rem.png";
@@ -24,15 +25,15 @@ export default function Settings({
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
-    const settings = useSelector((state: RootState) => {
+    const settings = useAppSelector((state: RootState) => {
         return state.catalogSlice.settings;
     })
 
-    const team = useSelector((state: RootState) => {
+    const team = useAppSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
 
-    const user = useSelector((state: RootState) => {
+    const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
     })
 

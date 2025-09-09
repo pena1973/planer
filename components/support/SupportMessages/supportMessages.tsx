@@ -10,18 +10,22 @@ import { SupportMessageItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import { SupportMessage } from './SupportMessage/supportMessage';
 
+import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone"
+
 interface SupportMessagesProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
-  token: string
+  token: string,
+  timezone:string
 }
 
 export const SupportMessages: React.FC<SupportMessagesProps> = ({
   setMessage,
   teamId,
   userId,
-  token
+  token,
+  timezone
 }) => {
 
   const { t, i18n } = useTranslation();
@@ -67,7 +71,8 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
 
     const newMes = {
       id: -Math.abs(Math.random()),
-      date: new Date().toLocaleDateString('en-CA'),
+      date: getCurrentDateInString(timezone),
+      // date: new Date().toLocaleDateString('en-CA'),
       title: `RE: ${basedOnMessage.title}`,
       body: `RE:\n\n\n -------------------------\n  ${basedOnMessage.body}`,
       userId: userId,

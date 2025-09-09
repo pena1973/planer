@@ -2,13 +2,15 @@ import { withAuth } from './../../lib/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getTypedRepository } from './../../lib/db/utilites'
+import { getTypedRepository } from './../../db/utilites'
 
 import { getTCardsTerms } from './../../handlers/handlers-get';  // 
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TeamTable } from './../../db/models/catalogs/teams'
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
+import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
+import { getTeamShedule } from './../../handlers/handlers-get';  // расчеты
 import { StatusEnum } from './../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -17,10 +19,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
-
-  try {    
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  
+  try {
     const { userId, teamId, tCardNumber, tCardDateFrom, tCardDateTo, tCardStatus } = req.query;
-    
+    const shedule_ = await getTeamShedule( Number(teamId),   teamScheduleRepository,  teamsRepository)
     // Проверяем, что tCardStatus является допустимым значением для StatusEnum
     const status = Object.values(StatusEnum).includes(tCardStatus as StatusEnum) ? tCardStatus as StatusEnum : undefined;
 
@@ -37,7 +41,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           tCardRepository,
           tCardOperationsRepository,
           // tCardProductRepository,
-          unitLoadRepository
+          unitLoadRepository,
+          shedule_.timeZone
         )
         if (!tCardsTerms) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });

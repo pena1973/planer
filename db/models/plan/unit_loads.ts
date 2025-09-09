@@ -13,7 +13,7 @@ export class UnitLoadTable {
   idc!: number;
 
   @Column('date')
-  date!: Date; // дата операции
+  date!: string; // дата операции
 
   @Column('int')
   id_oper!: number; // Идентификатор операции

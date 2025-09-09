@@ -1,13 +1,10 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, {useState } from 'react';
 import styles from "./agreement.module.scss";
-import { UnitKPIItem, StatusEnum, TCardTermsItem, UnitItem,UserItem } from "@/types/types";
+import {UserItem } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-
-import Image from 'next/image';
-import { padNumberToFourDigits, convertMinutesToTime1 } from "@/lib/utils"
 import { useTranslation } from 'react-i18next';
-import { text } from 'stream/consumers';
+
 
 interface AgreementProps {
   user:UserItem,
@@ -28,7 +25,7 @@ const Agreement: React.FC<AgreementProps> = ({
   setMessage,
 }) => {
 
-  const { t, i18n } = useTranslation();
+  const { t  } = useTranslation();
   const [signedAgreementValue, setSignedAgreementValue] = useState(false);
   const [loaderButtonAgree, setLoaderButtonAgree] = useState(false);
 

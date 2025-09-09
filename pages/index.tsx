@@ -9,7 +9,7 @@ import { downloadLoads } from '@/services/initial/downloadLoads';
 import { downloadSchedule } from '@/services/initial/downloadSchedule';
 import { downloadSettings } from '@/services/initial/downloadSettings';
 import { downloadTCards } from '@/services/initial/downloadTCards';
-import { downloadProducts } from '@/services/initial/downloadProducts';
+// import { downloadProducts } from '@/services/initial/downloadProducts';
 import { downloadUnits } from '@/services/initial/downloadUnits';
 import { downloadUnutsActions } from '@/services/initial/downloadUnutsActions';
 import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExceptions';
@@ -17,18 +17,13 @@ import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExcepti
 import { downloadUnutActions } from '@/services/initial/downloadUnut-Actions';
 import { downloadUnutExceptions } from '@/services/initial/downloadUnut-Exceptions';
 import { downloadUnitLoads } from '@/services/initial/downloadUnit-Loads';
+import { downloadBaner } from '@/services/process/downloadBaner';
 
 import { loginHandler } from '@/services/login/loginHandler';
 import { registerHandler } from '@/services/login/registerHandler';
+import { sendCodeHandler } from '@/services/login/sendCodeHandler';
 
 import { store } from '@/store' // путь к твоему Redux store
-
-import {
-  UnitItem,
-  UserItem,
-  SettingsItem,
-  TeamItem,
-} from "@/types/types";
 
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import Agreement from "@/components/index/Agreement/agreement";
@@ -37,14 +32,11 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
 
-import {
-  setTeam, setToken, setUser,
-  setSettings, setSignedAgreement,
-  setUnit, setLoadingComplete
-} from '@/store/slices'
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
+
+import { setSignedAgreement, setLoadingComplete } from '@/store/slices'
 
 import ico1 from "@/public/ico1.png";
 import ico2 from "@/public/ico2.png";
@@ -84,6 +76,8 @@ export default function Index() {
   const [teamNumberValue, setTeamNumberValue] = useState('');
   const [loaderButtonRegister, setLoaderButtonRegister] = useState(false);
   const [createTeamValue, setCreateTeamValue] = useState(false);
+  const [basedOnTeamValue, setBasedOnTeamValue] = useState(false);
+  const [basedTeamNumberValue, setBasedTeamNumberValue] = useState('');
 
   // agreement для временного хранения
   // const [textAgreementValue, setTextAgreementValue] = useState("");
@@ -98,19 +92,19 @@ export default function Index() {
   // 4-лоадер
   // 5-мастер заполнения
 
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
-  const unit = useSelector((state: RootState) => {
+  const unit = useAppSelector((state: RootState) => {
     return state.authSlice.unit;
   })
-  const signedAgreement = useSelector((state: RootState) => {
+  const signedAgreement = useAppSelector((state: RootState) => {
     return state.authSlice.signedAgreement;
   })
 
@@ -129,7 +123,7 @@ export default function Index() {
       return
     }
 
-    const tt = await loginHandler({
+    await loginHandler({
       login: loginValue,
       pass: passValue,
       token,
@@ -146,59 +140,22 @@ export default function Index() {
 
     setLoaderButtonLogin(false)
   }
-  // не сделана
+  // Восстановление пароля
   const loginRecovery = async (e: React.MouseEvent<HTMLElement>) => {
 
     if (loginValue.length < 5) {
       setMessage(t('service.loginNotEntered'));
       return
     };
+    if (loginValue) {
 
-    // генерим ссылку восстановления и запоминаем юзера на восстановление   
-    // setLoaderButtonRecovery(true)
-    const URL_RECOVERY = process.env.NEXT_PUBLIC_URL_RECOVERY;
-    let _urlRecovery = String(URL_RECOVERY);
-    _urlRecovery = _urlRecovery.concat((_urlRecovery[_urlRecovery.length - 1] === "/") ? "" : "/");
-    const link = _urlRecovery + "recovery/";
-    try {
-      //  нужно отправить писмо на восстановление      
-      const res = await fetch(`${_url}auth/mailrecovery`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({ 'login': loginValue, 'link': link }),
-        }
-      );
-
-      if (res.status !== 200)
-        setMessage(t('service.serverUnavailable') + res.status);
-      else {
-        //  написать сообщение юзеру что писмо отправлено       
-        // setMessage('Вам на почту отправлено письмо со ссылкой на страницу восстановления пароля!');    
-        // setMessage(' An email with a link to the password recovery page has been sent to your email!');          
-        // setMessage(' Jums ir nosūtīts e-pasts ar saiti uz paroles atkopšanas lapu!');          
-        // setMessage(' Вам на пошту надіслано листа з посиланням на сторінку відновлення пароля!');          
-        setMessage(t('service.recoveryMailSent'));
-      }
-      // } catch (e: any) {
-      //   setMessage(t('service.serverUnavailable') + e.message)
-      // }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
+      await sendCodeHandler(loginValue, 'password_reset', i18n.language, t, setMessageLogin);
     }
 
-    // setLoaderButtonRecovery(false);
   }
   const registerClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonRegister(true)
-    
+
     // if (loginValue.length < 5) {
     //   setMessageRegister(t('service.loginLengthMustBe'));
     //   setMessageRegister("Длина логина должна быть не менее 5 символов и содержать @  и . ");
@@ -242,6 +199,8 @@ export default function Index() {
       pass: pass1Value,
       teamNumber: teamNumberValue,
       createTeam: createTeamValue,
+      basedOnTeam: basedOnTeamValue,
+      basedTeamNumber: basedTeamNumberValue,
       nickname: nicknameValue,
       token,
       t,
@@ -255,14 +214,43 @@ export default function Index() {
     setLoaderButtonRegister(false)
   }
 
+  useEffect(() => {
+    // мейла подтверждение юзера
+    const confirmEmailAndRedirect = async () => {
+      if (user.login && !user?.confirmed && token.trim() !== "") {
+        await sendCodeHandler(user.login, 'signup', i18n.language, t, setMessage);
+      }
+    };
+    confirmEmailAndRedirect();
+  }, [user]);
+
 
   useEffect(() => {
+    // ждем подтверждения мейла
+    setMessageLogin("");
+    if (token.trim() !== "" && !user?.confirmed) {
+
+      if (team.id && user.id) {
+        setMessageLogin("На почту " + user.login
+          + " отправлено письмо с кодом подтверждения. Подтвердите свой e-mail и после этого войдите в систему.");
+      } else {
+        setMessageLogin("");
+      }
+
+      setStep(2);
+      dispatch(setLoadingComplete(true))
+
+      return; // ждем подтверждения мейла
+    }
+
     const loadDataAndRedirect = async () => {
+
       dispatch(setLoadingComplete(false))
       // Если юзер залогинен и получен токен
-      if (team && user && token.trim() !== "" && signedAgreement) {
+      if (team && user && token.trim() !== "" && signedAgreement && user?.confirmed) {
         setStep(4);
         if (user.isAdmin) {
+          await downloadBaner(user.id, team.id, token, t, setMessage, dispatch);
           await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
           await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
           await downloadTemplates(user.id, team.id, token, t, setMessage, dispatch);
@@ -279,7 +267,8 @@ export default function Index() {
           push("/cards");
         }
         else {
-          // Только для одного юнита 
+          // Только для одного юнита           
+          await downloadBaner(undefined, undefined, token, t, setMessage, dispatch);
           await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
           await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
           await downloadUnutActions(unit?.id, user.id, team.id, token, t, setMessage, dispatch);
@@ -293,7 +282,6 @@ export default function Index() {
           // Переходим на страницу "cards"
           push("/unit-interface");
         }
-
         dispatch(setLoadingComplete(true))
       }
     };
@@ -387,7 +375,9 @@ export default function Index() {
                   value={loginValue}
                   placeholder={t('login.email')}
                   onChange={(e) => setLoginValue(e.target.value)}
-                  required autoComplete="off" />
+                  required
+                // autoComplete="off"
+                />
               </div>
               <div className="login_input_container">
                 <input className="login_input"
@@ -433,7 +423,9 @@ export default function Index() {
                   id="email"
                   placeholder={t('register.email')}
                   value={loginValue} onChange={(e) => setLoginValue(e.target.value)}
-                  required autoComplete="off" />
+                  required
+                // autoComplete="off" 
+                />
               </div>
 
               <div className="register_input_container">
@@ -466,28 +458,57 @@ export default function Index() {
               </div>
 
               <div className="register_input_container">
-                <label>Create team
-                  &nbsp; &nbsp;
+                <div className="register_input_container_row">
+                  <label>
+                    Create team
+                    <input
+                      className="register_input"
+                      id="showWeekend"
+                      autoComplete="off"
+                      checked={createTeamValue}
+                      type="checkbox"
+                      onChange={e => setCreateTeamValue(!createTeamValue)}
+                    />
+                  </label>
+
+                  {createTeamValue && (
+                    <label>
+                      based on
+                      <input
+                        className="register_input"
+                        id="showWeekend"
+                        autoComplete="off"
+                        checked={basedOnTeamValue}
+                        type="checkbox"
+                        onChange={e => setBasedOnTeamValue(!basedOnTeamValue)}
+                      />
+                    </label>
+                  )}
+                </div>
+                {basedOnTeamValue && (
                   <input
                     className="register_input"
-                    id="showWeekend"
+                    type="text"
+                    id="role"
+                    placeholder="Based on team number"
+                    value={basedTeamNumberValue}
+                    onChange={e => setBasedTeamNumberValue(e.target.value)}
+                    required
                     autoComplete="off"
-                    checked={createTeamValue}
-                    type="checkbox"
-                    onChange={e => {
-                      setCreateTeamValue(!createTeamValue)
-                    }}
                   />
-                </label>
-
-                {!createTeamValue && <input
-                  className="register_input"
-                  type="text"
-                  id="role"
-                  placeholder="Team number"
-                  value={teamNumberValue}
-                  onChange={(e) => setTeamNumberValue(e.target.value)}
-                  required autoComplete="off" />}
+                )}
+                {!createTeamValue && (
+                  <input
+                    className="register_input"
+                    type="text"
+                    id="role"
+                    placeholder="Team number"
+                    value={teamNumberValue}
+                    onChange={e => setTeamNumberValue(e.target.value)}
+                    required
+                    autoComplete="off"
+                  />
+                )}
               </div>
 
               <div className="register_input_container">

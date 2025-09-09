@@ -1,11 +1,11 @@
 import {
   TCardProductItem, TCardOperationItem, ProductItem,
-  TCardItem, UnitLoadItem, UOMItem, UnitExceptionItem,
+  TCardItem, UnitLoadItem, UnitExceptionItem,
   CalendarItem, TimeTypeEnum, StatusEnum,
   UnitItem, ScheduleItem, DaysOfWeek, UnitBelongEnum,
   UnitActionItem, ReadyProduct
 } from "./../types/types";
-
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/timezone"
 // функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
 const getLoadIdc = (
   tCard: TCardItem,
@@ -20,8 +20,8 @@ const getLoadIdc = (
 }
 
 import { generateUniqueIdc } from './../lib/utils'
-import TCardProduct from "@/components/cards/TCardProducts/TCardProduct/tCardProduct";
-import Product from "@/components/cards/Products/Product/product";
+// import TCardProduct from "@/components/cards/TCardProducts/TCardProduct/tCardProduct";
+// import Product from "@/components/cards/Products/Product/product";
 // генерация привычной нам даты - ее использую как id дня
 const idDay = (date: Date): string => {
   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
@@ -88,9 +88,12 @@ const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
     ); else return false
 }
 // генерация одного дня на шкале
-const generateCalendarItemOnServer = (day: Date, schedule: ScheduleItem): CalendarItem => {
-  const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-  currentDate.setHours(0, 0, 0, 0);
+const generateCalendarItemOnServer = (day: string, schedule: ScheduleItem): CalendarItem => {
+
+  // const currentDate = new Date(day);  // Убираю мутабельность 
+  // currentDate.setHours(0, 0, 0, 0);
+
+  const currentDate = getTimeZoneDateFromDateString(day, schedule.timeZone)
 
   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
@@ -177,9 +180,9 @@ function findAvailableTimeForOperation(
   unitActions: UnitActionItem[], //  массив операций юнитов
   unitLoadItems: UnitLoadItem[], // массив загрузок юнитов
   operation: TCardOperationItem, // операция (с длительностью в мс)
-  startDate: string,            // дата для старта выполнения операции (YYYY-MM-DD)
+  startDateStr: string,            // дата для старта выполнения операции (YYYY-MM-DD)
   moment: number,               // момент в который можно стартовать  -  готовы все входящие материалы
-  stopDate: string,             // дата, после которой планирование не ведётся (90 дней вперед)
+  stopDateStr: string,             // дата, после которой планирование не ведётся (90 дней вперед)
   schedule: ScheduleItem,
   exceptionItems: UnitExceptionItem[],
   isPinned: boolean, //  признак того что при планировании надо установить как пришпилен
@@ -188,9 +191,12 @@ function findAvailableTimeForOperation(
   // tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, isPinned
   const version = generateUniqueIdc();
 
-  const targetDate = new Date(startDate);
-  targetDate.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  if (targetDate.getTime() > new Date(stopDate).getTime()) {
+  // const targetDate = new Date(startDate);
+  // targetDate.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  const targetDate = getTimeZoneDateFromDateString(startDateStr, schedule.timeZone)
+  const stopDate = getTimeZoneDateFromDateString(stopDateStr, schedule.timeZone)
+
+  if (targetDate.getTime() > stopDate.getTime()) {
     return {
       success: false,
       planedUnitLoads: unitLoadItems,
@@ -229,9 +235,10 @@ function findAvailableTimeForOperation(
 
     // ищем для юнита возможные сегменты операции
     const resultOpSegments = findAvailableSegmentsDay(
-      targetDate,
+      // targetDate,
+      startDateStr,
       moment,
-      stopDate,
+      stopDateStr,
       opSegments,
       unit,
       retoolTime,
@@ -332,17 +339,18 @@ function findAvailableTimeForOperation(
     planedUnitLoads: unitLoadItems,
     dateReady: "",
     timeReady: 0,
-    message: `Планирование не удалось: нет свободных ресурсов до ${stopDate}
+    message: ` до ${stopDate}
     учитывая время и непрерывность операции, а также коэфициент времени юнитов`
   };
 }
 
-// для разбивки операции на промежутки по шкале времени определенного юнита на определенный день
+// Рекурсия для разбивки операции на промежутки по шкале времени определенного юнита на определенный день
 // на выходе имеем сегменты разбивки
 function findAvailableSegmentsDay(
-  targetDate: Date,
+  // targetDate: Date,
+  targetDateStr: string,
   moment: number,  // момент в который можно стартовать  -  готовы все входящие материалы
-  stopDate: string,
+  stopDateStr: string,
   opSegments_: { date: string, start: number, finish: number, isRetool: boolean }[],
   unit: UnitItem,
   retoolTime: number,
@@ -360,15 +368,18 @@ function findAvailableSegmentsDay(
   message: string
 } {
 
-  if (targetDate.getTime() > new Date(stopDate).getTime()) {
+  const stopDate = getTimeZoneDateFromDateString(stopDateStr, schedule.timeZone)
+  const targetDate = getTimeZoneDateFromDateString(targetDateStr, schedule.timeZone)
+  // if (targetDate.getTime() > new Date(stopDate).getTime()) {
+  if (targetDate.getTime() > stopDate.getTime()) {
     return {
       success: false,
       opSegments: [] as { date: string, start: number, finish: number, isRetool: boolean }[],
-      message: `достигнута стоп дата и нет свободных ресурсов до ${stopDate}`
+      message: `достигнута стоп дата и нет свободных ресурсов до ${stopDateStr}`
     };
   }
 
-  const workDay = generateCalendarItemOnServer(targetDate, schedule);
+  const workDay = generateCalendarItemOnServer(targetDateStr, schedule);
   // Определяем рабочие рамки для данного юнита (по расписанию компании)
   let workStart = workDay.timeStartWork;
   let workEnd = workDay.timeFinishWork;
@@ -404,12 +415,16 @@ function findAvailableSegmentsDay(
   // Если рабочее время отсутствует – пропускаем день
   // перепрыгиваем на следующий день
   if (workEnd === workStart) {
+
     const nextDate = new Date(targetDate)
     nextDate.setDate(nextDate.getDate() + 1);
+    const nextDateStr = nextDate.toLocaleDateString("en-CA");
+
     return findAvailableSegmentsDay(
-      nextDate,
+      // nextDate,
+      nextDateStr,
       0,
-      stopDate,
+      stopDateStr,
       opSegments,
       unit,
       retoolTime,
@@ -516,11 +531,13 @@ function findAvailableSegmentsDay(
     if (!found) {
       const nextDate = new Date(targetDate)
       nextDate.setDate(nextDate.getDate() + 1);
+      const nextDateStr = nextDate.toLocaleDateString("en-CA");
 
       return findAvailableSegmentsDay(
-        nextDate,
+        // nextDate,
+        nextDateStr,
         0,
-        stopDate,
+        stopDateStr,
         opSegments,
         unit,
         retoolTime,
@@ -566,8 +583,9 @@ function findAvailableSegmentsDay(
         // Если ретул запланирован не на текущий день (например, в конце дня, а операция – на следующий),
         // сдвигаем ретул так, чтобы он заканчивался ровно в конце рабочего дня для того дня,
         // к которому он относится.
-        const retoolDate = new Date(retoolSeg.date);
-        const workDayRetool = generateCalendarItemOnServer(retoolDate, schedule);
+        // const retoolDate = new Date(retoolSeg.date);
+        // const workDayRetool = generateCalendarItemOnServer(retoolDate, schedule);
+        const workDayRetool = generateCalendarItemOnServer(retoolSeg.date, schedule);
         const workEndRetool = workDayRetool.timeFinishWork;
         const newRetoolStart = workEndRetool - retoolTime;
         retoolSeg.start = newRetoolStart;
@@ -664,11 +682,13 @@ function findAvailableSegmentsDay(
     if (onPlaned < opRequired) {
       const nextDate = new Date(targetDate)
       nextDate.setDate(nextDate.getDate() + 1);
-
+      const nextDateStr = nextDate.toLocaleDateString("en-CA");
+      
       return findAvailableSegmentsDay(
-        nextDate,
+        // nextDate,
+        nextDateStr,
         0,
-        stopDate,
+        stopDateStr,
         opSegments,
         unit,
         retoolTime,
@@ -763,12 +783,17 @@ export const planTCardFromOperINC = (
 
   let updatedUnitLoads = [...unitLoads];
   let planedCardLoads: UnitLoadItem[] = [];
-  const today = new Date(today_);
-  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  const stopDate_ = new Date();
-  stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+
+  // const today = new Date(today_);
+  // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)  
+  const today = getTimeZoneDateFromDateString(today_, shedule_.timeZone)
+
+  // const stopDate_ = new Date();
+  // stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  const stopDate_ = getCurrentDateInDate(shedule_.timeZone)
+
   stopDate_.setDate(stopDate_.getDate() + 90);
-  const stopDate = stopDate_.toLocaleDateString("en-CA");
+  const stopDateStr = stopDate_.toLocaleDateString("en-CA");
 
   // массив готовых продуктов и дата время готовности каждого продукта
   // стартуем с продуктов которые  берутся со склада  
@@ -941,7 +966,7 @@ export const planTCardFromOperINC = (
           }
 
           // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-          const resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, isPinned);
+          const resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDateStr, shedule_, exceptionItems, isPinned);
 
           // если не удалось запланировать то прерываем расчет
           if (!resultPlaning.success) {
@@ -985,22 +1010,26 @@ export const planOperOnUnit = (
   tCard: TCardItem,
   unit: UnitItem,
   unitActions: UnitActionItem[],
-  shedule_: ScheduleItem,
+  schedule_: ScheduleItem,
   unitLoads: UnitLoadItem[],
   exceptionItems: UnitExceptionItem[],
-  today_: string,
+  todayStr: string,
   maxDateSource: string,
   maxTimeSource: number
   //  возвращаем лоады по операции
 ): { success: boolean, operLoads: UnitLoadItem[], message: string } => {
 
   let updatedUnitLoads = [...unitLoads];
-  const today = new Date(today_);
-  today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  const stopDate_ = new Date();
-  stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  // const today = new Date(todayStr_);
+  // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  const today = getTimeZoneDateFromDateString(todayStr, schedule_.timeZone)
+
+  // const stopDate_ = new Date();
+  // stopDate_.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
+  const stopDate_ = getCurrentDateInDate(schedule_.timeZone)
+
   stopDate_.setDate(stopDate_.getDate() + 90);
-  const stopDate = stopDate_.toLocaleDateString("en-CA");
+  const stopDateStr = stopDate_.toLocaleDateString("en-CA");
 
   let message = "";
 
@@ -1014,13 +1043,13 @@ export const planOperOnUnit = (
 
 
 
-  if (maxDateSource < today_) {
-    maxDateSource = today_;
+  if (maxDateSource < todayStr) {
+    maxDateSource = todayStr;
     maxTimeSource = 0
   }
 
   // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
-  const resultPlaning = findAvailableTimeForOperation(tCard, [unit], unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, true);
+  const resultPlaning = findAvailableTimeForOperation(tCard, [unit], unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDateStr, schedule_, exceptionItems, true);
 
   // если не удалось запланировать то прерываем расчет
   if (!resultPlaning.success) {

@@ -1,13 +1,33 @@
 
-import { Repository } from 'typeorm';
+import { DataSource, Repository, ObjectLiteral, FindOptionsWhere } from 'typeorm';
+
 // tables
 import { UserTable } from './../db/models/catalogs/users';
 import { SupportTable } from './../db/models/support/support';
+import { TeamTable } from "./../db/models/catalogs/teams";
+import { UnitTable } from './../db/models/catalogs/units'
+import { UnitActionTable } from './../db/models/catalogs/unit_actions'
+import { UnitLoadTable } from './../db/models/plan/unit_loads';
+import { TCardTable } from './../db/models/data/t_cards'
+import { TCardStageTable } from './../db/models/data/t_card_stages'
+import { TemplateTable } from './../db/models/catalogs/templates'
+import { UserAgreeTable } from './../db/models/catalogs/user_agree';
 
+import { ProductTable } from './../db/models/data/products'
+import { TCardProductTable } from './../db/models/data/t_card_products'
+import { TCardOperationTable } from './../db/models/data/t_card_operations'
+
+import { ActionTable } from './../db/models/catalogs/actions';
+import { UOMsTable } from './../db/models/catalogs/uoms';
+import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
+import { SettingsTable } from './../db/models/plan/settings';
+import { TeamScheduleTable } from './../db/models/plan/team_schedule';
+import { UserUnitTable } from './../db/models/catalogs/user_unit';
+import { ActiveTimeTable } from './../db/models/billing/active_time';
 // types
-import {UserItem, } from './../types/types';
+import { UserItem, } from './../types/types';
 
-
+import { changeStateTeambyId } from './../handlers/handlers-update';  // расчеты
 
 // Пользователи
 export async function deleteUsers(
@@ -34,16 +54,48 @@ export async function deleteUsers(
   return { success: true, message: 'Пользователи успешно удалены.' };
 }
 
-// Пользователи
+
+
+export async function deleteUser(
+  userId: number,
+  usersRepository: Repository<UserTable>
+): Promise<{ success: boolean; message: string }> {
+  if (!Number.isFinite(userId)) {
+    return { success: false, message: 'Пользователь для удаления не указан или неверный id.' };
+  }
+
+  try {
+    const userToDelete = await usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!userToDelete) {
+      return { success: false, message: `Пользователь с id=${userId} не найден.` };
+    }
+
+    const deleteResult = await usersRepository.delete({ id: userId });
+
+    if ((deleteResult.affected ?? 0) === 0) {
+      return { success: false, message: `Не удалось удалить пользователя с id=${userId}.` };
+    }
+
+    return { success: true, message: `Пользователь с id=${userId} успешно удалён.` };
+  } catch (err) {
+    console.error("Ошибка при удалении пользователя:", err);
+    return { success: false, message: `Ошибка удаления: ${err instanceof Error ? err.message : String(err)}` };
+  }
+}
+
+// 
 export async function deleteSupport(
   idsToDelete: number[],  // Массив сообщений
-  supportRepository: Repository<SupportTable>,  
+  supportRepository: Repository<SupportTable>,
 ) {
   if (idsToDelete.length === 0) {
     return { success: false, message: 'Нет сообщений для удаления.' };
   }
 
-  
+
   // Находим пользователей по их id
   const mesToDeleteEntities = await supportRepository.findByIds(idsToDelete);
 
@@ -55,4 +107,94 @@ export async function deleteSupport(
   await supportRepository.remove(mesToDeleteEntities);
 
   return { success: true, message: 'Сообщения успешно удалены.' };
+}
+
+// ОПАСНАЯ ОПЕРАЦИЯ !!!!!
+
+export async function deleteDataTeam(
+  teamId: number,
+  timezone:string,
+  teamRepository: Repository<TeamTable>,
+  activeTimeRepository: Repository<ActiveTimeTable>,
+  repositories: {
+    unitLoads: Repository<UnitLoadTable>,
+    templates: Repository<TemplateTable>,
+    tCardOperations: Repository<TCardOperationTable>,
+    tCardStages: Repository<TCardStageTable>,
+    tCardProducts: Repository<TCardProductTable>,
+    products: Repository<ProductTable>,
+    tCards: Repository<TCardTable>,
+    userUnits: Repository<UserUnitTable>,
+    unitActions: Repository<UnitActionTable>,
+    unitExceptions: Repository<UnitExceptionTable>,
+    units: Repository<UnitTable>,
+    settings: Repository<SettingsTable>,
+    actions: Repository<ActionTable>,
+    uoms: Repository<UOMsTable>
+    teamSchedule: Repository<TeamScheduleTable>
+  }
+): Promise<{ success: boolean; message: string }> {
+  if (!Number.isFinite(teamId)) {
+    return { success: false, message: 'Команда для удаления не указана.' };
+  }
+
+  try {
+    // Проверка команды
+    const teamToUpdate = await teamRepository.findOne({ where: { id: teamId } });
+    if (!teamToUpdate) {
+      throw new Error(`Команда с id=${teamId} не найдена`);
+    }
+
+    // // Деактивация команды
+    // изменение состояния активности команды
+    const resTeam = await changeStateTeambyId(activeTimeRepository, Number(teamId), false,timezone)
+   
+    if (!resTeam.success) {
+      console.warn('Не удалось деактивировать команду перед удалением:', resTeam.message);
+      
+    }
+    // teamToUpdate.active = false;
+    // await teamRepository.save(teamToUpdate);
+
+    // Список всех репозиториев с подписью
+    const repoList: [string, Repository<any>][] = [
+      ['UnitLoads', repositories.unitLoads],
+      ['Templates', repositories.templates],
+      ['TCardOperations', repositories.tCardOperations],
+      ['TCardStages', repositories.tCardStages],
+      ['TCardProducts', repositories.tCardProducts],
+      ['Products', repositories.products],
+      ['TCards', repositories.tCards],
+      ['UserUnits', repositories.userUnits],
+      ['UnitActions', repositories.unitActions],
+      ['UnitExceptions', repositories.unitExceptions],
+      ['Units', repositories.units],
+      ['Settings', repositories.settings],
+      ['Actions', repositories.actions],
+      ['UOMs', repositories.uoms],
+      ['TeamSchedule', repositories.teamSchedule],
+    ];
+
+    let totalDeleted = 0;
+
+    for (const [label, repo] of repoList) {
+      const result = await repo.delete({ team_id: teamId });
+      const affected = result.affected ?? 0;
+      totalDeleted += affected;
+
+      if (affected > 0) {
+        console.log(`✅ ${label}: удалено ${affected} записей`);
+      } else {
+        console.warn(`⚠️ ${label}: ничего не удалено`);
+      }
+    }
+
+    return {
+      success: true,
+      message: `Удаление завершено. Всего затронуто ${totalDeleted} записей`
+    };
+  } catch (err) {
+    console.error('Ошибка при удалении данных команды:', err);
+    return { success: false, message: `Ошибка удаления: ${err instanceof Error ? err.message : String(err)}` };
+  }
 }

@@ -107,3 +107,47 @@ export const changeName = async (
     return success
 
 }
+
+export const deleteProfile = async (
+    isAdmin: boolean,
+    userId: number,
+    teamId: number,
+    token: string,
+    t: (key: string) => string,
+    setMessage: (message: string) => void,
+): Promise<boolean> => {
+
+    let success = false;
+  
+    try {
+        const res = await fetch(`api/profile-api`,
+            {
+                method: 'delete',
+                headers: new Headers({
+                    'Authorization': 'Basic ' + token,
+                    'Content-Type': 'application/json'
+                }),
+                body: JSON.stringify({
+                    userId: userId,
+                    teamId: teamId,
+                    isAdmin: isAdmin,
+                }),
+            }
+        );
+        if (res.status !== 200) {
+            const receivedData = await res.json();
+            setMessage(receivedData.error);
+        } else {
+            const receivedData = await res.json();
+            return receivedData.success;
+        }
+
+    } catch (e: unknown) {
+        let message = t('service.serverUnavailable');
+        if (e instanceof Error) {
+            message += e.message;
+        }
+        setMessage(message);
+    }
+    return success
+}

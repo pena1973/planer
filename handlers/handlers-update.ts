@@ -16,22 +16,248 @@ import { ActionTable } from './../db/models/catalogs/actions';
 import { UOMsTable } from './../db/models/catalogs/uoms';
 import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
 import { SettingsTable } from './../db/models/plan/settings';
-
+import { TeamTable } from './../db/models/catalogs/teams';
 import { UserTable } from './../db/models/catalogs/users';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
 import { SupportTable } from './../db/models/support/support';
 
-
+import { ClientTable } from './../db/models/billing/clients';
+import { ActiveTimeTable } from "./../db/models/billing/active_time";
+import { BillTable } from "./../db/models/billing/bills";
+import { BillRowTable } from "./../db/models/billing/bill_row";
+import { BalanceTable } from "./../db/models/billing/balance";
 
 // types
 import {
   UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem,
   SupportMessageItem, TCardItem, TCardOperationItem, TCardProductItem,
   ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
-  SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum
+  SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum,
 } from './../types/types';
-import { getUOMs } from './handlers-get';
 
+import { ClientItem, BillItem } from './../types/service-types';
+
+
+import { getCurrentDateInString } from "../lib/timezone"
+
+// Создание c строки баланса
+export async function updateBalance(
+  balanceRepository: Repository<BalanceTable>,
+  teamId: number,
+  transactionId: string,
+  amount: number,
+  date: string,
+  is_trial: boolean,
+  document: string,
+  direction: string,
+  coment: string,
+) {
+
+  // Получаем существующую транзакцию расписание для компании (предполагается, что только одно расписание для компании)
+  const existingBalance = await balanceRepository.findOne({ where: { date: date, transaction_id: transactionId } });
+
+  if (!existingBalance) {
+    // Если транзакции нет, создаем новую
+    const newBalance = balanceRepository.create({
+
+      team_id: teamId,
+      date: date,
+      summa: amount,
+      direction: direction,
+      document: document,
+      coment: coment,
+      is_trial: is_trial,
+      transaction_id: transactionId
+    });
+    const savedNewBalance = await balanceRepository.save(newBalance);
+    if (!savedNewBalance) return { success: false, message: "Не удалось сохранить транзакцию " + document };
+
+    return { success: true, savedNewBalance: savedNewBalance };
+
+  } else {
+    // Если транзакция существует, обновляем ее
+    existingBalance.team_id = teamId;
+    existingBalance.date = date;
+    existingBalance.summa = amount;
+    existingBalance.direction = direction;
+    existingBalance.document = document;
+    existingBalance.coment = coment;
+    existingBalance.is_trial = is_trial;
+    existingBalance.transaction_id = transactionId;
+
+    const savedUpdatedBalance = await balanceRepository.save(existingBalance);
+    if (!savedUpdatedBalance) return { success: false, message: "Не удалось обновить баланс" };
+  }
+  return {
+    success: true, savedSettings: []
+
+  };
+}
+
+// Создание/перезапись счета
+export async function updateBill(
+  billRepository: Repository<BillTable>,
+  billRowRepository: Repository<BillRowTable>,
+  bill: BillItem,
+) {
+
+  const round2 = (n: number) => Number((n ?? 0).toFixed(2));
+
+  // Проверяем существование счета на дату для команды
+  const existingBill = await billRepository.findOne({
+    where: { team_id: bill.teamId, date: bill.date },
+  });
+
+  if (!existingBill) {
+    // --- Новый счёт ---
+    const newBill = billRepository.create({
+      team_id: bill.teamId,
+      date: bill.date,
+      title: bill.title,
+      coment: bill.coment ?? '',
+      amount: round2(bill.amount),
+      vat: bill.vat,
+      vat_amount: round2(bill.vatAmount),
+      total_amount: round2(bill.totalAmount),
+    });
+
+    const savedBill = await billRepository.save(newBill);
+    if (!savedBill) return { success: false, message: "Не удалось сохранить данные шапки счета" };
+
+    // Строки
+    const newBillRows = bill.rows.map(row => billRowRepository.create({
+      billId: savedBill.id,
+      team_id: bill.teamId,
+      billable_team_number: row.billableTeamNumber,
+      date_from: row.dateFrom,
+      date_to: row.dateTo,
+      discount: row.discount,
+      activeDays: row.activeDays,
+      amount: round2(row.amount),
+      price: row.price,
+      carency: 'EUR',
+    }));
+
+    const savedRows = newBillRows.length > 0 ? await billRowRepository.save(newBillRows) : [];
+    if (!savedRows) return { success: false, message: "Не удалось сохранить данные строк счета" };
+
+    return { success: true, billId: savedBill.id };
+  }
+
+  // --- Перезапись существующего счета ---
+  // 1) Обновляем «шапку»
+  existingBill.title = bill.title;
+  existingBill.coment = bill.coment ?? existingBill.coment;
+  existingBill.amount = round2(bill.amount);
+  existingBill.vat = bill.vat;
+  existingBill.vat_amount = round2(bill.vatAmount);
+  existingBill.total_amount = round2(bill.totalAmount);
+
+  const savedHeader = await billRepository.save(existingBill);
+  if (!savedHeader) return { success: false, message: "Не удалось обновить шапку счета" };
+
+  // 2) Удаляем все старые строки этого счета
+  await billRowRepository.delete({ billId: existingBill.id });
+
+  // 3) Создаём новые строки
+  const rebuiltRows = bill.rows.map(row => billRowRepository.create({
+    billId: existingBill.id,
+    team_id: bill.teamId,
+    billable_team_number: row.billableTeamNumber,
+    date_from: row.dateFrom,
+    date_to: row.dateTo,
+    discount: row.discount,
+    activeDays: row.activeDays,
+    amount: round2(row.amount),
+    price: round2(row.price),
+    carency: 'EUR',
+  }));
+
+  const savedRebuilt = rebuiltRows.length > 0 ? await billRowRepository.save(rebuiltRows) : [];
+  if (!savedRebuilt) return { success: false, message: "Не удалось сохранить строки при перезаписи счета" };
+
+  return { success: true, billId: existingBill.id };
+}
+// Состояние активности нескольких команд
+export async function changeStateTeamsByIds(
+  activeTimeRepository: Repository<ActiveTimeTable>,
+  teamIds: number[],
+  state: boolean
+): Promise<{ success: boolean; message?: string; failed?: number[] }> {
+  if (!teamIds || teamIds.length === 0) {
+    return { success: false, message: "Список команд пуст." };
+  }
+
+  const failed: number[] = [];
+  const dateStr = new Date().toLocaleDateString('en-CA');
+
+  try {
+    for (const id of teamIds) {
+      if (!Number.isFinite(id)) {
+        failed.push(id);
+        continue;
+      }
+
+      try {
+        const activityTime = activeTimeRepository.create({
+          date: dateStr,
+          direction: state ? 'start' : "finish",
+          team_id: id,
+        });
+
+        const saved = await activeTimeRepository.save(activityTime);
+        if (!saved?.id) {
+          failed.push(id);
+        }
+      } catch (e) {
+        console.error(`Ошибка при обновлении состояния для команды ${id}:`, e);
+        failed.push(id);
+      }
+    }
+
+    if (failed.length > 0) {
+      return { success: false, message: "Некоторые команды не удалось обновить", failed };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("changeStateTeamsByIds error:", err);
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+// Состояние активности команды
+export async function changeStateTeambyId(
+  activeTimeRepository: Repository<ActiveTimeTable>,
+  teamId: number,
+  state: boolean,
+  timezone:string,
+): Promise<{ success: boolean; message?: string; team?: TeamTable }> {
+
+  if (!Number.isFinite(teamId)) {
+    return { success: false, message: "Команда не указана." };
+  }
+const todayStr =   getCurrentDateInString(timezone);
+  try {
+    const activityTime = activeTimeRepository.create({
+      // date: new Date().toLocaleDateString('en-CA'),
+      date: todayStr,
+      direction: state ? 'start' : "finish",
+      team_id: teamId
+    });
+    // 2) первый save -> сработает @BeforeInsert и заполнит prefix
+    const savedActivityTime = await activeTimeRepository.save(activityTime);
+
+    if (!savedActivityTime?.id) {
+      return { success: false, message: "Не удалось изменить состояние активности команды." };
+    }
+    return { success: true };
+
+  } catch (err) {
+    console.error("updateClient error:", err);
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
 
 // НАСТРОЙКИ
 export async function updateSettings(
@@ -165,6 +391,60 @@ export async function updateTemplates(
   return { success: true, savedTemplates: savedTemplates, message: "" }
 }
 
+// КЛИЕНТ
+export async function updateClient(
+  clientRepository: Repository<ClientTable>,
+  client: ClientItem,
+  teamId: number
+): Promise<{ success: boolean; message?: string; savedClient?: ClientTable }> {
+
+  if (!Number.isFinite(teamId)) {
+    return { success: false, message: "Команда не указана." };
+  }
+
+  try {
+    // 1) Ищем по team_id — у команды один клиент
+    const existingClient = await clientRepository.findOne({ where: { team_id: teamId } });
+
+    // 2) Если есть — обновляем поля
+    if (existingClient) {
+      existingClient.title = client.title?.trim() ?? existingClient.title;
+      existingClient.reg_n = client.reg_n?.trim() ?? existingClient.reg_n;
+      existingClient.adress = client.adress?.trim() ?? existingClient.adress;
+      existingClient.email = client.email?.trim() ?? existingClient.email;
+      existingClient.phone = client.phone?.trim() ?? existingClient.phone;
+      existingClient.person = client.person?.trim() ?? existingClient.person;
+
+      const saved = await clientRepository.save(existingClient);
+      if (!saved?.id) {
+        return { success: false, message: "Не удалось сохранить реквизиты клиента (update)." };
+      }
+      return { success: true, savedClient: saved };
+    }
+
+    // 3) Если нет — создаём новую запись (upsert)
+    const toCreate = clientRepository.create({
+      title: client.title?.trim() ?? "",
+      reg_n: client.reg_n?.trim() ?? "",
+      adress: client.adress?.trim() ?? "",
+      email: client.email?.trim() ?? "",
+      phone: client.phone?.trim() ?? "",
+      person: client.person?.trim() ?? "",
+      team_id: teamId,
+    });
+
+    const saved = await clientRepository.save(toCreate);
+    if (!saved?.id) {
+      return { success: false, message: "Не удалось сохранить реквизиты клиента (create)." };
+    }
+    return { success: true, savedClient: saved };
+
+  } catch (err) {
+    console.error("updateClient error:", err);
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 // ЕДИНИЦЫ ИЗМЕРЕНИЯ
 export async function updateUOMS(
   uomsRepository: Repository<UOMsTable>,
@@ -172,7 +452,7 @@ export async function updateUOMS(
   teamId: number
 ) {
 
-  // СПИСОК ДЕЙСТВИЙ в базе
+  //  в базе
   const existingUOMS = await uomsRepository.find({ where: { team_id: teamId } });
 
   // 1. Найдём удалённые единицы измерения
@@ -588,10 +868,10 @@ export async function updateExceptions(
 
   // Добавляем новые действия Юнита
   const newUnitException = unitExceptionsToAdd.map(unitException => {
-    const date = new Date(unitException.date);
+    // const date = new Date(unitException.date);
     return unitExceptionsRepository.create({
       idc: unitException.idc,
-      date: date,
+      date: unitException.date,
       type: unitException.type,
       timeStart: unitException.timeStart,
       timeFinish: unitException.timeFinish,
@@ -608,7 +888,8 @@ export async function updateExceptions(
   const updatedUnitExceptions = unitExceptionToUpdate.map(unitException => {
     const existingUnitException = existingUnitExceptions.find(existingUnitException => existingUnitException.id === unitException.id);
     if (existingUnitException) {
-      existingUnitException.date = new Date(unitException.date);
+      // existingUnitException.date = new Date(unitException.date);
+      existingUnitException.date = unitException.date;
       existingUnitException.timeFinish = unitException.timeFinish;
       existingUnitException.timeStart = unitException.timeStart;
       existingUnitException.type = unitException.type;
@@ -950,11 +1231,12 @@ export async function updateTCardLoads(
 
 // получаю максимальный номер карты
 // не беру id потому что он в пределах таблицы
-async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>) {
+async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>,teamId:number) {
 
   const result = await tCardRepository
     .createQueryBuilder("tCard")
     .select("MAX(CAST(tCard.idc AS int))", "maxNumber")
+    .where({team_id:teamId})
     .getRawOne();
 
   // Если результат не null, возвращаем максимальное значение, иначе 
@@ -970,7 +1252,7 @@ async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>)
 
 ///////////////////// ЗАПИСЬ КАРТЫ//////////////////
 // &&&&
-// ТКАРТА
+// ТКАРТА  //  ПРОВЕРИТЬ ПРИ ЗАПИСИ ПРАВИЛЬНОСТЬ СТАТУСА (если есть БРАК!!
 export async function updateCard(
   tCardRepository: Repository<TCardTable>,
   tCard: TCardItem,
@@ -983,10 +1265,24 @@ export async function updateCard(
     // Генерируем номер карты, если idc = 0
     let newCardNumber = Number(tCard.idc);
     if (tCard.idc === 0) {
-      newCardNumber = await generateNewNumberForTeam(tCardRepository);
+      newCardNumber = await generateNewNumberForTeam(tCardRepository,teamId);
       if (!newCardNumber) {
         return { success: false, message: `Ошибка при генерации номера карты` };
       }
+    }
+    // проверка если есть брак и нет исправления то у карты статус брак  (если она приходит со статусом брак, планирован, подготовлен и драфт)
+    const opDefective = tCard.tCardOperations?.filter(op => op.status === StatusEnum.defective);
+
+    const hasUnfixedDefect = opDefective?.some(op => {
+      const fix = tCard.tCardOperations?.find(op1 => op1.fixOperIdc === op.idc);
+      return !fix; // true, если исправления нет
+    });
+
+    if (hasUnfixedDefect &&
+      (tCard.status === StatusEnum.draft
+        || tCard.status === StatusEnum.planed
+        || tCard.status === StatusEnum.prepared)) {
+      tCard.status = StatusEnum.defective;
     }
 
     // Если id карты > 0, обновляем, иначе создаём новую
@@ -1042,7 +1338,8 @@ export async function updateStages(
   tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
   tCardStages: TCardStageItem[],
-  savedTCard: TCardItem
+  savedTCard: TCardItem,
+  teamId: number
 ): Promise<{ success: boolean, savedTCardStages?: TCardStageItem[], message?: string }> {
   try {
     // Получаем текущие стадии из БД
@@ -1087,6 +1384,7 @@ export async function updateStages(
         idc: stage.idc,
         code: stage.code,
         tcard_id: savedTCard.id,
+        team_id: teamId,
       }));
 
     const savedNewStages = newStages.length > 0 ? await tCardStagesRepository.save(newStages) : [];
@@ -1132,7 +1430,8 @@ export async function updateOperations(
   tCardProductRepository: Repository<TCardProductTable>,
   tCardOperations: TCardOperationItem[],
   savedTCard: TCardItem,
-  savedTCardStages: TCardStageItem[]
+  savedTCardStages: TCardStageItem[],
+  teamId: number,
 ): Promise<{
   success: boolean;
   message?: string;
@@ -1180,6 +1479,7 @@ export async function updateOperations(
         status: op.status,
         coment: op.coment,
         fix_oper_idc: op.fixOperIdc,
+        team_id: teamId, // Добавляем team_id
       });
     }).filter(Boolean) as TCardOperationTable[];
 
@@ -1203,6 +1503,7 @@ export async function updateOperations(
         status: op.status,
         coment: op.coment,
         fix_oper_idc: op.fixOperIdc,
+        team_id: teamId,
       };
     }).filter(Boolean) as TCardOperationTable[];
 
@@ -1263,7 +1564,8 @@ export async function updateProducts(
   tCardProducts: TCardProductItem[],
   tCardMaterials: TCardProductItem[],
   tCardWastes: TCardProductItem[],
-  tCardOperations: TCardOperationItem[]
+  tCardOperations: TCardOperationItem[],
+  teamId: number,
 ): Promise<{ success: boolean; savedTCardProducts?: TCardProductItem[], message?: string }> {
 
   interface TCardProductItemRecord extends TCardProductItem {
@@ -1339,6 +1641,7 @@ export async function updateProducts(
         qtu: tp.qtu,
         operation_id: operationId,
         tcard_id: savedTCard.id,
+        team_id: teamId,
       });
     }).filter(Boolean) as TCardProductTable[];
 
@@ -1387,150 +1690,13 @@ export async function updateProducts(
   }
 }
 
-// &&&&
-// КАТАЛОГ
-// export async function updateCatalogProducts(
-//   uomsRepository: Repository<UOMsTable>,
-//   productRepository: Repository<ProductTable>,
-//   savedTCard: TCardTable,
-//   products: ProductItem[],
-//   teamId: number
-// ): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
-//   let error = ""; 
-
-//   const existingProductsRaw = await productRepository
-//     .createQueryBuilder('product')
-//     .leftJoin('uoms', 'uom', 'product.uom_id = uom.id')
-//     .addSelect([
-//       'uom.id',
-//       'uom.title',
-//       'uom.code'
-//     ])
-//     .where('product.tcard_id = :tcardId', { tcardId: savedTCard.id })
-//     .getRawMany();
-
-//   const existingProducts: (ProductTable & { uom?: UOMItem })[] = existingProductsRaw.map(row => ({
-//     created_at: row.product_created_at,
-//     id: row.product_id,
-//     idc: row.product_idc,
-//     title: row.product_title,
-//     sync: row.product_sync,
-//     tcard_id: row.product_tcard_id,
-//     uom_id: row.product_uom_id,
-
-//     uom: {
-//       id: row.uom_id,
-//       title: row.uom_title,
-//       code: row.uom_code,
-//     } as UOMItem,
-//   }));
-
-//   // 1. Найдем удаленные продукты
-//   const productsToDelete = existingProducts.filter(product =>
-//     !products.some(newProduct => { return (newProduct.id === product.id) })
-//   );
-
-//   // 2. Найдем новые продукты, которых нет в базе
-//   const productsToAdd = products.filter(product =>
-//     !existingProducts.some(existingProduct => { return (existingProduct.id === product.id) })
-//   );
-
-//   // 3. Найдем существующие продукты для обновления
-//   const productsToUpdate = products.filter(product =>
-//     existingProducts.some(existingProduct => { return (existingProduct.id === product.id) })
-//   );
-
-//   // Удаляем старые продукты
-//   if (productsToDelete.length > 0) await productRepository.remove(productsToDelete);
-
-//  // Добавляем новые продукты
-// let savedNewProducts: (ProductTable & { uom?: UOMItem })[] = [];
-
-// if (productsToAdd.length > 0) {
-//   try {
-//     const plainProducts = productsToAdd.map(product => ({
-//       idc: product.idc,
-//       title: product.title,
-//       uom_id: product.uom.id,   // только ID
-//       tcard_id: savedTCard.id,  // только ID
-//       sync: product.sync
-//     }));
-
-//     savedNewProducts = await productRepository.save(plainProducts);
-
-//     if (savedNewProducts.length === 0) {
-//       return { success: false, message: "Не удалось сохранить продукты из каталога" };
-//     }
-//   } catch (err) {
-//     console.error('Ошибка при сохранении новых продуктов:', err);
-//     return { success: false, message: 'Ошибка при сохранении продуктов каталога' };
-//   }
-// }
-
-//   // Обновляем существующие продукты
-//   const updatedProducts = productsToUpdate.map(product => {
-//     const existingProduct = existingProducts.find(existingProduct => existingProduct.id === product.id);
-//     if (existingProduct) {
-//       existingProduct.title = product.title;
-//       existingProduct.uom_id = product.uom.id;
-//       existingProduct.sync = product.sync;
-//       return productRepository.create(existingProduct);
-//     }
-//     return null;
-//   }).filter(product => product !== null);
-
-//   let savedUpdatedProducts = [] as (ProductTable & { uom?: UOMItem })[];
-//   if (updatedProducts.length > 0) {
-//     savedUpdatedProducts = await productRepository.save(updatedProducts);
-//     if (!savedUpdatedProducts) return { success: false, message: "Не удалось сохранить каталог" };
-//   }
-
-
-//   // Все продукты сохранены, проверка
-//   const savedProducts = [...savedNewProducts, ...savedUpdatedProducts] as (ProductTable & { uom?: UOMItem })[];
-
-//   // // Выполняем запрос с фильтрацией
-//   // const uoms = await uomsRepository.find({
-//   //   where: { team_id: teamId },  // Применяем фильтр к запросу
-//   // });
-
-//   // // Заполняем поле uom там где не заполнено
-//   // for (const product of savedProducts) {
-//   //   if (!product.uom_id) {
-//   //     const matched = uoms.find(uom => uom.id === product.uom_id)
-//   //     if (matched) {
-//   //       product.uom = matched;
-//   //     }
-//   //   }
-//   // }
-
-//   // если изначально был пустой массив продуктов уходим
-//   if (products.length === 0) return { success: true, savedProducts: savedProducts };
-
-//   // если изначально был НЕ пустой массив продуктов  проверка
-//   if (savedProducts.length > 0) {
-//     savedProducts.forEach((product, index) => {
-//       if (product.id) {
-//         console.log(`Предмет каталога ${index + 1} успешно сохранен с id: ${product.id}`);
-//       } else {
-//         error = `Ошибка при сохранении каталога ${index + 1}`;
-//         console.log(error);
-//         return { success: false, message: error };
-//       }
-//     });
-//   } else {
-//     error = `Не удалось сохранить каталог`;
-//     console.log(error);
-//     return { success: false, message: error };
-//   }
-
-//   return { success: true, savedProducts: savedProducts };
-// }
 // КАТАЛОГ
 export async function updateCatalogProducts(
+
   productRepository: Repository<ProductTable>,
   savedTCard: TCardItem,
   products: ProductItem[],
+  teamId: number
 ): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
   let error = "";
 
@@ -1572,7 +1738,8 @@ export async function updateCatalogProducts(
         title: p.title,
         uom_id: p.uom.id,
         tcard_id: savedTCard.id,
-        sync: p.sync
+        sync: p.sync,
+        team_id: teamId
       }));
 
       const inserted = await productRepository.save(plainProducts);
@@ -1603,7 +1770,8 @@ export async function updateCatalogProducts(
       title: p.title,
       uom_id: p.uom.id,
       tcard_id: savedTCard.id,
-      sync: p.sync
+      sync: p.sync,
+      team_id: teamId
     }));
 
     const updated = await productRepository.save(updateEntities);

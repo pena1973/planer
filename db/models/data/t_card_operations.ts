@@ -40,5 +40,7 @@ export class TCardOperationTable {
   @Column('int',{  default: 0 })
   fix_oper_idc!: number;
 
+  @Column('int')
+  team_id!: number;
 
 }

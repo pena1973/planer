@@ -62,6 +62,14 @@ __decorate([
     (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], UserTable.prototype, "team_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], UserTable.prototype, "isSystem", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'password_changed_at', type: 'timestamptz', nullable: true }),
+    __metadata("design:type", Object)
+], UserTable.prototype, "password_changed_at", void 0);
 exports.UserTable = UserTable = __decorate([
     (0, typeorm_1.Entity)("users")
 ], UserTable);

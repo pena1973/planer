@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { useSelector } from 'react-redux';
-import { RootState } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import styles from "./tCardOperNew.module.scss";
 import { TCardOperationItem, TCardProductItem, ActionItem, } from '@/types/types'
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
@@ -54,7 +55,7 @@ export default function TCardOperNew({
     updateIdc,
     maxIdc
 }: TCardOperNewProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
     const idc = tCardOperation.idc;
     const inn = tCardOperation.inn;
@@ -77,13 +78,10 @@ export default function TCardOperNew({
 
 
     //  проверим есть ли что в сессионном храилище
-    const actions = useSelector((state: RootState) => {
+    const actions = useAppSelector((state: RootState) => {
         return state.catalogSlice.actions;
     })
-    // const uoms = useSelector((state: RootState) => {
-    //     return state.catalogSlice.uoms;
-    // })
-
+    
     interface Option {
         idc: number;
         title: string;

@@ -23,7 +23,7 @@ const FilterComponent: React.FC<FilterComponentProps> = (
         teamId,
         userId }
 ) => {
-     const { t, i18n } = useTranslation();
+     const { t } = useTranslation();
     const [useTCardNumberFilter, setUseTCardNumberFilter] = useState(false);
     const [useTCardDateFilter, setUseTCardDateFilter] = useState(false);
     const [useTCardStatusFilter, setUseTCardStatusFilter] = useState(false);

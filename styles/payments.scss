@@ -1,0 +1,109 @@
+@import '@/styles/colors.scss';
+
+.container_payments {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: inherit;
+    padding-top: 40px;
+
+    // @media screen and (max-width: 650px) {
+    //     flex-direction: column;
+    //     justify-content: flex-start;
+    //     align-items: center;
+    //     align-items: center;
+    //     padding-top: 10px;
+    // }
+}
+
+.back_button {
+    margin-top: 20px;
+    width: 150px;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: $button1_background_color;
+    color: $button1_text_color;
+    transition: background-color 0.3s;
+
+    &:hover {
+        background-color: $button1_hover_background_color;
+    }
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    color: $third_text_color;
+}
+
+.text {
+    font-size: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: $third_text_color;
+}
+
+.container_verify {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: inherit;
+    // padding-top: 40px;
+
+    // @media screen and (max-width: 650px) {
+    //     flex-direction: column;
+    //     justify-content: flex-start;
+    //     align-items: center;
+    //     align-items: center;
+    //     // padding-top: 10px;
+    // }
+
+    // background-color: antiquewhite;
+}
+
+.form_verify {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.input_verify {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    height: 30px;
+    width: 150px;
+    font-size: $header2_font_size;
+}
+
+.change_pass_input_container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    // gap: 10px;
+    margin-top: 20px;
+    // background-color: $main_body_background_color;
+    // width: 200px;
+    // border: $border;
+    // border-radius: $border-radius;
+    padding: 10px;
+}
+.change_pass_input{
+    width: 150px;
+}
+.change_pass_message_container{
+    
+    font-size: 14px;
+    height: 20px;
+    margin-top: 5px;
+    color: $third_text_color;
+    font-style: italic;
+}

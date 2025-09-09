@@ -1,5 +1,5 @@
 @import '@/styles/colors.scss';
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .belong_select {
   padding: 1px;
@@ -12,77 +12,22 @@
   border: $border;
 }
 
-// .belong_select_placeholder {
-//   padding: 1px;
-//   border-radius: $border-radius;
-//   font-size: $header4_font_size;
-//   background-color: $background-color-select;
-//   color: $text_color_italic;
-//   border: $border;
-//   // font-style: italic;
-//   width: 100%;
-//   height: 100%;
-//   flex-direction: row;
-//   display: flex;
-//   justify-content: space-between;
-//   padding: 3px;
-// }
-
-// /* Цвет фона и границы при фокусе */
-// .belong_select:focus {
-//   // border-color: #007bff; /* Синий цвет границы при фокусе */
-//   outline: none;
-//   /* Убираем стандартное выделение */
-// }
-
-// /* Стиль для опций выпадающего списка */
-// .belong_select option {
-//   font-size: 12px;
-//   /* Размер шрифта для опций */
-// }
-
-// /* Чтобы применить тот же цвет границы и для выпадающего списка */
-// .belong_select {
-//   // border-color: #ccc;
-//   // /* Цвет границы, как у инпута */
-//   // background-color: #fff;
-//   // /* Белый фон для выпадающего списка */
-// }
-
-// /* Применение скругления для самого выпадающего списка */
-// .belong_select::-ms-expand {
-//   display: none;
-//   /* Убираем стрелочку для IE */
-// }
-
-// .placeholder {
-//   color: gray;
-//   /* Цвет текста плейсхолдера */
-//   font-style: italic;
-//   /* Применяем курсив к плейсхолдеру */
-// }
-
-
 //////////////
 //   ............
 
 .dropdownContainer {
-  // display: flex;
-  // width: 100%;
-  // align-items: center;
-  // justify-content: center;
-  // width: 100%;
-  // height: 100%;
-  // position: relative;
-  // flex-direction: row;
-
-   display: flex; /* Используем flexbox для выравнивания */
-    align-items: center; /* Вертикальное выравнивание по центру */
-    justify-content: center; /* Горизонтальное выравнивание по центру */
-    width: 100%; /* Ширина контейнера */
-    height: 100%; /* Высота контейнера */   
-    position: relative; 
-    flex-direction: row;
+  display: flex;
+  /* Используем flexbox для выравнивания */
+  align-items: center;
+  /* Вертикальное выравнивание по центру */
+  justify-content: center;
+  /* Горизонтальное выравнивание по центру */
+  width: 100%;
+  /* Ширина контейнера */
+  height: 100%;
+  /* Высота контейнера */
+  position: relative;
+  flex-direction: row;
 }
 
 .select {
