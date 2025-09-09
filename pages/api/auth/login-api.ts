@@ -99,14 +99,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const refreshToken = createRefreshToken({ login })
 
         // Устанавливаем refresh в HttpOnly cookie
-        res.setHeader('Set-Cookie', [
-          `refreshToken=${refreshToken}; 
-          HttpOnly; 
-          sameSite: 'strict';  
-          Path=/; 
-          Max-Age=${60 * 60 * 24 * 7}`, // 7 дней
+        res.setHeader('Set-Cookie', [`refreshToken=${refreshToken}; HttpOnly; Path=/;  Max-Age=${60 * 60 * 24 * 7}`, // 7 дней
         ])
-
 
         //  получаю Юнит который занимает юзер
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
