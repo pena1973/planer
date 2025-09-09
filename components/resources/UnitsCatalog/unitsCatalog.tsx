@@ -13,8 +13,8 @@ import DropdownSelectType from "@/components/resources/UnitsCatalog/DropdownSele
 import DropdownSelectUnitAction from "@/components/resources/UnitsCatalog/DropdownSelectUnitAction/dropdownSelectUnitAction";
 import DropdownSelectTimeType from "@/components/resources/UnitsCatalog/DropdownSelectTimeType/dropdownSelectTimeType";
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone"
 import { useTranslation } from 'react-i18next';
 
@@ -47,30 +47,30 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
-    const token = useSelector((state: RootState) => {
+    const token = useAppSelector((state: RootState) => {
         return state.authSlice.token;
     })
 
-    const team = useSelector((state: RootState) => {
+    const team = useAppSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
 
-    const user = useSelector((state: RootState) => {
+    const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
     })
-    const units = useSelector((state: RootState) => {
+    const units = useAppSelector((state: RootState) => {
         return state.catalogSlice.units;
     })
-    const actions = useSelector((state: RootState) => {
+    const actions = useAppSelector((state: RootState) => {
         return state.catalogSlice.actions;
     })
-    const unitExceptions = useSelector((state: RootState) => {
+    const unitExceptions = useAppSelector((state: RootState) => {
         return state.planSlice.unitExceptions;
     })
-    const unitActions = useSelector((state: RootState) => {
+    const unitActions = useAppSelector((state: RootState) => {
         return state.planSlice.unitActions;
     })
-    const schedule = useSelector((state: RootState) => {
+    const schedule = useAppSelector((state: RootState) => {
         return state.catalogSlice.schedule;
     })
 

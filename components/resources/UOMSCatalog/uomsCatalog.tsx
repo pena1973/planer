@@ -7,8 +7,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useEffect, useState } from "react";
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
@@ -25,21 +26,20 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
 
     const dispatch = useAppDispatch();
 
-    const token = useSelector((state: RootState) => {
+    const token = useAppSelector((state: RootState) => {
         return state.authSlice.token;
     })
-    const uoms = useSelector((state: RootState) => {
+    const uoms = useAppSelector((state: RootState) => {
         return state.catalogSlice.uoms;
     })
 
-    const team = useSelector((state: RootState) => {
+    const team = useAppSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
 
-    const user = useSelector((state: RootState) => {
+    const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
     })
-
 
     const [modified, setModified] = useState(false); // при установке состояния происходит смена формы
     const [uomsValue, setUomsValue] = useState([] as UOMItem[]);

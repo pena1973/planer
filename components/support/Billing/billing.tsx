@@ -2,8 +2,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import styles from "./billing.module.scss";
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { getBills } from '@/services/billing/getBills';
 import { downloadFile } from '@/services/billing/downloadInvoice';

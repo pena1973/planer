@@ -10,8 +10,9 @@ import { useEffect, useState } from "react";
 import { UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types/types'
 
 import { useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/utils";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
@@ -27,46 +28,48 @@ export default function UnitInterfase() {
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
   // const [resource, setResource] = useState(1); // 1 - загрузка юнитов, 2 - KPI, отчеты
 
+
+
+  const token = useAppSelector((state: RootState) => {
+    return state.authSlice.token;
+  })
+
+  const team = useAppSelector((state: RootState) => {
+    return state.catalogSlice.team;
+  })
+  const user = useAppSelector((state: RootState) => {
+    return state.authSlice.user;
+  })
+  const unit = useAppSelector((state: RootState) => {
+    return state.authSlice.unit;
+  })
+  const unitLoads = useAppSelector((state: RootState) => {
+    return state.planSlice.unitLoads;
+  })
+  const settings = useAppSelector((state: RootState) => {
+    return state.catalogSlice.settings;
+  })
+  const schedule = useAppSelector((state: RootState) => {
+    return state.catalogSlice.schedule;
+  })
+  const unitExceptions = useAppSelector((state: RootState) => {
+    return state.planSlice.unitExceptions;
+  })
+  const tCards = useAppSelector((state: RootState) => {
+    return state.dataSlice.tCards;
+  })
+
+  //показывает текущее состояние активности команды
+  const activeTeam = useAppSelector((state: RootState) => {
+    return state.viewSlice.activeTeam;
+  })
+
   const [day, setDay] = useState(() => {
     // const date = new Date();    
     // date.setHours(0, 0, 0, 0);
     const date = getCurrentDateInDate(schedule.timeZone)
     return date;
   });
-
-  const token = useSelector((state: RootState) => {
-    return state.authSlice.token;
-  })
-
-  const team = useSelector((state: RootState) => {
-    return state.catalogSlice.team;
-  })
-  const user = useSelector((state: RootState) => {
-    return state.authSlice.user;
-  })
-  const unit = useSelector((state: RootState) => {
-    return state.authSlice.unit;
-  })
-  const unitLoads = useSelector((state: RootState) => {
-    return state.planSlice.unitLoads;
-  })
-  const settings = useSelector((state: RootState) => {
-    return state.catalogSlice.settings;
-  })
-  const schedule = useSelector((state: RootState) => {
-    return state.catalogSlice.schedule;
-  })
-  const unitExceptions = useSelector((state: RootState) => {
-    return state.planSlice.unitExceptions;
-  })
-  const tCards = useSelector((state: RootState) => {
-    return state.dataSlice.tCards;
-  })
-
-  //показывает текущее состояние активности команды
-  const activeTeam = useSelector((state: RootState) => {
-    return state.viewSlice.activeTeam;
-  })
 
   if (!activeTeam) push('/support')
 
@@ -236,7 +239,7 @@ export default function UnitInterfase() {
             <BackwardButton onClick={() => {
               // const newDate = new Date(day);               
               // newDate.setDate(newDate.getDate() - 1);
-              const newDate= addDaysInZone(day,1,schedule.timeZone);
+              const newDate = addDaysInZone(day, -1, schedule.timeZone);
               // Пока новая дата является выходным или праздником и нет дополнительного времени,
               // продолжаем уменьшать дату.
               while ((isWeekend(newDate, schedule) || isHoliday(newDate, schedule)) && !isAdditionalTime(newDate, schedule)) {
@@ -250,7 +253,7 @@ export default function UnitInterfase() {
             <ForwardButton onClick={() => {
               // const newDate = new Date(day);              
               // newDate.setDate(newDate.getDate() + 1);
-              const newDate= addDaysInZone(day,1,schedule.timeZone);
+              const newDate = addDaysInZone(day, 1, schedule.timeZone);
               // Пока новая дата является выходным или праздником и нет дополнительного времени,
               // продолжаем увеличивать дату.
               while ((isWeekend(newDate, schedule) || isHoliday(newDate, schedule)) && !isAdditionalTime(newDate, schedule)) {

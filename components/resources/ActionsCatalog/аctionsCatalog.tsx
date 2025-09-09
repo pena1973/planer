@@ -5,8 +5,9 @@ import { ActionItem } from '@/types/types'
 import Image from 'next/image';
 import { useEffect, useState } from "react";
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { useTranslation } from 'react-i18next';
 
@@ -27,15 +28,15 @@ export default function ActionsCatalog({
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
-    const actions = useSelector((state: RootState) => {
+    const actions = useAppSelector((state: RootState) => {
         return state.catalogSlice.actions;
     })
 
-    const team = useSelector((state: RootState) => {
+    const team = useAppSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
 
-    const user = useSelector((state: RootState) => {
+    const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
     })
 

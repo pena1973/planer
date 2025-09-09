@@ -32,8 +32,9 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { setSignedAgreement, setLoadingComplete } from '@/store/slices'
 
@@ -91,19 +92,19 @@ export default function Index() {
   // 4-лоадер
   // 5-мастер заполнения
 
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
-  const unit = useSelector((state: RootState) => {
+  const unit = useAppSelector((state: RootState) => {
     return state.authSlice.unit;
   })
-  const signedAgreement = useSelector((state: RootState) => {
+  const signedAgreement = useAppSelector((state: RootState) => {
     return state.authSlice.signedAgreement;
   })
 

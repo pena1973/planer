@@ -6,8 +6,9 @@ import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyB
 import Docs from "@/components/support/Docs/docs";
 import { useEffect, useState, useMemo } from "react";
 import { generateTeamNumber } from '@/lib/utils'
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import { useTranslation } from 'react-i18next';
 import { } from '@/store/slices';
 
@@ -18,26 +19,26 @@ export default function Support() {
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
 
-  const suportPoint = useSelector((state: RootState) => {
+  const suportPoint = useAppSelector((state: RootState) => {
     return state.viewSlice.suportPoint;
   })
 
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
 
-  const unit = useSelector((state: RootState) => {
+  const unit = useAppSelector((state: RootState) => {
     return state.authSlice.unit;
   })
 
-  const schedule = useSelector((state: RootState) => {
+  const schedule = useAppSelector((state: RootState) => {
     return state.catalogSlice.schedule;
   })
 

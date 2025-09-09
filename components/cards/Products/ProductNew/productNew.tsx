@@ -1,8 +1,8 @@
 import styles from "./productNew.module.scss";
 
 import { useEffect, useState } from "react";
-import { useSelector } from 'react-redux';
-import { RootState } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { UOMItem } from '@/types/types'
 import DropdownSelectUOM from '@/components/DropdownSelectUOM/dropdownSelectUOM';
@@ -40,7 +40,7 @@ export default function ProductNew({
         setSyncValue(sync);
     }, [title, sync, uom]);
 
-    const uoms = useSelector((state: RootState) => {
+    const uoms = useAppSelector((state: RootState) => {
         return state.catalogSlice.uoms;
     })
 

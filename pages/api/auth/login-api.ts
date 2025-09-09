@@ -13,7 +13,7 @@ import { UserItem } from './../../../types/types';
 import { createAccessToken, createRefreshToken } from './../../../lib/auth'
 import { getTypedRepository } from './../../../db/utilites'
 import { getUser, getTeam, getLastAgreement } from './../../../handlers/handlers-auth';  // расчеты
-import { getUsersUnits,getTeamActivity } from './../../../handlers/handlers-get';  // расчеты
+import { getUsersUnits, getTeamActivity } from './../../../handlers/handlers-get';  // расчеты
 
 
 interface RequestBody {
@@ -64,11 +64,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         const team = resTeam.team;
 
-        const resActiveTeam = await getTeamActivity([team],activeTimeRepository)
-        const activeTeam  = resActiveTeam.length>0?resActiveTeam[0].active:false;
+        const resActiveTeam = await getTeamActivity([team], activeTimeRepository)
+        const activeTeam = resActiveTeam.length > 0 ? resActiveTeam[0].active : false;
         //  юзер получен проверяю актуальное соглашение
         const resAgreement = await getLastAgreement(user.id, userAgreeRepository, agreementRepository)
- 
+
 
         if (!resAgreement.agreementId) {
           res.status(200).json({
@@ -80,8 +80,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             agreementId: "",
             signed: false,
             dateSigned: "",
-            unit: undefined,    
-            activeTeam:activeTeam        
+            unit: undefined,
+            activeTeam: activeTeam
           });
           return;
         }
@@ -100,7 +100,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Устанавливаем refresh в HttpOnly cookie
         res.setHeader('Set-Cookie', [
-          `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24 * 7}`, // 7 дней
+          `refreshToken=${refreshToken}; 
+          HttpOnly; 
+          sameSite: 'strict';  
+          Path=/; 
+          Max-Age=${60 * 60 * 24 * 7}`, // 7 дней
         ])
 
 
@@ -138,7 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           signed: signed,
           dateSigned: dateSigned,
           unit: unit,
-          activeTeam:activeTeam    
+          activeTeam: activeTeam
         });
         break;
       default:

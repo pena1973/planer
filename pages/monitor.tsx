@@ -13,8 +13,9 @@ import { useRouter } from 'next/navigation';
 import { UnitBelongEnum, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/types/types'
 
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/utils";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
@@ -28,39 +29,39 @@ export default function Monitor() {
 
 
 
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
 
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
-  const monitorPoint = useSelector((state: RootState) => {
+  const monitorPoint = useAppSelector((state: RootState) => {
     return state.viewSlice.monitorPoint;
   })
-  const units = useSelector((state: RootState) => {
+  const units = useAppSelector((state: RootState) => {
     return state.catalogSlice.units;
   })
-  const unitLoads = useSelector((state: RootState) => {
+  const unitLoads = useAppSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
-  const settings = useSelector((state: RootState) => {
+  const settings = useAppSelector((state: RootState) => {
     return state.catalogSlice.settings;
   })
-  const schedule = useSelector((state: RootState) => {
+  const schedule = useAppSelector((state: RootState) => {
     return state.catalogSlice.schedule;
   })
-  const unitExceptions = useSelector((state: RootState) => {
+  const unitExceptions = useAppSelector((state: RootState) => {
     return state.planSlice.unitExceptions;
   })
-  const tCards = useSelector((state: RootState) => {
+  const tCards = useAppSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
   //показывает текущее состояние активности команды
-  const activeTeam = useSelector((state: RootState) => {
+  const activeTeam = useAppSelector((state: RootState) => {
     return state.viewSlice.activeTeam;
   })
   if (!activeTeam) push('/support')

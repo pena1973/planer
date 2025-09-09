@@ -1,4 +1,6 @@
-import { useAppDispatch } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
+
 import styles from "./tCardOper.module.scss";
 import { TCardOperationItem, StatusEnum, UnitLoadItem } from '@/types/types'
 import { convertMillisecondsToTime } from '@/lib/utils'

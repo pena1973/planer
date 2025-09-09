@@ -7,8 +7,8 @@ import Image from 'next/image';
 
 import { useEffect, useState } from "react";
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { validateFileContent } from "@/lib/utils"
 
@@ -34,15 +34,15 @@ export default function TemplatesCatalog({
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
-    const templates = useSelector((state: RootState) => {
+    const templates = useAppSelector((state: RootState) => {
         return state.dataSlice.templates;
     })
 
-    const team = useSelector((state: RootState) => {
+    const team = useAppSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
 
-    const user = useSelector((state: RootState) => {
+    const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
     })
 

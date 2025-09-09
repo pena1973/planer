@@ -8,8 +8,9 @@ import { useEffect, useState } from "react";
 import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 export default function Monitor() {
 
@@ -20,17 +21,17 @@ export default function Monitor() {
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
   
 
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
 
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
-  const unit = useSelector((state: RootState) => {
+  const unit = useAppSelector((state: RootState) => {
     return state.authSlice.unit;
   })
 

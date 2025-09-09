@@ -29,8 +29,9 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { createBills } from '@/services/admin/createBills';
 import { deactivateTeamsByBalance } from '@/services/admin/deactivateTeamsByBalance';
@@ -51,11 +52,11 @@ export default function Admin() {
   const [periodCreateInv, setPeriodCreateInv] = useState<string>(getCurrentYM()); // 'YYYY-MM'
   const [periodDeactTeam, setPeriodDeactTeam] = useState<string>(getCurrentYM()); // 'YYYY-MM'
 
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
 
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
 

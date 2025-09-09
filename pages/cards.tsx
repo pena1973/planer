@@ -21,8 +21,9 @@ import { saveTemplate } from '@/services/templates/saveTemplate';
 
 
 import Image from 'next/image';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { useRouter } from 'next/navigation';
 
@@ -74,39 +75,39 @@ export default function Cards() {
   const [saveTemplateLoaderCard, setSaveTemplateLoaderCard] = useState(false); // состояние сохранения шаблона
 
 
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
 
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
 
-  const tCards = useSelector((state: RootState) => {
+  const tCards = useAppSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
 
-  const uoms = useSelector((state: RootState) => {
+  const uoms = useAppSelector((state: RootState) => {
     return state.catalogSlice.uoms;
   })
-  const actions = useSelector((state: RootState) => {
+  const actions = useAppSelector((state: RootState) => {
     return state.catalogSlice.actions;
   })
 
-  const templates = useSelector((state: RootState) => {
+  const templates = useAppSelector((state: RootState) => {
     return state.dataSlice.templates;
   })
-  const unitLoads = useSelector((state: RootState) => {
+  const unitLoads = useAppSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
-  const schedule = useSelector((state: RootState) => {
+  const schedule = useAppSelector((state: RootState) => {
     return state.catalogSlice.schedule;
   })
   //показывает текущее состояние активности команды
-  const activeTeam = useSelector((state: RootState) => {
+  const activeTeam = useAppSelector((state: RootState) => {
     return state.viewSlice.activeTeam;
   })  
   if (!activeTeam) push('/support')
@@ -118,7 +119,7 @@ export default function Cards() {
   }, []);
 
   //  просто сохраню текущий id карты
-  const tCardIndex = useSelector((state: RootState) => {
+  const tCardIndex = useAppSelector((state: RootState) => {
     return state.dataSlice.tCardIndex;
   })
 

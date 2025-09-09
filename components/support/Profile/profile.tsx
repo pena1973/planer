@@ -10,7 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { generateTeamNumber } from '@/lib/utils'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
-import { useAppDispatch } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 interface ProfileProps {
   setMessage: (message: string) => void,

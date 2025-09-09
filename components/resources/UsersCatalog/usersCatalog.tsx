@@ -10,9 +10,8 @@ import Image from 'next/image';
 
 import { useEffect, useState, useRef } from "react";
 
-
-import { useSelector } from 'react-redux';
-import { RootState } from "@/pages/_app";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { useTranslation } from 'react-i18next';
 
@@ -42,7 +41,7 @@ export default function UsersCatalog({
     const [showLoader, setShowLoader] = useState(false);
     const [buttonLoader, setButtonLoader] = useState(false);
 
-    const units = useSelector((state: RootState) => {
+    const units = useAppSelector((state: RootState) => {
         return state.catalogSlice.units;
     })
 

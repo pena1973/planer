@@ -1,6 +1,7 @@
 import { PropsWithChildren, useState, useMemo, useRef } from "react";
-import { useSelector } from 'react-redux';
-import { RootState } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import styles from "./layout.module.scss";
 import { logout } from '@/lib/logout'
 import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
@@ -23,19 +24,19 @@ export default function Layout({ children }: PropsWithChildren) {
     // const pathname = usePathname();
     // const dispatch = useAppDispatch();
 
-    const loadingComplete = useSelector((state: RootState) => {
+    const loadingComplete = useAppSelector((state: RootState) => {
         return state.viewSlice.loadingComplete;
     })
 
-    const user = useSelector((state: RootState) => {
+    const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
     })
     //показывает текущее состояние активности команды
-    const activeTeam = useSelector((state: RootState) => {
+    const activeTeam = useAppSelector((state: RootState) => {
         return state.viewSlice.activeTeam;
     })
 
-    const baner = useSelector((state: RootState) => {
+    const baner = useAppSelector((state: RootState) => {
         return state.viewSlice.baner;
     })
 

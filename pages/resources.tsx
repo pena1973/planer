@@ -13,8 +13,9 @@ import UnitsCatalog from "@/components/resources/UnitsCatalog/unitsCatalog";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 import { useRouter } from 'next/navigation';
 
 import { setResourcePoint } from '@/store/slices';
@@ -25,21 +26,21 @@ const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
 
-  const resourcePoint = useSelector((state: RootState) => {
+  const resourcePoint = useAppSelector((state: RootState) => {
     return state.viewSlice.resourcePoint;
   })
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
   //показывает текущее состояние активности команды
-  const activeTeam = useSelector((state: RootState) => {
+  const activeTeam = useAppSelector((state: RootState) => {
     return state.viewSlice.activeTeam;
   })
   if (!activeTeam) push('/support')

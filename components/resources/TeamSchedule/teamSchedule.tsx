@@ -8,8 +8,9 @@ import { DaysOfWeek, TeamItem, ScheduleItem, TimeZoneEnum } from '@/types/types'
 import Image from 'next/image';
 
 import { useEffect, useState } from "react";
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 
 import { useTranslation } from 'react-i18next';
 import { getCurrentDateInDate, getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone";
@@ -31,14 +32,14 @@ export default function TeamSchedule({
     const { t, i18n } = useTranslation();
     const dispatch = useAppDispatch();
 
-    const schedule = useSelector((state: RootState) => {
+    const schedule = useAppSelector((state: RootState) => {
         return state.catalogSlice.schedule;
     })
-    const team = useSelector((state: RootState) => {
+    const team = useAppSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
 
-    const user = useSelector((state: RootState) => {
+    const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
     })
 

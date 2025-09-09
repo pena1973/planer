@@ -17,7 +17,8 @@
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "build:orm": "tsc -p tsconfig.server.json",
-    "migration:run:prod": "typeorm -d ./db/data-source.js migration:run"
+    "migration:run:prod": "typeorm -d ./db/data-source.js migration:run",
+    "clean": "rimraf .next node_modules package-lock.json"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.0",
@@ -60,7 +61,7 @@
     "@types/reflect-metadata": "^0.1.0",
     "cross-env": "^10.0.0",
     "eslint-config-next": "14.2.14",
-    "i18next": "^24.2.0",
+    "i18next": "25.4.1",
     "i18next-parser": "^9.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"

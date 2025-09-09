@@ -13,8 +13,9 @@ import ToPlanCardRow from "@/components/plan/ToPlanCardRow/toPlanCardRow";
 import DefectiveCardRow from "@/components/plan/DefectiveCardRow/defectiveCardRow";
 
 import { useState, useCallback } from "react";
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from "@/pages/_app";
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store';
 // import { formatDate, } from "@/lib/utils"
 
 import { useRouter } from 'next/navigation';
@@ -40,45 +41,45 @@ const { push } = useRouter();
   const [saveLoaderCard, setSaveLoaderCard] = useState(NaN); // состояние это id категории  
 
 
-  const token = useSelector((state: RootState) => {
+  const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
-  const team = useSelector((state: RootState) => {
+  const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
-  const user = useSelector((state: RootState) => {
+  const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
-  const tCards = useSelector((state: RootState) => {
+  const tCards = useAppSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
-  const units = useSelector((state: RootState) => {
+  const units = useAppSelector((state: RootState) => {
     return state.catalogSlice.units;
   })
-  const unitActions = useSelector((state: RootState) => {
+  const unitActions = useAppSelector((state: RootState) => {
     return state.planSlice.unitActions;
   })
-  const tCardPrepared = useSelector((state: RootState) => {
+  const tCardPrepared = useAppSelector((state: RootState) => {
     return state.planSlice.tCardPrepared;
   })
-  const tCardLighted = useSelector((state: RootState) => {
+  const tCardLighted = useAppSelector((state: RootState) => {
     return state.planSlice.tCardLighted;
   })
-  const unitLoads = useSelector((state: RootState) => {
+  const unitLoads = useAppSelector((state: RootState) => {
     return state.planSlice.unitLoads;
   })
-  const unitExceptions = useSelector((state: RootState) => {
+  const unitExceptions = useAppSelector((state: RootState) => {
     return state.planSlice.unitExceptions;
   })
-  const settings = useSelector((state: RootState) => {
+  const settings = useAppSelector((state: RootState) => {
     return state.catalogSlice.settings;
   })
-  const schedule = useSelector((state: RootState) => {
+  const schedule = useAppSelector((state: RootState) => {
     return state.catalogSlice.schedule;
   })
 
   //показывает текущее состояние активности команды
-  const activeTeam = useSelector((state: RootState) => {
+  const activeTeam = useAppSelector((state: RootState) => {
     return state.viewSlice.activeTeam;
   })
 
