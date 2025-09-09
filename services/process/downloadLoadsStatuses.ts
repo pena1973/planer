@@ -32,15 +32,14 @@ export const downloadLoadsStatuses = async (
             // console.log("receivedData", receivedData)        
             if (receivedData.success) {
                 //  массив юнитов с загрузками
+                
                 const unitsLoadsStatuses = (receivedData.unitsLoadStatuses as { idc_load: number, status: StatusEnum }[])
-
+                
                 const updatedUnitsLoads = unitsLoads.map(load => {
-                    const status = unitsLoadsStatuses.find(st => st.idc_load === load.idc)?.status;
+                    const status = unitsLoadsStatuses.find(st => Number(st.idc_load) === Number(load.idc))?.status;
                     if (status && status !== load.status) { return { ...load, status: status } }
                     else return load;
                 })
-                //   const pr =  updatedUnitsLoads.filter(load => load.status === StatusEnum.prepared)
-                //   console.log("pr", pr)
                 dispatch(setUnitLoads(updatedUnitsLoads));
                 // setMessage("Загружены планы и история ")
                 setMessage(t('index.downloadLoads'))

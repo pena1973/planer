@@ -20,8 +20,6 @@ import { downloadUnitLoads } from '@/services/initial/downloadUnit-Loads';
 import { downloadBaner } from '@/services/process/downloadBaner';
 
 
-
-
 import { store } from '@/store' // путь к твоему Redux store
 
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
@@ -61,13 +59,10 @@ export default function Admin() {
     return state.authSlice.user;
   })
 
+  if (!user.isSystem) push('/support')
+
   const [message, setMessage] = useState('');
-  const [messageLogin, setMessageLogin] = useState('');
-  const [loginValue, setLoginValue] = useState('');
-  const [passValue, setPassValue] = useState('');
-  const [loaderButtonLogin, setLoaderButtonLogin] = useState(false);
-
-
+  
 
   const createBillsHandler = async () => {
     if (!periodCreateInv || !/^\d{4}-\d{2}$/.test(periodCreateInv)) {

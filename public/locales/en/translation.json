@@ -30,7 +30,8 @@
     "wastes": "Waste",
     "comment": "Comment",
     "materials": "Materials",
-    "catalog": "Catalog"
+    "catalog": "Catalog",
+    "card": "Card"
   },
   "service": {
     "loginNotEntered": "Please enter your login",
@@ -359,14 +360,19 @@
     "attached_teams": "Teams",
     "no_attached_teams": "No teams",
     "teamNumber": "Team number",
-    "teamTitle": "Team name",    
-    "stateActive": "State",    
+    "teamTitle": "Team name",
+    "stateActive": "State",
     "invoises": "Invoices",
     "invoises_notice": "Invoices are issued on the 1st for the previous month",
     "forecast": "Expense",
     "VAT": "with VAT",
     "price": "Price per point",
-    "point": "point"
+    "point": "point",
+    "notification1": "The charge is made on the 1st of each month for the previous month.",
+    "notification2": "When expenses exceed the balance, all teams will switch to inactive status.",
+    "active": "active",
+    "activate": "activate",
+    "deactivate": "deactivate"
   },
   "profile": {
     "buttonChangePass": "Save",

@@ -143,11 +143,11 @@ export const Billing: React.FC<BillingProps> = ({
       <tr key={index}>
         <td>{generateTeamNumber(team.prefix, team.id)}</td>
         <td>{team.title}</td>
-        <td>{active ? "активная" : "-"}</td>
+        <td>{active ? t('bills.active') : "-"}</td>
         <td>
           <button className={styles.bt} onClick={(e) => onStateTeam(team.id, !active)}>
             {loaderButtonSave && <ButtonLoader />}
-            {!loaderButtonChangeStateTeam && active ? "деактивировать" : "активировать"}
+            {!loaderButtonChangeStateTeam && active ? t('bills.deactivate') : t('bills.activate')}
           </button>
         </td>
       </tr>
@@ -285,28 +285,30 @@ export const Billing: React.FC<BillingProps> = ({
     </div>}
     {team && isMainTeam && <div className={styles.container}>
       {/* === Оплата === */}
-      <div className={styles.section_title}>{t('bills.payment') || 'Payment'}</div>
+      <div className={styles.section_title}>{t('bills.payment')}</div>
       <pre />
       <div className={styles.notice}>
-        Списание денег производится каждое 1 число за прошлый месяц.
+        {t('bills.notification1')}
+        {/* Списание денег производится каждое 1 число за прошлый месяц. */}
       </div>
       <pre />
       <div className={styles.notice}>
-        Когда расход превысит баланс все команды перейдут в неактивное состояние.
+        {t('bills.notification2')}
+        {/* Когда расход превысит баланс все команды перейдут в неактивное состояние. */}
       </div>
       <pre />
       <div className={styles.pay_row}>
         <div className={styles.balance}>
-          {t('bills.balance') || 'Balance'}: <b>{balance}</b>  {t('bills.point')}
+          {t('bills.balance')}: <b>{balance}</b>  {t('bills.point')}
         </div>
 
         <div className={styles.balance}>
-          {t('bills.forecast') || 'Forecast'}: <b>{forecast}</b> {t('bills.point')}
+          {t('bills.forecast')}: <b>{forecast}</b> {t('bills.point')}
         </div>
       </div>
       <div className={styles.pay_row}>
         <div className={styles.balance}>
-          {t('bills.price') || 'Price'}: <b>1</b> EUR + VAT({VAT}%) = <b>{totalWithVAT(1, VAT)}</b> EUR
+          {t('bills.price')}: <b>1</b> EUR + VAT({VAT}%) = <b>{totalWithVAT(1, VAT)}</b> EUR
 
         </div>
 
@@ -317,12 +319,12 @@ export const Billing: React.FC<BillingProps> = ({
           type="number"
           min="0"
           step="0.01"
-          placeholder={t('bills.amount') || 'Amount'}
+          placeholder={t('bills.amount')}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
         /> EUR
         <button className={styles.btn} onClick={() => onPay(Number(amount), user.id, team.id)}>
-          {t('bills.pay') || 'Pay'}
+          {t('bills.pay')}
         </button>
       </div>
 
@@ -330,8 +332,8 @@ export const Billing: React.FC<BillingProps> = ({
     </div>}
 
     {/* === Перечень прикрепленных команд (только для основной) === */}
-    {attachedTeams.length > 0 && team && isMainTeam && <div className={styles.container}>
-      <div className={styles.section_title}>{t('bills.attached_teams') || 'Attached teams'}</div>
+    {team && isMainTeam && <div className={styles.container}>
+      <div className={styles.section_title}>{t('bills.attached_teams')}</div>
       <table className={styles._table}>
         <thead>
           <tr>
@@ -345,13 +347,14 @@ export const Billing: React.FC<BillingProps> = ({
 
           <tr key={0}>
             <td className={styles.td_mainTeam}>{generateTeamNumber(team.prefix, team.id)}</td>
-            <td className={styles.td_mainTeam}>{team.title}</td>
-            <td className={styles.td_mainTeam}>{active ? "активная" : "-"}</td>
+            <td className={styles.td_mainTeam}>{team.title}</td>            
+            <td className={styles.td_mainTeam}>{active ? t('bills.active') : "-"}</td>
             <td className={styles.td_mainTeam}>
 
               <button className={styles.bt} onClick={(e) => onStateTeam(team.id, !active)}>
                 {loaderButtonSave && <ButtonLoader />}
-                {!loaderButtonChangeStateTeam && active ? "деактивировать" : "активировать"}
+                {/* {!loaderButtonChangeStateTeam && active ? "деактивировать" : "активировать"} */}
+                {!loaderButtonChangeStateTeam && active ? t('bills.deactivate') : t('bills.activate')}
               </button>
             </td>
           </tr>

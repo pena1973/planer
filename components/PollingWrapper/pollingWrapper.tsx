@@ -171,7 +171,7 @@ export const PollingWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
           await downloadTCards(curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
           await downloadLoads(curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
         }
-
+// curLoads.filter(c=>c.id_tCard===50)
         await downloadLoadsStatuses(curUser.id, curTeam.id, curToken, curLoads, t, setMessage, dispatch);
         await downloadBaner(undefined, undefined, curToken, t, setMessage, dispatch);
 

@@ -1762,7 +1762,7 @@ export default function Cards() {
             <div className="container_products">
 
               <div className="container_stage_title">
-                Карта  &nbsp; {padNumberToFourDigits(tCards[tCardIndex].idc)} - {tCards[tCardIndex].date}
+               {t('cards.card')} &nbsp; {padNumberToFourDigits(tCards[tCardIndex].idc)} - {tCards[tCardIndex].date}
                 <Image className="icon_add_stage"
                   src={add} alt="del" width={20} height={20}
                   onClick={() => addStage(0)}
