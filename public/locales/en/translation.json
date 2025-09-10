@@ -31,7 +31,8 @@
     "comment": "Comment",
     "materials": "Materials",
     "catalog": "Catalog",
-    "card": "Card"
+    "card": "Card",
+    "fix_def": "Defect fixing"
   },
   "service": {
     "loginNotEntered": "Please enter your login",
@@ -306,7 +307,8 @@
     "cardDateTo": "to",
     "cardStatus": "Card status",
     "cardSelect": "Select",
-    "apply": "Apply"
+    "apply": "Apply",
+    "fixing": "fixing"
   },
   "reportUnitsKPI": {
     "wait": "Wait...",

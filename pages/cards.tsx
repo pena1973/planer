@@ -1229,7 +1229,7 @@ export default function Cards() {
     }
 
     // Исторические запланированные/отмененные — их надо отменить/удалить
-    const hasPlannedLoads = operLoads.filter(
+    const hasPlannedLoads = operLoads.some(
       (lo) => planCancelLoadStatuses.includes(lo.status)
     );
 
@@ -1502,7 +1502,8 @@ export default function Cards() {
       action: oper.action,
       duration: oper.duration, // в милисекундах   
       status: StatusEnum.draft,
-      coment: `Исправление брака A${oper.idc}`,
+      coment: `${t('cards.fix_def')} A${oper.idc}`,
+      // coment: `Исправление брака A${oper.idc}`,
       fixOperIdc: oper.idc,
     } as TCardOperationItem;
 

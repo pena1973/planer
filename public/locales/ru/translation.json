@@ -31,7 +31,8 @@
     "comment": "Комментарий",
     "materials": "Материалы",
     "catalog": "Каталог",
-    "card": "Карта"
+    "card": "Карта",
+    "fix_def": "Исправление брака"
     
   },
   "service": {
@@ -307,7 +308,8 @@
     "cardDateTo": "по",
     "cardStatus": "Статус карты",
     "cardSelect": "Выберите",
-    "apply": "Применить"
+    "apply": "Применить",
+    "fixing": "исправление"
   },
   "reportUnitsKPI": {
     "wait": "Ждем...",

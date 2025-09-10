@@ -178,7 +178,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
           operReady = 50;
           readyDuration += oper.duration / 2;
         }
-        const fixTitle = oper.fixOperIdc ? `, исправление A${oper.fixOperIdc}` : "";
+        const fixTitle = oper.fixOperIdc ? `, ${t('reportTCardState.fixing')} A${oper.fixOperIdc}` : "";
 
         return (
           <React.Fragment key={`oper-${tCard.id}-${index}`}>

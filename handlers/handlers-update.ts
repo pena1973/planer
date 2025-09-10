@@ -1843,6 +1843,34 @@ export async function updateStatusOperationByTCardId(
 
 }
 
+export async function updateStatusOperationByOperIds(
+  tCardOperationsRepository: Repository<TCardOperationTable>,
+  operIds: number[],
+  status: StatusEnum
+): Promise<{ success: boolean, message: string }> {
+  try {
+    const result = await tCardOperationsRepository.update(operIds, { status });
+    if (result.affected && result.affected > 0) {
+      return { success: true, message: "Операция успешно обновлена" };
+    } else {
+      return { success: false, message: "Операция не обновлена" };
+    }
+    // } catch (error: any) {
+    //   console.error("Ошибка обновления операции:", error);
+    //   return { success: false, message: error.message || "Ошибка обновления операции" };
+    // }
+  } catch (error: unknown) {
+    let message = "Ошибка обновления операции";
+    if (error instanceof Error) {
+      message = error.message;
+      console.error("Ошибка обновления операции:", error);
+    } else {
+      console.error("Неизвестная ошибка обновления операции:", error);
+    }
+    return { success: false, message };
+  }
+
+}
 
 export async function updateStatusOperationByOperId(
   tCardOperationsRepository: Repository<TCardOperationTable>,

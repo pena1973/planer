@@ -33,7 +33,7 @@ import { getTeamShedule, getTCardFull, getTCardLoads, getUnitActions, getUnits }
 import {
   updateCard, updateStages, updateOperations, updateCatalogProducts,
   updateProducts, updateTCardLoads, updateStatusTCard,
-  updateStatusOperationByTCardId
+  updateStatusOperationByTCardId, updateStatusOperationByOperIds
 } from './../../handlers/handlers-update';  // 
 
 // Определение перечисления
@@ -233,11 +233,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const units = await getUnits(Number(teamIddel), unitRepository)
 
         const loads = await getTCardLoads(tCard__, units, unitLoadRepository)
-        if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
+        // if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
 
         // фильтруем лоады по сегодняшней дате  в таймзоне команды
         // const today = new Date().toLocaleDateString("en-CA");
-          const today = getCurrentDateInString(shedule_.timeZone);
+        const today = getCurrentDateInString(shedule_.timeZone);
 
         // получаем исторические лоады и те которые еще не выполнены переводим в статус canceled
         const historyLoads = loads
@@ -320,12 +320,31 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         //если есть лоады (Это те которые остались) то карту переводим в статус canceled вместе с операциями
         if (loads_.length > 0) {
+          // Здесь надо отменить только операции в статусе планед которые не были выполнены  
+          // обновим статус операций не делаем  операции были уже выполнены хотя карта отменена
+          // const resOpers = await updateStatusOperationByTCardId(tCardOperationRepository, tCardId, StatusEnum.cancelled)
+          // if (!resOpers.success) {
+          //   res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
+          //   break;
+          // }
 
-          // обновим статус операций
-          const resOpers = await updateStatusOperationByTCardId(tCardOperationRepository, tCardId, StatusEnum.cancelled)
-          if (!resOpers.success) {
-            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
-            break;
+          // Здесь надо отменить только операции в статусе планед которые не были выполнены  
+          const operIds = [...new Set(
+            loads
+              .filter(l => [StatusEnum.planed, StatusEnum.cancelled].includes(l.status)) // только план/отмена
+              .map(l => l.id_oper)                                                       // берём id_oper
+          )]
+            .filter(operId =>
+              loads
+                .filter(l => l.id_oper === operId)
+                .every(l => [StatusEnum.planed, StatusEnum.cancelled].includes(l.status))  // нет других статусов
+            );
+          if (operIds.length > 0) {
+            const resOpers = await updateStatusOperationByOperIds(tCardOperationRepository, operIds, StatusEnum.cancelled)
+            if (!resOpers.success) {
+              res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
+              break;
+            }
           }
 
           // обновим статус  карты
