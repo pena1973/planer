@@ -2,7 +2,7 @@
 import styles from "./unitsCatalog.module.scss";
 import { saveUnits } from '@/services/resources/saveUnits';
 import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types/types';
-import { generateUniqueIdc } from '@/lib/utils'
+import { generateUniqueIdc } from '@/lib/client/utils.client'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
@@ -15,7 +15,7 @@ import DropdownSelectTimeType from "@/components/resources/UnitsCatalog/Dropdown
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
-import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone"
+import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/client/timezone.client"
 import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";

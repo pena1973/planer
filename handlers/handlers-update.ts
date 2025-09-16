@@ -23,22 +23,24 @@ import { SupportTable } from './../db/models/support/support';
 
 import { ClientTable } from './../db/models/billing/clients';
 import { ActiveTimeTable } from "./../db/models/billing/active_time";
-import { BillTable } from "./../db/models/billing/bills";
-import { BillRowTable } from "./../db/models/billing/bill_row";
+
 import { BalanceTable } from "./../db/models/billing/balance";
+import { JobSettingsTable } from "./../db/models/job/job-settings";
+
+import { BanerTable } from './../db/models/support/baners';
 
 // types
 import {
   UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem,
-  SupportMessageItem, TCardItem, TCardOperationItem, TCardProductItem,
+  SupportMailItem, TCardItem, TCardOperationItem, TCardProductItem,
   ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
   SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum,
 } from './../types/types';
 
-import { ClientItem, BillItem } from './../types/service-types';
+import { ClientItem, JobSettingItem, BanerItem } from './../types/service-types';
 
 
-import { getCurrentDateInString } from "../lib/timezone"
+import { getCurrentDateInString } from "../lib/common/timezone"
 
 // Создание c строки баланса
 export async function updateBalance(
@@ -54,7 +56,7 @@ export async function updateBalance(
 ) {
 
   // Получаем существующую транзакцию расписание для компании (предполагается, что только одно расписание для компании)
-  const existingBalance = await balanceRepository.findOne({ where: { date: date, transaction_id: transactionId } });
+  const existingBalance = await balanceRepository.findOne({ where: { team_id: teamId, date: date, transaction_id: transactionId } });
 
   if (!existingBalance) {
     // Если транзакции нет, создаем новую
@@ -94,102 +96,65 @@ export async function updateBalance(
   };
 }
 
-// Создание/перезапись счета
-export async function updateBill(
-  billRepository: Repository<BillTable>,
-  billRowRepository: Repository<BillRowTable>,
-  bill: BillItem,
+// Создание c строки баланса
+export async function updateJobSetting(
+  jobSettingRepository: Repository<JobSettingsTable>,
+  jobSetting: JobSettingItem,
 ) {
 
-  const round2 = (n: number) => Number((n ?? 0).toFixed(2));
+  // Получаем существующую транзакцию расписание для компании (предполагается, что только одно расписание для компании)
+  const existingJobSetting = await jobSettingRepository.findOne({ where: { job_key: jobSetting.job_key } });
 
-  // Проверяем существование счета на дату для команды
-  const existingBill = await billRepository.findOne({
-    where: { team_id: bill.teamId, date: bill.date },
-  });
+  let savedJobSetting = {} as JobSettingsTable;
 
-  if (!existingBill) {
-    // --- Новый счёт ---
-    const newBill = billRepository.create({
-      team_id: bill.teamId,
-      date: bill.date,
-      title: bill.title,
-      coment: bill.coment ?? '',
-      amount: round2(bill.amount),
-      vat: bill.vat,
-      vat_amount: round2(bill.vatAmount),
-      total_amount: round2(bill.totalAmount),
+  if (!existingJobSetting) {
+    // Если настроек нет, создаем новую
+    const newJobSetting = jobSettingRepository.create({
+      job_key: jobSetting.job_key,
+      enabled: jobSetting.enabled,
+      timezone: jobSetting.timezone,
+      schedule_type: jobSetting.schedule_type,
+      monthly_day: jobSetting.monthly_day,
+      monthly_end_of_month: jobSetting.monthly_end_of_month,
+      daily_time: jobSetting.daily_time,
+      hourly_minute: jobSetting.hourly_minute,
+      every_minutes: jobSetting.every_minutes,
     });
+    savedJobSetting = await jobSettingRepository.save(newJobSetting);
+    if (!savedJobSetting) return { success: false, message: "Не удалось сохранить настройку рег задания " + jobSetting.job_key };
 
-    const savedBill = await billRepository.save(newBill);
-    if (!savedBill) return { success: false, message: "Не удалось сохранить данные шапки счета" };
+  } else {
+    // Если транзакция существует, обновляем ее    
+    existingJobSetting.enabled = jobSetting.enabled;
+    existingJobSetting.timezone = jobSetting.timezone;
+    existingJobSetting.schedule_type = jobSetting.schedule_type;
+    existingJobSetting.monthly_day = jobSetting.monthly_day ?? null;
+    existingJobSetting.monthly_end_of_month = jobSetting.monthly_end_of_month ?? false;
+    existingJobSetting.daily_time = jobSetting.daily_time ?? null;
+    existingJobSetting.hourly_minute = jobSetting.hourly_minute ?? null;
+    existingJobSetting.every_minutes = jobSetting.every_minutes ?? null;
 
-    // Строки
-    const newBillRows = bill.rows.map(row => billRowRepository.create({
-      billId: savedBill.id,
-      team_id: bill.teamId,
-      billable_team_number: row.billableTeamNumber,
-      date_from: row.dateFrom,
-      date_to: row.dateTo,
-      discount: row.discount,
-      activeDays: row.activeDays,
-      amount: round2(row.amount),
-      price: row.price,
-      carency: 'EUR',
-    }));
-
-    const savedRows = newBillRows.length > 0 ? await billRowRepository.save(newBillRows) : [];
-    if (!savedRows) return { success: false, message: "Не удалось сохранить данные строк счета" };
-
-    return { success: true, billId: savedBill.id };
+    savedJobSetting = await jobSettingRepository.save(existingJobSetting);
+    if (!savedJobSetting) return { success: false, message: "Не удалось сохранить настройку рег задания " + jobSetting.job_key };
   }
+  return { success: true, savedJobSetting: savedJobSetting };
 
-  // --- Перезапись существующего счета ---
-  // 1) Обновляем «шапку»
-  existingBill.title = bill.title;
-  existingBill.coment = bill.coment ?? existingBill.coment;
-  existingBill.amount = round2(bill.amount);
-  existingBill.vat = bill.vat;
-  existingBill.vat_amount = round2(bill.vatAmount);
-  existingBill.total_amount = round2(bill.totalAmount);
-
-  const savedHeader = await billRepository.save(existingBill);
-  if (!savedHeader) return { success: false, message: "Не удалось обновить шапку счета" };
-
-  // 2) Удаляем все старые строки этого счета
-  await billRowRepository.delete({ billId: existingBill.id });
-
-  // 3) Создаём новые строки
-  const rebuiltRows = bill.rows.map(row => billRowRepository.create({
-    billId: existingBill.id,
-    team_id: bill.teamId,
-    billable_team_number: row.billableTeamNumber,
-    date_from: row.dateFrom,
-    date_to: row.dateTo,
-    discount: row.discount,
-    activeDays: row.activeDays,
-    amount: round2(row.amount),
-    price: round2(row.price),
-    carency: 'EUR',
-  }));
-
-  const savedRebuilt = rebuiltRows.length > 0 ? await billRowRepository.save(rebuiltRows) : [];
-  if (!savedRebuilt) return { success: false, message: "Не удалось сохранить строки при перезаписи счета" };
-
-  return { success: true, billId: existingBill.id };
 }
+
 // Состояние активности нескольких команд
 export async function changeStateTeamsByIds(
   activeTimeRepository: Repository<ActiveTimeTable>,
   teamIds: number[],
-  state: boolean
+  state: boolean,
+  day?: string, // yyyy-mm-dd
 ): Promise<{ success: boolean; message?: string; failed?: number[] }> {
   if (!teamIds || teamIds.length === 0) {
     return { success: false, message: "Список команд пуст." };
   }
 
   const failed: number[] = [];
-  const dateStr = new Date().toLocaleDateString('en-CA');
+
+  const dateStr = (!day) ? new Date().toLocaleDateString('en-CA') : day;
 
   try {
     for (const id of teamIds) {
@@ -231,13 +196,13 @@ export async function changeStateTeambyId(
   activeTimeRepository: Repository<ActiveTimeTable>,
   teamId: number,
   state: boolean,
-  timezone:string,
+  timezone: string,
 ): Promise<{ success: boolean; message?: string; team?: TeamTable }> {
 
   if (!Number.isFinite(teamId)) {
     return { success: false, message: "Команда не указана." };
   }
-const todayStr =   getCurrentDateInString(timezone);
+  const todayStr = getCurrentDateInString(timezone);
   try {
     const activityTime = activeTimeRepository.create({
       // date: new Date().toLocaleDateString('en-CA'),
@@ -254,7 +219,7 @@ const todayStr =   getCurrentDateInString(timezone);
     return { success: true };
 
   } catch (err) {
-    console.error("updateClient error:", err);
+    console.error("changeStateTeambyId error:", err);
     return { success: false, message: err instanceof Error ? err.message : String(err) };
   }
 }
@@ -410,10 +375,15 @@ export async function updateClient(
     if (existingClient) {
       existingClient.title = client.title?.trim() ?? existingClient.title;
       existingClient.reg_n = client.reg_n?.trim() ?? existingClient.reg_n;
-      existingClient.adress = client.adress?.trim() ?? existingClient.adress;
+      existingClient.address_line1 = client.address_line1?.trim() ?? existingClient.address_line1;
+      existingClient.address_line2 = client.address_line2?.trim() ?? existingClient.address_line2;
+      existingClient.city = client.city?.trim() ?? existingClient.city;
+      existingClient.postal_code = client.postal_code?.trim() ?? existingClient.postal_code;
+
       existingClient.email = client.email?.trim() ?? existingClient.email;
       existingClient.phone = client.phone?.trim() ?? existingClient.phone;
-      existingClient.person = client.person?.trim() ?? existingClient.person;
+      existingClient.country = client.country?.trim() ?? existingClient.country;
+      existingClient.customer_id = client.customerId?.trim() ?? existingClient.customer_id;
 
       const saved = await clientRepository.save(existingClient);
       if (!saved?.id) {
@@ -426,11 +396,16 @@ export async function updateClient(
     const toCreate = clientRepository.create({
       title: client.title?.trim() ?? "",
       reg_n: client.reg_n?.trim() ?? "",
-      adress: client.adress?.trim() ?? "",
+      address_line1: client.address_line1?.trim() ?? "",
+      address_line2: client.address_line2?.trim() ?? "",
+      city: client.city?.trim() ?? "",
+      postal_code: client.postal_code?.trim() ?? "",
       email: client.email?.trim() ?? "",
       phone: client.phone?.trim() ?? "",
-      person: client.person?.trim() ?? "",
       team_id: teamId,
+      country: client.country?.trim() ?? "",
+      customer_id: client.customerId?.trim() ?? "",
+
     });
 
     const saved = await clientRepository.save(toCreate);
@@ -1231,12 +1206,12 @@ export async function updateTCardLoads(
 
 // получаю максимальный номер карты
 // не беру id потому что он в пределах таблицы
-async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>,teamId:number) {
+async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>, teamId: number) {
 
   const result = await tCardRepository
     .createQueryBuilder("tCard")
     .select("MAX(CAST(tCard.idc AS int))", "maxNumber")
-    .where({team_id:teamId})
+    .where({ team_id: teamId })
     .getRawOne();
 
   // Если результат не null, возвращаем максимальное значение, иначе 
@@ -1265,7 +1240,7 @@ export async function updateCard(
     // Генерируем номер карты, если idc = 0
     let newCardNumber = Number(tCard.idc);
     if (tCard.idc === 0) {
-      newCardNumber = await generateNewNumberForTeam(tCardRepository,teamId);
+      newCardNumber = await generateNewNumberForTeam(tCardRepository, teamId);
       if (!newCardNumber) {
         return { success: false, message: `Ошибка при генерации номера карты` };
       }
@@ -2033,9 +2008,8 @@ export async function updateStatusTCard(
 
 // Функция для обновления сообщения тех поддержки
 export async function updateSupportMessage(
-  teamId: number,
   userId: number,
-  supportMessage: SupportMessageItem,
+  supportMessage: SupportMailItem,
   supportRepository: Repository<SupportTable>
 ): Promise<{ success: boolean, message: string, savedMessage: SupportTable }> {
   try {
@@ -2047,7 +2021,7 @@ export async function updateSupportMessage(
       fromUser: supportMessage.fromUser,
       basedOn: supportMessage.basedOn,
       user_id: userId,
-      team_id: teamId,
+      team_id: supportMessage.teamId,
     });
 
     // Сохраняем новое сообщение в базе данных
@@ -2083,4 +2057,56 @@ export async function updateSupportMessage(
     };
   }
 
+}
+
+// Функция для пометки что сообщение обработано
+export async function markProcessedMail(
+  id: number,
+  supportRepository: Repository<SupportTable>
+): Promise<{ success: boolean; message: string }> {
+  try {
+    if (!Number.isFinite(id)) {
+      return { success: false, message: 'Некорректный идентификатор сообщения.' };
+    }
+
+    // Обновляем только нужное поле
+    const result = await supportRepository.update({ id }, { processed: true });
+
+    if (!result.affected || result.affected === 0) {
+      return { success: false, message: 'Сообщение не найдено.' };
+    }
+
+    return { success: true, message: 'Сообщение помечено как обработанное.' };
+  } catch (error) {
+    console.error('Ошибка при пометке сообщения обработанным:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Неизвестная ошибка.',
+    };
+  }
+}
+
+// банер
+export async function setBaner(
+  baner: BanerItem,
+  banerRepository: Repository<BanerTable>
+): Promise<BanerItem> {
+
+  const newBaner = {
+    active: true,
+    date_from: baner.dateFrom,
+    date_to: baner.dateTo,
+    locale: baner.locale,
+    message: baner.message,
+  } as BanerTable
+  const savedBaner = await banerRepository.save(newBaner);
+
+  const baner__ = {
+    message: savedBaner.message,
+    locale: savedBaner.locale,
+    dateFrom: new Date(savedBaner.date_from).toLocaleDateString("en-CA"),
+    dateTo: new Date(savedBaner.date_to).toLocaleDateString("en-CA"),
+  };
+
+  return baner__;
 }

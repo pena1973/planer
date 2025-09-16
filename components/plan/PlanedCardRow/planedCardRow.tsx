@@ -7,7 +7,7 @@ import { TCardItem } from "@/types/types";
 import eraz from "@/public/erazer1-rem.png";
 import light from "@/public/light-rem.png";
 import lighton from "@/public/light-on-rem.png";
-import { padNumberToFourDigits } from "@/lib/utils";
+import { padNumberToFourDigits } from "@/lib/client/utils.client";
 
 interface PlanedCardRowProps {
     elem: TCardItem; // Лучше задать точный тип вместо `any`

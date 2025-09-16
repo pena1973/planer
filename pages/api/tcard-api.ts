@@ -1,5 +1,5 @@
 // Это вариант АПИ по обработке карты оптимизированный того что без 1 в имени, потом надо остальное переделать
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
@@ -17,7 +17,7 @@ import { ProductTable } from './../../db/models/data/products'
 import { UOMsTable } from './../../db/models/catalogs/uoms'
 import { UnitTable } from './../../db/models/catalogs/units'
 import { ActionTable } from './../../db/models/catalogs/actions'
-import { getCurrentDateInString } from "./../../lib/timezone"
+import { getCurrentDateInString } from "./../../lib/common/timezone"
 
 import {
   TCardItem, TCardProductItem,

@@ -5,42 +5,39 @@ export interface BanerItem {
   dateFrom: string,
   dateTo: string,
 }
-
-export interface BillItem {
+export interface InvoiceItem {
   id?: number,
-  date: string; // период за который вымавлен счет
-  dueDate: string,// оплатить до
-  title: string; // название счета в таблице, например за август 2023
-  teamId: number; // id команды, для которой выдан счет  
-  amount: number; // общая сумма счета без НДС
-  vat:number, // НДС в процентах
-  vatAmount:number, // НДС в сумме
-  totalAmount: number; // общая сумма счета c  НДС
-  client: { title: string, address: string, reg_n: string, email: string, phone: string, person: string }, // клиент, для которого выдан счет
-  seller: { title: string, address: string, reg_n: string, email: string, phone: string, person: string }; // продавец, который выставил счет
-  rows: Array<{
-    id?: number,
-    billableTeamNumber: string;
-    price: number,
-    amount: number,
-    discount: number,
-    dateFrom: string,
-    dateTo: string,
-    activeDays: number
-    carency:string,
-  }>; // товары или услуги в счете
-  coment: string
+  date: string, // период за который вымавлен счет  
+  invoice: string, 
+  link:string, // ссылка на инвойс в страйп    
+}
+export type JobScheduleType = 'monthly' | 'daily' | 'hourly' | 'every_x_minutes';
+
+export interface JobSettingItem {
+  job_key: string;
+  enabled: boolean;
+  timezone: string;
+  schedule_type: JobScheduleType;
+  monthly_day?: number | null;
+  monthly_end_of_month?: boolean;
+  daily_time?: string | null;     // 'HH:mm'
+  hourly_minute?: number | null;  // 0..59
+  every_minutes?: number | null;  // >0
 }
 
 
 export interface ClientItem {
   title: string,
   reg_n: string,
-  adress: string,
+  address_line1: string,
+  address_line2: string,
+  city: string,
+  postal_code: string,
   email: string,
-  phone: string,
-  person: string,
+  phone: string,  
   teamId: number,
+  country:string,
+  customerId:string,
 }
 export interface MainItem {
   title: string,

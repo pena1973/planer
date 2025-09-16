@@ -1,4 +1,4 @@
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 // Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
 

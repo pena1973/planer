@@ -3,7 +3,7 @@ import { PropsWithChildren, useState, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 import styles from "./layout.module.scss";
-import { logout } from '@/lib/logout'
+import { logout } from '@/lib/client/logout'
 import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
 import CookieBanner from '@/components/CookieBanner/cookieBanner'
 

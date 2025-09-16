@@ -371,13 +371,15 @@ export interface TCardContent {
 
 }
 
-export interface SupportMessageItem {
+export interface SupportMailItem {
     id: number, // если новое то - (Временный id) 
     date: string; // дата время писма
     title: string;
     body: string,
     userId: number;
+    teamId: number;
     fromUser: boolean, // направление истина от юзера, лож- от системы
     basedOn: number, // если это сообщение ответ то здесь id исходного письма.
+    processed:boolean,
     // idChain: number, // id цепочки - равен исходному писму
 }

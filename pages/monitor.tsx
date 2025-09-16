@@ -17,9 +17,9 @@ import { UnitBelongEnum, UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationI
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
-import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/utils";
+import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/client/utils.client";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
-import { getCurrentDateInDate, getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone"
+import { getCurrentDateInDate } from "@/lib/client/timezone.client"
 export default function Monitor() {
 
   const { t, i18n } = useTranslation();

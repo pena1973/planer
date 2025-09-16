@@ -1,4 +1,4 @@
-import { withAuth } from '../../../lib/withAuth'
+import { withAuth } from '../../../lib/server/withAuth'
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { pdf, Font } from '@react-pdf/renderer';
 import path from 'node:path';

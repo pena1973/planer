@@ -1,5 +1,5 @@
 
-import { DataSource, Repository, ObjectLiteral, FindOptionsWhere } from 'typeorm';
+import { DataSource, Repository, ObjectLiteral, FindOptionsWhere, In, LessThan } from 'typeorm';
 
 // tables
 import { UserTable } from './../db/models/catalogs/users';
@@ -110,10 +110,9 @@ export async function deleteSupport(
 }
 
 // ОПАСНАЯ ОПЕРАЦИЯ !!!!!
-
 export async function deleteDataTeam(
   teamId: number,
-  timezone:string,
+  timezone: string,
   teamRepository: Repository<TeamTable>,
   activeTimeRepository: Repository<ActiveTimeTable>,
   repositories: {
@@ -147,11 +146,11 @@ export async function deleteDataTeam(
 
     // // Деактивация команды
     // изменение состояния активности команды
-    const resTeam = await changeStateTeambyId(activeTimeRepository, Number(teamId), false,timezone)
-   
+    const resTeam = await changeStateTeambyId(activeTimeRepository, Number(teamId), false, timezone)
+
     if (!resTeam.success) {
       console.warn('Не удалось деактивировать команду перед удалением:', resTeam.message);
-      
+
     }
     // teamToUpdate.active = false;
     // await teamRepository.save(teamToUpdate);
@@ -197,4 +196,54 @@ export async function deleteDataTeam(
     console.error('Ошибка при удалении данных команды:', err);
     return { success: false, message: `Ошибка удаления: ${err instanceof Error ? err.message : String(err)}` };
   }
+}
+
+export async function deleteDataOlder90(
+  unitLoads: Repository<UnitLoadTable>,
+  tCardOperations: Repository<TCardOperationTable>,
+  tCardStages: Repository<TCardStageTable>,
+  tCardProducts: Repository<TCardProductTable>,
+  products: Repository<ProductTable>,
+  tCards: Repository<TCardTable>,
+
+) {
+
+  function getDateNDaysAgo(days: number): string {
+    const now = new Date();
+    now.setDate(now.getDate() - days);
+    return now.toISOString().slice(0, 10); // yyyy-mm-dd
+  }  
+  const cutoff = getDateNDaysAgo(90);
+  // удаляем лоады старше 90 дней
+  const result = await unitLoads.delete({
+    date: LessThan(cutoff),
+  });
+
+  //  выбираем все карты старше 90
+  const cards = await tCards.find({
+    where: { date: LessThan(cutoff) },
+  });
+
+  const tCardIds = cards.map(card => card.id)
+  // определим только те карты по которым не осталось лоадов и которые старше 90 дней 
+
+  // 3) Проверяем, по каким картам остались лоады (после удаления старых)
+  const loadsRemain = await unitLoads.find({ where: { id_tCard: In(tCardIds) } });
+  const tCardIdsWithLoads = new Set(loadsRemain.map(l => l.id_tCard));
+
+  // 4) Карты, по которым лоадов НЕ осталось → их можно удалять (и связанные записи)
+  const cardsToDelete = cards.filter(c => !tCardIdsWithLoads.has(c.id));
+  if (cardsToDelete.length === 0) {
+    return;
+  }
+  const idsToDelete = cardsToDelete.map(c => c.id);
+
+  // 5) Удаляем связанные записи в правильном порядке
+  const prodDel = await tCardProducts.delete({ tcard_id: In(idsToDelete) });
+  const opsDel = await tCardOperations.delete({ tcard_id: In(idsToDelete) });
+  const stagesDel = await tCardStages.delete({ tcard_id: In(idsToDelete) });  
+  const prodMasterDel = await products.delete({ tcard_id: In(idsToDelete) });
+  // 6) Удаляем сами карты
+  const cardsDel = await tCards.delete(idsToDelete);
+
 }

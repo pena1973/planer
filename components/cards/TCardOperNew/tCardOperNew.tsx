@@ -5,7 +5,7 @@ import type { RootState } from '@/store';
 import styles from "./tCardOperNew.module.scss";
 import { TCardOperationItem, TCardProductItem, ActionItem, } from '@/types/types'
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
-import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/lib/utils'
+import { convertMillisecondsToTime, convertTimeToMilliseconds } from '@/lib/client/utils.client'
 
 import { ProductItem } from '@/types/types'
 import DropdownSelectProduct from '@/components/DropdownSelectProduct/dropdownSelectProduct';

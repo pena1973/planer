@@ -1,7 +1,7 @@
 
 
 import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "./../types/types";
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/timezone"
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/common/timezone"
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
 const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 

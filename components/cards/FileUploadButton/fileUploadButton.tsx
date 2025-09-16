@@ -1,8 +1,8 @@
 // Файл загрузка
 import React, { useState, } from "react";
 import styles from './fileUploadButton.module.scss';
-import { generateUniqueId, calculateMaxIdc, validateFileContent } from "@/lib/utils"
-import { getCurrentDateInString } from "@/lib/timezone"
+import { generateUniqueId, calculateMaxIdc, validateFileContent } from "@/lib/client/utils.client"
+import { getCurrentDateInString } from "@/lib/client/timezone.client"
 import {
   TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem, ProductContent, TProductContent,
   ProductItem, TCardProductItem

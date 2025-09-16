@@ -1,4 +1,4 @@
-import { withAuth } from '../../../lib/withAuth'
+import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
@@ -10,9 +10,9 @@ import { BalanceTable } from '../../../db/models/billing/balance';
 import { TeamScheduleTable } from '../../../db/models/plan/team_schedule';
 import { MainTable } from '../../../db/models/billing/main';
 import { TeamItem } from '../../../types/types';
-import { getCurrentDateInDate} from "./../../../lib/timezone"
+import { getCurrentDateInDate} from "./../../../lib/common/timezone"
 
-import { getTeamsByMainteamNumber, getBalance, getForecast, getTeamActivity, getTeamShedule } from '../../../handlers/handlers-get';  // расчеты
+import { getTeamsByMainteamNumber, getBalance, getTeamActivity, getTeamShedule } from '../../../handlers/handlers-get';  // расчеты
 
 interface RequestBody {
   userId: number,
@@ -58,18 +58,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // const now = new Date();
           const now = getCurrentDateInDate(shedule_.timeZone);
 
-          // Год и месяц (месяц нужно +1, потому что getMonth() возвращает 0–11)
-          const year_ = now.getFullYear();
-          const month_ = now.getMonth() + 1;
-
           const balance = await getBalance(now.toLocaleDateString('en-CA'), Number(teamId), balanceRepository);
 
-          const forecast = await getForecast(Number(teamId), year_, month_, teamsRepository, activeTimeRepository, mainRepository,);
-          if (balance < forecast) {
+          if (balance <= 0) {
             res.status(200).json({
               success: false,
               message: `Недостаточно средств на балансе для активации команды. 
-              Текущий баланс: ${balance} у.е., прогнозируемые расходы на текущий месяц: ${forecast} у.е.`
+              Текущий баланс: ${balance} ед`
             });
             return;
           }

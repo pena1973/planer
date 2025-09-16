@@ -1,5 +1,5 @@
 // Корректировка текущего статуса карты по ее состоянию в БД
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
@@ -12,7 +12,7 @@ import { TCardOperationItem, StatusEnum } from './../../types/types';
 import { updateStatusTCard} from './../../handlers/handlers-update';
 import { getTCard, getTCardOperationsByCardId} from './../../handlers/handlers-get';
 
-import { getStatusPriority } from "./../../lib/utils"
+import { getStatusPriority } from "./../../lib/common/utils"
 
 interface RequestBody {
   tCardId: number,

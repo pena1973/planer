@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react';
 import styles from "./profile.module.scss";
 import { changePassword, changeName, deleteProfile } from "@/services/login/profileService";
 // import { changePassword, changeName } from "@/services/login/profileService";
-import { logout } from '@/lib/logout'
+import { logout } from '@/lib/client/logout'
 
 import { UserItem, TeamItem, UnitItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
-import { generateTeamNumber } from '@/lib/utils'
+import { generateTeamNumber } from '@/lib/client/utils.client'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';

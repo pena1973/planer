@@ -22,7 +22,7 @@ import { UnitLoadTable } from './models/plan/unit_loads';
 import { SettingsTable } from './models/plan/settings';
 
 import { SupportTable } from './models/support/support';
-import { BillTable } from './models/billing/bills';
+import { JobSettingsTable } from './models/job/job-settings';
 import { BillRowTable } from './models/billing/bill_row';
 import { ClientTable } from './models/billing/clients';
 import { BanerTable } from './models/support/baners';
@@ -30,6 +30,7 @@ import { BalanceTable } from './models/billing/balance';
 import { ActiveTimeTable } from './models/billing/active_time';
 import { MainTable } from './models/billing/main';
 import { VerificationCodeTable } from './models/auth/verification_code';
+import {InvoiceTable} from './models/billing/invoice'; 
 
 export const entities = {
   TCardTable,
@@ -50,8 +51,7 @@ export const entities = {
   UnitExceptionTable,
   UnitLoadTable,
   SettingsTable,
-  SupportTable,
-  BillTable,
+  SupportTable,  
   ProductTable,
   BanerTable,
   BillRowTable,
@@ -59,7 +59,9 @@ export const entities = {
   BalanceTable,
   ActiveTimeTable,
   MainTable,
-  VerificationCodeTable
+  VerificationCodeTable,
+  InvoiceTable,
+  JobSettingsTable
 };
 
 export const getEntities = () => Object.values(entities);

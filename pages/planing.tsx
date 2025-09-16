@@ -16,7 +16,7 @@ import { useState, useCallback } from "react";
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
-// import { formatDate, } from "@/lib/utils"
+
 
 import { useRouter } from 'next/navigation';
 
@@ -26,7 +26,7 @@ import { setUnitLoads, setTCardLighted, setTCardPrepared } from '@/store/slices'
 import { } from '@/store/slices';
 
 import { useTranslation } from 'react-i18next';
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/timezone";
+import { getCurrentDateInDate } from "@/lib/client/timezone.client";
 
 export default function Planing() {
 

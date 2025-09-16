@@ -338,12 +338,16 @@
     "reply": "Reply",
     "send": "Send",
     "cookie": "Cookie policy",
-    "docs": "Documentation"
+    "docs": "Documentation",
+    "processed": "Close"
   },
   "client": {
     "title": "Client name",
     "vat": "VAT number",
-    "address": "Address",
+    "address_line1": "Address line 1",
+    "address_line2": "Address line 2",
+    "city": "City",
+    "postal_code": "Postal code",
     "email": "Email",
     "phone": "Phone",
     "person": "Contact person",
@@ -370,8 +374,7 @@
     "VAT": "with VAT",
     "price": "Price per point",
     "point": "point",
-    "notification1": "The charge is made on the 1st of each month for the previous month.",
-    "notification2": "When expenses exceed the balance, all teams will switch to inactive status.",
+    "notification": "Funds are deducted daily. When the balance is depleted, all teams will be set to inactive.",
     "active": "active",
     "activate": "activate",
     "deactivate": "deactivate"

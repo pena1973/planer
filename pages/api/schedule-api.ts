@@ -1,4 +1,4 @@
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
@@ -9,7 +9,7 @@ import { getTeamShedule } from './../../handlers/handlers-get';  // расчет
 import { Repository } from 'typeorm';
 import { TeamTable } from './../../db/models/catalogs/teams'
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
-import { getTimeZoneDateFromDateString } from './../../lib/timezone';
+import { getTimeZoneDateFromDateString } from './../../lib/common/timezone';
 
 import { ScheduleItem } from './../../types/types';
 

@@ -28,5 +28,8 @@ export class SupportTable {
     
     @Column('int')
     user_id!: number;
+     
+    @Column('boolean', { default: false })
+    processed!: boolean;
 }
 

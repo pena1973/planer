@@ -13,7 +13,7 @@ import {
     setActiveTeam,
     
 } from './../../store/slices';
-import { getUserTimeZoneEnum } from './../../lib/timezone';
+import { getUserTimeZoneEnum } from './../../lib/common/timezone';
 
 
 

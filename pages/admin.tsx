@@ -1,6 +1,6 @@
 import Layout from "@/components/Layout/layout";
 import { useEffect, useState, useRef, use } from "react";
-import { configureTokenAccess } from '@/lib/fetchWithRefresh'
+
 
 import { downloadUoms } from '@/services/initial/downloadUoms';
 import { downloadActions } from '@/services/initial/downloadActions';
@@ -18,6 +18,10 @@ import { downloadUnutActions } from '@/services/initial/downloadUnut-Actions';
 import { downloadUnutExceptions } from '@/services/initial/downloadUnut-Exceptions';
 import { downloadUnitLoads } from '@/services/initial/downloadUnit-Loads';
 import { downloadBaner } from '@/services/process/downloadBaner';
+import ScheduleEditor from "@/components/admin/ScheduleEditor/scheduleEditor";
+import { SupportMailsAdmin } from "@/components/admin/SupportMailsAdmin/supportMailsAdmin";
+
+import { JobSettingItem, BanerItem } from '@/types/service-types'
 
 
 import { store } from '@/store' // путь к твоему Redux store
@@ -33,8 +37,11 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
-import { createBills } from '@/services/admin/createBills';
+// import { createBills } from '@/services/admin/createBills';
 import { deactivateTeamsByBalance } from '@/services/admin/deactivateTeamsByBalance';
+import { setJobSetting } from '@/services/admin/setJobSetting';
+import { setBaner } from '@/services/admin/setBaner';
+
 import {
 
 } from '@/store/slices';
@@ -52,6 +59,12 @@ export default function Admin() {
   const [periodCreateInv, setPeriodCreateInv] = useState<string>(getCurrentYM()); // 'YYYY-MM'
   const [periodDeactTeam, setPeriodDeactTeam] = useState<string>(getCurrentYM()); // 'YYYY-MM'
 
+  // банер
+  const [bannerText, setBannerText] = useState("");
+  const [periodFrom, setPeriodFrom] = useState("");
+  const [periodTo, setPeriodTo] = useState("");
+  const [banerLocale, setBanerLocale] = useState("");
+
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
@@ -63,29 +76,20 @@ export default function Admin() {
   if (!user.isSystem) push('/support')
 
   const [message, setMessage] = useState('');
-  
 
-  const createBillsHandler = async () => {
-    if (!periodCreateInv || !/^\d{4}-\d{2}$/.test(periodCreateInv)) {
-      setMessage('Выберите год и месяц');
-      return;
-    }
-    const [yStr, mStr] = periodCreateInv.split('-');
-    const year = Number(yStr);
-    const month = Number(mStr); // 1..12
+  const setBanerHandler = async () => {
+    if (!bannerText) return
+    if (!periodFrom) return
+    if (!periodTo) return
+    const baner = {
+      message: bannerText,
+      dateFrom: periodFrom,
+      dateTo: periodTo,
+      locale: banerLocale,
+    } as BanerItem
+    await setBaner(token, user.id, baner, t, setMessage);
 
-    try {
-      setMessage('');
-      await createBills(token, year, month, t, setMessage);
-      // при необходимости: push('/billing');
-    } catch (e: unknown) {
-      let message = "'Не удалось сформировать счета'";
-      if (e instanceof Error) {
-        message = `'Не удалось сформировать счета': ${e.message}`;
-        setMessage(message);
-      }
-    }
-  };
+  }
 
   const deactivateTeams = async () => {
     if (!periodDeactTeam || !/^\d{4}-\d{2}$/.test(periodDeactTeam)) {
@@ -98,6 +102,9 @@ export default function Admin() {
     await deactivateTeamsByBalance(token, year, month, t, setMessage);
   };
 
+  const setJobSettinghandler = async (jobSetting: JobSettingItem) => {
+    await setJobSetting(token, user.id, jobSetting, t, setMessage);
+  };
 
   return (
     <Layout>
@@ -106,60 +113,100 @@ export default function Admin() {
       <div className="container_admin">
         <div className="container_admin_left" >
           {user.isSystem && <div className="container_admin_block">
-            Генерирует счета в БД, Они потом появятся у админа основной команды в виде инвойса
-            счет на 1 число месяца генерит данные за предыдущий месяц.
-            Заранее счета генерить не нужно потому что тогда конец анализа - сегодняшний день, вперед не работает.
-            <label className="label_admin">
-              <span>Выберите год и месяц</span>
-              <input className="input_admin"
-                type="month"
-                value={periodCreateInv}
-                onChange={(e) => setPeriodCreateInv(e.target.value)}
-                min="2020-01"
-                max="2035-12"
-              />
-            </label>
+            Установка расписания рег задания
+            <ScheduleEditor onSubmit={setJobSettinghandler} />
 
-            <button
-              onClick={createBillsHandler}
-            >сформировать счeта</button>
+
+            Список рег заданий с ключами:
+            <ol>
+              <li>списание баланса — <span>billing:charge</span></li>
+              <li>очистка 90 дней — <span>cleanup:core</span></li>
+            </ol>
+
+
           </div>}
+
           {user.isSystem && <div className="container_admin_block">
-            Для команд у которых расход превышает баланс  кнопка переводит их в неактивные до пополнения баланса.
-            Соотвеьтственно команды не смогут пользоватся программой
-            <label className="label_admin">
-              <span>Выберите год и месяц</span>
-              <input className="input_admin"
-                type="month"
-                value={periodDeactTeam}
-                onChange={(e) => setPeriodDeactTeam(e.target.value)}
-                min="2020-01"
-                max="2035-12"
-              />
-            </label>
-            <button
-              onClick={deactivateTeams}
-            >Деактивировать неплательшиков</button>
+            <code>Для команд у которых расход превышает баланс 
+              кнопка переводит их в неактивные до пополнения баланса.
+              Соотвеьтственно команды не смогут пользоватся программой</code>
+            
+            <button onClick={deactivateTeams}>Деактивировать неплательшиков</button>
 
           </div>}
-          {user.isSystem && <div className="container_admin_block"></div>}
-          {user.isSystem && <div className="container_admin_block"></div>}
+
+
         </div>
         <div className="container_admin_midle">
 
-          {user.isSystem && <div className="container_admin_block"></div>}
-          {user.isSystem && <div className="container_admin_block"></div>}
-          {user.isSystem && <div className="container_admin_block"></div>}
+          {user.isSystem && <div className="container_admin_block">
+            Сообщения в тех поддержку
+            <SupportMailsAdmin
+              userId={user.id}
+              setMessage={setMessage}
+              token={token}
+            /></div>}
+         
         </div>
         <div className="container_admin_right">
-          {user.isSystem && <div className="container_admin_block">1</div>}
-          {user.isSystem && <div className="container_admin_block"></div>}
-          {user.isSystem && <div className="container_admin_block"></div>}
+          {user.isSystem && <div className="container_admin_block">
+            Установка банера
+            {/* Текст баннера */}
+            <label className="label_baner">
+              <span>Текст баннера</span>
+              <input
+                className="input_baner"
+                type="text"
+                value={bannerText}
+                onChange={(e) => setBannerText(e.target.value)}
+                placeholder="Введите текст баннера"
+              />
+              <span>locale</span>
+              <input
+                className="input_locale"
+                type="text"
+                value={banerLocale}
+                onChange={(e) => setBanerLocale(e.target.value)}
+                placeholder="ru"
+              />
+            </label>
+
+            {/* Период действия */}
+            <div className="period_baner">
+              <label className="label_baner">
+                <span>Действует с</span>
+                <input
+                  className="input_baner"
+                  type="date"
+                  value={periodFrom}
+                  onChange={(e) => setPeriodFrom(e.target.value)}
+                  min="2020-01-01"
+                  max="2035-12-31"
+                />
+              </label>
+
+              <label className="label_baner">
+                <span>По</span>
+                <input
+                  className="input_baner"
+                  type="date"
+                  value={periodTo}
+                  onChange={(e) => setPeriodTo(e.target.value)}
+                  min="2020-01-01"
+                  max="2035-12-31"
+                />
+              </label>
+
+            </div>
+            <button onClick={setBanerHandler}>Установить</button>
+
+          </div>}
+          
         </div>
 
       </div>
 
-    </Layout>
+    </Layout >
   )
 }
 

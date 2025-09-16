@@ -5,7 +5,7 @@ import {
   UnitItem, ScheduleItem, DaysOfWeek, UnitBelongEnum,
   UnitActionItem, ReadyProduct
 } from "./../types/types";
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/timezone"
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/common/timezone"
 // функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
 const getLoadIdc = (
   tCard: TCardItem,
@@ -19,7 +19,7 @@ const getLoadIdc = (
   return Number(`${tCard.id}${operation.idc}${Number(seg.date.replace(/-/g, ''))}${seg.start}`)
 }
 
-import { generateUniqueIdc } from './../lib/utils'
+import { generateUniqueIdc } from './../lib/common/utils'
 // import TCardProduct from "@/components/cards/TCardProducts/TCardProduct/tCardProduct";
 // import Product from "@/components/cards/Products/Product/product";
 // генерация привычной нам даты - ее использую как id дня

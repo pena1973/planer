@@ -5,13 +5,13 @@ import styles from "./planScaleContainer.module.scss";
 
 import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum, UnitActionItem } from "@/types/types";
 
-import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/utils";
+import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/client/utils.client";
 
 import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
 import DottedLine from "./DottedLine/dottedLine";
 import UnitMenu from "./UnitMenu/unitMenu";
-import { getCurrentDateInDate, addDaysInZone } from "@/lib/timezone"
+import { getCurrentDateInDate, addDaysInZone } from "@/lib/client/timezone.client"
 import { useTranslation } from 'react-i18next';
 
 import { useResizeObserver } from './useResizeObserver'; // Хук отслеживания расмеров окна

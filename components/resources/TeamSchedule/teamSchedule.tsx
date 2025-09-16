@@ -13,7 +13,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
 import { useTranslation } from 'react-i18next';
-import { getCurrentDateInDate, getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone";
+import { getCurrentDateInDate, getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/client/timezone.client";
 import cancel from "@/public/cancel.png";
 import del from "@/public/del2.png";
 import save from "@/public/save-rem.png";

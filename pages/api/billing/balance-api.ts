@@ -1,4 +1,4 @@
-import { withAuth } from '../../../lib/withAuth'
+import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
@@ -8,7 +8,7 @@ import { BalanceTable } from '../../../db/models/billing/balance';
 import { TeamTable } from './../../../db/models/catalogs/teams'
 
 import { getBalance, getTeamShedule } from '../../../handlers/handlers-get';  // расчеты
-import { getCurrentDateInString } from "./../../../lib/timezone"
+import { getCurrentDateInString } from "./../../../lib/common/timezone"
 
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {

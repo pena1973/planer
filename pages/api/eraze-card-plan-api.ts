@@ -1,7 +1,7 @@
 
 import { Repository, In, MoreThanOrEqual } from "typeorm";
 
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
@@ -23,7 +23,7 @@ import { ActionTable } from './../../db/models/catalogs/actions'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
 
 import { TCardOperationItem, UnitLoadItem, StatusEnum } from "./../../types/types";
-import { getCurrentDateInString } from "@/lib/timezone";
+import { getCurrentDateInString } from "@/lib/common/timezone";
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[],

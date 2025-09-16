@@ -1,6 +1,6 @@
 import Layout from "@/components/Layout/layout";
 import { useEffect, useState, useRef, use } from "react";
-import { configureTokenAccess } from '@/lib/fetchWithRefresh'
+import { configureTokenAccess } from '@/lib/client/fetchWithRefresh'
 
 import { downloadUoms } from '@/services/initial/downloadUoms';
 import { downloadActions } from '@/services/initial/downloadActions';

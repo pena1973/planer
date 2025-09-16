@@ -8,7 +8,7 @@ import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 
-import { padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/utils"
+import { padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/client/utils.client"
 import { useEffect, useState } from "react";
 
 import { erazeLoad } from '@/services/plan/erazeLoad';
@@ -45,7 +45,7 @@ import {
 
 
 } from "@/types/types";
-import { checkReconcilation } from "@/lib/cardsHandlers";
+import { checkReconcilation } from "@/lib/client/cardsHandlers";
 
 import { setTCards, setTCardIndex } from '@/store/slices'
 

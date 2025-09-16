@@ -10,7 +10,6 @@ import connectDb from '@/db/database';
 import { getTypedRepository } from './../../../db/utilites';
 import { VerificationCodeTable } from './../../../db/models/auth/verification_code';
 import { UserTable } from './../../../db/models/catalogs/users';
-// import { checkCode } from './../../../lib/code';
 import { verifyCode, confirmUserEmail } from './../../../handlers/handlers-auth';
 
 const bodySchema = z.object({

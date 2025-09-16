@@ -3,12 +3,12 @@ import type { RootState } from '@/store';
 
 import styles from "./tCardOper.module.scss";
 import { TCardOperationItem, StatusEnum, UnitLoadItem } from '@/types/types'
-import { convertMillisecondsToTime } from '@/lib/utils'
+import { convertMillisecondsToTime } from '@/lib/client/utils.client'
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import { useState } from "react";
 import Image from 'next/image';
-import { convertMinutesToTime } from "@/lib/utils"
-import { getCurrentDateInString } from "@/lib/timezone"
+import { convertMinutesToTime } from "@/lib/client/utils.client"
+import { getCurrentDateInString } from "@/lib/client/timezone.client"
 
 import edit from "@/public/edit-rem.png";
 import del from "@/public/del2.png";

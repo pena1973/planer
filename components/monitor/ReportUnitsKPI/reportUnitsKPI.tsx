@@ -7,8 +7,8 @@ import { UnitKPIItem, UnitItem } from "@/types/types";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { useTranslation } from 'react-i18next';
 
-import { convertMinutesToTime1 } from "@/lib/utils"
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/timezone"
+import { convertMinutesToTime1 } from "@/lib/client/utils.client"
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/client/timezone.client"
 import { UnitBelongEnum, UnitTypeEnum } from '@/types/types';
 
 interface ReportUnitsKPIProps {

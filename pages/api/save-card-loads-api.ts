@@ -1,5 +1,5 @@
 
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
@@ -16,7 +16,7 @@ import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
-import {getStatusPriority} from "./../../lib/utils"
+import {getStatusPriority} from "./../../lib/common/utils"
 
 import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "./../../types/types";
 
