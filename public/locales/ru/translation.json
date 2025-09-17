@@ -12,7 +12,8 @@
     "exit": "Выход",
     "unit-interface": "План",
     "unit-docs": "Справка",
-    "unit-profile": "Профиль"
+    "unit-profile": "Профиль",
+    "admin": "Админка"    
   },
   "cards": {
     "stage": "Этап",

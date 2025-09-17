@@ -1,23 +1,6 @@
 import Layout from "@/components/Layout/layout";
 import { useEffect, useState, useRef, use } from "react";
 
-
-import { downloadUoms } from '@/services/initial/downloadUoms';
-import { downloadActions } from '@/services/initial/downloadActions';
-import { downloadTemplates } from '@/services/initial/downloadTemplates';
-import { downloadLoads } from '@/services/initial/downloadLoads';
-import { downloadSchedule } from '@/services/initial/downloadSchedule';
-import { downloadSettings } from '@/services/initial/downloadSettings';
-import { downloadTCards } from '@/services/initial/downloadTCards';
-// import { downloadProducts } from '@/services/initial/downloadProducts';
-import { downloadUnits } from '@/services/initial/downloadUnits';
-import { downloadUnutsActions } from '@/services/initial/downloadUnutsActions';
-import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExceptions';
-
-import { downloadUnutActions } from '@/services/initial/downloadUnut-Actions';
-import { downloadUnutExceptions } from '@/services/initial/downloadUnut-Exceptions';
-import { downloadUnitLoads } from '@/services/initial/downloadUnit-Loads';
-import { downloadBaner } from '@/services/process/downloadBaner';
 import ScheduleEditor from "@/components/admin/ScheduleEditor/scheduleEditor";
 import { SupportMailsAdmin } from "@/components/admin/SupportMailsAdmin/supportMailsAdmin";
 
@@ -108,104 +91,111 @@ export default function Admin() {
 
   return (
     <Layout>
-      <div className="message_admin">{message}</div>
-      <pre />
-      <div className="container_admin">
-        <div className="container_admin_left" >
-          {user.isSystem && <div className="container_admin_block">
-            Установка расписания рег задания
-            <ScheduleEditor onSubmit={setJobSettinghandler} />
+      <div className="container_global" >
+
+        <div className="container_admin">
+          <div className="container_admin_left" >            
+            {user.isSystem && <div className="container_admin_block">
+              Сообщения
+              <code>{message}</code>
+
+            </div>}
 
 
-            Список рег заданий с ключами:
-            <ol>
-              <li>списание баланса — <span>billing:charge</span></li>
-              <li>очистка 90 дней — <span>cleanup:core</span></li>
-            </ol>
+            {user.isSystem && <div className="container_admin_block">
+              Установка расписания рег задания
+              <ScheduleEditor onSubmit={setJobSettinghandler} />
 
 
-          </div>}
-
-          {user.isSystem && <div className="container_admin_block">
-            <code>Для команд у которых расход превышает баланс 
-              кнопка переводит их в неактивные до пополнения баланса.
-              Соотвеьтственно команды не смогут пользоватся программой</code>
-            
-            <button onClick={deactivateTeams}>Деактивировать неплательшиков</button>
-
-          </div>}
+              Список рег заданий с ключами:
+              <ol>
+                <li>списание баланса — <span>billing:charge</span></li>
+                <li>очистка 90 дней — <span>cleanup:core</span></li>
+              </ol>
 
 
-        </div>
-        <div className="container_admin_midle">
+            </div>}
 
-          {user.isSystem && <div className="container_admin_block">
-            Сообщения в тех поддержку
-            <SupportMailsAdmin
-              userId={user.id}
-              setMessage={setMessage}
-              token={token}
-            /></div>}
-         
-        </div>
-        <div className="container_admin_right">
-          {user.isSystem && <div className="container_admin_block">
-            Установка банера
-            {/* Текст баннера */}
-            <label className="label_baner">
-              <span>Текст баннера</span>
-              <input
-                className="input_baner"
-                type="text"
-                value={bannerText}
-                onChange={(e) => setBannerText(e.target.value)}
-                placeholder="Введите текст баннера"
-              />
-              <span>locale</span>
-              <input
-                className="input_locale"
-                type="text"
-                value={banerLocale}
-                onChange={(e) => setBanerLocale(e.target.value)}
-                placeholder="ru"
-              />
-            </label>
+            {user.isSystem && <div className="container_admin_block">
+              <code>Для команд у которых расход превышает баланс
+                кнопка переводит их в неактивные до пополнения баланса.
+                Соотвеьтственно команды не смогут пользоватся программой</code>
 
-            {/* Период действия */}
-            <div className="period_baner">
+              <button onClick={deactivateTeams}>Деактивировать неплательшиков</button>
+
+            </div>}
+
+
+          </div>
+          <div className="container_admin_midle">
+
+            {user.isSystem && <div className="container_admin_block">
+              Сообщения в тех поддержку
+              <SupportMailsAdmin
+                userId={user.id}
+                setMessage={setMessage}
+                token={token}
+              /></div>}
+
+          </div>
+          <div className="container_admin_right">
+            {user.isSystem && <div className="container_admin_block">
+              Установка банера
+              {/* Текст баннера */}
               <label className="label_baner">
-                <span>Действует с</span>
+                <span>Текст баннера</span>
                 <input
                   className="input_baner"
-                  type="date"
-                  value={periodFrom}
-                  onChange={(e) => setPeriodFrom(e.target.value)}
-                  min="2020-01-01"
-                  max="2035-12-31"
+                  type="text"
+                  value={bannerText}
+                  onChange={(e) => setBannerText(e.target.value)}
+                  placeholder="Введите текст баннера"
+                />
+                <span>locale</span>
+                <input
+                  className="input_locale"
+                  type="text"
+                  value={banerLocale}
+                  onChange={(e) => setBanerLocale(e.target.value)}
+                  placeholder="ru"
                 />
               </label>
 
-              <label className="label_baner">
-                <span>По</span>
-                <input
-                  className="input_baner"
-                  type="date"
-                  value={periodTo}
-                  onChange={(e) => setPeriodTo(e.target.value)}
-                  min="2020-01-01"
-                  max="2035-12-31"
-                />
-              </label>
+              {/* Период действия */}
+              <div className="period_baner">
+                <label className="label_baner">
+                  <span>Действует с</span>
+                  <input
+                    className="input_baner"
+                    type="date"
+                    value={periodFrom}
+                    onChange={(e) => setPeriodFrom(e.target.value)}
+                    min="2020-01-01"
+                    max="2035-12-31"
+                  />
+                </label>
 
-            </div>
-            <button onClick={setBanerHandler}>Установить</button>
+                <label className="label_baner">
+                  <span>По</span>
+                  <input
+                    className="input_baner"
+                    type="date"
+                    value={periodTo}
+                    onChange={(e) => setPeriodTo(e.target.value)}
+                    min="2020-01-01"
+                    max="2035-12-31"
+                  />
+                </label>
 
-          </div>}
-          
+              </div>
+              <button onClick={setBanerHandler}>Установить</button>
+
+            </div>}
+
+          </div>
+
         </div>
-
       </div>
-
     </Layout >
   )
 }

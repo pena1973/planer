@@ -13,12 +13,12 @@ import galka_vpravo from "@/public/galka_vpravo-rem.png";
 
 import { useTranslation } from 'react-i18next';
 
-interface SupportMessageProps {
+interface SupportMailProps {
   supportMessage: SupportMailItem,
   setMessage: (message: string) => void, // Это диагностика
-  delMessage: (id: number) => void,
-  answerMessage: (basedOn: number) => void,
-  sendMessage: (supportMessageValue: SupportMailItem) => Promise<void>,
+  delMail: (id: number) => void,
+  answerMail: (basedOn: number) => void,
+  sendMail: (supportMessageValue: SupportMailItem) => Promise<void>,
   setExpand: (id: number) => void,
   teamId: number,
   userId: number,
@@ -27,12 +27,12 @@ interface SupportMessageProps {
 
 }
 
-export const SupportMessage: React.FC<SupportMessageProps> = ({
+export const SupportMail: React.FC<SupportMailProps> = ({
   supportMessage,
   setMessage,
-  delMessage,
-  answerMessage,
-  sendMessage,
+  delMail,
+  answerMail,
+  sendMail,
   setExpand,
   teamId,
   userId,
@@ -42,14 +42,14 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
 }) => {
 
   const { t } = useTranslation();
-  const [supportMessageValue, setSupportMessageValue] = useState({} as SupportMailItem); // переключатель между каталогами
+  const [supportMailValue, setSupportMailValue] = useState({} as SupportMailItem); // переключатель между каталогами
 
   const [buttonLoader, setButtonLoader] = useState(false);
 
   const isNew = (supportMessage.id < 0);
 
   useEffect(() => {
-    setSupportMessageValue(supportMessage);
+    setSupportMailValue(supportMessage);
   }, [supportMessage]);
 
   useEffect(() => {
@@ -60,10 +60,10 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
 
 
   const setbodyHandler = (body: string) => {
-    setSupportMessageValue({ ...supportMessageValue, body: body })
+    setSupportMailValue({ ...supportMailValue, body: body })
   }
   const setTitleHandler = (title: string) => {
-    setSupportMessageValue({ ...supportMessageValue, title: title })
+    setSupportMailValue({ ...supportMailValue, title: title })
   }
 
   // Функция для автоматической подгонки высоты
@@ -89,11 +89,11 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
   // Подстраиваем высоту после рендера или изменения содержимого
   useEffect(() => {
     adjustHeight();
-  }, [supportMessageValue]); // Каждый раз, когда изменяется содержимое, высота будет пересчитана
+  }, [supportMailValue]); // Каждый раз, когда изменяется содержимое, высота будет пересчитана
 
-  const send = async () => {
+  const sendMailHandler = async () => {
     setButtonLoader(true);
-    await sendMessage(supportMessageValue)
+    await sendMail(supportMailValue)
     setButtonLoader(false);
 
   }
@@ -101,7 +101,7 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
   return (<>
     {/* {(expand || (!supportMessageValue.basedOn)) && */}
     <div className={styles.container}>
-      {!(!supportMessageValue.basedOn) &&
+      {!(!supportMailValue.basedOn) &&
         <Image className={styles.icon_next}
           src={next}
           alt="arrow" width={20} height={20}
@@ -113,13 +113,13 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
               <Image className={styles.icon_galka}
                 src={galka_vniz}
                 alt="arrow" width={20} height={20}
-                onClick={e => setExpand(supportMessageValue.id)}
+                onClick={e => setExpand(supportMailValue.id)}
               />}
             {!isNew && !expand &&
               <Image className={styles.icon_galka}
                 src={galka_vpravo}
                 alt="arrow" width={20} height={20}
-                onClick={e => setExpand(supportMessageValue.id)}
+                onClick={e => setExpand(supportMailValue.id)}
               />}
             {!isNew && <div >{supportMessage.title}</div>}
             {isNew &&
@@ -128,7 +128,7 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
                 placeholder='Тема'
                 id={"title" + index}
                 autoComplete="off"
-                value={supportMessageValue.title}
+                value={supportMailValue.title}
                 onChange={e => { setTitleHandler(e.target.value) }}
               />}
           </div>
@@ -145,7 +145,7 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
             className={`${styles.body_input} ${isNew ? styles.new : ''}`}
             id={"body" + index}
             autoComplete="off"
-            value={supportMessageValue.body}
+            value={supportMailValue.body}
             onChange={e => { if (isNew) setbodyHandler(e.target.value) }}
           />}
 
@@ -153,19 +153,19 @@ export const SupportMessage: React.FC<SupportMessageProps> = ({
           {isNew && <Image className={styles.icon_del}
             src={del}
             alt="arrow" width={20} height={20}
-            onClick={e => { delMessage(supportMessageValue.id) }}
+            onClick={e => { delMail(supportMailValue.id) }}
           />}
           <div></div>
 
-          {supportMessageValue.id < 0 &&
+          {supportMailValue.id < 0 &&
             <button className={styles.button_send}
-              onClick={e => { send() }}>
+              onClick={sendMailHandler}>
               {buttonLoader && <ButtonLoader />}
               {!buttonLoader && t('support.send')}
             </button>}
-          {supportMessageValue.id > 0
+          {supportMailValue.id > 0
             && <button className={styles.button_send}
-              onClick={e => { answerMessage(supportMessageValue.id) }}>
+              onClick={e => { answerMail(supportMailValue.id) }}>
               {t('support.reply')}
             </button>}
 

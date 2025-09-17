@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout/layout";
-import { SupportMessages } from "@/components/support/SupportMails/supportMails";
+import { SupportMails } from "@/components/support/SupportMails/supportMails";
 import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
@@ -68,7 +68,7 @@ export default function Support() {
           {/* Сообщения тех поддержки */}
           {suportPoint === 1 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.messages1')}</div>
-            <SupportMessages
+            <SupportMails
               setMessage={setMessage}
               teamId={team.id}
               userId={user.id}

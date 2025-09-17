@@ -12,7 +12,8 @@
     "exit": "Log out",
     "unit-interface": "Plan",
     "unit-docs": "Docs",
-    "unit-profile": "Profile"
+    "unit-profile": "Profile",
+    "admin": "Admin"   
   },
   "cards": {
     "stage": "Stage",

@@ -8,11 +8,11 @@ import { sendMail } from '@/services/suport/sendMail';
 
 import { SupportMailItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
-import { SupportMessage } from './SupportMail/supportMail';
+import { SupportMail } from './SupportMail/supportMail';
 
 import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/client/timezone.client"
 
-interface SupportMessagesProps {
+interface SupportMailsProps {
   setMessage: (message: string) => void,
   teamId: number,
   userId: number,
@@ -20,7 +20,7 @@ interface SupportMessagesProps {
   timezone:string
 }
 
-export const SupportMessages: React.FC<SupportMessagesProps> = ({
+export const SupportMails: React.FC<SupportMailsProps> = ({
   setMessage,
   teamId,
   userId,
@@ -34,17 +34,17 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
 
   // На сервере
   // Получаем сообщения
-  const getSupportMessagesHandler = async () => {
+  const getSupportMailsHandler = async () => {
     await getSupportMails(userId, token, t, setMessage, setSupportMailsValue);
    
   };
 
   useEffect(() => {
-    getSupportMessagesHandler();
+    getSupportMailsHandler();
   }, []);
 
   // На клиенте
-  const addSupportMessage = () => {
+  const addSupportMail = () => {
     const newMes = {
       id: -Math.abs(Math.random()), // Используем отрицательное значение для нового сообщения
       date: new Date().toLocaleDateString('en-CA'),
@@ -59,13 +59,13 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
   };
 
   // На клиенте
-  const delMessage = (id: number) => {
+  const delMailHandler = (id: number) => {
     const updatedMessages = supportMailsValue.filter(mes => mes.id !== id);
     setSupportMailsValue(updatedMessages);
   };
 
   // На клиенте
-  const answerMessage = (basedOn: number) => {
+  const answerMailHandler = (basedOn: number) => {
     const basedOnMessage = supportMailsValue.find(mes => mes.id === basedOn);
     if (!basedOnMessage) return;
 
@@ -78,6 +78,8 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
       userId: userId,
       fromUser: true,
       basedOn: basedOn, // Связь с исходным сообщением
+      teamId:teamId,
+      processed:false
     } as SupportMailItem;
     setSupportMailsValue([newMes, ...supportMailsValue]);
     setExpand(newMes.id);
@@ -85,7 +87,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
 
   // На сервере
   //  отправляем сообщение
-  const sendMessageHandler = async (supportMessage: SupportMailItem) => {
+  const sendMailHandler = async (supportMessage: SupportMailItem) => {
 
     await sendMail(supportMessage, supportMailsValue, setSupportMailsValue,
       userId, token, t, setMessage, setExpand)
@@ -113,12 +115,12 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
       if (!expandValue.includes(baseMessageId)) return null;
       return (
         <div key={message.id} style={{ marginLeft: `${shift}px` }}>
-          <SupportMessage
+          <SupportMail
             supportMessage={message}
             setMessage={setMessage}
-            delMessage={delMessage}
-            answerMessage={answerMessage}
-            sendMessage={sendMessageHandler}
+            delMail={delMailHandler}
+            answerMail={answerMailHandler}
+            sendMail={sendMailHandler}
             setExpand={setExpand}
             teamId={teamId}
             userId={userId}
@@ -146,12 +148,12 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
   const topLevelMessagesReactNodes = topLevelMessages.map((mestop, index) => {
     return (
       <div key={mestop.id}>
-        <SupportMessage
+        <SupportMail
           supportMessage={mestop}
           setMessage={setMessage}
-          delMessage={delMessage}
-          answerMessage={answerMessage}
-          sendMessage={sendMessageHandler}
+          delMail={delMailHandler}
+          answerMail={answerMailHandler}
+          sendMail={sendMailHandler}
           setExpand={setExpand}
           teamId={teamId}
           userId={userId}
@@ -165,7 +167,7 @@ export const SupportMessages: React.FC<SupportMessagesProps> = ({
 
   return (
     <div className={styles.container}>
-      <button onClick={addSupportMessage}>{t('support.new')}</button>
+      <button onClick={addSupportMail}>{t('support.new')}</button>
       {topLevelMessagesReactNodes}
     </div>
   );
