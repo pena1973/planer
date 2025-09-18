@@ -21,7 +21,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
 // import { createBills } from '@/services/admin/createBills';
-import { deactivateTeamsByBalance } from '@/services/admin/deactivateTeamsByBalance';
+import { deactivateTeams } from '@/services/admin/deactivateTeams';
 import { setJobSetting } from '@/services/admin/setJobSetting';
 import { setBaner } from '@/services/admin/setBaner';
 
@@ -74,7 +74,7 @@ export default function Admin() {
 
   }
 
-  const deactivateTeams = async () => {
+  const deactivateTeamsHandler = async () => {
     if (!periodDeactTeam || !/^\d{4}-\d{2}$/.test(periodDeactTeam)) {
       setMessage('Выберите год и месяц');
       return;
@@ -82,7 +82,7 @@ export default function Admin() {
     const [yStr, mStr] = periodDeactTeam.split('-');
     const year = Number(yStr);
     const month = Number(mStr); // 1..12
-    await deactivateTeamsByBalance(token, year, month, t, setMessage);
+    await deactivateTeams(token, t, setMessage);
   };
 
   const setJobSettinghandler = async (jobSetting: JobSettingItem) => {
@@ -121,7 +121,7 @@ export default function Admin() {
                 кнопка переводит их в неактивные до пополнения баланса.
                 Соотвеьтственно команды не смогут пользоватся программой</code>
 
-              <button onClick={deactivateTeams}>Деактивировать неплательшиков</button>
+              <button onClick={deactivateTeamsHandler}>Деактивировать неплательшиков</button>
 
             </div>}
 

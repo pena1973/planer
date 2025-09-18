@@ -25,7 +25,7 @@ import { BillTable } from './../db/models/billing/bills';
 import { InvoiceTable } from './../db/models/billing/invoice';
 import { ClientTable } from './../db/models/billing/clients';
 
-import { SupportTable } from './../db/models/support/support';
+import { MailTable } from './../db/models/support/mails';
 
 import { TeamTable } from './../db/models/catalogs/teams';
 import { BanerTable } from './../db/models/support/baners';
@@ -106,7 +106,7 @@ export async function getCostForDay(
   // настройки цены
   const main = await getMain(mainRepository, day);
   if (!main) {
-    console.log('Не удалось обработать запрос calcMonthlyTeamCosts');
+    console.log('Не удалось обработать запрос getCostForDay');
     return 0;
   }
 
@@ -217,7 +217,7 @@ export async function getBalance(
     }
   }, 0);
 
-  return total || 0; // если NaN, то отдаём 0
+  return Math.round((total + Number.EPSILON) * 100) / 100 || 0; // если NaN, то отдаём 0
 }
 
 // баланс всех команд
@@ -1708,7 +1708,7 @@ export async function getInvoices(
 // тех поддержка получение
 export async function getSuportMails(
   teamId: number|null,
-  supportRepository: Repository<SupportTable>
+  supportRepository: Repository<MailTable>
 ): Promise<SupportMailItem[]> {
 
   // Строим фильтр для поиска
@@ -1736,7 +1736,7 @@ export async function getSuportMails(
         fromUser: mes.fromUser,
         basedOn: mes.basedOn,
         teamId: mes.team_id,
-        processed: mes.processed
+        status: mes.status,        
       };
     });
 

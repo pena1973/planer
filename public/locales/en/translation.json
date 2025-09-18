@@ -13,7 +13,7 @@
     "unit-interface": "Plan",
     "unit-docs": "Docs",
     "unit-profile": "Profile",
-    "admin": "Admin"   
+    "admin": "Admin"
   },
   "cards": {
     "stage": "Stage",
@@ -39,7 +39,11 @@
     "loginNotEntered": "Please enter your login",
     "passnNotEntered": "Please enter your password",
     "serverUnavailable": "Server is currently unavailable",
-    "recoveryMailSent": "Password recovery email has been sent"
+    "recoveryMailSent": "Password recovery email has been sent",
+    "loginLengthMustBe": "Login must be at least 5 characters and contain '@' and '.'.",
+    "passLengthMustBe": "Password must be at least 12 characters and include letters, digits, and special characters.",
+    "nicknameNotSelected": "No nickname selected.",
+    "pass1NotEqualPass2": "Passwords do not match."
   },
   "index": {
     "downloadBaner": "Banner uploaded",
@@ -154,8 +158,15 @@
     "cardtemplates": "Card templates",
     "notes": "Notes"
   },
+   "uomsCatalog": {
+    "filltitle": "Please enter the measurement name!",
+    "fillcode": "Please enter the measurement code!",
+    "codeNotUnique": "Measurement code is not unique!"    
+  },
   "actionsCatalog": {
     "filltitle": "Please enter the action name!",
+    "fillcode": "Please enter the action code!",
+    "codeNotUnique": "Action code is not unique!",
     "listUpdated": "Action list updated",
     "code": "Code",
     "name": "Name",
@@ -340,7 +351,9 @@
     "send": "Send",
     "cookie": "Cookie policy",
     "docs": "Documentation",
-    "processed": "Close"
+    "toProcess": "To process",
+    "toConfirm": "Fixed",
+    "toClose": "To close"
   },
   "client": {
     "title": "Client name",

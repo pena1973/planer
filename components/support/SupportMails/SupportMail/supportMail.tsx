@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./supportMail.module.scss";
-import { SupportMailItem } from "@/types/types";
-
+import { StatusEnum, SupportMailItem } from "@/types/types";
+import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
@@ -20,8 +20,8 @@ interface SupportMailProps {
   answerMail: (basedOn: number) => void,
   sendMail: (supportMessageValue: SupportMailItem) => Promise<void>,
   setExpand: (id: number) => void,
-  teamId: number,
-  userId: number,
+  // teamId: number,
+  // userId: number,
   index: number,
   expand: boolean,
 
@@ -34,8 +34,8 @@ export const SupportMail: React.FC<SupportMailProps> = ({
   answerMail,
   sendMail,
   setExpand,
-  teamId,
-  userId,
+  // teamId,
+  // userId,
   index,
   expand,
 
@@ -107,7 +107,9 @@ export const SupportMail: React.FC<SupportMailProps> = ({
           alt="arrow" width={20} height={20}
         />}
       <div className={styles.message_container}>
-        <div className={`${styles.header} ${isNew ? styles.new : ''}`}>
+        
+        <div className={`${styles.header} ${isNew ? styles.new : ''}`}>          
+         {(!supportMessage.basedOn) && <StatusCircle status={supportMessage.status}/>} &nbsp;
           <div className={`${styles.header_groupe} ${isNew ? styles.new : ''}`}>
             {!isNew && expand &&
               <Image className={styles.icon_galka}

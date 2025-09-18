@@ -156,40 +156,33 @@ export default function Index() {
   const registerClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonRegister(true)
 
-    // if (loginValue.length < 5) {
-    //   setMessageRegister(t('service.loginLengthMustBe'));
-    //   setMessageRegister("Длина логина должна быть не менее 5 символов и содержать @  и . ");
-    //   setLoaderButtonRegister(false);
-    //   return
-    // };
+    if (loginValue.length < 5) {
+      setMessageRegister(t('service.loginLengthMustBe'));
+      // setMessageRegister("Длина логина должна быть не менее 5 символов и содержать @  и . ");
+      setLoaderButtonRegister(false);
+      return
+    };
 
-    // if (pass1Value.length < 1) {
-    //   setMessageRegister(t('service.passLengthMustBe'));
-    //   setMessageRegister("Длина пароля должна быть не менее 12 символов. пароль должен содержать буквы, цифры  и специальные символы");
-    //   setLoaderButtonRegister(false);
-    //   return
-    // }
+    if (pass1Value.length < 6) {
+      setMessageRegister(t('service.passLengthMustBe'));
+      // setMessageRegister("Длина пароля должна быть не менее 6 символов. пароль должен содержать буквы, цифры  и специальные символы");
+      setLoaderButtonRegister(false);
+      return
+    }
 
-    // if (teamNumberValue.length === 0 && !createTeamValue) {
-    //   setMessageRegister(t('service.roleNotSelected'));
-    //   setMessageRegister("Не выбрана команда");
-    //   setLoaderButtonRegister(false);
-    //   return
-    // };
+    if (nicknameValue.length < 1) {
+      setMessageRegister(t('service.nicknameNotSelected'));
+      // setMessageRegister("Не выбран псевдоним");
+      setLoaderButtonRegister(false);
+      return
+    };
 
-    // if (nicknameValue.length < 1) {
-    //   setMessageRegister(t('service.nicknameNotSelected'));
-    //   setMessageRegister("Не выбран псевдоним");
-    //   setLoaderButtonRegister(false);
-    //   return
-    // };
-
-    // if (pass1Value !== pass2Value) {
-    //   setMessageRegister(t('service.pass1NotEqualPass2'));
-    //   setMessageRegister("Пароль и его повтор не совпадают");
-    //   setLoaderButtonRegister(false);
-    //   return
-    // };
+    if (pass1Value !== pass2Value) {
+      setMessageRegister(t('service.pass1NotEqualPass2'));
+      // setMessageRegister("Пароль и его повтор не совпадают");
+      setLoaderButtonRegister(false);
+      return
+    };
 
     //  далее адресуем на страницу соглашения и после этого регистрируем, 
     // загружаем начальное состояние а потом на мастер настроек
@@ -243,11 +236,12 @@ export default function Index() {
       return; // ждем подтверждения мейла
     }
 
+    
     const loadDataAndRedirect = async () => {
 
       dispatch(setLoadingComplete(false))
       // Если юзер залогинен и получен токен
-      if (team && user && token.trim() !== "" && signedAgreement && user?.confirmed) {
+      if (team.id && user && token.trim() !== "" && signedAgreement && user?.confirmed) {
         setStep(4);
         if (user.isAdmin) {
           await downloadBaner(user.id, team.id, token, t, setMessage, dispatch);
@@ -285,6 +279,7 @@ export default function Index() {
         dispatch(setLoadingComplete(true))
       }
     };
+
     loadDataAndRedirect();  // Вызываем асинхронную функцию
   }, [user, token, team, signedAgreement]);  // Зависимости от user, token и team
 

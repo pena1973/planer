@@ -110,7 +110,7 @@ export const registerHandler = async ({
                 //  далее адресуем на страницу соглашения и после этого переправляем на страницу настроек
                 setStep(3);
                 // setMessageRegister("Обновлены настройки");
-            } else setMessageRegister(receivedData.error);
+            } else setMessageRegister(receivedData.message);
         }
     } catch (e: unknown) {
         let message = t('service.serverUnavailable');

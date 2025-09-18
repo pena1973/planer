@@ -1,16 +1,14 @@
 
 
-
-export const deactivateTeamsByBalance = async (
-    token: string,
-    year: number,
-    month: number,
+// принудительно девктивирует команды у которых нулевой баланс
+export const deactivateTeams = async (
+    token: string,   
     t: (key: string) => string,
     setMessage: (msg: string) => void,
 ) => {
 
     try {
-        const res = await fetch(`api/admin/deactivate-teams-balance-api?month=${month}&year=${year}`,
+        const res = await fetch(`api/admin/deactivate-teams-api`,
             {
                 method: 'get',
                 headers: new Headers({

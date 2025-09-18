@@ -1,7 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { StatusEnum } from './../../../types/types';
 
-@Entity("support")
-export class SupportTable {
+@Entity("mails")
+export class MailTable {
     @PrimaryGeneratedColumn()
     id!: number;
 
@@ -11,25 +12,32 @@ export class SupportTable {
     @Column('date') // дата писма
     date!: string;
 
-    @Column('varchar',{ default: "" })
+    @Column('varchar', { default: "" })
     title!: string;
 
     @Column('text')
-    body!: string; 
+    body!: string;
 
-    @Column('boolean',{ default: false })
+    @Column('boolean', { default: false })
     fromUser!: boolean;
 
-    @Column('int',{ nullable: true })
+    @Column('int', { nullable: true })
     basedOn!: number;  // если это сообщение ответ то здесь id исходного письма.
 
     @Column('int')
     team_id!: number;
-    
+
     @Column('int')
     user_id!: number;
-     
+
     @Column('boolean', { default: false })
     processed!: boolean;
+
+    @Column({
+        type: 'enum',
+        enum: StatusEnum,      // Используем enum для ограничения значений
+        default: StatusEnum.prepared,  // Устанавливаем значение по умолчанию подготовлен
+    })
+    status!: StatusEnum;
 }
 

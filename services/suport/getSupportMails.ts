@@ -1,7 +1,7 @@
 import { SupportMailItem } from "./../../types/types";
 
 export const getSupportMails = async (
-    userId: number,    
+    teamId: number,    
     token: string,
     t: (key: string) => string,
     setMessage: (msg: string) => void,
@@ -9,7 +9,7 @@ export const getSupportMails = async (
 ) => {
 
     try {
-        const res = await fetch(`api/support-api?userId=${userId}`, {
+        const res = await fetch(`api/support-api?teamId=${teamId}`, {
             method: 'get',
             headers: new Headers({
                 'Authorization': 'Basic ' + token,

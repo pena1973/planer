@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClientTable = void 0;
-// Каталог номенклатуры в пределах карты. Уникальный ключ карта idc + продукт idc
 const typeorm_1 = require("typeorm");
 let ClientTable = class ClientTable {
 };
@@ -24,33 +23,49 @@ __decorate([
     __metadata("design:type", Date)
 ], ClientTable.prototype, "created_at", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar'),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
 ], ClientTable.prototype, "title", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar'),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
 ], ClientTable.prototype, "reg_n", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar'),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
-], ClientTable.prototype, "adress", void 0);
+], ClientTable.prototype, "postal_code", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar'),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], ClientTable.prototype, "address_line1", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], ClientTable.prototype, "address_line2", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], ClientTable.prototype, "city", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
 ], ClientTable.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar'),
+    (0, typeorm_1.Column)('varchar', { default: "" }),
     __metadata("design:type", String)
 ], ClientTable.prototype, "phone", void 0);
-__decorate([
-    (0, typeorm_1.Column)('varchar'),
-    __metadata("design:type", String)
-], ClientTable.prototype, "person", void 0);
 __decorate([
     (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], ClientTable.prototype, "team_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: "", type: 'char', length: 2 }),
+    __metadata("design:type", String)
+], ClientTable.prototype, "country", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { default: "" }),
+    __metadata("design:type", String)
+], ClientTable.prototype, "customer_id", void 0);
 exports.ClientTable = ClientTable = __decorate([
     (0, typeorm_1.Entity)('clients')
 ], ClientTable);

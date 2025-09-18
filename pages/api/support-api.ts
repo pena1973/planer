@@ -6,7 +6,7 @@ import { getTypedRepository } from './../../db/utilites'
 
 import { updateSupportMessage } from './../../handlers/handlers-update';  // расчеты
 
-import { SupportTable } from './../../db/models/support/support';
+import { MailTable } from './../../db/models/support/mails';
 import { SupportMailItem } from './../../types/types';
 import { getSuportMails } from './../../handlers/handlers-get';
 
@@ -18,12 +18,13 @@ interface RequestBody {
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 const db = await connectDb();
-  const supportRepository = getTypedRepository(db, 'SupportTable', SupportTable);
+  const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
 
   try {
   
     const { teamId: getTeamId } = req.query;
     switch (req.method) {
+      
       case 'GET':
         const messages_ = await getSuportMails(Number(getTeamId), supportRepository)
 
@@ -51,7 +52,7 @@ const db = await connectDb();
           return;
         }
 
-        const savedMessage = resSupport.savedMessage as SupportTable;
+        const savedMessage = resSupport.savedMessage as MailTable;
 
         const supportMessage_ = {
           id: savedMessage.id,
@@ -62,6 +63,7 @@ const db = await connectDb();
           userId: savedMessage.user_id,
           fromUser: savedMessage.fromUser,
           basedOn: savedMessage.basedOn,
+          status:savedMessage.status,
         } as SupportMailItem
 
         // отправляем ответ

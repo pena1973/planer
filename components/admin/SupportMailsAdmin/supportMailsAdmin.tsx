@@ -3,10 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./supportMailsAdmin.module.scss";
 import { getSupportMailsAdmin } from '@/services/admin/getSupportMailsAdmin';
-import { markProcessedMailAdmin } from '@/services/admin/markProcessedMailAdmin';
+import { changeStatusMail } from '@/services/admin/changeStatusMail';
 import { sendMail } from '@/services/suport/sendMail'; // отправка писем одинаковая для всех
 
-import { SupportMailItem } from "@/types/types";
+import { SupportMailItem,StatusEnum } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import { SupportMailAdmin } from './SupportMailAdmin/supportMailAdmin';
 
@@ -36,8 +36,9 @@ export const SupportMailsAdmin: React.FC<SupportMailsProps> = ({
     getSupportMailsAdminHandler();
   }, []);
 
-const markProcessedMailAdminHandler = async (id: number) => {
-    await markProcessedMailAdmin(id, supportMailsValue, setSupportMailsValue,token, t, setMessage)
+  
+const changeStatusMailHandler = async (id: number,status:StatusEnum) => {
+    await changeStatusMail(id, status, supportMailsValue, setSupportMailsValue,token, t, setMessage)
   }
 
   // На клиенте если не записано
@@ -105,7 +106,7 @@ const markProcessedMailAdminHandler = async (id: number) => {
             setExpand={setExpand}
             expand={expandValue.includes(message.id)}
             index={index}
-            markProcessedMailAdmin={markProcessedMailAdminHandler}
+            changeStatusMail={changeStatusMailHandler}
 
           />
           {findMessagesInChain(message.id, 25)} {/* Рекурсивный вызов для нахождения цепочки сообщений с увеличением сдвига */}
@@ -137,7 +138,8 @@ const markProcessedMailAdminHandler = async (id: number) => {
           setExpand={setExpand}
           expand={expandValue.includes(mestop.id)}
           index={index}
-          markProcessedMailAdmin={markProcessedMailAdminHandler}
+          changeStatusMail={changeStatusMailHandler}
+          // markProcessedMailAdmin={markProcessedMailAdminHandler}
         />
         {findMessagesInChain(mestop.id, 0)} {/* Рекурсивный вызов для нахождения цепочки сообщений с начальным сдвигом */}
       </div>

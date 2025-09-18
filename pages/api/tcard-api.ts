@@ -33,7 +33,7 @@ import { getTeamShedule, getTCardFull, getTCardLoads, getUnitActions, getUnits }
 import {
   updateCard, updateStages, updateOperations, updateCatalogProducts,
   updateProducts, updateTCardLoads, updateStatusTCard,
-  updateStatusOperationByTCardId, updateStatusOperationByOperIds
+  updateStatusOperationByOperIds
 } from './../../handlers/handlers-update';  // 
 
 // Определение перечисления

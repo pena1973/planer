@@ -14,9 +14,9 @@ import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
 import { ActiveTimeTable } from './../../../db/models/billing/active_time'
 import { BalanceTable } from './../../../db/models/billing/balance'
 
-import { updateSettings } from './../../../handlers/handlers-update';  // расчеты
+
 import { getCurrentDateInString } from "./../../../lib/common/timezone"
-import { TeamItem, UserItem, TimeZoneEnum, ScheduleItem, SettingsItem } from './../../../types/types';
+import { TeamItem, UserItem, TimeZoneEnum } from './../../../types/types';
 
 import { sign } from 'jsonwebtoken';
 import {
@@ -25,7 +25,6 @@ import {
 } from './../../../handlers/handlers-auth';
 
 import { updateBalance } from './../../../handlers/handlers-update';
-import { assert } from 'console';
 
 interface RequestBody {
   login: string,

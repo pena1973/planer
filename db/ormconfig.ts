@@ -53,6 +53,7 @@
 // loadEnv({ path: path.resolve(process.cwd(), '.env') });
 // loadEnv({ path: path.resolve(process.cwd(), '.env.local'), override: true });
 
+// db/ormconfig.ts
 
 import { DataSourceOptions } from 'typeorm';
 import { getEntities } from './entities';

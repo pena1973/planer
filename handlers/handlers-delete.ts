@@ -3,7 +3,7 @@ import { DataSource, Repository, ObjectLiteral, FindOptionsWhere, In, LessThan }
 
 // tables
 import { UserTable } from './../db/models/catalogs/users';
-import { SupportTable } from './../db/models/support/support';
+import { MailTable } from './../db/models/support/mails';
 import { TeamTable } from "./../db/models/catalogs/teams";
 import { UnitTable } from './../db/models/catalogs/units'
 import { UnitActionTable } from './../db/models/catalogs/unit_actions'
@@ -89,7 +89,7 @@ export async function deleteUser(
 // 
 export async function deleteSupport(
   idsToDelete: number[],  // Массив сообщений
-  supportRepository: Repository<SupportTable>,
+  supportRepository: Repository<MailTable>,
 ) {
   if (idsToDelete.length === 0) {
     return { success: false, message: 'Нет сообщений для удаления.' };

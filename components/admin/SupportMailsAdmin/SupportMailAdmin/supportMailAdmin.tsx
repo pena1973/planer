@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import styles from "./supportMailAdmin.module.scss";
-import { SupportMailItem } from "@/types/types";
-
+import { StatusEnum, SupportMailItem } from "@/types/types";
+import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
@@ -19,8 +19,8 @@ interface SupportMailProps {
   delMailAdmin: (id: number) => void,
   answerlMailAdmin: (basedOn: number) => void,
   sendlMailAdmin: (supportMessageValue: SupportMailItem) => Promise<void>,
-  setExpand: (id: number) => void,
-  markProcessedMailAdmin:(id:number) => void,
+  setExpand: (id: number) => void,  
+  changeStatusMail:(id: number,status:StatusEnum)=>void,
   index: number,
   expand: boolean,
 
@@ -31,8 +31,8 @@ export const SupportMailAdmin: React.FC<SupportMailProps> = ({
   delMailAdmin,
   answerlMailAdmin,
   sendlMailAdmin,
-  setExpand,
-  markProcessedMailAdmin,
+  setExpand,  
+  changeStatusMail,
   index,
   expand,
 
@@ -94,14 +94,40 @@ export const SupportMailAdmin: React.FC<SupportMailProps> = ({
     setButtonLoader(false);
 
   }
+ const title = (() => {
+  switch (supportMessageValue.status) {
+    case StatusEnum.prepared:
+      return t('support.toProcess');   
+    case StatusEnum.planed:            
+      return t('support.toConfirm');
+    case StatusEnum.performed:
+      return t('support.toClose');
+    default:
+      return ''; 
+  }
+})();
+ const newStatus = (() => {
+  switch (supportMessageValue.status) {
+    case StatusEnum.prepared:
+      return StatusEnum.planed;   
+    case StatusEnum.planed:            
+      return StatusEnum.performed;
+    case StatusEnum.performed:
+      return StatusEnum.closed;
+    default:
+      return supportMessageValue.status; 
+  }
+})();
 
   return (<>
     {/* {(expand || (!supportMessageValue.basedOn)) && */}
     <div className={styles.container}>
-      {(!supportMessageValue.basedOn) && !supportMessageValue.processed && <button className={styles.button_mark}
-        onClick={e => { markProcessedMailAdmin(supportMessageValue.id) }}>
-        {t('support.processed')}
-      </button>}
+      {(!supportMessageValue.basedOn) && supportMessageValue.status !== StatusEnum.closed &&
+
+        <button className={styles.button_mark}
+          onClick={e => { changeStatusMail(supportMessageValue.id, newStatus)}}>
+          {title}
+        </button>}
 
       {!(!supportMessageValue.basedOn) &&
         <Image className={styles.icon_next}
@@ -110,6 +136,7 @@ export const SupportMailAdmin: React.FC<SupportMailProps> = ({
         />}
       <div className={styles.message_container}>
         <div className={`${styles.header} ${isNew ? styles.new : ''}`}>
+          {(!supportMessage.basedOn) && <StatusCircle status={supportMessage.status} />} &nbsp;
           <div className={`${styles.header_groupe} ${isNew ? styles.new : ''}`}>
             {!isNew && expand &&
               <Image className={styles.icon_galka}

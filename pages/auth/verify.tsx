@@ -2,7 +2,6 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
 import React, { useState, useEffect, useRef } from 'react';
-import { email } from 'zod';
 
 export default function VerifyPage() {
     const router = useRouter();
@@ -76,7 +75,7 @@ export default function VerifyPage() {
 
         if (pass1Value.length < 1) {
             setpassMessage(t('service.passLengthMustBe'));
-            setpassMessage("Длина пароля должна быть не менее 12 символов. пароль должен содержать буквы, цифры  и специальные символы");
+            setpassMessage("Длина пароля должна быть не менее 6 символов. пароль должен содержать буквы, цифры  и специальные символы");
             return
         }
 

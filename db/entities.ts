@@ -1,3 +1,4 @@
+// db/entities.ts
 
 import { TCardTable } from './models/data/t_cards';
 import { TCardOperationTable } from './models/data/t_card_operations';
@@ -21,9 +22,9 @@ import { UnitExceptionTable } from './models/plan/unit_exceptions';
 import { UnitLoadTable } from './models/plan/unit_loads';
 import { SettingsTable } from './models/plan/settings';
 
-import { SupportTable } from './models/support/support';
+import { MailTable } from './models/support/mails';
 import { JobSettingsTable } from './models/job/job-settings';
-import { BillRowTable } from './models/billing/bill_row';
+
 import { ClientTable } from './models/billing/clients';
 import { BanerTable } from './models/support/baners';
 import { BalanceTable } from './models/billing/balance';
@@ -51,10 +52,9 @@ export const entities = {
   UnitExceptionTable,
   UnitLoadTable,
   SettingsTable,
-  SupportTable,  
+  MailTable,  
   ProductTable,
   BanerTable,
-  BillRowTable,
   ClientTable,
   BalanceTable,
   ActiveTimeTable,

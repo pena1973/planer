@@ -6,7 +6,7 @@ import { getSupportMails } from '@/services/suport/getSupportMails';
 import { sendMail } from '@/services/suport/sendMail';
 
 
-import { SupportMailItem } from "@/types/types";
+import { SupportMailItem,StatusEnum } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import { SupportMail } from './SupportMail/supportMail';
 
@@ -35,7 +35,7 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
   // На сервере
   // Получаем сообщения
   const getSupportMessagesHandler = async () => {
-    await getSupportMails(userId, token, t, setMessage, setSupportMailsValue);
+    await getSupportMails(teamId, token, t, setMessage, setSupportMailsValue);
 
   };
 
@@ -54,7 +54,8 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
       fromUser: true,
       basedOn: NaN,
       processed:false,
-      teamId:teamId
+      teamId:teamId,
+      status: StatusEnum.prepared,
     } as SupportMailItem;
     setSupportMailsValue([newMes, ...supportMailsValue]);
     setExpand(newMes.id);
@@ -81,7 +82,8 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
       fromUser: true,
       basedOn: basedOn, // Связь с исходным сообщением
       processed:false,
-      teamId:teamId
+      teamId:teamId,
+      status:StatusEnum.prepared,
     } as SupportMailItem;
     setSupportMailsValue([newMes, ...supportMailsValue]);
     setExpand(newMes.id);
@@ -124,8 +126,8 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
             answerMail={answerMailHandler}
             sendMail={sendMailHandler}
             setExpand={setExpand}
-            teamId={teamId}
-            userId={userId}
+            // teamId={teamId}
+            // userId={userId}
             expand={expandValue.includes(message.id)}
             index={index}
 
@@ -157,8 +159,8 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
           answerMail={answerMailHandler}
           sendMail={sendMailHandler}
           setExpand={setExpand}
-          teamId={teamId}
-          userId={userId}
+          // teamId={teamId}
+          // userId={userId}
           expand={expandValue.includes(mestop.id)}
           index={index}
         />

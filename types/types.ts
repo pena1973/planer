@@ -380,6 +380,6 @@ export interface SupportMailItem {
     teamId: number;
     fromUser: boolean, // направление истина от юзера, лож- от системы
     basedOn: number, // если это сообщение ответ то здесь id исходного письма.
-    processed:boolean,
-    // idChain: number, // id цепочки - равен исходному писму
+    status:StatusEnum, // Статус обработки
+    
 }

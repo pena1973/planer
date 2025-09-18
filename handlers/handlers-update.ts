@@ -19,7 +19,7 @@ import { SettingsTable } from './../db/models/plan/settings';
 import { TeamTable } from './../db/models/catalogs/teams';
 import { UserTable } from './../db/models/catalogs/users';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
-import { SupportTable } from './../db/models/support/support';
+import { MailTable } from './../db/models/support/mails';
 
 import { ClientTable } from './../db/models/billing/clients';
 import { ActiveTimeTable } from "./../db/models/billing/active_time";
@@ -2010,8 +2010,8 @@ export async function updateStatusTCard(
 export async function updateSupportMessage(
   userId: number,
   supportMessage: SupportMailItem,
-  supportRepository: Repository<SupportTable>
-): Promise<{ success: boolean, message: string, savedMessage: SupportTable }> {
+  supportRepository: Repository<MailTable>
+): Promise<{ success: boolean, message: string, savedMessage: MailTable }> {
   try {
     // Создание нового сообщения для базы данных
     const newSupportMessage = supportRepository.create({
@@ -2034,14 +2034,7 @@ export async function updateSupportMessage(
       savedMessage: savedMessage,
 
     };
-    // } catch (error: any) {
-    //   console.error("Ошибка при сохранении сообщения:", error);
-    //   return {
-    //     success: false,
-    //     message: error.message || "Ошибка при сохранении сообщения.",
-    //     savedMessage: {} as SupportTable,      
-    //   };
-    // }
+    
   } catch (error: unknown) {
     let message = "Ошибка при сохранении сообщения.";
     if (error instanceof Error) {
@@ -2053,16 +2046,17 @@ export async function updateSupportMessage(
     return {
       success: false,
       message,
-      savedMessage: {} as SupportTable,
+      savedMessage: {} as MailTable,
     };
   }
 
 }
 
 // Функция для пометки что сообщение обработано
-export async function markProcessedMail(
+export async function cnangeStatusMail(
   id: number,
-  supportRepository: Repository<SupportTable>
+  status:StatusEnum,
+  supportRepository: Repository<MailTable>
 ): Promise<{ success: boolean; message: string }> {
   try {
     if (!Number.isFinite(id)) {
@@ -2070,7 +2064,7 @@ export async function markProcessedMail(
     }
 
     // Обновляем только нужное поле
-    const result = await supportRepository.update({ id }, { processed: true });
+    const result = await supportRepository.update({ id }, { status: status });
 
     if (!result.affected || result.affected === 0) {
       return { success: false, message: 'Сообщение не найдено.' };

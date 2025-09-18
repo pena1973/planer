@@ -81,21 +81,47 @@ export default function ActionsCatalog({
     // На сервере  // На клиенте
     const saveActionHandler = async () => {
         setMessage("");
-        actionsValue.forEach((elem) => {
-            if (!elem.title) {
-                // "Заполните название действия!"
-                setMessage(t('actionsCatalog.filltitle'));
-                return;
+
+        //  валидация сохраняемых данных
+        // 1 Код синхронизации должен быть заполнен и уникален
+        // 2 Название должно быть заполнено
+
+        const seen = new Set<string>();
+        for (let i = 0; i < actionsValue.length; i++) {
+            const elem = actionsValue[i];
+            const code = (elem.code ?? '').trim();
+            const title = (elem.title ?? '').trim();
+
+            if (!code) {
+                setMessage(t('actionsCatalog.fillcode')); // "Заполните код действия!"
+                return ;
             }
-        })
+            if (!title) {
+                setMessage(t('actionsCatalog.filltitle')); // "Заполните название действия!"
+                return ;
+            }
+
+            const key = code.toLowerCase();
+
+            if (seen.has(key)) {
+                setMessage(t('actionsCatalog.codeNotUnique', { code })); // Код не уникальный
+                return ;
+            }
+            seen.add(key);
+        }
+
         saveActions(actionsValue, user, team, token, dispatch, t, setMessage, setActionsValue, setModified);
-      
+
     };
 
     // На клиенте
     const addActionHandler = () => {
-
-        const newAction = {} as ActionItem;
+        const newAction = {
+            title: "",
+            code: "a-",
+            modified: true,
+            interruptible: true
+        } as ActionItem;
         setActionsValue([...actionsValue, newAction])
         setModified(true);
     };

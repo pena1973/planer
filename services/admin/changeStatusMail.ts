@@ -1,7 +1,8 @@
-import { SupportMailItem } from "./../../types/types";
+import { SupportMailItem,StatusEnum } from "./../../types/types";
 
-export const markProcessedMailAdmin = async (
+export const changeStatusMail = async (
     mailId: number,
+    status: StatusEnum,
     supportMails: SupportMailItem[],
     setSupportMails: (val: SupportMailItem[]) => void,
     token: string,
@@ -11,7 +12,7 @@ export const markProcessedMailAdmin = async (
 ) => {
 
     try {
-        const res = await fetch(`api/admin/set-mail-proc-api`,
+        const res = await fetch(`api/admin/mail-status-api`,
             {
                 method: 'POST',
                 headers: new Headers({
@@ -20,6 +21,7 @@ export const markProcessedMailAdmin = async (
                 }),
                 body: JSON.stringify({
                     mailId: mailId,
+                    status:status,
                 }),
             }
         );
@@ -29,7 +31,7 @@ export const markProcessedMailAdmin = async (
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
-                const supportMails_ = supportMails.map(mes => (mes.id === mailId) ? { ...mes, processed: true } : mes)
+                const supportMails_ = supportMails.map(mes => (mes.id === mailId) ? { ...mes, status: status } : mes)
                 setSupportMails(supportMails_);
                 setMessage("Успешно обработан мейл");
             } else setMessage(receivedData.error);
