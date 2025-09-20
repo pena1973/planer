@@ -6,6 +6,7 @@ import { StatusEnum } from "@/types/types";
 
 interface FilterComponentProps {
     getTCardsTermsHandler: (
+        showClosed:boolean,
         useNumber: boolean,
         useDate: boolean,
         useStatus: boolean,
@@ -23,7 +24,8 @@ const FilterComponent: React.FC<FilterComponentProps> = (
         teamId,
         userId }
 ) => {
-     const { t } = useTranslation();
+    const { t } = useTranslation();
+    const [showClosedFilter, setShowClosedFilter] = useState(false);
     const [useTCardNumberFilter, setUseTCardNumberFilter] = useState(false);
     const [useTCardDateFilter, setUseTCardDateFilter] = useState(false);
     const [useTCardStatusFilter, setUseTCardStatusFilter] = useState(false);
@@ -68,8 +70,15 @@ const FilterComponent: React.FC<FilterComponentProps> = (
                     autoComplete="off"
                     value={tCardNumberFilter}
                     type="text"
-                    onChange={(e) => setTCardNumberFilter(e.target.value)}
-                // disabled={!useTCardNumberFilter}
+                    onChange={(e) => setTCardNumberFilter(e.target.value)}                
+                />
+                <div className={styles.table_filter_label}>{t('reportTCardState.showClosed')}</div>               
+                <input
+                    id="showClosedFilter"
+                    autoComplete="off"
+                    checked={showClosedFilter}
+                    type="checkbox"
+                    onChange={(e) => setShowClosedFilter(!showClosedFilter)}
                 />
             </div>
 
@@ -149,7 +158,8 @@ const FilterComponent: React.FC<FilterComponentProps> = (
 
             </div>
             <button className={styles.button_filter}
-                onClick={() => getTCardsTermsHandler( 
+                onClick={() => getTCardsTermsHandler(
+                    showClosedFilter,
                     useTCardNumberFilter,
                     useTCardDateFilter,
                     useTCardStatusFilter,

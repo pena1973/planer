@@ -79,7 +79,7 @@ export default function UnitInterfase() {
     // const day_ = new Date(day);
     const day_ = addDaysInZone(day, 0, schedule.timeZone);
 
-    while ((isWeekend(day_, schedule) || isHoliday(day_, schedule)) && !isAdditionalTime(day_, schedule)) {
+    while ((isWeekend(day_.toLocaleDateString('en-CA'), schedule) || isHoliday(day_.toLocaleDateString('en-CA'), schedule)) && !isAdditionalTime(day_.toLocaleDateString('en-CA'), schedule)) {
 
       // day_.setDate(day_.getDate() + 1);
       const day_ = addDaysInZone(day, 1, schedule.timeZone);
@@ -242,7 +242,7 @@ export default function UnitInterfase() {
               const newDate = addDaysInZone(day, -1, schedule.timeZone);
               // Пока новая дата является выходным или праздником и нет дополнительного времени,
               // продолжаем уменьшать дату.
-              while ((isWeekend(newDate, schedule) || isHoliday(newDate, schedule)) && !isAdditionalTime(newDate, schedule)) {
+              while ((isWeekend(newDate.toLocaleDateString('en-CA'), schedule) || isHoliday(newDate.toLocaleDateString('en-CA'), schedule)) && !isAdditionalTime(newDate.toLocaleDateString('en-CA'), schedule)) {
                 newDate.setDate(newDate.getDate() - 1);
               }
               setDay(newDate);
@@ -256,7 +256,7 @@ export default function UnitInterfase() {
               const newDate = addDaysInZone(day, 1, schedule.timeZone);
               // Пока новая дата является выходным или праздником и нет дополнительного времени,
               // продолжаем увеличивать дату.
-              while ((isWeekend(newDate, schedule) || isHoliday(newDate, schedule)) && !isAdditionalTime(newDate, schedule)) {
+              while ((isWeekend(newDate.toLocaleDateString('en-CA'), schedule) || isHoliday(newDate.toLocaleDateString('en-CA'), schedule)) && !isAdditionalTime(newDate.toLocaleDateString('en-CA'), schedule)) {
                 newDate.setDate(newDate.getDate() + 1);
               }
               setDay(newDate);

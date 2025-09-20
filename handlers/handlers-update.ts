@@ -17,6 +17,7 @@ import { UOMsTable } from './../db/models/catalogs/uoms';
 import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
 import { SettingsTable } from './../db/models/plan/settings';
 import { TeamTable } from './../db/models/catalogs/teams';
+import { TeamScheduleTable } from './../db/models/plan/team_schedule'
 import { UserTable } from './../db/models/catalogs/users';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
 import { MailTable } from './../db/models/support/mails';
@@ -35,12 +36,12 @@ import {
   SupportMailItem, TCardItem, TCardOperationItem, TCardProductItem,
   ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
   SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum,
-} from './../types/types';
+  ScheduleItem} from './../types/types';
 
 import { ClientItem, JobSettingItem, BanerItem } from './../types/service-types';
 
 
-import { getCurrentDateInString } from "../lib/common/timezone"
+import { getCurrentDateInString,getTimeZoneDateFromDateString } from "../lib/common/timezone"
 
 // Создание c строки баланса
 export async function updateBalance(
@@ -602,6 +603,64 @@ export async function updateActions(
     }
   }
   return { success: true, savedActions: savedActions }
+}
+
+
+// РАСПИСАНИЕ
+export async function updateShedule(
+  scheduleRepository: Repository<TeamScheduleTable>,
+  schedule: ScheduleItem,
+  teamId: number
+) {
+
+  // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
+   const existingSchedule = await scheduleRepository.findOne({ where: { team_id: teamId }, });
+  if (!existingSchedule) {
+    // Если расписания нет, создаем новое
+    const newSchedule = scheduleRepository.create({
+      team_id: teamId,      
+      timeStartWork: schedule.timeStartWork,
+      timeFinishWork: schedule.timeFinishWork,
+      breaks: schedule.breaks,
+      holidays: schedule.holidays,
+      weekends: schedule.weekends,
+      workdays: schedule.workdays.map(workday => ({
+        date: String(workday.date).split('T')[0],
+        timeStart: workday.timeStart,
+        timeFinish: workday.timeFinish
+      })),
+      timeZone: schedule.timeZone
+    });
+
+    const savedNewSchedule = await scheduleRepository.save(newSchedule);
+    if (!savedNewSchedule) return { success: false, message: "Не удалось сохранить расписание" };
+
+    return { success: true, savedSchedule: savedNewSchedule };
+
+  } else {
+    // Если расписание существует, обновляем его
+    existingSchedule.timeStartWork = schedule.timeStartWork;
+    existingSchedule.timeFinishWork = schedule.timeFinishWork;
+    existingSchedule.breaks = schedule.breaks;
+    //  existingSchedule.holidays = schedule.holidays.map(date => new Date(date));
+     existingSchedule.holidays = schedule.holidays;
+    // existingSchedule.holidays = schedule.holidays.map(date => getTimeZoneDateFromDateString(date,schedule.timeZone));
+    existingSchedule.weekends = schedule.weekends;
+    existingSchedule.workdays = schedule.workdays.map(workday => ({
+      date: String(workday.date).split('T')[0],
+      timeStart: workday.timeStart,
+      timeFinish: workday.timeFinish
+    }));
+
+    existingSchedule.timeZone = schedule.timeZone;
+
+
+    const savedUpdatedSchedule = await scheduleRepository.save(existingSchedule);
+    if (!savedUpdatedSchedule) return { success: false, message: "Не удалось обновить расписание" };
+
+
+    return { success: true, savedSchedule: savedUpdatedSchedule };
+  }
 }
 
 // &&&&&

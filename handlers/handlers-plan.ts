@@ -30,6 +30,7 @@ const idDay = (date: Date): string => {
 
   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
 };
+
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
 const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
@@ -37,7 +38,7 @@ const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
+  if (schedule.teamId)
     return schedule.workdays.some(workday =>
       new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
     ); else return false
@@ -73,7 +74,7 @@ const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
   }
 
   // Проверяем, является ли день выходным
-  if (schedule.team) return schedule.weekends.includes(dayString);
+  if (schedule.teamId) return schedule.weekends.includes(dayString);
   else return false
 }
 //  функция определяемт входит ли  дата в список праздников расписания
@@ -82,7 +83,7 @@ const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
+  if (schedule.teamId)
     return schedule.holidays.some(holiday =>
       new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
     ); else return false
@@ -95,13 +96,14 @@ const generateCalendarItemOnServer = (day: string, schedule: ScheduleItem): Cale
 
   const currentDate = getTimeZoneDateFromDateString(day, schedule.timeZone)
 
+
   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
   const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
 
   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-  let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
+  let breaks = _isWeekend || _isHoliday || (!schedule.teamId) ? [] : [...schedule.breaks];
 
   if (_isAdditionalTime) {
     const workday = schedule.workdays.find(
@@ -123,7 +125,8 @@ const generateCalendarItemOnServer = (day: string, schedule: ScheduleItem): Cale
   // Создаем объект CalendarItem
   const calendarItem: CalendarItem = {
     idDay: idDay(currentDate),
-    date: new Date(currentDate),  // Текущая дата
+    // date: new Date(currentDate),  // Текущая дата
+    date: day,  // Текущая дата
     mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
     day: true,  // Указываем, что это день
     timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
@@ -683,7 +686,7 @@ function findAvailableSegmentsDay(
       const nextDate = new Date(targetDate)
       nextDate.setDate(nextDate.getDate() + 1);
       const nextDateStr = nextDate.toLocaleDateString("en-CA");
-      
+
       return findAvailableSegmentsDay(
         // nextDate,
         nextDateStr,
@@ -802,13 +805,10 @@ export const planTCardFromOperINC = (
   if (tCard.tCardMaterials)
     readyProducts = tCard.tCardMaterials.map(material => {
       return {
-        id: material.id,
-        // idc: material.idc,
-        code: material.code,
-        // title: material.title,
+        id: material.id,        
+        code: material.code,        
         qtu: material.qtu,
-        product: material.product,
-        // uom: material.uom,
+        product: material.product,        
         date: '2000-01-01', // это со склада дата доступности
         time: 0,            //  время доступности
         reserved: 0,
@@ -840,10 +840,13 @@ export const planTCardFromOperINC = (
     // 2 . ищем операции исходники для которых готовы на данной итерации
     // и убираем эти исходники из списка как израсходованные (резервируем на операцию)
     // и получаем список операций ко торые можно делать selectedOperations
+    // и добавляем к выбранным операциям те у которых нет исходника - ничего не мешает их делать в первую итерацию
     let message = "";
 
     tCardOperations.forEach((operation) => {
-      const hasAllMatchingProducts = operation.inn.every(innProduct => {
+
+      let hasAllMatchingProducts = (operation.inn.length > 0)
+      ?operation.inn.every(innProduct => {
         // Ищем продукт в tCardReady с таким же code и product
         const matchingReadyProduct = readyProducts.find(elem =>
           elem.code === innProduct.code && elem.product.id === innProduct.product.id
@@ -861,12 +864,9 @@ export const planTCardFromOperINC = (
           readyProducts.push(
             {
               id: innProduct.id,
-              // idc: innProduct.idc,
               product: innProduct.product,
               code: innProduct.code,
-              // title: innProduct.title,
               qtu: 0,
-              // uom: innProduct.uom,
               date: matchingReadyProduct.date,
               time: matchingReadyProduct.time,
               reserved: innProduct.qtu,
@@ -877,8 +877,9 @@ export const planTCardFromOperINC = (
         message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu} единиц.\n`);
 
         return false; // Если продукта нет или не совпадает по uom
-      });
-
+      })
+      :true
+ 
       // Если все продукты прошли проверку, добавляем операцию в selectedOperations
       if (hasAllMatchingProducts) {
         selectedOperations.push(operation);
@@ -900,7 +901,10 @@ export const planTCardFromOperINC = (
     // а иначе перепланируем за исключение пришпиленных
 
     // Перебираем все операции которые уже готовы к выполнению по наличию исходников для них 
-    selectedOperations.forEach((operation) => {
+    for (let index = 0; index < selectedOperations.length; index++) {
+      const operation = selectedOperations[index];
+
+      // selectedOperations.forEach((operation) => {
       // определяем надо операцию спланировать или нет
       // если операция не входит в список планируемых  находим лоады 
       // и определяем дату готовности конечного продукта
@@ -930,6 +934,12 @@ export const planTCardFromOperINC = (
           const actions = unitActions.filter(ac => ac.unitId === unit.id)
           return actions.some(unitAction => unitAction.action.id === action.id);
         });
+
+        // если подходящих юнитов нет  -  значит операцию выполнить мы не можем - уходим с планирования с отказом
+        if (compatibleuUnits.length === 0) {
+          message = `Нет ни одного юнита который может выполнить действие  ${operation.action.title}`;
+          return { success: false, planedCardLoads: planedCardLoads, message: message };
+        }
 
         // Ищем лоады на эту операцию если есть
         const operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.id_oper === operation.id && load.status !== "cancelled");
@@ -965,12 +975,13 @@ export const planTCardFromOperINC = (
             maxTimeSource = 0
           }
 
+
           // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
           const resultPlaning = findAvailableTimeForOperation(tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDateStr, shedule_, exceptionItems, isPinned);
 
           // если не удалось запланировать то прерываем расчет
           if (!resultPlaning.success) {
-            message = `Операция - C${operation.idc}: ${resultPlaning.message}`;
+            message = `Действие - A${operation.idc}: ${resultPlaning.message}`;
             stoploop = true;
           } else {
 
@@ -991,7 +1002,7 @@ export const planTCardFromOperINC = (
         const index = tCardOperations.findIndex(oper => oper.id === operation.id);
         tCardOperations.splice(index, 1);
       }
-    });
+    };
 
     // очищаю массив выбранных операций  для новой порции
     selectedOperations = [] as TCardOperationItem[];
@@ -1053,7 +1064,7 @@ export const planOperOnUnit = (
 
   // если не удалось запланировать то прерываем расчет
   if (!resultPlaning.success) {
-    message = `Операция - C${operation.idc}: ${resultPlaning.message}`;
+    message = `Действие - A${operation.idc}: ${resultPlaning.message}`;
     return { success: false, operLoads: [], message: message };
   }
   const operLoads = resultPlaning.planedUnitLoads.filter(lo => lo.id_oper === operation.id)

@@ -85,7 +85,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
       filter = filter.concat(`&dateTo=${dateTo1}`)
     }
 
-    if (useMonth) filter = filter.concat(`&month=${monthIndex}`)
+    if (useMonth) filter = filter.concat(`&month=${monthIndex+1}`)
     await getUnitsKPI(
       userId,
       teamId,
@@ -193,9 +193,9 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
                 <td className={styles.date_title}> {dateKey.date}</td>
                 <td> {(dateProductionTime > 0) ? convertMinutesToTime1(dateProductionTime) : ""} </td>
                 <td> {(dateLoadind > 0) ? `${dateLoadind} %` : ""}</td>
-                <td> {(dateOccupiedTime > 0) ? convertMinutesToTime1(dateOccupiedTime) : ""} </td>
-                <td> {(dateResult > 0) ? `${dateResult} %` : ""}</td>
+                <td> {(dateOccupiedTime > 0) ? convertMinutesToTime1(dateOccupiedTime) : ""} </td>                
                 <td> {(datePlan > 0) ? `${datePlan} %` : ""}</td>
+                <td> {(dateResult > 0) ? `${dateResult} %` : ""}</td>
                 <td> {(dateDefect > 0) ? `${dateDefect} %` : ""}</td>
               </tr>
             )

@@ -37,6 +37,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
 
   // На сервере
   const getTCardsTermsHandler = async (
+    showClosed?:boolean,
     useNumber?: boolean,
     useDate?: boolean,
     useStatus?: boolean,
@@ -52,6 +53,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     if (useNumber && tCardNumber) filter = filter.concat(`&tCardNumber=${tCardNumber}`)
     if ((useDate) && (tCardDateFrom)) filter = filter.concat(`&tCardDateFrom=${tCardDateFrom}`)
     if ((useDate) && (tCardDateTo)) filter = filter.concat(`&tCardDateTo=${tCardDateTo}`)
+    filter = filter.concat(`&showClosed=${showClosed}`)
     if (useStatus) filter = filter.concat(`&tCardStatus=${tCardStatus}`)
 
     await getTCardsTerms(userId, teamId, token, t, setMessage,

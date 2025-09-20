@@ -1,21 +1,25 @@
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { getDependentOperationsIds } from './../../handlers/handlers-plan';  // планирование карты
-import { getTCardFull } from './../../handlers/handlers-get';  // 
+import { getDependentOperationsIds } from './../../../handlers/handlers-plan';  // планирование карты
+import { getTCardFull, getTeamShedule } from './../../../handlers/handlers-get';  // 
 
-import { TCardTable } from './../../db/models/data/t_cards'
-import { TCardOperationTable } from './../../db/models/data/t_card_operations'
-import { TCardProductTable } from './../../db/models/data/t_card_products'
-import { ProductTable } from './../../db/models/data/products'
-import { TCardStageTable } from './../../db/models/data/t_card_stages'
-import { UnitLoadTable } from './../../db/models/plan/unit_loads';
-import { ActionTable } from './../../db/models/catalogs/actions'
-import { UnitLoadItem, StatusEnum, } from "./../../types/types";
+import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
+import { TeamTable } from './../../../db/models/catalogs/teams'
+import { TCardTable } from './../../../db/models/data/t_cards'
+import { TCardOperationTable } from './../../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../../db/models/data/t_card_products'
+import { ProductTable } from './../../../db/models/data/products'
+import { TCardStageTable } from './../../../db/models/data/t_card_stages'
+import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
+import { ActionTable } from './../../../db/models/catalogs/actions'
+import { UnitLoadItem, StatusEnum, } from "./../../../types/types";
+
+import { getCurrentDateInString} from "@/lib/common/timezone"
 
 import { In, Raw, Repository } from 'typeorm';
 
@@ -35,14 +39,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
   const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   try {
 
-    const { userId, teamId } = req.query;
+    // const { userId, teamId } = req.query;
 
     switch (req.method) {
       case 'POST':
 
-        const { tCardLoads, erazload, today, teamId, userId } = req.body as RequestBody;
+        const { tCardLoads, erazload, teamId, userId } = req.body as RequestBody;
 
         let tCardLoadsUpdated = [...tCardLoads];
 
@@ -60,6 +66,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
+  // запросим расписание компании
+        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
+
+       const todayStr = getCurrentDateInString(shedule_.timeZone)
 
 
         const oper = tCard.tCardOperations?.find(oper => oper.id === erazload?.id_oper);
@@ -101,14 +111,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //  - можем просто отменить
         const tCardLoadsToCancel = tCardLoadsUpdated.filter(lo => {
           return (dependentOperationsIds.includes(lo.id_oper)
-            && lo.date < today && lo.status === StatusEnum.planed)
+            && lo.date < todayStr && lo.status === StatusEnum.planed)
         })
         
         // если стираемый лоад в статусе planed и он позже или равен текущей даты (в плановой части шкалы)
         //   - можем просто стереть (удалить) из базы
         const tCardLoadsToDelete = tCardLoadsUpdated.filter(lo => {
           return (dependentOperationsIds.includes(lo.id_oper)
-            && lo.date >= today && lo.status === StatusEnum.planed)
+            && lo.date >= todayStr && lo.status === StatusEnum.planed)
         })
 
         // // planed - вчерашние и раньше перевожу в canceled но не удаляю - это уже история          
@@ -130,7 +140,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // })
 
         //  только в статусе planed и только позже равно today
-        const resDelete = await deleteLoads(tCardLoadsToDelete, today, unitLoadRepository);
+        const resDelete = await deleteLoads(tCardLoadsToDelete, todayStr, unitLoadRepository);
         // Удаление лоадов прошло успешно
         if (!resDelete.success) {
           res.status(200).json({ success: false, message: "Не удалось удалить планирование операции и зависимых от нее" });
@@ -144,7 +154,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         );
 
         //  только в статусе planed и только раньше today
-        const resCancel = await cancelLoads(tCardLoadsToCancel, today, unitLoadRepository);
+        const resCancel = await cancelLoads(tCardLoadsToCancel, todayStr, unitLoadRepository);
         // Отмена лоадов прошла успешно
         if (!resCancel.success) {
           res.status(200).json({ success: false, message: "Не удалось отменить историческое планирование операции и зависимых от нее" });
@@ -252,6 +262,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 //   }
 // };
 // 
+
 const cancelLoads = async (
   cancellLoads: UnitLoadItem[],
   today: string, // формат "YYYY-MM-DD"

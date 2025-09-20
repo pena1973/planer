@@ -23,7 +23,7 @@ export const erazeLoad = async (
   if (erazload) {
 
     try {
-      const res = await fetch(`/api/eraze-load-plan-api`,
+      const res = await fetch(`/api/plan/eraze-load-plan-api`,
         {
           method: 'post',
           headers: new Headers({

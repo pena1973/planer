@@ -22,7 +22,7 @@ export class TeamScheduleTable {
   breaks!: { timeStart: number, timeFinish: number }[]; // Перерывы: минуты с начала дня для каждого перерыва
 
   @Column('date', { array: true, nullable: true })
-  holidays!: Date[]; // Даты, когда компания не работает (праздники)
+  holidays!: string[]; // Даты, когда компания не работает (праздники)
 
   @Column('simple-array', { nullable: true })
   weekends!: DaysOfWeek[]; // Дни недели, когда компания не работает 

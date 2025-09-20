@@ -19,7 +19,7 @@ import type { RootState } from '@/store';
 
 import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/client/utils.client";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
-import { getCurrentDateInDate } from "@/lib/client/timezone.client"
+import { getCurrentDateInDate,addDaysInZone } from "@/lib/client/timezone.client"
 export default function Monitor() {
 
   const { t, i18n } = useTranslation();
@@ -66,23 +66,36 @@ export default function Monitor() {
   })
   if (!activeTeam) push('/support')
 
-  const [day, setDay] = useState(() => {
-    const date = getCurrentDateInDate(schedule.timeZone)
-    // const date = new Date();
-    // date.setHours(0, 0, 0, 0);
-
+  const [day, setDay] = useState(() => { 
+    const date = getCurrentDateInDate(schedule.timeZone)  
     return date;
   });
 
   useEffect(() => {
-    // Пока новая дата является выходным или праздником и нет дополнительного времени,
-    // продолжаем увеличивать дату.
-    const day_ = new Date(day);
-    while ((isWeekend(day_, schedule) || isHoliday(day_, schedule)) && !isAdditionalTime(day_, schedule)) {
 
-      day_.setDate(day_.getDate() + 1);
-    }
-    setDay(day_)
+ let today = getCurrentDateInDate(schedule.timeZone);
+  
+  // если  день приходится на выходные  и в настройках указано что мы скрываем выходные но нет доп часов на это время
+  // крутим до первого буднего дня
+  while (!settings.showWeekend && isWeekend(today.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(today.toLocaleDateString('en-CA'), schedule)) {
+    today = addDaysInZone(today, 1, schedule.timeZone);
+  }
+  // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
+  // крутим до первого буднего дня
+  while (!settings.showHoliday && isHoliday(today.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(today.toLocaleDateString('en-CA'), schedule)) {
+    // today.setDate(today.getDate() + 1);
+    today = addDaysInZone(today, 1, schedule.timeZone);
+  }
+    setDay(today);
+
+    // // Пока новая дата является выходным или праздником и нет дополнительного времени,
+    // // продолжаем увеличивать дату.
+    // const day_ = new Date(day);
+    // while ((isWeekend(day_, schedule) || isHoliday(day_, schedule)) && !isAdditionalTime(day_, schedule)) {
+
+    //   day_.setDate(day_.getDate() + 1);
+    // }
+    // setDay(day_)
   }, []);
 
   //  меняем статус карты (если нужно) и операции и лоадов по событию
@@ -233,11 +246,12 @@ export default function Monitor() {
             <div className="catalog_title"> {t('monitor.unitLoading')}</div>
             <div className="monitor_container_navigation">
               <BackwardButton onClick={() => {
-                const newDate = new Date(day);
-                newDate.setDate(newDate.getDate() - 1);
+                // const newDate = new Date(day);
+                // newDate.setDate(newDate.getDate() - 1);
+                const  newDate = addDaysInZone(day, -1, schedule.timeZone);
                 // Пока новая дата является выходным или праздником и нет дополнительного времени,
                 // продолжаем уменьшать дату.
-                while ((isWeekend(newDate, schedule) || isHoliday(newDate, schedule)) && !isAdditionalTime(newDate, schedule)) {
+                while ((isWeekend(newDate.toLocaleDateString('en-CA'), schedule) || isHoliday(newDate.toLocaleDateString('en-CA'), schedule)) && !isAdditionalTime(newDate.toLocaleDateString('en-CA'), schedule)) {
                   newDate.setDate(newDate.getDate() - 1);
                 }
                 setDay(newDate);
@@ -246,11 +260,12 @@ export default function Monitor() {
               <span className="current_day">{day.toLocaleDateString("en-CA")}</span>
 
               <ForwardButton onClick={() => {
-                const newDate = new Date(day);
-                newDate.setDate(newDate.getDate() + 1);
+                // const newDate = new Date(day);
+                // newDate.setDate(newDate.getDate() + 1);
+                 const  newDate = addDaysInZone(day, 1, schedule.timeZone);
                 // Пока новая дата является выходным или праздником и нет дополнительного времени,
                 // продолжаем увеличивать дату.
-                while ((isWeekend(newDate, schedule) || isHoliday(newDate, schedule)) && !isAdditionalTime(newDate, schedule)) {
+                while ((isWeekend(newDate.toLocaleDateString('en-CA'), schedule) || isHoliday(newDate.toLocaleDateString('en-CA'), schedule)) && !isAdditionalTime(newDate.toLocaleDateString('en-CA'), schedule)) {
                   newDate.setDate(newDate.getDate() + 1);
                 }
                 setDay(newDate);

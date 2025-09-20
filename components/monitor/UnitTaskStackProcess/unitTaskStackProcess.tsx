@@ -191,7 +191,8 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
 
       //  вычисление визуализации загруза юнита  с учетом исключений   
       let unit_unloadEx = "";
-      const exs = unitExceptions.filter(ex => ex.unitId === unit.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
+      // const exs = unitExceptions.filter(ex => ex.unitId === unit.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
+      const exs = unitExceptions.filter(ex => ex.unitId === unit.id && ex.date === calendarItem.date);
 
 
       if (exs.length > 0) {

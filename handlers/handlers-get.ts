@@ -1,5 +1,5 @@
 
-import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere } from 'typeorm';
+import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere,Not } from 'typeorm';
 
 // tables
 import { UnitTable } from './../db/models/catalogs/units'
@@ -204,7 +204,7 @@ export async function getBalance(
     select: ['summa', 'direction', 'date'],
   })
 
- // суммируем с учётом направления
+  // суммируем с учётом направления
   const total = rows.reduce((acc, tr) => {
     const amount = Number(tr.summa) || 0;
     switch (tr.direction) {
@@ -292,7 +292,7 @@ export async function getBalances(
   }))
 
   // Если нужно вернуть нули для команд без транзакций — раскомментируй блок ниже:
-  
+
   if (teamIds && teamIds.length > 0) {
     const map = new Map(result.map(x => [x.teamId, x.balance]))
     return teamIds.map(id => ({
@@ -300,7 +300,7 @@ export async function getBalances(
       balance: Number(map.get(id) ?? 0),
     }))
   }
-  
+
 
   return result
 }
@@ -646,7 +646,7 @@ export async function getUnitLoads(
         title: unitAction?.action.title ?? "",
         duration: row.tOper_duration,
         interruptible: unitAction?.action.interruptible ?? false,
-        koef: unitAction?.koef ?? 1,
+        koef: unitAction?.koef ?? 1.00,
       },
     } as UnitLoadItem;
   });
@@ -964,10 +964,10 @@ export async function getTCardsTerms(
   tCardDateTo: string | undefined,
   tCardStatus: StatusEnum | undefined,
   tCardRepository: Repository<TCardTable>,
-  tCardOperationRepository: Repository<TCardOperationTable>,
-  // tCardProductRepository: Repository<TCardProductTable>,
+  tCardOperationRepository: Repository<TCardOperationTable>,  
   unitLoadRepository: Repository<UnitLoadTable>,
   timezone: string,
+  showClosed:boolean
 ): Promise<{ tCardsTerms: TCardTermsItem[], loads: UnitLoadItem[] }> {
 
   const where: FindOptionsWhere<TCardTable> = {
@@ -996,18 +996,16 @@ export async function getTCardsTerms(
   } else if (dateTo) {
     where.date = LessThanOrEqual(toYMD(dateTo));
   }
-  // if (dateFrom && dateTo) {
-  //   where.date = Between(dateFrom, dateTo);
-  // } else if (dateFrom) {
-  //   where.date = MoreThanOrEqual(dateFrom);
-  // } else if (dateTo) {
-  //   where.date = LessThanOrEqual(dateTo);
-  // }
+  
+  if (!showClosed){
+  where.status = Not(StatusEnum.closed);
+  }
 
   if (tCardStatus) {
     where.status = tCardStatus;
   }
 
+  
   // Создаем объект фильтра для карты
   const tCardFilter: FindManyOptions<TCardTable> = { where, };
 
@@ -1276,21 +1274,26 @@ export async function getTeamShedule(
   teamScheduleRepository: Repository<TeamScheduleTable>,
   teamsRepository: Repository<TeamTable>
 ): Promise<ScheduleItem> {
-  const [scheduleTable, team] = await Promise.all([
-    teamScheduleRepository.findOne({ where: { team_id: teamId } }),
-    teamsRepository.findOne({ where: { id: teamId } })
-  ]);
+  //const [scheduleTable, team] = await Promise.all([
+  // teamScheduleRepository.findOne({ where: { team_id: teamId } }),
+  //  teamsRepository.findOne({ where: { id: teamId } })
+  // ]);
 
-  if (!scheduleTable || !team) return {} as ScheduleItem;
+  // if (!scheduleTable || !team) return {} as ScheduleItem;
+
+  const scheduleTable = await teamScheduleRepository.findOne({ where: { team_id: teamId } });
+  
+  if (!scheduleTable) return {} as ScheduleItem;
 
   return {
-    team: {
-      id: team.id,
-      title: team.title,
-      coment: team.coment,
-      prefix: team.prefix,
-      main_team: team.main_team,
-    },
+    // team: {
+    //   id: team.id,
+    //   title: team.title,
+    //   coment: team.coment,
+    //   prefix: team.prefix,
+    //   main_team: team.main_team,
+    // },
+    teamId: scheduleTable.team_id,
     timeStartWork: scheduleTable.timeStartWork,
     timeFinishWork: scheduleTable.timeFinishWork,
     breaks: scheduleTable.breaks ?? [],
@@ -1322,16 +1325,17 @@ export async function getTeamsShedule(
   });
 
   const schedules = scheduleTables.map(scheduleTable => {
-    const team = teams.find(team => team.id === scheduleTable.team_id) ?? {} as TeamItem
+    // const team = teams.find(team => team.id === scheduleTable.team_id) ?? {} as TeamItem
 
     return {
-      team: {
-        id: team.id,
-        title: team.title,
-        coment: team.coment,
-        prefix: team.prefix,
-        main_team: team.main_team,
-      },
+      // team: {
+      //   id: team.id,
+      //   title: team.title,
+      //   coment: team.coment,
+      //   prefix: team.prefix,
+      //   main_team: team.main_team,
+      // },
+      teamId:scheduleTable.team_id,
       timeStartWork: scheduleTable.timeStartWork,
       timeFinishWork: scheduleTable.timeFinishWork,
       breaks: scheduleTable.breaks ?? [],
@@ -1656,7 +1660,7 @@ export async function getUsers(
 
 // банер
 export async function getBaner(
-  teamId: number | undefined,  
+  teamId: number | undefined,
   banerRepository: Repository<BanerTable>
 ): Promise<BanerItem[]> {
   const currentDate = new Date().toLocaleDateString("en-CA"); // Получаем текущую дату в формате "YYYY-MM-DD"
@@ -1665,7 +1669,7 @@ export async function getBaner(
   const where: any = {
     date_to: MoreThanOrEqual(currentDate),
     date_from: LessThanOrEqual(currentDate),
-    ...(teamId !== undefined ? { team_id: teamId } : {}),    
+    ...(teamId !== undefined ? { team_id: teamId } : {}),
   };
 
   const receivedBaner = await banerRepository.find({ where });
@@ -1707,7 +1711,7 @@ export async function getInvoices(
 
 // тех поддержка получение
 export async function getSuportMails(
-  teamId: number|null,
+  teamId: number | null,
   supportRepository: Repository<MailTable>
 ): Promise<SupportMailItem[]> {
 
@@ -1736,7 +1740,7 @@ export async function getSuportMails(
         fromUser: mes.fromUser,
         basedOn: mes.basedOn,
         teamId: mes.team_id,
-        status: mes.status,        
+        status: mes.status,
       };
     });
 

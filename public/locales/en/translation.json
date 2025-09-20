@@ -320,7 +320,8 @@
     "cardStatus": "Card status",
     "cardSelect": "Select",
     "apply": "Apply",
-    "fixing": "fixing"
+    "fixing": "fixing",
+    "showClosed": "Show closed"
   },
   "reportUnitsKPI": {
     "wait": "Wait...",
@@ -365,7 +366,8 @@
     "email": "Email",
     "phone": "Phone",
     "person": "Contact person",
-    "save": "Save"
+    "save": "Save",
+    "country": "Country"
   },
   "bills": {
     "date": "Date",

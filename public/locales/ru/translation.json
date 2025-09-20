@@ -321,7 +321,8 @@
     "cardStatus": "Статус карты",
     "cardSelect": "Выберите",
     "apply": "Применить",
-    "fixing": "исправление"
+    "fixing": "исправление",
+    "showClosed": "Показывать закрытые"
   },
   "reportUnitsKPI": {
     "wait": "Ждем...",
@@ -367,7 +368,9 @@
     "email": "Email",
     "phone": "Телефон",
     "person": "Контактное лицо",
-    "save": "Сохранить"
+    "save": "Сохранить",
+    "country": "Страна"
+
   },
   "bills": {
     "date": " Дата",

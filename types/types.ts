@@ -178,8 +178,7 @@ export interface UserUnitItem {
 }
 
 // хранить обрабатывать
-export enum UnitTypeEnum {
-    keep = 'keep',
+export enum UnitTypeEnum {    
     process = 'process',
     control = 'control',
 }
@@ -213,7 +212,8 @@ export enum DaysOfWeek {
 
 // рабочее  время компании
 export interface ScheduleItem {
-    team: TeamItem,
+    // team: TeamItem,
+    teamId: number,
     timeStartWork: number, // минут с начала дня 
     timeFinishWork: number, // минут с начала дня 
     breaks: { timeStart: number, timeFinish: number }[] // минут с начала дня 
@@ -226,7 +226,8 @@ export interface ScheduleItem {
 // Описание дня
 export interface CalendarItem {
     idDay: string,
-    date: Date,
+    // date: Date,
+    date: string,  // yyyy-mm-dd
     mounth: boolean,
     day: boolean,
     timeStartWork: number, // минут с начала дня 

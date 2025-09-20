@@ -55,7 +55,7 @@ export default function TeamSchedule({
 
     useEffect(() => {
         //    если есть расписание 
-        if (schedule.team) {
+        if (schedule.teamId) {
             setTimeStartWorkValue(schedule.timeStartWork);
             setTimeFinishWorkValue(schedule.timeFinishWork);
             setBreaksValue(schedule.breaks);
@@ -71,7 +71,8 @@ export default function TeamSchedule({
         setMessage("");
 
         const schedule = {
-            team: team as TeamItem,
+            // team: team as TeamItem,
+            teamId:team.id,
             timeStartWork: timeStartWorkValue,
             timeFinishWork: timeFinishWorkValue,
             breaks: breaksValue,
@@ -192,9 +193,9 @@ export default function TeamSchedule({
             case "holidayDate":
                 {
                     if (value) {
-                        // let updatedholiday = value.toLocaleString().split(',')[0];
+                        const updatedholiday = value.toLocaleString().split(',')[0];
                         const holidaysValueUpdated = [...holidaysValue]
-                        holidaysValueUpdated.splice(indexToChange, 1, value as string)
+                        holidaysValueUpdated.splice(indexToChange, 1, updatedholiday)
                         setHolidaysValue(holidaysValueUpdated)
                     }
                 }

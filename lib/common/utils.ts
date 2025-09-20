@@ -108,11 +108,21 @@ export function generateUniqueIdc(): number {
   return timestamp * 1000 + random;
 }
 
-export function generateUniqueId(): number {
-  const timestamp = Date.now(); // Получаем текущее время в миллисекундах
-  const randomFactor = Math.floor(Math.random() * 1000); // Добавляем случайное число для уникальности
-  return timestamp + randomFactor;
-}
+// Локальный форматтер (UTC, чтобы не было сдвигов)
+export const toYMD = (d: Date | string): string => {
+  if (!d) return '';
+  if (typeof d === 'string') return d.slice(0, 10); // "YYYY-MM-DD..." → "YYYY-MM-DD"
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+// export function generateUniqueId(): number {
+//   const timestamp = Date.now(); // Получаем текущее время в миллисекундах
+//   const randomFactor = Math.floor(Math.random() * 1000); // Добавляем случайное число для уникальности
+//   return timestamp + randomFactor;
+// }
 
 ///////////// PLANING /////////////
 
@@ -147,7 +157,7 @@ export const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
   }
 
   // Проверяем, является ли день выходным
-  if (schedule.team) return schedule.weekends.includes(dayString);
+  if (schedule.teamId) return schedule.weekends.includes(dayString);
   else return false
 }
 //  функция определяемт входит ли  дата в список праздниклв расписания
@@ -156,7 +166,7 @@ export const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
+  if (schedule.teamId)
     return schedule.holidays.some(holiday =>
       new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
     );
@@ -169,7 +179,7 @@ export const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean =>
   const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
+  if (schedule.teamId)
     return schedule.workdays.some(workday =>
       new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
     ); else return false
@@ -180,54 +190,54 @@ export const idDay = (date: Date): string => {
   return date.toLocaleDateString('en-CA');  // Возвращаем строку в формате "день.месяц.год"
 };
 
-// генерация одного дня на шкале
-export const generateCalendarItem = (day: string | Date, schedule: ScheduleItem): CalendarItem => {
+// // генерация одного дня на шкале
+// export const generateCalendarItem = (day: string | Date, schedule: ScheduleItem): CalendarItem => {
 
-  const currentDate = (typeof day === 'string')
-    ? getTimeZoneDateFromDateString(day, schedule.timeZone)
-    : day
+//   const currentDate = (typeof day === 'string')
+//     ? getTimeZoneDateFromDateString(day, schedule.timeZone)
+//     : day
 
 
-  // const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-  // currentDate.setHours(0, 0, 0, 0);
+//   // const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
+//   // currentDate.setHours(0, 0, 0, 0);
 
-  const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
-  const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
-  const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // 
+//   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
+//   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
+//   const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // 
 
-  let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
-  let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-  let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
+//   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
+//   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
+//   let breaks = _isWeekend || _isHoliday || (!schedule.teamId) ? [] : [...schedule.breaks];
 
-  if (_isAdditionalTime) {
-    const workday = schedule.workdays.find(
-      workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
-    // если дата есть, то нужно просто взять дополнительное время из workday  
-    if (workday) {
-      if (_isWeekend || _isHoliday) {
-        timeStartWork = workday.timeStart;
-        timeFinishWork = workday.timeFinish;
-      } else {
-        timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
-        timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
-      }
-      //  проверим перерывы и если попадают в рабочий период вставим
-      breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
-    }
-  }
+//   if (_isAdditionalTime) {
+//     const workday = schedule.workdays.find(
+//       workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+//     // если дата есть, то нужно просто взять дополнительное время из workday  
+//     if (workday) {
+//       if (_isWeekend || _isHoliday) {
+//         timeStartWork = workday.timeStart;
+//         timeFinishWork = workday.timeFinish;
+//       } else {
+//         timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
+//         timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
+//       }
+//       //  проверим перерывы и если попадают в рабочий период вставим
+//       breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
+//     }
+//   }
 
-  // Создаем объект CalendarItem
-  const calendarItem: CalendarItem = {
-    idDay: idDay(currentDate),
-    date: new Date(currentDate),  // Текущая дата
-    mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
-    day: true,  // Указываем, что это день
-    timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
-    timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
-    breaks: breaks,
-  };
-  return calendarItem;  // Возвращаем один элемент календаря
-};
+//   // Создаем объект CalendarItem
+//   const calendarItem: CalendarItem = {
+//     idDay: idDay(currentDate),
+//     date: new Date(currentDate),  // Текущая дата
+//     mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+//     day: true,  // Указываем, что это день
+//     timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
+//     timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
+//     breaks: breaks,
+//   };
+//   return calendarItem;  // Возвращаем один элемент календаря
+// };
 
 // Функция для получения числового приоритета статуса
 export const getStatusPriority = (status: StatusEnum): number => {

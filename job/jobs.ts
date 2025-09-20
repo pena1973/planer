@@ -45,7 +45,7 @@ export const jobs: Record<string, JobHandler> = {
 
         for (let index = 0; index < teams.length; index++) {
             const team = teams[index];
-            const timeZone = teamsShedules.find(shed => shed.team.id === team.id)?.timeZone ?? "Europe/Riga, UTC+2";
+            const timeZone = teamsShedules.find(shed => shed.teamId === team.id)?.timeZone ?? "Europe/Riga, UTC+2";
             const day = getCurrentDateInString(timeZone);
 
             const prevDay = getPrevDay(day);

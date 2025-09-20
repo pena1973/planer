@@ -6,12 +6,13 @@ import styles from "./planScaleContainer.module.scss";
 import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum, UnitActionItem } from "@/types/types";
 
 import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/client/utils.client";
+// import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, } from "@/lib/client/utils.client";
 
 import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
 import DottedLine from "./DottedLine/dottedLine";
 import UnitMenu from "./UnitMenu/unitMenu";
-import { getCurrentDateInDate, addDaysInZone } from "@/lib/client/timezone.client"
+import { getCurrentDateInDate, addDaysInZone,getCurrentDateInString,getTimeZoneDateFromDateString } from "@/lib/client/timezone.client"
 import { useTranslation } from 'react-i18next';
 
 import { useResizeObserver } from './useResizeObserver'; // Хук отслеживания расмеров окна
@@ -135,16 +136,17 @@ export default function PlanScaleContainer({
   // const today = new Date();
   // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
   let today = getCurrentDateInDate(timezone);
+  const todayStr = getCurrentDateInString(timezone);
 
   // если  день приходится на выходные  и в настройках указано что мы скрываем выходные но нет доп часов на это время
   // крутим до первого буднего дня
-  while (!settings.showWeekend && isWeekend(today, schedule) && !isAdditionalTime(today, schedule)) {
+  while (!settings.showWeekend && isWeekend(today.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(today.toLocaleDateString('en-CA'), schedule)) {
     // today.setDate(today.getDate() + 1);
     today = addDaysInZone(today, 1, timezone);
   }
   // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
   // крутим до первого буднего дня
-  while (!settings.showHoliday && isHoliday(today, schedule) && !isAdditionalTime(today, schedule)) {
+  while (!settings.showHoliday && isHoliday(today.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(today.toLocaleDateString('en-CA'), schedule)) {
     // today.setDate(today.getDate() + 1);
     today = addDaysInZone(today, 1, timezone);
   }
@@ -153,6 +155,7 @@ export default function PlanScaleContainer({
   if (idDay(today) !== todayDateRef.current) {
     todayDateRef.current = idDay(today);
   }
+
 
   // ШКАЛА
   // сброс шкалы
@@ -169,7 +172,7 @@ export default function PlanScaleContainer({
 
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
     const _dayWidth = calculateWidthDay(timelineWidth, scale)
-    visibleItemsPlus.current = calculateVisibleItemsPlus(today, timelineWidth, _dayWidth, shift)
+    visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, _dayWidth, shift)
 
     visibleItemsPlus.current.forEach(idDay => {
       // реализуем ленивую загрузку видимых дней но сначала проверим чтоб не задвоить день случайно
@@ -182,7 +185,7 @@ export default function PlanScaleContainer({
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
     const filteredCalendar = calendarPlus.current.filter(item => {
-      return (item.date >= today)
+      return (item.date >= todayStr)
     });
     setCalendarViewPlus(filteredCalendar);
   }
@@ -235,16 +238,19 @@ export default function PlanScaleContainer({
     // Из загрузки вытаскиваем список юнитов и делим его на свой чужой;
     unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.inner);
     unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.outer);
+   
 
     // реализуем ленивую загрузку   
-    // генерим стартовый день, но сначала проверим чтоб не задвоить его случайно    
-    if (!calendarPlus.current.find(elem => elem.idDay === idDay(today))) {
-      calendarPlus.current = [...calendarPlus.current, generateCalendarItem(today, schedule)];
+    // генерим стартовый день,  в соответствии с настройкой видимости
+    // но сначала проверим чтоб не задвоить его случайно    
+    // if (!calendarPlus.current.find(elem => elem.idDay === idDay(today))) {
+    if (!calendarPlus.current.find(elem => elem.idDay === todayDateRef.current)) {
+      calendarPlus.current = [...calendarPlus.current, generateCalendarItem(todayDateRef.current, schedule)];
     }
 
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
-    const filteredCalendar = calendarPlus.current.filter(item => item.date >= today);
+    const filteredCalendar = calendarPlus.current.filter(item => item.date >= todayDateRef.current);
     setCalendarViewPlus(filteredCalendar);
 
   }, [unitLoads]);
@@ -261,15 +267,15 @@ export default function PlanScaleContainer({
 
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
     // visibleItemsPlus.current = calculateVisibleItemsPlus(new Date(today), timelineWidth, _dayWidth, shift)
-    visibleItemsPlus.current = calculateVisibleItemsPlus(today, timelineWidth, _dayWidth, shift)
+    visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, _dayWidth, shift)
 
     // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный  
     // visibleItemsMinus.current = calculateVisibleItemsMinus(new Date(today), timelineWidth, _dayWidth, shift)
-    visibleItemsMinus.current = calculateVisibleItemsMinus(today, timelineWidth, _dayWidth, shift)
+    visibleItemsMinus.current = calculateVisibleItemsMinus(todayStr, timelineWidth, _dayWidth, shift)
 
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
-    const filteredCalendar = calendarPlus.current.filter(item => item.date >= today);
+    const filteredCalendar = calendarPlus.current.filter(item => item.date >= todayStr);
     setCalendarViewPlus(filteredCalendar);
 
     //  прорисовываем шкалу истории
@@ -286,8 +292,10 @@ export default function PlanScaleContainer({
   //scaleRestart.current  - принудительный рестарт
 
 
-  const calculateVisibleItemsPlus = (day: Date, timelineWidth: number, dayWidth: number, shift: number) => {
-
+  // const calculateVisibleItemsPlus = (day: Date, timelineWidth: number, dayWidth: number, shift: number) => {
+  const calculateVisibleItemsPlus = (dayStr: string, timelineWidth: number, dayWidth: number, shift: number) => {
+    
+    const day = getTimeZoneDateFromDateString(dayStr,timezone);
     const startDay = addDaysInZone(day, 0, timezone); //  убираю мутабельность и остаюсь в таймзоне команды
     // const startDay = new Date(day); // стартовый день для расчета видимых дней на шкале
     // если shift>0 тоэто сдвиг вперед
@@ -320,13 +328,13 @@ export default function PlanScaleContainer({
 
       // если  день приходится на выходные  и в настройках указано что мы скрываем выходные
       // крутим до первого буднего дня
-      while (!settings.showWeekend && isWeekend(_day, schedule) && !isAdditionalTime(_day, schedule)) {
+      while (!settings.showWeekend && isWeekend(_day.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(_day.toLocaleDateString('en-CA'), schedule)) {
         // _day.setDate(_day.getDate() + 1);
         _day = addDaysInZone(_day, 1, timezone);
       }
       // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
       // крутим до первого буднего дня
-      while (!settings.showHoliday && isHoliday(_day, schedule) && !isAdditionalTime(_day, schedule)) {
+      while (!settings.showHoliday && isHoliday(_day.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(_day.toLocaleDateString('en-CA'), schedule)) {
         // _day.setDate(_day.getDate() + 1);
         _day = addDaysInZone(_day, 1, timezone);
       }
@@ -346,7 +354,8 @@ export default function PlanScaleContainer({
       const id_day = idDay(_day);
 
       if (!calendarPlus.current.find(elem => elem.idDay === id_day)) {
-        calendarPlus.current = [...calendarPlus.current, generateCalendarItem(_day, schedule)];
+        // calendarPlus.current = [...calendarPlus.current, generateCalendarItem(_day, schedule)];
+        calendarPlus.current = [...calendarPlus.current, generateCalendarItem(id_day, schedule)];
       }
 
       // координаты дня  на временной шкале
@@ -370,15 +379,18 @@ export default function PlanScaleContainer({
 
     }
     // setVisibleItems(_visibleItems)
-    calendarPlus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
+    // calendarPlus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
+    calendarPlus.current.sort((a, b) => a.date.localeCompare(b.date));
     // console.log('✅ _visibleItems', _visibleItems);
     return _visibleItems;
   };
 
-  const calculateVisibleItemsMinus = (startDay: Date, timelineWidth: number, dayWidth: number, shift: number) => {
+  // const calculateVisibleItemsMinus = (startDay: Date, timelineWidth: number, dayWidth: number, shift: number) => {
+  const calculateVisibleItemsMinus = (dayStr: string, timelineWidth: number, dayWidth: number, shift: number) => {
     // если shift>0 тоэто сдвиг вперед
     // если shift<0 тоэто сдвиг назад
-
+    const day = getTimeZoneDateFromDateString(dayStr,timezone);
+    const startDay = addDaysInZone(day, 0, timezone); //  убираю мутабельность и остаюсь в таймзоне команды
     // видимые координаты на шкале
     const visibleleft = 0 - shift;
     const visibleright = (shift > timelineWidth) ? -(shift - timelineWidth) : 0;
@@ -401,13 +413,13 @@ export default function PlanScaleContainer({
 
         // если  день приходится на выходные  и в настройках указано что мы скрываем выходные и нет доп часов
         // крутим до первого буднего дня
-        while (!settings.showWeekend && isWeekend(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
+        while (!settings.showWeekend && isWeekend(_dayPast.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(_dayPast.toLocaleDateString('en-CA'), schedule)) {
           // _dayPast.setDate(_dayPast.getDate() - 1);
            _dayPast = addDaysInZone(_dayPast,-1,timezone);
         }
         // если  день приходится на праздники  и в настройках указано что мы скрываем праздники и нет доп часов
         // крутим до первого буднего дня
-        while (!settings.showHoliday && isHoliday(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
+        while (!settings.showHoliday && isHoliday(_dayPast.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(_dayPast.toLocaleDateString('en-CA'), schedule)) {
           // _dayPast.setDate(_dayPast.getDate() - 1);
           _dayPast = addDaysInZone(_dayPast,-1,timezone);
         }
@@ -415,7 +427,8 @@ export default function PlanScaleContainer({
         const id_day = idDay(_dayPast); //  сгенерили
         if (!calendarMinus.current.find(elem => elem.idDay === id_day)) {
           //  если его нет добавили в массив
-          calendarMinus.current = [...calendarMinus.current, generateCalendarItem(_dayPast, schedule)];
+          // calendarMinus.current = [...calendarMinus.current, generateCalendarItem(_dayPast, schedule)];
+          calendarMinus.current = [...calendarMinus.current, generateCalendarItem(id_day, schedule)];
         }
 
         _shift = _shift - dayWidth; // инкрементировали сдвиг
@@ -439,7 +452,8 @@ export default function PlanScaleContainer({
       }
     }
 
-    calendarMinus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
+    // calendarMinus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
+    calendarMinus.current.sort((a, b) => a.date.localeCompare(b.date));
     // console.log('✅ _visibleItems', _visibleItems);
     return _visibleItems;
   };
@@ -530,7 +544,8 @@ export default function PlanScaleContainer({
     await moveLoadHandler(
       draggingLoad,
       toUnitView,
-      calendarItem.date.toLocaleDateString("en-CA"),
+      // calendarItem.date.toLocaleDateString("en-CA"),
+       calendarItem.date,
       timeStart,
       timeFinish
     );
@@ -667,7 +682,8 @@ export default function PlanScaleContainer({
       const unitLoadBlockseReactNodesInner = unitsViewInner.current.map(unitView => {
         // console.log("unit", unitView)
         let unit_unloadEx = "";
-        const exs = unitExceptions.filter(ex => ex.unitId === unitView.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
+        // const exs = unitExceptions.filter(ex => ex.unitId === unitView.id && ex.date === calendarItem.date.toLocaleDateString("en-CA"));
+        const exs = unitExceptions.filter(ex => ex.unitId === unitView.id && ex.date === calendarItem.date);
 
         if (exs.length > 0) {
           // Если есть исключения устанавливатся новое время работы  индивидуально юниту
@@ -848,8 +864,6 @@ export default function PlanScaleContainer({
   };
 
 
-
-
   const timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
     // console.log("render день минус", elem.date);
     const isVisible = visibleItemsMinus.current.includes(elem.idDay);
@@ -882,7 +896,8 @@ export default function PlanScaleContainer({
         {(scale > 0) && <span className={styles.day_title}>{elem.idDay}</span>}
 
         {/* // это красная риска сегодня начало дня  */}
-        {today.getTime() === elem.date.getTime() && <div className={styles.today_scale}></div>}
+        {/* {today.getTime() === elem.date.getTime() && <div className={styles.today_scale}></div>} */}
+        {index===0 && <div className={styles.today_scale}></div>}
 
         <div className={styles.time_container}>
           {hoursScaleReactNodes}

@@ -4,6 +4,7 @@ import { erazeLoad } from '@/services/plan/erazeLoad';
 import { erazeCard } from '@/services/plan/erazeCard';
 import { moveLoad } from '@/services/plan/moveLoad';
 import { saveCard } from '@/services/plan/saveCard';
+import { preFullCardPlan } from '@/services/plan/preFullCardPlan';
 
 import Layout from "@/components/Layout/layout";
 import PlanScaleContainer from "@/components/plan/PlanScaleContainer/planScaleContainer";
@@ -26,12 +27,12 @@ import { setUnitLoads, setTCardLighted, setTCardPrepared } from '@/store/slices'
 import { } from '@/store/slices';
 
 import { useTranslation } from 'react-i18next';
-import { getCurrentDateInDate } from "@/lib/client/timezone.client";
+import { getCurrentDateInDate, getCurrentDateInString } from "@/lib/client/timezone.client";
 
 export default function Planing() {
 
   const { t, i18n } = useTranslation();
-const { push } = useRouter();
+  const { push } = useRouter();
   const dispatch = useAppDispatch();
 
   const [isDragging, setIsDragging] = useState(false); // Состояние для отслеживания перетаскивания
@@ -92,7 +93,7 @@ const { push } = useRouter();
   const today = getCurrentDateInDate(schedule.timeZone)
   // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
 
-  
+
   // Выбор запланированной карты
   const lightTCardHandler = useCallback(async (selectedTCard: TCardItem, on: boolean) => {
     if (on) dispatch(setTCardLighted(selectedTCard))
@@ -187,44 +188,9 @@ const { push } = useRouter();
     //  в базу пока не пишем это предварительный расчет
     // чистим все лоады в статусе prepared (предыдущее несохраненное планирование)
     const unitLoads_ = unitLoads.filter(lo => lo.status !== StatusEnum.prepared)
-
-    const tCardLoadsPlaned = unitLoads_.filter(load => load.id_tCard === tCard_.id && load.status !== StatusEnum.prepared)
-    const tCardLoadsWithout = unitLoads_.filter(lo => lo.id_tCard !== tCard_.id)
-
-    try {
-      const res = await fetch(`/api/pre-fullcardplan-api?userId=${user.id}&teamId=${team.id}&tCardId=${itemId}&today=${new Date().toLocaleDateString("en-CA")}`,
-        {
-          method: 'get',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessage(error);
-      } else {
-        const receivedData = await res.json();
-
-        const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
-        const updatedLoads = [...tCardLoadsWithout, ...tCardLoadsPlaned, ...tCardLoads_]
-        dispatch(setUnitLoads(updatedLoads));
-        if (receivedData.success) {
-          setMessage("Карта успешно предварительно запланирована НО НЕЗАПИСАНА! Если все в порядке ЗАПИШИ!");
-        } else {
-          setMessage(receivedData.message);
-        }
-      }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-
+    const today = getCurrentDateInString(schedule.timeZone);
+   
+    await preFullCardPlan(tCard_.id, unitLoads_, token, user.id, team.id, today, dispatch, t, setMessage,);
 
     setDropLoaderCard(NaN)
   };
@@ -251,7 +217,7 @@ const { push } = useRouter();
       tCardLighted={tCardLighted}
       lightTCardHandler={lightTCardHandler}
       erazCardHandler={erazCardHandler}
-      // formatDate={formatDate}
+    // formatDate={formatDate}
     />)
   })
   // Карты

@@ -1,20 +1,20 @@
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { getUnits, getUnitLoads, getTeamShedule, getExceptions } from './../../handlers/handlers-get';  // 
-import { getUnitsSchedule } from './../../handlers/handlers-schedule';  // 
+import { getUnits, getUnitLoads, getTeamShedule, getExceptions } from './../../../handlers/handlers-get';  // 
+import { getUnitsSchedule } from './../../../handlers/handlers-schedule';  // 
 
 
-import { TeamTable } from './../../db/models/catalogs/teams'
-import { UnitLoadTable } from './../../db/models/plan/unit_loads';
-import { UnitTable } from './../../db/models/catalogs/units'
-import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
-import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
-import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
-import { UnitCalendarItem, UnitLoadItem, StatusEnum, UnitKPIItem } from "./../../types/types";
+import { TeamTable } from './../../../db/models/catalogs/teams'
+import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
+import { UnitTable } from './../../../db/models/catalogs/units'
+import { TeamScheduleTable } from './../../../db/models/plan/team_schedule'
+import { UnitExceptionTable } from './../../../db/models/plan/unit_exceptions'
+import { UnitActionTable } from './../../../db/models/catalogs/unit_actions'
+import { UnitCalendarItem, UnitLoadItem, StatusEnum, UnitKPIItem } from "./../../../types/types";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
@@ -48,7 +48,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
 
         // запросим расписание команды
-        const schedule = await getTeamShedule(Number(teamId), teamScheduleRepository,teamRepository)
+        const schedule = await getTeamShedule(Number(teamId), teamScheduleRepository, teamRepository)
 
         // запросим исключения расписания по юнитам
 
@@ -99,23 +99,44 @@ export function getDailyProductionSummary(
   // Проходим по каждому элементу расписания для юнита
   for (let i = 0; i < unitSchedule.length; i++) {
     const dayItem = unitSchedule[i];
-    if (dateFrom && dayItem.date.toLocaleDateString('en-CA') < dateFrom) continue;
-    if (dateTo && dayItem.date.toLocaleDateString('en-CA') > dateTo) continue;
-    if (month && dayItem.date.getMonth() !== month) continue;
 
-    // Переводим дату в формат "YYYY-MM-DD"
-    const dayStr = dayItem.date.toLocaleDateString("en-CA");
+    // if (dateFrom && dayItem.date.toLocaleDateString('en-CA') < dateFrom) continue;
+    // if (dateTo && dayItem.date.toLocaleDateString('en-CA') > dateTo) continue;
+    // if (month && dayItem.date.getMonth() !== month) continue;
+
+    // // Переводим дату в формат "YYYY-MM-DD"
+    // const dayStr = dayItem.date.toLocaleDateString("en-CA");
+
+    if (dateFrom && dayItem.date < dateFrom) continue;
+    if (dateTo && dayItem.date > dateTo) continue;
+
+    const dateMonth = Number(dayItem.date.split("-")[1]); // "09"
+    if (month && dateMonth !== month) continue;
 
     // Вычисляем производственное время:
     // Производственное время = (timeFinishWork - timeStartWork) мин минус общая длительность всех перерывов
-    const breakDuration = dayItem.breaks.reduce((sum, br) => sum + (br.timeFinish - br.timeStart), 0);
+    // Учитываем чтобы перерывы были в прежелах указанного работчего времени и если перерыв не входит - не учитываем
+    // const breakDuration = dayItem.breaks.reduce((sum, br) => sum + (br.timeFinish - br.timeStart), 0);
+
+    // вспомогательная: пересечение двух полуинтервалов [aStart, aEnd) и [bStart, bEnd)
+    const overlapMinutes = (aStart: number, aEnd: number, bStart: number, bEnd: number) =>
+      Math.max(0, Math.min(aEnd, bEnd) - Math.max(aStart, bStart));
+
+    // Длительность перерывов, НО только та часть, что попадает в рабочее окно
+    const breakDuration = (dayItem.breaks ?? []).reduce((sum, br) => {
+      const brStart = br.timeStart;
+      const brEnd = br.timeFinish;
+      return sum + overlapMinutes(dayItem.timeStartWork, dayItem.timeFinishWork, brStart, brEnd);
+    }, 0);
+
     const productionTime = (dayItem.timeFinishWork - dayItem.timeStartWork) - breakDuration;
 
     if (productionTime <= 0) continue;
 
     // Фильтруем загрузки для данного дня и данного юнита:
     const loadsForDay = unitLoads.filter(load =>
-      load.date === dayStr && load.unit.id === dayItem.unit.id
+      // load.date === dayStr && load.unit.id === dayItem.unit.id
+      load.date === dayItem.date && load.unit.id === dayItem.unit.id
     );
 
     // Определяем время, занятое лоадами (statuses: planed, ready, performed, defective)
@@ -142,7 +163,8 @@ export function getDailyProductionSummary(
 
     result.push({
       unit: dayItem.unit,
-      date: dayStr,
+      // date: dayStr,
+      date: dayItem.date,
       productionTime,
       occupiedTime,
       planedTime,

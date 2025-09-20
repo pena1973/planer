@@ -16,6 +16,8 @@ import galt from "@/public/arrow-gray-down.png"; // галочка вверх
 
 import { generateTeamNumber } from '@/lib/client/utils.client'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
+import DropdownSelectCountry from "@/components/DropdownSelectCountry/dropdownSelectCountry";
+import { countriesEurope } from "@/components/DropdownSelectCountry/countries-europe";
 
 import { saveClient } from '@/services/billing/saveClient';
 import { getClient } from '@/services/billing/getClient';
@@ -108,11 +110,11 @@ export const Billing: React.FC<BillingProps> = ({
   useEffect(() => {
     getClientHandler();
     getinvoicesHandler()
-    
+
     getAttachedTeamsHandler();
     getTeamActivityHandler();
     getBalanceHandler();
-    
+
 
   }, [])
 
@@ -145,8 +147,8 @@ export const Billing: React.FC<BillingProps> = ({
         <td>{active ? t('bills.active') : "-"}</td>
         <td>
           <button className={styles.bt} onClick={(e) => onStateTeam(team.id, !active)}>
-            {loaderButtonActivate===team.id && <ButtonLoader />}
-            {loaderButtonActivate!==team.id && (active ? t('bills.deactivate') : t('bills.activate'))}
+            {loaderButtonActivate === team.id && <ButtonLoader />}
+            {loaderButtonActivate !== team.id && (active ? t('bills.deactivate') : t('bills.activate'))}
           </button>
         </td>
       </tr>
@@ -202,7 +204,7 @@ export const Billing: React.FC<BillingProps> = ({
           onSubmit={(e) => { e.preventDefault(); onSaveClient(); }}
         >
           <div className={styles.form_row}>
-            <label className={styles.form_label}>{t('client.title') || 'Client'}</label>
+            <label className={styles.form_label}>{t('client.title')}</label>
             <input
               className={styles.input}
               type="text"
@@ -212,7 +214,7 @@ export const Billing: React.FC<BillingProps> = ({
           </div>
 
           <div className={styles.form_row}>
-            <label className={styles.form_label}>{t('client.vat') || 'VAT'}</label>
+            <label className={styles.form_label}>{t('client.vat')}</label>
             <input
               className={styles.input}
               type="text"
@@ -223,26 +225,15 @@ export const Billing: React.FC<BillingProps> = ({
           </div>
 
           <div className={styles.form_row}>
+
             <label className={styles.form_label}>
-              {t('client.country') || 'Country'}
+              {t('client.country')}
             </label>
-            <select
-              className={styles.select}
-              value={clientForm?.country ?? ""}
-              onChange={e => setClientForm({ ...clientForm, country: e.target.value })}
-            >
-              <option value="">-- {t('common.select') || 'Select'} --</option>
-              <option value="PT">Portugal</option>
-              <option value="LV">Latvia</option>
-              <option value="LT">Lithuania</option>
-              <option value="EE">Estonia</option>
-              <option value="DE">Germany</option>
-              <option value="FR">France</option>
-              <option value="ES">Spain</option>
-              <option value="IT">Italy</option>
-              <option value="PL">Poland</option>
-              {/* при необходимости дополняешь список ISO-2 кодов */}
-            </select>
+            <DropdownSelectCountry
+              options={countriesEurope}
+              selectedValue={clientForm?.country ?? null}
+              onSelect={(opt) => setClientForm({ ...clientForm, country: opt?.code ?? "" })}
+            />
           </div>
 
           <div className={styles.form_row}>
@@ -385,13 +376,13 @@ export const Billing: React.FC<BillingProps> = ({
             <td className={styles.td_mainTeam}>{active ? t('bills.active') : "-"}</td>
             <td className={styles.td_mainTeam}>
 
-               <button className={styles.bt} 
-              onClick={(e) => onStateTeam(team.id, !active)}>
-                
-                 {loaderButtonActivate===team.id && <ButtonLoader />}
-                 {loaderButtonActivate!==team.id && (active ? t('bills.deactivate') : t('bills.activate'))} 
-                 
-              </button> 
+              <button className={styles.bt}
+                onClick={(e) => onStateTeam(team.id, !active)}>
+
+                {loaderButtonActivate === team.id && <ButtonLoader />}
+                {loaderButtonActivate !== team.id && (active ? t('bills.deactivate') : t('bills.activate'))}
+
+              </button>
             </td>
           </tr>
           {attachedTeamsReactNodes}

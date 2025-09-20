@@ -24,7 +24,6 @@ var StatusEnum;
 // хранить обрабатывать
 var UnitTypeEnum;
 (function (UnitTypeEnum) {
-    UnitTypeEnum["keep"] = "keep";
     UnitTypeEnum["process"] = "process";
     UnitTypeEnum["control"] = "control";
 })(UnitTypeEnum || (exports.UnitTypeEnum = UnitTypeEnum = {}));

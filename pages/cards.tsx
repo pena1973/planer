@@ -8,7 +8,7 @@ import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import FileUploadButton from "@/components/cards/FileUploadButton/fileUploadButton";
 
-import { padNumberToFourDigits, generateUniqueId, calculateMaxIdc } from "@/lib/client/utils.client"
+import { padNumberToFourDigits, generateUniqueIdc, calculateMaxIdc } from "@/lib/client/utils.client"
 import { useEffect, useState } from "react";
 
 import { erazeLoad } from '@/services/plan/erazeLoad';
@@ -781,7 +781,7 @@ export default function Cards() {
     // setModified(true);
     setMessage("");
     const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
-    const tempId = generateUniqueId();
+    const tempId = generateUniqueIdc();
     const newTCard = {
       id: -tempId,
       date: currentDate,
@@ -1003,7 +1003,7 @@ export default function Cards() {
     const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
 
     // Генерация временного ID
-    const tempId = generateUniqueId();
+    const tempId = generateUniqueIdc();
 
     // Инициализация новой карты
     const newTCard = {

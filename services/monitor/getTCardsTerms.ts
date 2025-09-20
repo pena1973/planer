@@ -12,7 +12,7 @@ export const getTCardsTerms = async (
 ) => {
 
     try {
-        const res = await fetch(`api/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
+        const res = await fetch(`api/monitor/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
             {
                 method: 'get',
                 headers: new Headers({

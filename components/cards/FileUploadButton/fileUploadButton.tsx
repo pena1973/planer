@@ -1,7 +1,7 @@
 // Файл загрузка
 import React, { useState, } from "react";
 import styles from './fileUploadButton.module.scss';
-import { generateUniqueId, calculateMaxIdc, validateFileContent } from "@/lib/client/utils.client"
+import { calculateMaxIdc, validateFileContent } from "@/lib/client/utils.client"
 import { getCurrentDateInString } from "@/lib/client/timezone.client"
 import {
   TCardItem, TCardContent, StatusEnum, ActionItem, UOMItem, ProductContent, TProductContent,
@@ -9,6 +9,7 @@ import {
 } from "@/types/types"; // Импортируем нужные типы
 
 import { useTranslation } from 'react-i18next';
+import { generateUniqueIdc } from "@/lib/common/utils";
 
 export interface FileUploadButtonProps {
   onCardUpload: (tCard: TCardItem) => void,
@@ -70,7 +71,7 @@ const FileUploadButton = ({
   // Функция для проверки содержимого файла на наличие отсутствующих или некорректных полей
 
   const transformToTCard = (content: TCardContent): TCardItem => {
-    const tempId = generateUniqueId();
+    const tempId = generateUniqueIdc();
     // const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
     const currentDate = getCurrentDateInString(timezone); // формат YYYY-MM-DD
     
