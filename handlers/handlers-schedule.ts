@@ -1,22 +1,23 @@
 
 
 import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "./../types/types";
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/timezone"
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/common/timezone"
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
-const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
+const isAdditionalTime = (date: string, schedule: ScheduleItem): boolean => {
 
   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
+  if (schedule.teamId)
     return schedule.workdays.some(workday =>
-      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === date
     ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
-const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
-  const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
+const isWeekend = (date: string, schedule: ScheduleItem): boolean => {
+  const d = new Date(date);        // преобразуем строку в Date  
+  const dayOfWeek = d.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
 
   let dayString = DaysOfWeek.SUNDAY;
 
@@ -45,18 +46,18 @@ const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
   }
 
   // Проверяем, является ли день выходным
-  if (schedule.team) return schedule.weekends.includes(dayString);
+  if (schedule.teamId) return schedule.weekends.includes(dayString);
   else return false
 }
 //  функция определяемт входит ли  дата в список праздниклв расписания
-const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
+const isHoliday = (date: string, schedule: ScheduleItem): boolean => {
   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
   // Проверяем, есть ли дата в массиве праздников
-  if (schedule.team)
+  if (schedule.teamId)
     return schedule.holidays.some(holiday =>
-      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === date
     ); else return false
 }
 
@@ -70,22 +71,28 @@ const idDay = (date: Date): string => {
 };
 
 // генерация одного дня на шкале
-const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem => {
+const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
+  // day==YYYY-mm-dd
   // просто делаем копию даты, чтобы не мутировать переданную 
-  const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
+  // const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
   // currentDate.setHours(0, 0, 0, 0);
 
-  const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
-  const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
-  const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
+  // const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
+  // const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
+  // const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
+
+  const _isWeekend = isWeekend(day, schedule);  // День недели для учета выходных
+  const _isHoliday = isHoliday(day, schedule);  // День недели для учета Праздников
+  const _isAdditionalTime = isAdditionalTime(day, schedule);  // День недели для учета Праздников
 
   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-  let breaks = _isWeekend || _isHoliday || (!schedule.team) ? [] : [...schedule.breaks];
+  let breaks = _isWeekend || _isHoliday || (!schedule.teamId) ? [] : [...schedule.breaks];
 
   if (_isAdditionalTime) {
     const workday = schedule.workdays.find(
-      workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+      // workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+      workday => workday.date === day);
     // если дата есть, то нужно просто взять дополнительное время из workday  
     if (workday) {
       if (_isWeekend || _isHoliday) {
@@ -103,9 +110,11 @@ const generateCalendarItem = (day: Date, schedule: ScheduleItem): CalendarItem =
 
   // Создаем объект CalendarItem
   const calendarItem: CalendarItem = {
-    idDay: idDay(currentDate),
-    date: new Date(currentDate),  // Текущая дата
-    mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+    idDay: idDay(new Date(day)),
+    // date: new Date(currentDate),  // Текущая дата
+    date: day,  // Текущая дата
+    // mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+    mounth: new Date(day).getDate() === 1,  // Если это первый день месяца, ставим true
     day: true,  // Указываем, что это день
     timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
     timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
@@ -139,7 +148,7 @@ export const getUnitsSchedule = (
   const currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     // Генерируем базовый CalendarItem для текущего дня (без учёта индивидуальных исключений)
-    const calendarItem = generateCalendarItem(currentDate, schedule);
+    const calendarItem = generateCalendarItem(currentDate.toLocaleDateString('en-CA'), schedule);
 
     // Для каждого юнита корректируем расписание с учетом его исключений
     for (const unit of units) {

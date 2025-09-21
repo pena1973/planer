@@ -1,4 +1,4 @@
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
@@ -7,7 +7,7 @@ import { getTypedRepository } from './../../db/utilites'
 import { TemplateTable } from './../../db/models/catalogs/templates';
 import { TCardItem, TemplateItem } from './../../types/types'; // Ваш тип TCardItem для работы с шаблонами
 
-import { padNumberToFourDigits } from "./../../lib/utils"
+import { padNumberToFourDigits } from "./../../lib/common/utils"
 
 interface RequestBody {
     teamId: number,

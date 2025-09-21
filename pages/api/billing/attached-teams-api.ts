@@ -1,10 +1,9 @@
-import { withAuth } from '../../../lib/withAuth'
+import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
 import { getTypedRepository } from '../../../db/utilites'
-import { generateTeamNumber } from '@/lib/utils'
-import { ActiveTimeTable } from '../../../db/models/billing/active_time';
+import { generateTeamNumber } from '@/lib/common/utils'
 import { TeamTable } from '../../../db/models/catalogs/teams';
 import { getTeamsByMainteamNumber } from '../../../handlers/handlers-get';  // расчеты
 

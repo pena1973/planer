@@ -10,7 +10,7 @@ import { UserUnitTable } from './../../../db/models/catalogs/user_unit';
 import { ActiveTimeTable } from './../../../db/models/billing/active_time';
 
 import { UserItem } from './../../../types/types';
-import { createAccessToken, createRefreshToken } from './../../../lib/auth'
+import { createAccessToken, createRefreshToken } from './../../../lib/common/auth'
 import { getTypedRepository } from './../../../db/utilites'
 import { getUser, getTeam, getLastAgreement } from './../../../handlers/handlers-auth';  // расчеты
 import { getUsersUnits, getTeamActivity } from './../../../handlers/handlers-get';  // расчеты

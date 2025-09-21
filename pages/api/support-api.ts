@@ -1,4 +1,4 @@
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
@@ -6,26 +6,27 @@ import { getTypedRepository } from './../../db/utilites'
 
 import { updateSupportMessage } from './../../handlers/handlers-update';  // расчеты
 
-import { SupportTable } from './../../db/models/support/support';
-import { SupportMessageItem } from './../../types/types';
-import { getSuportMessages } from './../../handlers/handlers-get';
+import { MailTable } from './../../db/models/support/mails';
+import { SupportMailItem } from './../../types/types';
+import { getSuportMails } from './../../handlers/handlers-get';
 
 interface RequestBody {
   userId: number,
   teamId: number,
-  supportMessage: SupportMessageItem;
+  supportMessage: SupportMailItem;
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 const db = await connectDb();
-  const supportRepository = getTypedRepository(db, 'SupportTable', SupportTable);
+  const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
 
   try {
   
     const { teamId: getTeamId } = req.query;
     switch (req.method) {
+      
       case 'GET':
-        const messages_ = await getSuportMessages(Number(getTeamId), supportRepository)
+        const messages_ = await getSuportMails(Number(getTeamId), supportRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -37,11 +38,10 @@ const db = await connectDb();
         break;
       case 'POST':
         // Извлекаем данные из тела запроса
-        const { supportMessage, userId, teamId } = req.body as RequestBody;
+        const { supportMessage, userId } = req.body as RequestBody;
 
         // СПИСОК ДЕЙСТВИЙ 
-        const resSupport = await updateSupportMessage(
-          Number(teamId),
+        const resSupport = await updateSupportMessage(          
           Number(userId),
           supportMessage,
           supportRepository
@@ -52,7 +52,7 @@ const db = await connectDb();
           return;
         }
 
-        const savedMessage = resSupport.savedMessage as SupportTable;
+        const savedMessage = resSupport.savedMessage as MailTable;
 
         const supportMessage_ = {
           id: savedMessage.id,
@@ -63,7 +63,8 @@ const db = await connectDb();
           userId: savedMessage.user_id,
           fromUser: savedMessage.fromUser,
           basedOn: savedMessage.basedOn,
-        } as SupportMessageItem
+          status:savedMessage.status,
+        } as SupportMailItem
 
         // отправляем ответ
         res.status(200).json({

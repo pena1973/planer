@@ -1,10 +1,10 @@
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
 import { getTypedRepository } from './../../db/utilites'
 
-import { getStatusPriority } from "./../../lib/utils"
+import { getStatusPriority } from "./../../lib/common/utils"
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';

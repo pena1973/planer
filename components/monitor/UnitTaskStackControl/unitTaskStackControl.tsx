@@ -9,7 +9,7 @@ import LoadOperControl from "./LoadOperControl/loadOperControl";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { useTranslation } from 'react-i18next';
 
-import { padNumberToFourDigits } from "@/lib/utils"
+import { padNumberToFourDigits } from "@/lib/client/utils.client"
 
 interface UnitTaskStackProcessProps {
   unit: UnitItem,

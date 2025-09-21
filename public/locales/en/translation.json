@@ -12,7 +12,8 @@
     "exit": "Log out",
     "unit-interface": "Plan",
     "unit-docs": "Docs",
-    "unit-profile": "Profile"
+    "unit-profile": "Profile",
+    "admin": "Admin"
   },
   "cards": {
     "stage": "Stage",
@@ -38,7 +39,11 @@
     "loginNotEntered": "Please enter your login",
     "passnNotEntered": "Please enter your password",
     "serverUnavailable": "Server is currently unavailable",
-    "recoveryMailSent": "Password recovery email has been sent"
+    "recoveryMailSent": "Password recovery email has been sent",
+    "loginLengthMustBe": "Login must be at least 5 characters and contain '@' and '.'.",
+    "passLengthMustBe": "Password must be at least 12 characters and include letters, digits, and special characters.",
+    "nicknameNotSelected": "No nickname selected.",
+    "pass1NotEqualPass2": "Passwords do not match."
   },
   "index": {
     "downloadBaner": "Banner uploaded",
@@ -76,7 +81,18 @@
     "visible": "(visible to everyone)",
     "nickname": "Nickname",
     "buttonRegister": "Register!",
-    "login": "Login!"
+    "login": "Login!",
+    "saving": "Saving…",
+    "changePass": "Change password",
+    "success": "Password changed successfully. You will be redirected to the home page in 10 seconds.",
+    "failure": "Failed to change the password. Please try again.",
+    "error": "Network error. Please try again.",
+    "code": "Code from the email",
+    "confirmation": "Code verification",
+    "canchange": "You can change the password.",
+    "mailconfirmed": "Email confirmed. You will be redirected to the home page in 10 seconds.",
+    "incorrectcode": "The code is incorrect or has expired.",
+   "session": "Confirmation session is missing. Please request the code again."
   },
   "planing": {
     "planed": "Planed",
@@ -153,8 +169,15 @@
     "cardtemplates": "Card templates",
     "notes": "Notes"
   },
+  "uomsCatalog": {
+    "filltitle": "Please enter the measurement name!",
+    "fillcode": "Please enter the measurement code!",
+    "codeNotUnique": "Measurement code is not unique!"
+  },
   "actionsCatalog": {
     "filltitle": "Please enter the action name!",
+    "fillcode": "Please enter the action code!",
+    "codeNotUnique": "Action code is not unique!",
     "listUpdated": "Action list updated",
     "code": "Code",
     "name": "Name",
@@ -308,7 +331,8 @@
     "cardStatus": "Card status",
     "cardSelect": "Select",
     "apply": "Apply",
-    "fixing": "fixing"
+    "fixing": "fixing",
+    "showClosed": "Show closed"
   },
   "reportUnitsKPI": {
     "wait": "Wait...",
@@ -338,16 +362,23 @@
     "reply": "Reply",
     "send": "Send",
     "cookie": "Cookie policy",
-    "docs": "Documentation"
+    "docs": "Documentation",
+    "toProcess": "To process",
+    "toConfirm": "Fixed",
+    "toClose": "To close"
   },
   "client": {
     "title": "Client name",
     "vat": "VAT number",
-    "address": "Address",
+    "address_line1": "Address line 1",
+    "address_line2": "Address line 2",
+    "city": "City",
+    "postal_code": "Postal code",
     "email": "Email",
     "phone": "Phone",
     "person": "Contact person",
-    "save": "Save"
+    "save": "Save",
+    "country": "Country"
   },
   "bills": {
     "date": "Date",
@@ -370,8 +401,7 @@
     "VAT": "with VAT",
     "price": "Price per point",
     "point": "point",
-    "notification1": "The charge is made on the 1st of each month for the previous month.",
-    "notification2": "When expenses exceed the balance, all teams will switch to inactive status.",
+    "notification": "Funds are deducted daily. When the balance is depleted, all teams will be set to inactive.",
     "active": "active",
     "activate": "activate",
     "deactivate": "deactivate"

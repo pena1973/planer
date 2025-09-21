@@ -3,7 +3,7 @@ import { PropsWithChildren, useState, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 import styles from "./layout.module.scss";
-import { logout } from '@/lib/logout'
+import { logout } from '@/lib/client/logout'
 import { ScreenSizeModal } from '@/components/ScreenSizeWarning/ScreenSizeModal'
 import CookieBanner from '@/components/CookieBanner/cookieBanner'
 
@@ -84,6 +84,8 @@ export default function Layout({ children }: PropsWithChildren) {
                         {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/resources">{t('layout.resources')}</Link>}
                         {(user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/monitor">{t('layout.monitor')}</Link>}
                         {(user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/support">{t('layout.support')}</Link>}
+                        {(user.isSystem) && (user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/admin">{t('layout.admin')}</Link>}
+                        
                         {(!user.isAdmin) && (user.id) && !(!loadingComplete) && activeTeam && <Link className={styles.header_menu_item} href="/unit-interface">{t('layout.unit-interface')}</Link>}
                         {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-docs">{t('layout.unit-docs')}</Link>}
                         {(!user.isAdmin) && (user.id) && !(!loadingComplete) && <Link className={styles.header_menu_item} href="/unit-profile">{t('layout.unit-profile')}</Link>}

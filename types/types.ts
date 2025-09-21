@@ -178,8 +178,7 @@ export interface UserUnitItem {
 }
 
 // хранить обрабатывать
-export enum UnitTypeEnum {
-    keep = 'keep',
+export enum UnitTypeEnum {    
     process = 'process',
     control = 'control',
 }
@@ -213,7 +212,8 @@ export enum DaysOfWeek {
 
 // рабочее  время компании
 export interface ScheduleItem {
-    team: TeamItem,
+    // team: TeamItem,
+    teamId: number,
     timeStartWork: number, // минут с начала дня 
     timeFinishWork: number, // минут с начала дня 
     breaks: { timeStart: number, timeFinish: number }[] // минут с начала дня 
@@ -226,7 +226,8 @@ export interface ScheduleItem {
 // Описание дня
 export interface CalendarItem {
     idDay: string,
-    date: Date,
+    // date: Date,
+    date: string,  // yyyy-mm-dd
     mounth: boolean,
     day: boolean,
     timeStartWork: number, // минут с начала дня 
@@ -371,13 +372,15 @@ export interface TCardContent {
 
 }
 
-export interface SupportMessageItem {
+export interface SupportMailItem {
     id: number, // если новое то - (Временный id) 
     date: string; // дата время писма
     title: string;
     body: string,
     userId: number;
+    teamId: number;
     fromUser: boolean, // направление истина от юзера, лож- от системы
     basedOn: number, // если это сообщение ответ то здесь id исходного письма.
-    // idChain: number, // id цепочки - равен исходному писму
+    status:StatusEnum, // Статус обработки
+    
 }

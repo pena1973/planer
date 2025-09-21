@@ -334,3 +334,12 @@ textarea {
         font-style: italic;
     }
 }
+
+select {
+    // Существующие стили...
+    border-radius: 6px;
+    padding: 5px;
+    border: $border_input;
+    color: $second_text_color;
+
+}

@@ -1,6 +1,6 @@
 
 import styles from "./contextMenuOuter.module.scss";
-import { padNumberToFourDigits, } from "@/lib/utils"
+import { padNumberToFourDigits, } from "@/lib/client/utils.client"
 import Image from 'next/image';
 import { useEffect, useState, useRef } from "react";
 

@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from './../../../db/database';
 import { getTypedRepository } from './../../../db/utilites'
 
-import { extractIdFromTeamNumber } from './../../../lib/utils';
+import { extractIdFromTeamNumber } from './../../../lib/common/utils';
 
 import { UserTable } from './../../../db/models/catalogs/users';
 import { TeamTable } from './../../../db/models/catalogs/teams';
@@ -14,9 +14,9 @@ import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
 import { ActiveTimeTable } from './../../../db/models/billing/active_time'
 import { BalanceTable } from './../../../db/models/billing/balance'
 
-import { updateSettings } from './../../../handlers/handlers-update';  // расчеты
-import { getCurrentDateInString } from "./../../../lib/timezone"
-import { TeamItem, UserItem, TimeZoneEnum, ScheduleItem, SettingsItem } from './../../../types/types';
+
+import { getCurrentDateInString } from "./../../../lib/common/timezone"
+import { TeamItem, UserItem, TimeZoneEnum } from './../../../types/types';
 
 import { sign } from 'jsonwebtoken';
 import {
@@ -25,7 +25,6 @@ import {
 } from './../../../handlers/handlers-auth';
 
 import { updateBalance } from './../../../handlers/handlers-update';
-import { assert } from 'console';
 
 interface RequestBody {
   login: string,
@@ -139,11 +138,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             balanceRepository,
             team.id,
             "",
-            100,
-            // new Date().toLocaleDateString('en-CA'),
+            100,            
             todayStr,
-            true,
-            // 'trial - ' + new Date().toLocaleDateString('en-CA'), "+", "")
+            true,            
             'trial - ' + todayStr, "+", "")
           if (!balanceRes.success) {
             console.log("баланс не пополнен  trial, teamId:" + team.id);

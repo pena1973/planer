@@ -1,4 +1,4 @@
-import { withAuth } from './../../lib/withAuth'
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
@@ -6,7 +6,7 @@ import { getTypedRepository } from './../../db/utilites'
 
 import { UserTable } from './../../db/models/catalogs/users';
 
-import { SupportTable } from './../../db/models/support/support';
+import { MailTable } from './../../db/models/support/mails';
 import { TeamTable } from "./../../db/models/catalogs/teams";
 import { UnitTable } from './../../db/models/catalogs/units'
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
@@ -47,7 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
 
   const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
-  const supportRepository = getTypedRepository(db, 'SupportTable', SupportTable);
+  const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   const unitsRepository = getTypedRepository(db, 'UnitTable', UnitTable);
   const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);

@@ -17,7 +17,7 @@ const UnitMenu: React.FC<UnitMenuProps> = ({
     return (
       <div key={elem.id} className={styles.container_menu_item} >
         <div className={styles.menu_title}>{elem.action.title}</div>
-        <div className={styles.menu_koef}>koef:{elem.koef}   </div>
+        <div className={styles.menu_koef}>k:{elem.koef}   </div>
       </div>
     )
   });

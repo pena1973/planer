@@ -19,7 +19,7 @@ export const downloadBaner = async (
     if (teamId !== undefined) params.append("teamId", String(teamId));
 
     try {
-        const res = await fetch(`/api/baner-api${params.toString() ? "?" + params.toString() : ""}`, {
+        const res = await fetch(`/api/admin/baner-api${params.toString() ? "?" + params.toString() : ""}`, {
 
             method: 'get',
             headers: new Headers({

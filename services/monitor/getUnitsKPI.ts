@@ -12,7 +12,7 @@ export const getUnitsKPI = async (
 ) => {
 
     try {
-        const res = await fetch(`api/report-units-kpi-api?userId=${userId}&teamId=${teamId}&today=${today.toLocaleDateString('en-CA')}${filter}`,
+        const res = await fetch(`api/monitor/report-units-kpi-api?userId=${userId}&teamId=${teamId}&today=${today.toLocaleDateString('en-CA')}${filter}`,
             {
                 method: 'get',
                 headers: new Headers({

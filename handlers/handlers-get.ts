@@ -1,5 +1,5 @@
 
-import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere } from 'typeorm';
+import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere,Not } from 'typeorm';
 
 // tables
 import { UnitTable } from './../db/models/catalogs/units'
@@ -12,7 +12,7 @@ import { TCardOperationTable } from './../db/models/data/t_card_operations'
 import { TCardStageTable } from './../db/models/data/t_card_stages'
 import { TemplateTable } from './../db/models/catalogs/templates'
 
-import { SupportMessageItem, TypeEnum } from './../types/types';
+import { SupportMailItem, TypeEnum } from './../types/types';
 import { ActionTable } from './../db/models/catalogs/actions';
 import { UOMsTable } from './../db/models/catalogs/uoms';
 import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
@@ -22,9 +22,10 @@ import { SettingsTable } from './../db/models/plan/settings';
 import { UserTable } from './../db/models/catalogs/users';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
 import { BillTable } from './../db/models/billing/bills';
+import { InvoiceTable } from './../db/models/billing/invoice';
 import { ClientTable } from './../db/models/billing/clients';
 
-import { SupportTable } from './../db/models/support/support';
+import { MailTable } from './../db/models/support/mails';
 
 import { TeamTable } from './../db/models/catalogs/teams';
 import { BanerTable } from './../db/models/support/baners';
@@ -41,13 +42,11 @@ import {
   TCardTermsItem, ProductItem, TemplateItem, TeamItem
 } from './../types/types';
 
-import { BillItem, ClientItem, MainItem } from './../types/service-types';
+import { ClientItem, InvoiceItem, MainItem } from './../types/service-types';
 import { BanerItem } from './../types/service-types';
-import { BillRowTable } from '@/db/models/billing/bill_row';
 
 import { getTeam } from './../handlers/handlers-auth';
-import { calcMonthlyTeamCosts } from './../handlers/calcMonthlyTeamCosts';
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/timezone"
+import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/common/timezone"
 
 //&&&&&&
 export async function getMain(
@@ -81,39 +80,111 @@ export async function getMain(
 
   return main;
 }
-// прогноз команды
-export async function getForecast(
+
+
+export async function getCostForDay(
   teamId: number,
-  year_: number,
-  month_: number,
+  day: string,  // yyyy-mm-dd
   teamsRepository: Repository<TeamTable>,
   activeTimeRepository: Repository<ActiveTimeTable>,
   mainRepository: Repository<MainTable>,
 ): Promise<number> {
 
-  // 1) Берём выбранную главную команду
-  const resTeam = await getTeam(Number(teamId), teamsRepository)
+  // тип минимум, который нужен для логики «включено/выключено»
+  type HasDirection = Pick<ActiveTimeTable, 'direction'>;
 
-  if (!resTeam.success || !resTeam.team) {
-    // res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });
-    return NaN;
+  function isEnableEvent(row: HasDirection): boolean {
+    return row.direction === 'start';
+  }
+  function getDaysInMonth(dayStr: string): number {
+    const [year, month] = dayStr.split('-').map(Number);
+    return new Date(year, month, 0).getDate();
   }
 
-  const team = resTeam.team;
+  const daysInMonth: number = getDaysInMonth(day);
 
-  // 2) Определяем «код» главной группы
-  //    - у подчинённой в main_team уже лежит код главной
-  //    - у главной там её собственный код
-  let groupCode = team.main_team;
+  // настройки цены
+  const main = await getMain(mainRepository, day);
+  if (!main) {
+    console.log('Не удалось обработать запрос getCostForDay');
+    return 0;
+  }
 
-  // 3) Получаем id всех команд этой группы (включая главную)
-  const teams = await getTeamsByMainteamNumber(String(groupCode), teamsRepository)
+  const price = main.price * 100; // в центах
+  const discount = main.discount;
 
-  // 4) Считаем прогноз по всем активным командам, с учетом возможного фильтра
-  const allCosts = await calcMonthlyTeamCosts(teams, teamsRepository, activeTimeRepository, mainRepository, year_, month_);
-  const forecast = +allCosts.reduce((acc, r) => acc + (r.amountteam ?? 0), 0).toFixed(2);
+  // главная команда
+  const resTeam = await getTeam(Number(teamId), teamsRepository);
+  if (!resTeam.success || !resTeam.team) return NaN;
+  const mainTeamInGrope = resTeam.team;
 
-  return forecast;
+  // код группы
+  const groupCode = mainTeamInGrope.main_team;
+
+  // все команды группы
+  const teams = await getTeamsByMainteamNumber(String(groupCode), teamsRepository);
+  const uniqIds = Array.from(new Set(teams.map(t => t.id)));
+  if (!uniqIds.length) return 0;
+
+  // === 1) события В ДЕНЬ (любые): если есть — день считается использованным
+  // select только нужные колонки, без any
+  const eventsToday = await activeTimeRepository.find({
+    select: ['team_id', 'date', 'direction'],
+    where: { team_id: In(uniqIds), date: day },
+  });
+  const usedToday = new Set<number>(eventsToday.map(e => e.team_id));
+
+  // === 2) последнее событие ДО ДНЯ для каждой команды
+  // Важно: обязательно вернуть direction!
+  const priorLatestRows: Array<Pick<ActiveTimeTable, 'team_id' | 'date' | 'direction'>> =
+    await activeTimeRepository.query(
+      `
+      SELECT a.team_id, a.date, a.direction
+      FROM active_time a
+      JOIN (
+        SELECT team_id, MAX(date) AS max_date
+        FROM active_time
+        WHERE team_id = ANY($1) AND date < $2
+        GROUP BY team_id
+      ) m
+        ON a.team_id = m.team_id AND a.date = m.max_date
+      `,
+      [uniqIds, day]
+    );
+
+  const activeBeforeDay = new Map<number, boolean>();
+  for (const r of priorLatestRows) {
+    activeBeforeDay.set(Number(r.team_id), isEnableEvent(r)); // true если последнее ДО дня — start
+  }
+
+  // === 3) финальный набор команд, по которым списываем:
+  // - если есть событие в сам день → списываем независимо от типа (даже если finish)
+  // - иначе смотрим последнее событие ДО дня: start → списываем, finish/нет событий → нет
+  const chargeTeamIds = new Set<number>();
+  for (const id of uniqIds) {
+    if (usedToday.has(id)) {
+      chargeTeamIds.add(id);
+      continue;
+    }
+    const wasActive = activeBeforeDay.get(id);
+    if (wasActive === true) {
+      chargeTeamIds.add(id);
+    }
+  }
+
+  // === 4) расчёт дневной стоимости (в центах), округление до целого
+  let dayCost = 0;
+  const dayPrice = price / daysInMonth;
+  for (const team of teams) {
+    if (chargeTeamIds.has(team.id)) {
+      const cost = (team.id === mainTeamInGrope.id)
+        ? dayPrice
+        : dayPrice * (1 - discount / 100);
+      dayCost += Math.round(cost);
+    }
+  }
+
+  return dayCost; // в центах
 }
 
 // баланс команды
@@ -134,12 +205,19 @@ export async function getBalance(
   })
 
   // суммируем с учётом направления
-  return rows.reduce((acc, tr) => {
-    const amount = Number(tr.summa) || 0
-    if (tr.direction === '+') return acc + amount
-    if (tr.direction === '-') return acc - amount
-    return acc // если вдруг другое значение — игнорируем
-  }, 0)
+  const total = rows.reduce((acc, tr) => {
+    const amount = Number(tr.summa) || 0;
+    switch (tr.direction) {
+      case '+':
+        return acc + amount;
+      case '-':
+        return acc - amount;
+      default:
+        return acc;
+    }
+  }, 0);
+
+  return Math.round((total + Number.EPSILON) * 100) / 100 || 0; // если NaN, то отдаём 0
 }
 
 // баланс всех команд
@@ -214,7 +292,7 @@ export async function getBalances(
   }))
 
   // Если нужно вернуть нули для команд без транзакций — раскомментируй блок ниже:
-  /*
+
   if (teamIds && teamIds.length > 0) {
     const map = new Map(result.map(x => [x.teamId, x.balance]))
     return teamIds.map(id => ({
@@ -222,10 +300,11 @@ export async function getBalances(
       balance: Number(map.get(id) ?? 0),
     }))
   }
-  */
+
 
   return result
 }
+
 
 // все команды
 export async function getTeams(
@@ -246,6 +325,7 @@ export async function getTeams(
     });
   return activeTeams;
 }
+
 // состояние активности команд
 export async function getTeamActivity(
   teams: TeamItem[],
@@ -282,40 +362,40 @@ export async function getTeamActivity(
     return { teamId: id, active };
   });
 }
-//&&&&&&
-// события активености  используем для определения дней активности
-export async function getActiveTime(
-  activeTimeRepository: Repository<ActiveTimeTable>,
-  at: Date | string,
-  teamIds: number[]
-): Promise<{ success: boolean; events: ActiveTimeTable[]; message?: string }> {
-  if (!teamIds?.length) {
-    return { success: true, events: [], message: "teamIds пуст" };
-  }
+// //&&&&&&
+// // события активености  используем для определения дней активности
+// export async function getActiveTime(
+//   activeTimeRepository: Repository<ActiveTimeTable>,
+//   at: Date | string,
+//   teamIds: number[]
+// ): Promise<{ success: boolean; events: ActiveTimeTable[]; message?: string }> {
+//   if (!teamIds?.length) {
+//     return { success: true, events: [], message: "teamIds пуст" };
+//   }
 
-  const uniqIds = Array.from(new Set(teamIds));
+//   const uniqIds = Array.from(new Set(teamIds));
 
-  const toYMD = (d: Date | string) =>
-    typeof d === "string" ? d : d.toISOString().slice(0, 10);
-  const endOfMonthUTC = (y: number, m01: number) => new Date(Date.UTC(y, m01, 0));
-  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+//   const toYMD = (d: Date | string) =>
+//     typeof d === "string" ? d : d.toISOString().slice(0, 10);
+//   const endOfMonthUTC = (y: number, m01: number) => new Date(Date.UTC(y, m01, 0));
+//   const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
-  const atStr = toYMD(at);
-  const year = Number(atStr.slice(0, 4));
-  const month01 = Number(atStr.slice(5, 7));
-  const mEndStr = ymd(endOfMonthUTC(year, month01)); // 'YYYY-MM-DD'
+//   const atStr = toYMD(at);
+//   const year = Number(atStr.slice(0, 4));
+//   const month01 = Number(atStr.slice(5, 7));
+//   const mEndStr = ymd(endOfMonthUTC(year, month01)); // 'YYYY-MM-DD'
 
-  const events = await activeTimeRepository.find({
-    where: {
-      team_id: In(uniqIds),
-      // 'date' — varchar в формате 'YYYY-MM-DD', лексикографическое сравнение корректно
-      date: LessThanOrEqual(mEndStr) as any,
-    },
-    order: { date: "ASC", created_at: "ASC" },
-  });
+//   const events = await activeTimeRepository.find({
+//     where: {
+//       team_id: In(uniqIds),
+//       // 'date' — varchar в формате 'YYYY-MM-DD', лексикографическое сравнение корректно
+//       date: LessThanOrEqual(mEndStr) as any,
+//     },
+//     order: { date: "ASC", created_at: "ASC" },
+//   });
 
-  return { success: true, events };
-}
+//   return { success: true, events };
+// }
 
 // все команды по главной
 export async function getTeamsByMainteamNumber(
@@ -350,12 +430,16 @@ export async function getClient(
   });
 
   const client = {
-    adress: receivedClient?.adress ?? "",
+    address_line1: receivedClient?.address_line1 ?? "",
+    address_line2: receivedClient?.address_line2 ?? "",
+    city: receivedClient?.city ?? "",
+    postal_code: receivedClient?.postal_code ?? "",
     email: receivedClient?.email ?? "",
     phone: receivedClient?.phone ?? "",
-    person: receivedClient?.person ?? "",
     reg_n: receivedClient?.reg_n ?? "",
     title: receivedClient?.title ?? "",
+    country: receivedClient?.country ?? "",
+    customerId: receivedClient?.customer_id ?? "",
   } as ClientItem;
 
   return client;
@@ -370,13 +454,17 @@ export async function getClients(
   const clients = receivedClients
     .map(client => {
       return {
-        adress: client.adress,
+        address_line1: client.address_line1,
+        address_line2: client.address_line2,
+        city: client.city,
+        postal_code: client.postal_code,
         email: client.email,
         phone: client.phone,
-        person: client.person,
         reg_n: client.reg_n,
         title: client.title,
-        teamId: client.team_id
+        teamId: client.team_id,
+        country: client?.country ?? "",
+        customerId: client?.customer_id ?? "",
       } as ClientItem;
     })
 
@@ -558,7 +646,7 @@ export async function getUnitLoads(
         title: unitAction?.action.title ?? "",
         duration: row.tOper_duration,
         interruptible: unitAction?.action.interruptible ?? false,
-        koef: unitAction?.koef ?? 1,
+        koef: unitAction?.koef ?? 1.00,
       },
     } as UnitLoadItem;
   });
@@ -876,10 +964,10 @@ export async function getTCardsTerms(
   tCardDateTo: string | undefined,
   tCardStatus: StatusEnum | undefined,
   tCardRepository: Repository<TCardTable>,
-  tCardOperationRepository: Repository<TCardOperationTable>,
-  // tCardProductRepository: Repository<TCardProductTable>,
+  tCardOperationRepository: Repository<TCardOperationTable>,  
   unitLoadRepository: Repository<UnitLoadTable>,
   timezone: string,
+  showClosed:boolean
 ): Promise<{ tCardsTerms: TCardTermsItem[], loads: UnitLoadItem[] }> {
 
   const where: FindOptionsWhere<TCardTable> = {
@@ -908,18 +996,16 @@ export async function getTCardsTerms(
   } else if (dateTo) {
     where.date = LessThanOrEqual(toYMD(dateTo));
   }
-  // if (dateFrom && dateTo) {
-  //   where.date = Between(dateFrom, dateTo);
-  // } else if (dateFrom) {
-  //   where.date = MoreThanOrEqual(dateFrom);
-  // } else if (dateTo) {
-  //   where.date = LessThanOrEqual(dateTo);
-  // }
+  
+  if (!showClosed){
+  where.status = Not(StatusEnum.closed);
+  }
 
   if (tCardStatus) {
     where.status = tCardStatus;
   }
 
+  
   // Создаем объект фильтра для карты
   const tCardFilter: FindManyOptions<TCardTable> = { where, };
 
@@ -1188,21 +1274,26 @@ export async function getTeamShedule(
   teamScheduleRepository: Repository<TeamScheduleTable>,
   teamsRepository: Repository<TeamTable>
 ): Promise<ScheduleItem> {
-  const [scheduleTable, team] = await Promise.all([
-    teamScheduleRepository.findOne({ where: { team_id: teamId } }),
-    teamsRepository.findOne({ where: { id: teamId } })
-  ]);
+  //const [scheduleTable, team] = await Promise.all([
+  // teamScheduleRepository.findOne({ where: { team_id: teamId } }),
+  //  teamsRepository.findOne({ where: { id: teamId } })
+  // ]);
 
-  if (!scheduleTable || !team) return {} as ScheduleItem;
+  // if (!scheduleTable || !team) return {} as ScheduleItem;
+
+  const scheduleTable = await teamScheduleRepository.findOne({ where: { team_id: teamId } });
+  
+  if (!scheduleTable) return {} as ScheduleItem;
 
   return {
-    team: {
-      id: team.id,
-      title: team.title,
-      coment: team.coment,
-      prefix: team.prefix,
-      main_team: team.main_team,
-    },
+    // team: {
+    //   id: team.id,
+    //   title: team.title,
+    //   coment: team.coment,
+    //   prefix: team.prefix,
+    //   main_team: team.main_team,
+    // },
+    teamId: scheduleTable.team_id,
     timeStartWork: scheduleTable.timeStartWork,
     timeFinishWork: scheduleTable.timeFinishWork,
     breaks: scheduleTable.breaks ?? [],
@@ -1219,48 +1310,49 @@ export async function getTeamShedule(
   };
 }
 
-// // расписание команд
-// export async function getTeamsShedule(
-//   teams: TeamItem[],
-//   teamScheduleRepository: Repository<TeamScheduleTable>,
+// расписание команд
+export async function getTeamsShedule(
+  teams: TeamItem[],
+  teamScheduleRepository: Repository<TeamScheduleTable>,
 
-// ): Promise<ScheduleItem[]> {
+): Promise<ScheduleItem[]> {
 
-//   const teamIds = teams.map(team => team.id)
+  const teamIds = teams.map(team => team.id)
 
-//   if (!teamIds || teamIds.length === 0) return [];
-//   const scheduleTables = await teamScheduleRepository.find({
-//     where: { team_id: In([...new Set(teamIds)]) },
-//   });
+  if (!teamIds || teamIds.length === 0) return [];
+  const scheduleTables = await teamScheduleRepository.find({
+    where: { team_id: In([...new Set(teamIds)]) },
+  });
 
-//   const schedules = scheduleTables.map(scheduleTable => {
-//     const team = teams.find(team => team.id === scheduleTable.team_id) ?? {} as TeamItem
+  const schedules = scheduleTables.map(scheduleTable => {
+    // const team = teams.find(team => team.id === scheduleTable.team_id) ?? {} as TeamItem
 
-//     return {
-//       team: {
-//         id: team.id,
-//         title: team.title,
-//         coment: team.coment,
-//         prefix: team.prefix,
-//         main_team: team.main_team,
-//       },
-//       timeStartWork: scheduleTable.timeStartWork,
-//       timeFinishWork: scheduleTable.timeFinishWork,
-//       breaks: scheduleTable.breaks ?? [],
-//       holidays: (scheduleTable.holidays ?? []).map(date =>
-//         new Date(date).toLocaleDateString('en-CA')
-//       ),
-//       weekends: scheduleTable.weekends ?? [],
-//       workdays: (scheduleTable.workdays ?? []).map(wd => ({
-//         date: new Date(wd.date).toLocaleDateString('en-CA'),
-//         timeStart: wd.timeStart,
-//         timeFinish: wd.timeFinish,
-//       })),
-//       timeZone: scheduleTable.timeZone as TimeZoneEnum,
-//     };
-//   })
-//   return schedules;
-// }
+    return {
+      // team: {
+      //   id: team.id,
+      //   title: team.title,
+      //   coment: team.coment,
+      //   prefix: team.prefix,
+      //   main_team: team.main_team,
+      // },
+      teamId:scheduleTable.team_id,
+      timeStartWork: scheduleTable.timeStartWork,
+      timeFinishWork: scheduleTable.timeFinishWork,
+      breaks: scheduleTable.breaks ?? [],
+      holidays: (scheduleTable.holidays ?? []).map(date =>
+        new Date(date).toLocaleDateString('en-CA')
+      ),
+      weekends: scheduleTable.weekends ?? [],
+      workdays: (scheduleTable.workdays ?? []).map(wd => ({
+        date: new Date(wd.date).toLocaleDateString('en-CA'),
+        timeStart: wd.timeStart,
+        timeFinish: wd.timeFinish,
+      })),
+      timeZone: scheduleTable.timeZone as TimeZoneEnum,
+    };
+  })
+  return schedules;
+}
 
 
 // &&&&&
@@ -1552,13 +1644,6 @@ export async function getUsers(
       message: 'Данные успешно получены.',
     };
 
-    // } catch (e: any) {
-    //   return {
-    //     success: false,
-    //     users: [],
-    //     message: `Ошибка при получении данных: ${e.message}`,
-    //   };
-    // }
   } catch (e: unknown) {
     let message = "Ошибка при получении данных.";
     if (e instanceof Error) {
@@ -1576,17 +1661,15 @@ export async function getUsers(
 // банер
 export async function getBaner(
   teamId: number | undefined,
-  userId: number | undefined,
   banerRepository: Repository<BanerTable>
 ): Promise<BanerItem[]> {
   const currentDate = new Date().toLocaleDateString("en-CA"); // Получаем текущую дату в формате "YYYY-MM-DD"
 
   // собираем условия динамически
   const where: any = {
-    date_from: MoreThanOrEqual(currentDate),
-    date_to: LessThanOrEqual(currentDate),
+    date_to: MoreThanOrEqual(currentDate),
+    date_from: LessThanOrEqual(currentDate),
     ...(teamId !== undefined ? { team_id: teamId } : {}),
-    ...(userId !== undefined ? { user_id: userId } : {}),
   };
 
   const receivedBaner = await banerRepository.find({ where });
@@ -1603,135 +1686,34 @@ export async function getBaner(
 
 
 // счета
-export async function getBills(
+export async function getInvoices(
   teamId: number,
-  billsRepository: Repository<BillTable>
-): Promise<BillItem[]> {
+  invoicesRepository: Repository<InvoiceTable>
+): Promise<InvoiceItem[]> {
 
-  // Строим фильтр для поиска
-
-  const filter: { team_id?: number; } = {};
-
-  if (teamId) {
-    filter.team_id = teamId;
-  }
-
-  // Выполняем запрос с фильтрацией
-  const receivedBills = await billsRepository.find({
-    where: filter,  // Применяем фильтр к запросу
+  const receivedInvoices = await invoicesRepository.find({
+    where: { team_id: teamId },
   });
-  // console.log(receivedUOMS);
 
-  const bills__ = receivedBills
-    .map(bill => {
+  const invoices = receivedInvoices
+    .map(invoice => {
       return {
-        id: bill.id,
-        date: new Date(bill.date).toLocaleDateString('en-CA'),
-        title: bill.title,
-        teamId: bill.team_id,
-      } as BillItem;
+        id: invoice.id,
+        date: invoice.paid_at ? new Date(invoice.paid_at).toLocaleDateString('en-CA') : "",
+        invoice: `Invoice number ${invoice.stripe_invoice_number}`,
+        link: invoice.invoice_pdf_url ?? ""
+      } as InvoiceItem;
     });
 
-  return bills__;
-}
-// счета
-export async function getBillById(
-  teamId: number,
-  billId: number,
-  billsRepository: Repository<BillTable>,
-  billRowsRepository: Repository<BillRowTable>,
-  mainRepository: Repository<MainTable>,
-  clientRepository: Repository<ClientTable>
-): Promise<BillItem | null> {
-
-  // Выполняем запрос с фильтрацией
-  const receivedBill = await billsRepository.findOne({
-    where: {
-      id: billId,
-      team_id: teamId
-    },
-  });
-
-  if (!receivedBill) return null;
-
-  // собираем счет 
-
-  // продавец
-  const main = await getMain(mainRepository, receivedBill.date);
-  const seller = {
-    title: main.title,
-    address: main.adress,
-    reg_n: main.reg_n,
-    email: main.email,
-    phone: main.phone,
-    person: main.person
-  }
-  // покупатель
-  const client_ = await getClient(teamId, clientRepository);
-  const client = { title: client_.title, address: client_.adress, reg_n: client_.reg_n, email: client_.email, phone: client_.phone, person: client_.person }
-
-  // строки счета
-  // Выполняем запрос с фильтрацией
-  const receivedBillRows = await billRowsRepository.find({
-    where: {
-      billId: billId,
-    },
-  });
-  let amount = 0;
-
-  const rows = receivedBillRows
-    .map(row => {
-      amount = amount + Number(row.amount);
-      return {
-        id: row.id,
-        billableTeamNumber: row.billable_team_number,
-        amount: Number(row.amount),
-        discount: row.discount,
-        dateFrom: new Date(row.date_from).toLocaleDateString('en-CA'),
-        dateTo: new Date(row.date_to).toLocaleDateString('en-CA'),
-        activeDays: row.activeDays,
-        price: row.price,
-        carency: row.carency
-      };
-
-    });
-
-  const totalAmount = amount * (1 + Number(main.VAT) / 100);
-
-  const addDaysISO = (date: string | Date, days: number): string => {
-    // Приводим к UTC-полуночи, чтобы исключить смещения TZ/DST
-    const base = typeof date === 'string'
-      ? new Date(date + 'T00:00:00Z')
-      : new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    base.setUTCDate(base.getUTCDate() + days);
-    return base.toLocaleDateString('en-CA');
-  }
-
-  const bill = {
-    id: receivedBill.id,
-    date: receivedBill.date, // период за который вымавлен счет
-    dueDate: addDaysISO(receivedBill.date, 10),// оплатить до
-    title: receivedBill.title, // название счета в таблице, например за август 2023
-    teamId: receivedBill.team_id, // id команды, для которой выдан счет
-    coment: "",
-    amount: amount, // общая сумма счета
-    vat: Number(receivedBill.vat),
-    vatAmount: Number(receivedBill.vat_amount),
-    totalAmount: totalAmount,
-    client: client, // клиент, для которого выдан счет
-    seller: seller, // продавец, который выставил счет
-    rows: rows,
-  } as BillItem;
-
-  return bill;
+  return invoices;
 }
 
 
-// тех поддержка
-export async function getSuportMessages(
-  teamId: number,
-  supportRepository: Repository<SupportTable>
-): Promise<SupportMessageItem[]> {
+// тех поддержка получение
+export async function getSuportMails(
+  teamId: number | null,
+  supportRepository: Repository<MailTable>
+): Promise<SupportMailItem[]> {
 
   // Строим фильтр для поиска
 
@@ -1745,7 +1727,7 @@ export async function getSuportMessages(
   const receivedSuportMessages = await supportRepository.find({
     where: filter,  // Применяем фильтр к запросу
   });
-  // console.log(receivedUOMS);
+
 
   const suportMessages = receivedSuportMessages
     .map(mes => {
@@ -1757,6 +1739,8 @@ export async function getSuportMessages(
         userId: mes.user_id,
         fromUser: mes.fromUser,
         basedOn: mes.basedOn,
+        teamId: mes.team_id,
+        status: mes.status,
       };
     });
 

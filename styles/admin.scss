@@ -4,11 +4,12 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
-    height: inherit;
-    // padding-top: 40px;
+    // height: inherit;
+    height: auto;
     flex: 1;
     width: 100%;
-
+    // background-color: aqua;
+overflow-y: auto;
     @media screen and (max-width: 650px) {
         flex-direction: column;
         justify-content: flex-start;
@@ -20,13 +21,15 @@
 
 .container_admin_left {
     display: flex;
-    padding: 20px;
+    padding: 10px;
     flex-direction: column;
-    // justify-content: center;
-    // height: calc(100vh - 400px);
-    //  height: inherit;
+    // border: $border;
+    // border-radius: $border-radius;
     width: 40%;
-    background-color: beige;
+    max-width: 450px;
+    // background-color: beige;
+    margin: 0 5px;
+    height: max-content;
 
     @media screen and (max-width: 650px) {
         display: flex;
@@ -39,31 +42,36 @@
 
 .container_admin_midle {
     display: flex;
-    padding: 20px;
+    padding: 10px;
     flex-direction: column;
-    // justify-content: center;
-    //  display: flex;
-    // height: calc(100vh - 400px);
-      height: inherit;
-    width: 40%;
-    background-color: rgb(183, 189, 181);
+
+    // height: inherit;
+    width: 60%;
+    // border: $border;
+    // border-radius: $border-radius;
+    // background-color: rgb(183, 189, 181);
     align-items: center;
+    margin: 0 5px;
+    height: max-content;
 
     @media screen and (max-width: 650px) {
         width: 95%;
         height: auto;
     }
 }
+
 .container_admin_right {
     display: flex;
-     padding: 20px;
+    padding: 10px;
     flex-direction: column;
-    // justify-content: center;
-    // height: calc(100vh - 400px);
-    height: inherit;
+    // height: inherit;
     width: 40%;
-    background-color: rgb(190, 190, 100);
+    // border: $border;
+    // border-radius: $border-radius;
+    // background-color: rgb(190, 190, 100);
     align-items: center;
+    margin: 0 5px;
+   height: max-content;
 
     @media screen and (max-width: 650px) {
         width: 95%;
@@ -75,13 +83,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 10px 0;
+    margin-bottom: 10px;
+    padding: 5px;
     border: $border;
     border-radius: $border-radius;
     min-height: 50px;
     width: 100%;
-      background-color: $main_body_background_color;
-      
+    background-color: $main_body_background_color;
+
 }
 
 .index_title {
@@ -103,15 +112,39 @@
     flex-direction: column;
 }
 
+.label_baner {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 20px);
+}
+
 .input_admin {
     margin: 10px;
 }
-.message_admin{
+
+.input_baner {
+    width: 100%;
+    margin: 10px;
+}
+
+.input_locale {
+    width: 30px;
+}
+
+.message_admin {
     margin: 10px;
     background: $table_body_background_color;
     height: 40px;
-    width: calc( 100% - 20px);
+    width: calc(100% - 20px);
+    border: $border;
+    border-radius: $border-radius;
 }
+
+.period_baner {
+    display: flex;
+    flex-direction: row;
+}
+
 // .index_describtion {
 //     display: flex;
 //     flex-direction: column;

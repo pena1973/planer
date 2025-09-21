@@ -28,7 +28,7 @@ export const moveLoad = async (
             // ЗАПРОС НА СЕРВЕР сдвигаем планирование с учетом прибитого лоада
             // проверяем согласованность предыдущих и перепланируем последующие
             try {
-                const res = await fetch(`/api/pre-moveload-api`,
+                const res = await fetch(`/api/plan/pre-moveload-api`,
                     {
                         method: 'post',
                         headers: new Headers({

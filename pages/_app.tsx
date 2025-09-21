@@ -68,11 +68,11 @@ import { store, persistor } from '@/store';
 
 import 'reflect-metadata';
 import { I18nextProvider } from 'react-i18next';
-import i18n from '@/lib/i18n';
+import i18n from '@/lib/client/i18n.client';
 
 import type { AppProps } from 'next/app';
 
-import '../lib/globalFetch';
+import '../lib/client/globalFetch';
 
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';

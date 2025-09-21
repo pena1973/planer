@@ -1,3 +1,4 @@
+// db/entities.ts
 
 import { TCardTable } from './models/data/t_cards';
 import { TCardOperationTable } from './models/data/t_card_operations';
@@ -21,15 +22,16 @@ import { UnitExceptionTable } from './models/plan/unit_exceptions';
 import { UnitLoadTable } from './models/plan/unit_loads';
 import { SettingsTable } from './models/plan/settings';
 
-import { SupportTable } from './models/support/support';
-import { BillTable } from './models/billing/bills';
-import { BillRowTable } from './models/billing/bill_row';
+import { MailTable } from './models/support/mails';
+import { JobSettingsTable } from './models/job/job-settings';
+
 import { ClientTable } from './models/billing/clients';
 import { BanerTable } from './models/support/baners';
 import { BalanceTable } from './models/billing/balance';
 import { ActiveTimeTable } from './models/billing/active_time';
 import { MainTable } from './models/billing/main';
 import { VerificationCodeTable } from './models/auth/verification_code';
+import {InvoiceTable} from './models/billing/invoice'; 
 
 export const entities = {
   TCardTable,
@@ -50,16 +52,16 @@ export const entities = {
   UnitExceptionTable,
   UnitLoadTable,
   SettingsTable,
-  SupportTable,
-  BillTable,
+  MailTable,  
   ProductTable,
   BanerTable,
-  BillRowTable,
   ClientTable,
   BalanceTable,
   ActiveTimeTable,
   MainTable,
-  VerificationCodeTable
+  VerificationCodeTable,
+  InvoiceTable,
+  JobSettingsTable
 };
 
 export const getEntities = () => Object.values(entities);

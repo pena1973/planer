@@ -10,7 +10,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from './../../../db/database';
 import { getTypedRepository } from './../../../db/utilites';
 import { UserTable } from './../../../db/models/catalogs/users';
-// import { scryptHash } from './../../../lib/scrypt';
 import { resetUserPass } from './../../../handlers/handlers-auth';
 
 interface RequestBody {

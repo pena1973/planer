@@ -7,7 +7,7 @@ import { z } from 'zod';
 import connectDb from './../../../db/database';
 import { getTypedRepository } from './../../../db/utilites';
 import { VerificationCodeTable } from './../../../db/models/auth/verification_code';
-import { genCode, hashCode, addMinutes } from './../../../lib/code';
+import {genCode, hashCode, addMinutes } from './../../../lib/server/code';
 
 const APP_BASE_URL =
     process.env.APP_BASE_URL ||
@@ -98,8 +98,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { email, purpose, locale } = parsed.data;
 
     try {
+       
         // 1) Сгенерировать код
-        const code = genCode(6);
+        const code = await genCode(6);
 
         // 2) Сохранить хэш в БД
         const db = await connectDb();

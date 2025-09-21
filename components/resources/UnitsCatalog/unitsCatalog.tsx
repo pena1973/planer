@@ -2,7 +2,7 @@
 import styles from "./unitsCatalog.module.scss";
 import { saveUnits } from '@/services/resources/saveUnits';
 import { UnitItem, UnitBelongEnum, UnitTypeEnum, ActionItem, UnitActionItem, UnitExceptionItem, TimeTypeEnum } from '@/types/types';
-import { generateUniqueIdc } from '@/lib/utils'
+import { generateUniqueIdc } from '@/lib/client/utils.client'
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
@@ -15,7 +15,7 @@ import DropdownSelectTimeType from "@/components/resources/UnitsCatalog/Dropdown
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
-import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/timezone"
+import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/client/timezone.client"
 import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
@@ -221,10 +221,9 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         const newUnit = {
             title: "Юнит",
             code: generateUniqueCode(unitsValue),
-            retool: 1,
+            retool: 15,
             modified: true,
             idc: generateUniqueIdc(),
-            // actions: [] as { action: ActionItem, koef: number }[],
         } as UnitItem;
         setUnitsValue([...unitsValue, newUnit])
         setFocusIndexUnit(unitsValue.length)
@@ -249,7 +248,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
     ////////// для операций юнита
     // На клиенте
-    const changeUnitActionHandler = (idToChange: number | undefined, idcToChange: number, value: number | null | { id: number, title: string }, field: string) => {
+    const changeUnitActionHandler = (idToChange: number | undefined, idcToChange: number, value: number | null  | { id: number, title: string }, field: string) => {
         unitModified();
         // отклонения
         const actionsValueUpdated = [...unitActionsValue]
@@ -276,7 +275,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
                 break;
             case "koef":
-                const value_k = value as number;
+                const value_k = Number(value);
                 unitaction = { ...unitaction, koef: value_k }
                 break;
             default:
@@ -296,7 +295,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                 idc: generateUniqueIdc(),
                 unitId: unit.id,
                 unitIdc: unit.idc,
-                koef: 1
+                koef: 1.00
             } as UnitActionItem]
         setUnitActionsValue(actionsValueUpdated);
     };
@@ -359,7 +358,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     // На клиенте
     const addExceptionHandler = () => {
         unitModified();
-         const todayStr = getCurrentDateInString(schedule.timeZone);
+        const todayStr = getCurrentDateInString(schedule.timeZone);
         const unit = unitsValue[focusIndexUnit];
         // const exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: new Date().toLocaleDateString("en-CA") } as UnitExceptionItem]
         const exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: todayStr } as UnitExceptionItem]
@@ -431,19 +430,32 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                 <input
                     className={styles.units_retool}
                     id={`retool-${index}`}
+                    type="text"
                     autoComplete="off"
-                    value={elem.retool}
-                    type="number"
-                    max={2147483647}
-                    min={0}
-                    onChange={e => {
-                        const value = e.target.value;
-                        if (/^\d*$/.test(value)) {
-                            changeHandler(index, e.target.value, "retool");
-                        }
+                    value={elem.retool ?? ""}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        // Разрешаем только цифры
+                        const v = e.target.value.replace(/\D+/g, "");
+                        changeHandler(index, v, "retool");
                     }}
+                    onBlur={() => {
+                        // гарантируем строку
+                        const rawStr = String(elem.retool ?? "");
+
+                        // если пусто — оставляем пусто
+                        if (rawStr === "") return;
+
+                        // нормализуем и ограничиваем диапазон
+                        const n = Number(rawStr); // уберёт ведущие нули
+                        const clamped = Math.max(0, Math.min(2147483647, Number.isFinite(n) ? n : 0));
+
+                        // отдаём строку
+                        changeHandler(index, String(clamped), "retool");
+                    }}
+
                     onFocus={() => setFocusIndexUnit(index)}
                 />
+
             </td>
             <td>
                 <DropdownSelectType
@@ -485,22 +497,17 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                 </td>
                 <td>
                     <input
-                        // className={styles.exception_date}
                         id={`date-${elem.id}`}
                         autoComplete="off"
                         value={elem.date ? (new Date(elem.date)).toLocaleDateString('en-CA') : ""}
                         type="date"
                         onChange={e => {
-                            // const date = new Date(e.target.value);
-                            // date.setHours(0, 0, 0, 0);
-                            // changeExceptionHandler(elem.id, elem.idc, date.toLocaleDateString("en-CA"), "date");
                             changeExceptionHandler(elem.id, elem.idc, e.target.value, "date");
                         }}
                     />
                 </td>
                 <td>
                     <input
-                        // className={styles.exception_time}
                         id={`timeStart-${elem.id}`}
                         autoComplete="off"
                         value={elem.timeStart !== undefined
@@ -516,7 +523,6 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                 </td>
                 <td>
                     <input
-                        // className={styles.exception_time}
                         id={`timeFinish-${elem.id}`}
                         autoComplete="off"
                         value={elem.timeFinish !== undefined
@@ -574,17 +580,34 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                         <input
                             className={styles.unit_koef}
                             id={`koef-${index}`}
-                            // autoComplete="off"
-                            value={elem.koef}
-                            type="number"
-                            step="0.01"
-                            max={2147483647}
-                            min={0}
-                            onChange={e => {
-                                const value = e.target.value;
-                                if (/^\d*(,|\.)?\d{0,2}?$/.test(value)) {
-                                    changeUnitActionHandler(elem.id, elem.idc, Number(e.target.value), "koef");
+                            type="text"
+                            inputMode="decimal"
+                            pattern="^\\d*(?:[,.]\\d{0,2})?$"
+                            // Ничего не пишем в стор во время набора — поле "само по себе"
+                            defaultValue={elem.koef == null ? '' : Number(elem.koef).toFixed(2).replace('.', ',')}
+                            onBlur={(e) => {
+                                const raw = (e.currentTarget.value || '').trim();
+                                // Пусто → передаём 0 и показываем "0,00"
+                                if (raw === '') {
+                                    changeUnitActionHandler(elem.id, elem.idc, 0, 'koef');
+                                    e.currentTarget.value = '0,00';
+                                    return;
                                 }
+
+                                // Нормализация: ','→'.', clamp [0..2147483647], округление до 2 знаков
+                                const n = Number(raw.replace(',', '.'));
+                                if (!Number.isFinite(n)) {
+                                    changeUnitActionHandler(elem.id, elem.idc, 0, 'koef');
+                                    e.currentTarget.value = '0,00';
+                                    return;
+                                }
+
+                                const clamped = Math.min(2147483647, Math.max(0, n));
+                                const rounded = Math.round(clamped * 100) / 100;
+
+                                // В стор — NUMBER; в поле — "NNN,NN"
+                                changeUnitActionHandler(elem.id, elem.idc, rounded, 'koef');
+                                e.currentTarget.value = rounded.toFixed(2).replace('.', ',');
                             }}
                         />
                     </td>

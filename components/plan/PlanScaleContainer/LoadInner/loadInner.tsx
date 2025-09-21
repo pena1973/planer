@@ -5,7 +5,7 @@ import Image from "next/image";
 import pinon from "@/public/point-rem.png";
 import pinof from "@/public/pin_of-rem.png";
 import ContextMenuInner from "./ContextMenuInner/contextMenuInner";
-import { padNumberToFourDigits } from "@/lib/utils";
+import { padNumberToFourDigits } from "@/lib/client/utils.client";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 export interface LoadProps {

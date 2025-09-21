@@ -10,21 +10,33 @@ import { VerificationCodeTable } from './../db/models/auth/verification_code';
 import { SettingsTable } from './../db/models/plan/settings'
 import { TeamScheduleTable } from './../db/models/plan/team_schedule'
 
-
-
 // types
 import { UserItem, TeamItem, SettingsItem, TimeZoneEnum, DaysOfWeek, ScheduleItem, } from './../types/types';
-import { generateTeamNumber } from '@/lib/utils';
-import { checkCode } from './../lib/code';
-// хеш функция 
-export const hashFoo = async (data: string) => {
-  const { createHmac } = await import('node:crypto')
-  const hash = createHmac('sha256', data)
-    .digest('hex');
-  return hash
-}
+import { generateTeamNumber } from '@/lib/common/utils';
+import { checkCode } from './../lib/server/code';
+// // хеш функция 
+// export const hashFoo = async (data: string) => {
+//   const { createHmac } = await import('node:crypto')
+//   const hash = createHmac('sha256', data)
+//     .digest('hex');
+//   return hash
+// }
+// handlers/handlers-auth.ts
 
-import { getCurrentDateInString, } from "@/lib/timezone"
+// хеш функция — без import('crypto')
+export const hashFoo = async (data: string) => {
+  const req = eval('require') as NodeJS.Require;              // <-- ключевой трюк
+  const { createHmac } = req('crypto') as typeof import('crypto');
+
+  const hash = createHmac('sha256', data)
+    .update(data)
+    .digest('hex');
+
+  return hash;
+};
+
+
+import { getCurrentDateInString, } from "@/lib/common/timezone"
 // import { time } from 'node:console';
 
 export async function createNewTeam(

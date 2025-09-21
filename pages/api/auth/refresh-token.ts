@@ -1,6 +1,6 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { verifyRefreshToken, createAccessToken } from './../../../lib/auth'
+import { verifyRefreshToken, createAccessToken } from './../../../lib/common/auth'
 
 export interface TokenPayload {
   login: string;

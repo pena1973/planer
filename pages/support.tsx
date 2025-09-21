@@ -1,11 +1,11 @@
 import Layout from "@/components/Layout/layout";
-import { SupportMessages } from "@/components/support/SupportMessages/supportMessages";
+import { SupportMails } from "@/components/support/SupportMails/supportMails";
 import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
 import Docs from "@/components/support/Docs/docs";
 import { useEffect, useState, useMemo } from "react";
-import { generateTeamNumber } from '@/lib/utils'
+import { generateTeamNumber } from '@/lib/client/utils.client'
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
@@ -68,7 +68,7 @@ export default function Support() {
           {/* Сообщения тех поддержки */}
           {suportPoint === 1 && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.messages1')}</div>
-            <SupportMessages
+            <SupportMails
               setMessage={setMessage}
               teamId={team.id}
               userId={user.id}

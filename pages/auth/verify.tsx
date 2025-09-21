@@ -2,7 +2,6 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
 import React, { useState, useEffect, useRef } from 'react';
-import { email } from 'zod';
 
 export default function VerifyPage() {
     const router = useRouter();
@@ -46,20 +45,20 @@ export default function VerifyPage() {
         const r = await fetch('/api/auth/verify-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({email: emailValue, purpose, code }),
+            body: JSON.stringify({ email: emailValue, purpose, code }),
         }).then((r) => r.json());
 
         if ((r?.success || r?.ok) && r.verifyToken) {
             verifyToken.current = r.verifyToken;
             if (purpose === 'password_reset') {
-                setMessage('Можно сменить пароль');
+                setMessage(t('register.canchange'));
                 setStep(1);
             } else {
-                setMessage('Email подтвержден. Через 10 секунд вы будете перенаправлены на главную страницу.');
+                setMessage(t('register.mailconfirmed'));
                 setRedirectIn(10); // ← запуск таймера редиректа
             }
         } else {
-            setMessage('Код неверен или истёк.');
+            setMessage(t('register.incorrectcode'));
         }
     };
 
@@ -70,19 +69,19 @@ export default function VerifyPage() {
         setMessage('');
 
         if (!verifyToken.current) {
-            setMessage('Сессия подтверждения отсутствует. Запросите код снова.');
+            setMessage(t('register.session'));
             return;
         }
 
-        if (pass1Value.length < 1) {
+        if (pass1Value.length < 6) {
             setpassMessage(t('service.passLengthMustBe'));
-            setpassMessage("Длина пароля должна быть не менее 12 символов. пароль должен содержать буквы, цифры  и специальные символы");
+            // setpassMessage("Длина пароля должна быть не менее 6 символов. пароль должен содержать буквы, цифры  и специальные символы");
             return
         }
 
         if (pass1Value !== pass2Value) {
             setpassMessage(t('service.pass1NotEqualPass2'));
-            setpassMessage("Пароль и его повтор не совпадают");
+            // setpassMessage("Пароль и его повтор не совпадают");
             return
         };
 
@@ -105,14 +104,14 @@ export default function VerifyPage() {
                 const receivedData = await res.json();
                 if (receivedData.success) {
                     setStep(2);
-                    setMessage('Пароль успешно изменён. Через 10 секунд вы будете перенаправлены на главную страницу.');
+                    setMessage(t('register.success'));
                     setRedirectIn(10); // старт отсчёта
                 } else {
-                    setMessage('Не удалось изменить пароль. Попробуйте ещё раз.');
+                    setMessage(t('register.failure'));
                 }
             }
         } catch (err) {
-            setMessage('Ошибка сети. Попробуйте ещё раз.');
+            setMessage(t('register.error'));
         } finally {
             setIsChanging(false);
         }
@@ -120,7 +119,7 @@ export default function VerifyPage() {
 
     return (
         <div className="container_verify">
-            <h1 className="title">Подтверждение кода</h1>
+            <h1 className="title">{t('register.confirmation')}</h1>
 
             <form className="form_verify" onSubmit={submit}>
                 <p className="text">{emailValue}</p>
@@ -131,7 +130,7 @@ export default function VerifyPage() {
                         type="text"
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
-                        placeholder="Код из письма"
+                        placeholder={t('register.code')}
                         required
                     />
                 )}
@@ -189,7 +188,7 @@ export default function VerifyPage() {
                     </div>
 
                     <button className="back_button" onClick={changePass} disabled={isChanging || redirectIn != null}>
-                        {isChanging ? 'Сохраняю…' : 'Сменить пароль'}
+                        {isChanging ? t('register.saving') : t('register.changePass')}
                     </button>
                 </>
             )}
