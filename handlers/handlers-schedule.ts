@@ -1,7 +1,9 @@
 
 
 import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "./../types/types";
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/common/timezone"
+import { getCurrentDateInDate, getTimeZoneDateFromDateString,addDaysInZone } from "./../lib/common/timezone"
+
+import { YYYYMMDD } from "@/lib/common/utils"
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
 const isAdditionalTime = (date: string, schedule: ScheduleItem): boolean => {
 
@@ -11,7 +13,8 @@ const isAdditionalTime = (date: string, schedule: ScheduleItem): boolean => {
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.teamId)
     return schedule.workdays.some(workday =>
-      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === date
+      // new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === date
+      workday.date === date
     ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
@@ -57,7 +60,8 @@ const isHoliday = (date: string, schedule: ScheduleItem): boolean => {
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.teamId)
     return schedule.holidays.some(holiday =>
-      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === date
+      // new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === date
+      holiday=== date
     ); else return false
 }
 
@@ -136,26 +140,30 @@ export const getUnitsSchedule = (
   // Определяем диапазон: 90 дней до today и 90 дней после today
   // const startDate = new Date(today);
   // startDate.setHours(0, 0, 0, 0);
-  const startDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
-  startDate.setDate(startDate.getDate() - 90);
+  let  startDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
+  startDate = addDaysInZone(startDate,-90,schedule.timeZone)
+  // startDate.setDate(startDate.getDate() - 90);
 
   // const endDate = new Date(today);  
   // endDate.setHours(0, 0, 0, 0);
-  const endDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
-  endDate.setDate(endDate.getDate() + 90);
+  let endDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
+  endDate = addDaysInZone(endDate,90,schedule.timeZone)
+  // endDate.setDate(endDate.getDate() + 90);
 
   // Итерируем по дням диапазона
   const currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     // Генерируем базовый CalendarItem для текущего дня (без учёта индивидуальных исключений)
-    const calendarItem = generateCalendarItem(currentDate.toLocaleDateString('en-CA'), schedule);
+    // const calendarItem = generateCalendarItem(currentDate.toLocaleDateString('en-CA'), schedule);
+    const calendarItem = generateCalendarItem(YYYYMMDD(currentDate), schedule);
 
     // Для каждого юнита корректируем расписание с учетом его исключений
     for (const unit of units) {
       // Фильтруем исключения для данного юнита на текущую дату
       const unitExs = exceptions.filter(ex =>
         ex.unitId === unit.id &&
-        ex.date === currentDate.toLocaleDateString("en-CA")
+        // ex.date === currentDate.toLocaleDateString("en-CA")
+        ex.date === YYYYMMDD(currentDate)
       );
 
       // Создадим копию CalendarItem для дальнейших корректировок

@@ -21,7 +21,6 @@ import { SettingsTable } from './../db/models/plan/settings';
 
 import { UserTable } from './../db/models/catalogs/users';
 import { UserUnitTable } from './../db/models/catalogs/user_unit';
-import { BillTable } from './../db/models/billing/bills';
 import { InvoiceTable } from './../db/models/billing/invoice';
 import { ClientTable } from './../db/models/billing/clients';
 
@@ -46,7 +45,8 @@ import { ClientItem, InvoiceItem, MainItem } from './../types/service-types';
 import { BanerItem } from './../types/service-types';
 
 import { getTeam } from './../handlers/handlers-auth';
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "@/lib/common/timezone"
+import {  getTimeZoneDateFromDateString } from "@/lib/common/timezone"
+import { YYYYMMDD } from "@/lib/common/utils"
 
 //&&&&&&
 export async function getMain(
@@ -334,7 +334,8 @@ export async function getTeamActivity(
   if (!teams || teams.length === 0) return [];
 
   const teamIds = teams.map(t => t.id);
-  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+  const today = YYYYMMDD();
+  // const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
 
   // Берём все события для нужных команд c датой <= сегодня
   const rows = await activeTimeRepository.find({
@@ -362,40 +363,6 @@ export async function getTeamActivity(
     return { teamId: id, active };
   });
 }
-// //&&&&&&
-// // события активености  используем для определения дней активности
-// export async function getActiveTime(
-//   activeTimeRepository: Repository<ActiveTimeTable>,
-//   at: Date | string,
-//   teamIds: number[]
-// ): Promise<{ success: boolean; events: ActiveTimeTable[]; message?: string }> {
-//   if (!teamIds?.length) {
-//     return { success: true, events: [], message: "teamIds пуст" };
-//   }
-
-//   const uniqIds = Array.from(new Set(teamIds));
-
-//   const toYMD = (d: Date | string) =>
-//     typeof d === "string" ? d : d.toISOString().slice(0, 10);
-//   const endOfMonthUTC = (y: number, m01: number) => new Date(Date.UTC(y, m01, 0));
-//   const ymd = (d: Date) => d.toISOString().slice(0, 10);
-
-//   const atStr = toYMD(at);
-//   const year = Number(atStr.slice(0, 4));
-//   const month01 = Number(atStr.slice(5, 7));
-//   const mEndStr = ymd(endOfMonthUTC(year, month01)); // 'YYYY-MM-DD'
-
-//   const events = await activeTimeRepository.find({
-//     where: {
-//       team_id: In(uniqIds),
-//       // 'date' — varchar в формате 'YYYY-MM-DD', лексикографическое сравнение корректно
-//       date: LessThanOrEqual(mEndStr) as any,
-//     },
-//     order: { date: "ASC", created_at: "ASC" },
-//   });
-
-//   return { success: true, events };
-// }
 
 // все команды по главной
 export async function getTeamsByMainteamNumber(
@@ -626,7 +593,8 @@ export async function getUnitLoads(
       id: row.unitLoad_id,
       idc: row.unitLoad_idc,
       unit: unit ?? {} as UnitItem,
-      date: new Date(row.unitLoad_date).toLocaleDateString("en-CA"),
+      // date: new Date(row.unitLoad_date).toLocaleDateString("en-CA"),
+      date: row.unitLoad_date,
       id_oper: row.unitLoad_id_oper,
       idc_oper: row.unitLoad_idc_oper,
       id_tCard: row.unitLoad_id_tCard,
@@ -642,7 +610,8 @@ export async function getUnitLoads(
       isFirst: row.unitLoad_isFirst,
       loadInfo: {
         tCardIdc: row.tCard_idc,
-        tCardDate: new Date(row.tCard_date).toLocaleDateString("en-CA"),
+        // tCardDate: new Date(row.tCard_date).toLocaleDateString("en-CA"),
+        tCardDate: row.tCard_date,
         title: unitAction?.action.title ?? "",
         duration: row.tOper_duration,
         interruptible: unitAction?.action.interruptible ?? false,
@@ -708,7 +677,8 @@ export async function getTCardLoads(
       id: row.unitLoad_id,
       idc: row.unitLoad_idc,
       unit,
-      date: new Date(row.unitLoad_date).toLocaleDateString('en-CA'),
+      // date: new Date(row.unitLoad_date).toLocaleDateString('en-CA'),
+      date: row.unitLoad_date,
       id_oper: row.unitLoad_id_oper,
       idc_oper: row.unitLoad_idc_oper,
       id_tCard: row.unitLoad_id_tCard,
@@ -724,7 +694,8 @@ export async function getTCardLoads(
       isFirst: row.unitLoad_isFirst,
       loadInfo: {
         tCardIdc: tCard.idc,
-        tCardDate: new Date(tCard.date).toLocaleDateString('en-CA'),
+        // tCardDate: new Date(tCard.date).toLocaleDateString('en-CA'),
+        tCardDate: tCard.date,
         title: operation?.action.title ?? '',
         duration: operation?.duration ?? 0,
         interruptible: operation?.action.interruptible ?? false,
@@ -750,7 +721,8 @@ export async function getTCards(
 
   return (tCards || []).map(t => ({
     id: t.id,
-    date: new Date(t.date).toLocaleDateString("en-CA"),
+    // date: new Date(t.date).toLocaleDateString("en-CA"),
+    date: t.date,
     idc: t.idc || 1,
     modified: false,
     maxIdc: t.max_idc,
@@ -784,7 +756,8 @@ export async function getTCard(
   // Преобразуем карты    
   return {
     id: tCardtab.id,
-    date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
+    // date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
+    date: tCardtab.date,
     idc: tCardtab.idc || 1,  // Если number не заполнен, возвращаем "1"
     modified: true,  // Например, помечаем, что карта изменена
     maxIdc: tCardtab.max_idc,
@@ -939,7 +912,8 @@ export async function getTCardFull(
 
   const tCard = {
     id: tCardtab.id,
-    date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
+    // date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
+    date: tCardtab.date,
     idc: tCardtab.idc,
     products: products_,
     tCardProducts: tCardProducts_,
@@ -1063,7 +1037,8 @@ export async function getTCardsTerms(
       id: row.unitLoad_id,
       idc: row.unitLoad_idc,
       unit: unit,
-      date: new Date(row.unitLoad_date).toLocaleDateString('en-CA'),
+      // date: new Date(row.unitLoad_date).toLocaleDateString('en-CA'),
+      date: row.unitLoad_date,
       idc_oper: row.unitLoad_idc_oper,
       id_oper: row.unitLoad_id_oper,
       id_tCard: row.unitLoad_id_tCard,
@@ -1080,7 +1055,8 @@ export async function getTCardsTerms(
       // частично заполняем инфо по карте
       loadInfo: {
         tCardIdc: row.tCard_idc,
-        tCardDate: new Date(row.tCard_date).toLocaleDateString("en-CA"),
+        // tCardDate: new Date(row.tCard_date).toLocaleDateString("en-CA"),
+        tCardDate: row.tCard_date,
         title: oper.action_title,
         duration: oper.oper_duration,
         interruptible: oper.action_interruptible,
@@ -1096,7 +1072,8 @@ export async function getTCardsTerms(
     date: string; // Формат: "YYYY-MM-DD"
     time: number; // Время в минутах от начала дня
   }
-  function getLatestFinish(loads: { date: Date, time: number }[]): ReadyTerm {
+  // function getLatestFinish(loads: { date: Date, time: number }[]): ReadyTerm {
+  function getLatestFinish(loads: { date: string, time: number }[]): ReadyTerm {
     if (loads.length === 0) return { date: "", time: 0 };
     const latestLoad = loads.reduce((latest, current) => {
       // Сначала сравниваем дату (так как формат "YYYY-MM-DD" корректно сравнивается как строки)
@@ -1107,8 +1084,10 @@ export async function getTCardsTerms(
       }
       return latest;
     }, loads[0]);
-    return { date: new Date(latestLoad.date).toLocaleDateString('en-CA'), time: latestLoad.time };
+    // return { date: new Date(latestLoad.date).toLocaleDateString('en-CA'), time: latestLoad.time };
+    return { date: latestLoad.date, time: latestLoad.time };
   }
+
   function getLaterDateTime(dt1: ReadyTerm, dt2: ReadyTerm): ReadyTerm {
     // Сначала сравниваем даты (формат "YYYY-MM-DD" корректно сравнивается как строка)
     if (dt1.date > dt2.date) {
@@ -1169,7 +1148,8 @@ export async function getTCardsTerms(
 
     tCardTerms.push({
       id: card.id,
-      date: new Date(card.date).toLocaleDateString("en-CA"),
+      // date: new Date(card.date).toLocaleDateString("en-CA"),
+      date: card.date,
       idc: card.idc,
       modified: false,
       tCardOperations: tCardOperations as TCardOperationTermsItem[],
@@ -1210,7 +1190,8 @@ export async function getExceptions(
         idc: exception.idc,
         unitId: exception.unit_id,
         unitIdc: exception.unit_idc,
-        date: new Date(exception.date).toLocaleDateString('en-CA'),
+        // date: new Date(exception.date).toLocaleDateString('en-CA'),
+        date: exception.date,
         type: exception.type as TimeTypeEnum,
         timeStart: exception.timeStart,
         timeFinish: exception.timeFinish,
@@ -1297,12 +1278,14 @@ export async function getTeamShedule(
     timeStartWork: scheduleTable.timeStartWork,
     timeFinishWork: scheduleTable.timeFinishWork,
     breaks: scheduleTable.breaks ?? [],
-    holidays: (scheduleTable.holidays ?? []).map(date =>
-      new Date(date).toLocaleDateString('en-CA')
-    ),
+    // holidays: (scheduleTable.holidays ?? []).map(date =>
+    //   new Date(date).toLocaleDateString('en-CA')
+    // ),
+    holidays: (scheduleTable.holidays ?? []),
     weekends: scheduleTable.weekends ?? [],
     workdays: (scheduleTable.workdays ?? []).map(wd => ({
-      date: new Date(wd.date).toLocaleDateString('en-CA'),
+      // date: new Date(wd.date).toLocaleDateString('en-CA'),
+      date: wd.date,
       timeStart: wd.timeStart,
       timeFinish: wd.timeFinish,
     })),
@@ -1339,12 +1322,14 @@ export async function getTeamsShedule(
       timeStartWork: scheduleTable.timeStartWork,
       timeFinishWork: scheduleTable.timeFinishWork,
       breaks: scheduleTable.breaks ?? [],
-      holidays: (scheduleTable.holidays ?? []).map(date =>
-        new Date(date).toLocaleDateString('en-CA')
-      ),
+      // holidays: (scheduleTable.holidays ?? []).map(date =>
+      //   new Date(date).toLocaleDateString('en-CA')
+      // ),
+      holidays: (scheduleTable.holidays ?? []),
       weekends: scheduleTable.weekends ?? [],
       workdays: (scheduleTable.workdays ?? []).map(wd => ({
-        date: new Date(wd.date).toLocaleDateString('en-CA'),
+        // date: new Date(wd.date).toLocaleDateString('en-CA'),
+        date: wd.date,
         timeStart: wd.timeStart,
         timeFinish: wd.timeFinish,
       })),
@@ -1663,7 +1648,8 @@ export async function getBaner(
   teamId: number | undefined,
   banerRepository: Repository<BanerTable>
 ): Promise<BanerItem[]> {
-  const currentDate = new Date().toLocaleDateString("en-CA"); // Получаем текущую дату в формате "YYYY-MM-DD"
+  const currentDate = YYYYMMDD();
+  // const currentDate = new Date().toLocaleDateString("en-CA"); // Получаем текущую дату в формате "YYYY-MM-DD"
 
   // собираем условия динамически
   const where: any = {
@@ -1677,8 +1663,10 @@ export async function getBaner(
   const baner = receivedBaner.map(ban => ({
     message: ban.message,
     locale: ban.locale,
-    dateFrom: new Date(ban.date_from).toLocaleDateString("en-CA"),
-    dateTo: new Date(ban.date_to).toLocaleDateString("en-CA"),
+    // dateFrom: new Date(ban.date_from).toLocaleDateString("en-CA"),
+    // dateTo: new Date(ban.date_to).toLocaleDateString("en-CA"),
+    dateFrom: ban.date_from,
+    dateTo: ban.date_to,
   }));
 
   return baner;
@@ -1699,7 +1687,8 @@ export async function getInvoices(
     .map(invoice => {
       return {
         id: invoice.id,
-        date: invoice.paid_at ? new Date(invoice.paid_at).toLocaleDateString('en-CA') : "",
+        // date: invoice.paid_at ? new Date(invoice.paid_at).toLocaleDateString('en-CA') : "",
+        date: invoice.paid_at ? YYYYMMDD(invoice.paid_at) : "",
         invoice: `Invoice number ${invoice.stripe_invoice_number}`,
         link: invoice.invoice_pdf_url ?? ""
       } as InvoiceItem;
@@ -1733,7 +1722,8 @@ export async function getSuportMails(
     .map(mes => {
       return {
         id: mes.id,
-        date: new Date(mes.date).toLocaleDateString('en-CA'),
+        // date: new Date(mes.date).toLocaleDateString('en-CA'),
+        date: mes.date,
         title: mes.title,
         body: mes.body,
         userId: mes.user_id,
