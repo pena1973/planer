@@ -213,35 +213,3 @@ export const groupAndSumByIdc = (arr: TCardProductItem[]) => {
 };
 
 
-// // Функция глубокого копирования для TCardItem
-// export function deepCloneTCardItem(tCard: TCardItem): TCardItem {
-//   return {
-//     id: tCard.id,
-//     date: tCard.date,
-//     idc: tCard.idc,
-//     modified: tCard.modified,
-//     tCardProducts: tCard.tCardProducts ? tCard.tCardProducts.map(product => ({
-//       ...product,
-//       uom: { ...product.uom } // Если UOM является объектом, его тоже нужно клонировать
-//     })) : [],
-//     tCardWastes: tCard.tCardWastes ? tCard.tCardWastes.map(waste => ({
-//       ...waste,
-//       uom: { ...waste.uom }
-//     })) : [],
-//     tCardOperations: tCard.tCardOperations ? tCard.tCardOperations.map(operation => ({
-//       ...operation,
-//       stage: { ...operation.stage }, // Клонируем стадию
-//       out: operation.out.map(product => ({ ...product })), // Клонируем продукты
-//       inn: operation.inn.map(product => ({ ...product })), // Клонируем продукты
-//       action: { ...operation.action }, // Клонируем действия
-//     })) : [],
-//     tCardMaterials: tCard.tCardMaterials ? tCard.tCardMaterials.map(material => ({
-//       ...material,
-//       uom: { ...material.uom }
-//     })) : [],
-//     tCardStages: tCard.tCardStages ? tCard.tCardStages.map(stage => ({ ...stage })) : [],
-//     maxIdc: tCard.maxIdc,
-//     coment: tCard.coment,
-//     status: tCard.status,
-//   };
-// }

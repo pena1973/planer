@@ -81,7 +81,18 @@
     "visible": "(visible to everyone)",
     "nickname": "Nickname",
     "buttonRegister": "Register!",
-    "login": "Login!"
+    "login": "Login!",
+    "saving": "Saving…",
+    "changePass": "Change password",
+    "success": "Password changed successfully. You will be redirected to the home page in 10 seconds.",
+    "failure": "Failed to change the password. Please try again.",
+    "error": "Network error. Please try again.",
+    "code": "Code from the email",
+    "confirmation": "Code verification",
+    "canchange": "You can change the password.",
+    "mailconfirmed": "Email confirmed. You will be redirected to the home page in 10 seconds.",
+    "incorrectcode": "The code is incorrect or has expired.",
+   "session": "Confirmation session is missing. Please request the code again."
   },
   "planing": {
     "planed": "Planed",
@@ -158,10 +169,10 @@
     "cardtemplates": "Card templates",
     "notes": "Notes"
   },
-   "uomsCatalog": {
+  "uomsCatalog": {
     "filltitle": "Please enter the measurement name!",
     "fillcode": "Please enter the measurement code!",
-    "codeNotUnique": "Measurement code is not unique!"    
+    "codeNotUnique": "Measurement code is not unique!"
   },
   "actionsCatalog": {
     "filltitle": "Please enter the action name!",

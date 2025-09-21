@@ -77,12 +77,11 @@ export default function UnitInterfase() {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,
     // продолжаем увеличивать дату.
     // const day_ = new Date(day);
-    const day_ = addDaysInZone(day, 0, schedule.timeZone);
-
-    while ((isWeekend(day_.toLocaleDateString('en-CA'), schedule) || isHoliday(day_.toLocaleDateString('en-CA'), schedule)) && !isAdditionalTime(day_.toLocaleDateString('en-CA'), schedule)) {
-
+    let day_ = addDaysInZone(day, 0, schedule.timeZone);
+    while ((isWeekend(day_.toLocaleDateString('en-CA'), schedule) || isHoliday(day_.toLocaleDateString('en-CA'), schedule)) 
+      && !isAdditionalTime(day_.toLocaleDateString('en-CA'), schedule)) {
       // day_.setDate(day_.getDate() + 1);
-      const day_ = addDaysInZone(day, 1, schedule.timeZone);
+       day_ = addDaysInZone(day_, 1, schedule.timeZone);
     }
     setDay(day_)
   }, []);

@@ -9,7 +9,7 @@ import {
 } from "@/types/types"; // Импортируем нужные типы
 
 import { useTranslation } from 'react-i18next';
-import { generateUniqueIdc } from "@/lib/common/utils";
+import { generateUniqueIdc } from "@/lib/client/utils.client";
 
 export interface FileUploadButtonProps {
   onCardUpload: (tCard: TCardItem) => void,

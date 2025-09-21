@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import styles from "./unitTaskStackProcess.module.scss";
 import { openOperation } from '@/services/monitor/openOperation';
 import { setOperationStatus } from '@/services/monitor/unitProcess/setOperationStatus';
@@ -12,7 +12,7 @@ import {
 import LoadMonitorProcess from "./LoadMonitorProcess/loadMonitorProcess";
 import LoadOperProcess from "./LoadOperProcess/loadOperProcess";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import { generateCalendarItem,padNumberToFourDigits } from "@/lib/client/utils.client";
+import { generateCalendarItem, padNumberToFourDigits } from "@/lib/client/utils.client";
 
 import { useTranslation } from 'react-i18next';
 
@@ -69,8 +69,10 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
 }) => {
   const { t } = useTranslation();
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
-  const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
-  const [operView, setOperView] = useState(false);
+  // const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
+  const calendarView = useMemo(() => generateCalendarItem(day, schedule) as CalendarItem, [day, schedule]
+  );
+  const [operView, setOperView] = useState(false); // показ колесика
   const [currentOper, setCurrentOper] = useState({} as TCardOperationItem);
   const [currentTCard, setCurrentTCard] = useState({} as TCardItem);
   const [currentLoad, setCurrentLoad] = useState({} as UnitLoadItem);
@@ -93,16 +95,21 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // }
 
 
-
+  // useEffect(() => {
+  //   const calendarView_ = generateCalendarItem(day, schedule);
+  //   setCalendarView(calendarView_);
+  //   setOperView(false);
+  //   setCurrentOper({} as TCardOperationItem);
+  //   setCurrentTCard({} as TCardItem);
+  //   setCurrentLoad({} as UnitLoadItem);
+  // }, [day, schedule])
   useEffect(() => {
-    const calendarView_ = generateCalendarItem(day, schedule);
-    setCalendarView(calendarView_);
+    // день сменился — закрываем детали, очищаем выбор
     setOperView(false);
     setCurrentOper({} as TCardOperationItem);
     setCurrentTCard({} as TCardItem);
     setCurrentLoad({} as UnitLoadItem);
-  }, [day, schedule])
-
+  }, [day]);
   // На сервере
   // Открываем операцию по нажатию кнопки юнитом 
   const openOperHandler = async (load: UnitLoadItem, id_oper: number, id_tCard: number) => {
