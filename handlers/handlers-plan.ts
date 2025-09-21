@@ -656,7 +656,7 @@ function findAvailableSegmentsDay(
       if (freeInterval > 0 && isRetoolSegmentDefined) {
         const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
         if (timeToUse > 0) {
-          opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+          // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
           opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
           onPlaned += timeToUse;
           availableStart += timeToUse;

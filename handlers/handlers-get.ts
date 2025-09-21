@@ -594,7 +594,7 @@ export async function getUnitLoads(
       idc: row.unitLoad_idc,
       unit: unit ?? {} as UnitItem,
       // date: new Date(row.unitLoad_date).toLocaleDateString("en-CA"),
-      date: row.unitLoad_date,
+      date: YYYYMMDD(row.unitLoad_date),
       id_oper: row.unitLoad_id_oper,
       idc_oper: row.unitLoad_idc_oper,
       id_tCard: row.unitLoad_id_tCard,
@@ -611,7 +611,7 @@ export async function getUnitLoads(
       loadInfo: {
         tCardIdc: row.tCard_idc,
         // tCardDate: new Date(row.tCard_date).toLocaleDateString("en-CA"),
-        tCardDate: row.tCard_date,
+        tCardDate: YYYYMMDD(row.tCard_date),
         title: unitAction?.action.title ?? "",
         duration: row.tOper_duration,
         interruptible: unitAction?.action.interruptible ?? false,
@@ -678,7 +678,7 @@ export async function getTCardLoads(
       idc: row.unitLoad_idc,
       unit,
       // date: new Date(row.unitLoad_date).toLocaleDateString('en-CA'),
-      date: row.unitLoad_date,
+      date: YYYYMMDD(row.unitLoad_date),
       id_oper: row.unitLoad_id_oper,
       idc_oper: row.unitLoad_idc_oper,
       id_tCard: row.unitLoad_id_tCard,
@@ -695,7 +695,7 @@ export async function getTCardLoads(
       loadInfo: {
         tCardIdc: tCard.idc,
         // tCardDate: new Date(tCard.date).toLocaleDateString('en-CA'),
-        tCardDate: tCard.date,
+        tCardDate: YYYYMMDD(tCard.date),
         title: operation?.action.title ?? '',
         duration: operation?.duration ?? 0,
         interruptible: operation?.action.interruptible ?? false,
@@ -722,7 +722,7 @@ export async function getTCards(
   return (tCards || []).map(t => ({
     id: t.id,
     // date: new Date(t.date).toLocaleDateString("en-CA"),
-    date: t.date,
+    date: YYYYMMDD(t.date),
     idc: t.idc || 1,
     modified: false,
     maxIdc: t.max_idc,
@@ -757,7 +757,7 @@ export async function getTCard(
   return {
     id: tCardtab.id,
     // date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
-    date: tCardtab.date,
+    date: YYYYMMDD(tCardtab.date),
     idc: tCardtab.idc || 1,  // Если number не заполнен, возвращаем "1"
     modified: true,  // Например, помечаем, что карта изменена
     maxIdc: tCardtab.max_idc,
@@ -913,7 +913,7 @@ export async function getTCardFull(
   const tCard = {
     id: tCardtab.id,
     // date: new Date(tCardtab.date).toLocaleDateString("en-CA"),
-    date: tCardtab.date,
+    date: YYYYMMDD(tCardtab.date),
     idc: tCardtab.idc,
     products: products_,
     tCardProducts: tCardProducts_,
@@ -1038,7 +1038,7 @@ export async function getTCardsTerms(
       idc: row.unitLoad_idc,
       unit: unit,
       // date: new Date(row.unitLoad_date).toLocaleDateString('en-CA'),
-      date: row.unitLoad_date,
+      date: YYYYMMDD(row.unitLoad_date),
       idc_oper: row.unitLoad_idc_oper,
       id_oper: row.unitLoad_id_oper,
       id_tCard: row.unitLoad_id_tCard,
@@ -1056,7 +1056,7 @@ export async function getTCardsTerms(
       loadInfo: {
         tCardIdc: row.tCard_idc,
         // tCardDate: new Date(row.tCard_date).toLocaleDateString("en-CA"),
-        tCardDate: row.tCard_date,
+        tCardDate: YYYYMMDD(row.tCard_date),
         title: oper.action_title,
         duration: oper.oper_duration,
         interruptible: oper.action_interruptible,
@@ -1085,7 +1085,7 @@ export async function getTCardsTerms(
       return latest;
     }, loads[0]);
     // return { date: new Date(latestLoad.date).toLocaleDateString('en-CA'), time: latestLoad.time };
-    return { date: latestLoad.date, time: latestLoad.time };
+    return { date: YYYYMMDD(latestLoad.date), time: latestLoad.time };
   }
 
   function getLaterDateTime(dt1: ReadyTerm, dt2: ReadyTerm): ReadyTerm {
@@ -1149,7 +1149,7 @@ export async function getTCardsTerms(
     tCardTerms.push({
       id: card.id,
       // date: new Date(card.date).toLocaleDateString("en-CA"),
-      date: card.date,
+      date: YYYYMMDD(card.date),
       idc: card.idc,
       modified: false,
       tCardOperations: tCardOperations as TCardOperationTermsItem[],
@@ -1191,7 +1191,7 @@ export async function getExceptions(
         unitId: exception.unit_id,
         unitIdc: exception.unit_idc,
         // date: new Date(exception.date).toLocaleDateString('en-CA'),
-        date: exception.date,
+        date: YYYYMMDD(exception.date),
         type: exception.type as TimeTypeEnum,
         timeStart: exception.timeStart,
         timeFinish: exception.timeFinish,
@@ -1285,7 +1285,7 @@ export async function getTeamShedule(
     weekends: scheduleTable.weekends ?? [],
     workdays: (scheduleTable.workdays ?? []).map(wd => ({
       // date: new Date(wd.date).toLocaleDateString('en-CA'),
-      date: wd.date,
+      date: YYYYMMDD(wd.date),
       timeStart: wd.timeStart,
       timeFinish: wd.timeFinish,
     })),
@@ -1329,7 +1329,7 @@ export async function getTeamsShedule(
       weekends: scheduleTable.weekends ?? [],
       workdays: (scheduleTable.workdays ?? []).map(wd => ({
         // date: new Date(wd.date).toLocaleDateString('en-CA'),
-        date: wd.date,
+        date: YYYYMMDD(wd.date),
         timeStart: wd.timeStart,
         timeFinish: wd.timeFinish,
       })),
