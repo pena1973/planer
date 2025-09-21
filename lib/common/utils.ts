@@ -1,6 +1,15 @@
 
-import { CalendarItem, TCardContent, StatusEnum, ScheduleItem, DaysOfWeek } from "@/types/types";
-import { getTimeZoneDateFromDateString } from "@/lib/common/timezone"
+import {TCardContent, StatusEnum, ScheduleItem, DaysOfWeek } from "@/types/types";
+
+// Переревод даты в строку yyyy-mm-dd
+export const YYYYMMDD = (d: Date | string = new Date()): string => {
+  const date = typeof d === "string" ? new Date(d) : d;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 
 export const ISOStringToLocalDateTime = (isoDate: string) => {
   const date = new Date(isoDate);

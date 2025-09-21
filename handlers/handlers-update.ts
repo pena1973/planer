@@ -41,6 +41,7 @@ import {
 import { ClientItem, JobSettingItem, BanerItem } from './../types/service-types';
 
 
+import { YYYYMMDD } from "@/lib/common/utils"
 import { getCurrentDateInString,getTimeZoneDateFromDateString } from "../lib/common/timezone"
 
 // Создание c строки баланса
@@ -155,7 +156,8 @@ export async function changeStateTeamsByIds(
 
   const failed: number[] = [];
 
-  const dateStr = (!day) ? new Date().toLocaleDateString('en-CA') : day;
+  // const dateStr = (!day) ? new Date().toLocaleDateString('en-CA') : day;
+  const dateStr = (!day) ? YYYYMMDD() : day;
 
   try {
     for (const id of teamIds) {
@@ -971,7 +973,8 @@ export async function updateExceptions(
     return {
       id: sue.id,
       idc: sue.idc,
-      date: new Date(sue.date).toLocaleDateString('en-CA'),
+      // date: new Date(sue.date).toLocaleDateString('en-CA'),
+      date: sue.date,
       type: sue.type,
       timeStart: sue.timeStart,
       timeFinish: sue.timeFinish,
@@ -1350,7 +1353,8 @@ export async function updateCard(
     // Формируем TCardItem
     const savedItem: TCardItem = {
       id: savedTCard.id,
-      date: new Date(savedTCard.date).toLocaleDateString("en-CA"),
+      // date: new Date(savedTCard.date).toLocaleDateString("en-CA"),
+      date: savedTCard.date,
       idc: savedTCard.idc,
       modified: false,
       maxIdc: savedTCard.max_idc,
@@ -2157,8 +2161,10 @@ export async function setBaner(
   const baner__ = {
     message: savedBaner.message,
     locale: savedBaner.locale,
-    dateFrom: new Date(savedBaner.date_from).toLocaleDateString("en-CA"),
-    dateTo: new Date(savedBaner.date_to).toLocaleDateString("en-CA"),
+    // dateFrom: new Date(savedBaner.date_from).toLocaleDateString("en-CA"),
+    // dateTo: new Date(savedBaner.date_to).toLocaleDateString("en-CA"),
+    dateFrom: savedBaner.date_from,
+    dateTo: savedBaner.date_to,
   };
 
   return baner__;

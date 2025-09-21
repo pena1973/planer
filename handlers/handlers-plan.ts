@@ -5,7 +5,10 @@ import {
   UnitItem, ScheduleItem, DaysOfWeek, UnitBelongEnum,
   UnitActionItem, ReadyProduct
 } from "./../types/types";
-import { getCurrentDateInDate, getTimeZoneDateFromDateString } from "./../lib/common/timezone"
+
+import { YYYYMMDD } from "@/lib/common/utils"
+
+import { getCurrentDateInDate, getTimeZoneDateFromDateString, addDaysInZone } from "./../lib/common/timezone"
 // функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
 const getLoadIdc = (
   tCard: TCardItem,
@@ -35,12 +38,14 @@ const idDay = (date: Date): string => {
 const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+  const dateString = YYYYMMDD(date);
 
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.teamId)
     return schedule.workdays.some(workday =>
-      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+      YYYYMMDD(workday.date) === dateString
+      // new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
     ); else return false
 }
 //  функция определяемт входит ли  дата в список выходных расписания
@@ -80,12 +85,14 @@ const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
 //  функция определяемт входит ли  дата в список праздников расписания
 const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+  const dateString = YYYYMMDD(date);
 
   // Проверяем, есть ли дата в массиве праздников
   if (schedule.teamId)
     return schedule.holidays.some(holiday =>
-      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+      YYYYMMDD(holiday) === dateString
+      // new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
     ); else return false
 }
 // генерация одного дня на шкале
@@ -95,7 +102,6 @@ const generateCalendarItemOnServer = (day: string, schedule: ScheduleItem): Cale
   // currentDate.setHours(0, 0, 0, 0);
 
   const currentDate = getTimeZoneDateFromDateString(day, schedule.timeZone)
-
 
   const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
@@ -107,7 +113,8 @@ const generateCalendarItemOnServer = (day: string, schedule: ScheduleItem): Cale
 
   if (_isAdditionalTime) {
     const workday = schedule.workdays.find(
-      workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+      // workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+      workday => workday.date === YYYYMMDD(currentDate));
     // если дата есть, то нужно просто взять дополнительное время из workday  
     if (workday) {
       if (_isWeekend || _isHoliday) {
@@ -392,7 +399,8 @@ function findAvailableSegmentsDay(
 
   // Проверяем исключения (например, изменённые рамки рабочего дня или дополнительные перерывы)
   const exceptionsWorkDayNext = exceptionItems.filter(elem =>
-    elem.unitId === unit.id && elem.date === targetDate.toLocaleDateString("en-CA")
+    // elem.unitId === unit.id && elem.date === targetDate.toLocaleDateString("en-CA")
+    elem.unitId === unit.id && elem.date === YYYYMMDD(targetDate)
   );
 
   if (exceptionsWorkDayNext.length > 0) {
@@ -419,9 +427,11 @@ function findAvailableSegmentsDay(
   // перепрыгиваем на следующий день
   if (workEnd === workStart) {
 
-    const nextDate = new Date(targetDate)
-    nextDate.setDate(nextDate.getDate() + 1);
-    const nextDateStr = nextDate.toLocaleDateString("en-CA");
+    const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
+    const nextDateStr = YYYYMMDD(nextDate);
+    // const nextDate = new Date(targetDate)
+    // nextDate.setDate(nextDate.getDate() + 1);
+    // const nextDateStr = nextDate.toLocaleDateString("en-CA");
 
     return findAvailableSegmentsDay(
       // nextDate,
@@ -444,7 +454,8 @@ function findAvailableSegmentsDay(
   };;
 
   // Получаем уже запланированные операции для данного юнита на targetDate
-  const loads = unitLoadItems.filter(load => load.unit.id === unit.id && load.date === targetDate.toLocaleDateString("en-CA"));
+  // const loads = unitLoadItems.filter(load => load.unit.id === unit.id && load.date === targetDate.toLocaleDateString("en-CA"));
+  const loads = unitLoadItems.filter(load => load.unit.id === unit.id && load.date === YYYYMMDD(targetDate));
 
   loads.forEach(load => {
     busyPeriods.push({ type: TimeTypeEnum.busy, start: load.timeStart, end: load.timeFinish });
@@ -481,7 +492,8 @@ function findAvailableSegmentsDay(
       //1. убедимся что в найденный интервал влазит ретул
       // если есть и влазит - планируем
       if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
-        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+        // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
         availableStart = availableStart + retoolTime;
         freeInterval = freeInterval - retoolTime
         isRetoolSegmentDefined = true;
@@ -489,7 +501,8 @@ function findAvailableSegmentsDay(
       //1. убедимся что в оставшийся интервал влазит операция
       // если есть и влазит - планируем
       if (freeInterval >= opRequired && isRetoolSegmentDefined) {
-        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+        // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + opRequired, isRetool: false });
         availableStart += opRequired;
         found = true;
       } else {
@@ -515,7 +528,8 @@ function findAvailableSegmentsDay(
     //1. убедимся что в найденный интервал влазит ретул  и он не
     // если есть и влазит - планируем
     if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
-      opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+      // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+      opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
       availableStart = availableStart + retoolTime;
       freeInterval = freeInterval - retoolTime
       isRetoolSegmentDefined = true;
@@ -524,7 +538,8 @@ function findAvailableSegmentsDay(
       //1. убедимся что в оставшийся интервал влазит операция
       // если есть и влазит - планируем
       if (freeInterval >= opRequired && isRetoolSegmentDefined) {
-        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+        // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + opRequired, isRetool: false });
         availableStart += opRequired;
         found = true;
       }
@@ -532,9 +547,12 @@ function findAvailableSegmentsDay(
 
     // если в этот день интервалов не нашлось идем на след день
     if (!found) {
-      const nextDate = new Date(targetDate)
-      nextDate.setDate(nextDate.getDate() + 1);
-      const nextDateStr = nextDate.toLocaleDateString("en-CA");
+      // const nextDate = new Date(targetDate)      
+      // nextDate.setDate(nextDate.getDate() + 1);
+      // const nextDateStr = nextDate.toLocaleDateString("en-CA");
+
+      const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
+      const nextDateStr = YYYYMMDD(nextDate);
 
       return findAvailableSegmentsDay(
         // nextDate,
@@ -575,7 +593,9 @@ function findAvailableSegmentsDay(
       const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
 
       // Определяем, к какому дню относится ретул-сегмент.
-      const currentDay = targetDate.toLocaleDateString("en-CA");
+      // const currentDay = targetDate.toLocaleDateString("en-CA");
+      const currentDay = YYYYMMDD(targetDate);
+
       if (retoolSeg.date === currentDay) {
         // Если ретул в текущем дне – сдвигаем так, чтобы длина ретула была равна retoolTime,
         // но не раньше рабочего времени.
@@ -618,7 +638,8 @@ function findAvailableSegmentsDay(
       if (freeInterval > 0 && !isRetoolSegmentDefined) {
 
         const timeToUse = Math.min(freeInterval, retoolTime);
-        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+        // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
         availableStart = availableStart + timeToUse;
         freeInterval = freeInterval - timeToUse
         isRetoolSegmentDefined = (timeToUse === retoolTime) || isRetoolSegmentDefined_;
@@ -636,6 +657,7 @@ function findAvailableSegmentsDay(
         const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
         if (timeToUse > 0) {
           opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+          opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
           onPlaned += timeToUse;
           availableStart += timeToUse;
           if (onPlaned === opRequired) break;
@@ -664,7 +686,8 @@ function findAvailableSegmentsDay(
       // если есть и влазит - планируем
       if (freeInterval > 0 && !isRetoolSegmentDefined) {
         const timeToUse = Math.min(freeInterval, retoolTime);
-        opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+        // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
         availableStart = availableStart + timeToUse;
         freeInterval = freeInterval - timeToUse
         isRetoolSegmentDefined = (timeToUse === retoolTime);
@@ -674,7 +697,8 @@ function findAvailableSegmentsDay(
       if (freeInterval > 0 && isRetoolSegmentDefined) {
         const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
         if (timeToUse > 0) {
-          opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+          // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+          opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
           onPlaned += timeToUse;
           availableStart += timeToUse;
         }
@@ -683,9 +707,12 @@ function findAvailableSegmentsDay(
     }
 
     if (onPlaned < opRequired) {
-      const nextDate = new Date(targetDate)
-      nextDate.setDate(nextDate.getDate() + 1);
-      const nextDateStr = nextDate.toLocaleDateString("en-CA");
+      // const nextDate = new Date(targetDate)
+      // nextDate.setDate(nextDate.getDate() + 1);
+      // const nextDateStr = nextDate.toLocaleDateString("en-CA");
+
+      const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
+      const nextDateStr = YYYYMMDD(nextDate);
 
       return findAvailableSegmentsDay(
         // nextDate,
@@ -796,7 +823,8 @@ export const planTCardFromOperINC = (
   const stopDate_ = getCurrentDateInDate(shedule_.timeZone)
 
   stopDate_.setDate(stopDate_.getDate() + 90);
-  const stopDateStr = stopDate_.toLocaleDateString("en-CA");
+  // const stopDateStr = stopDate_.toLocaleDateString("en-CA");
+  const stopDateStr = YYYYMMDD(stopDate_);
 
   // массив готовых продуктов и дата время готовности каждого продукта
   // стартуем с продуктов которые  берутся со склада  
@@ -805,10 +833,10 @@ export const planTCardFromOperINC = (
   if (tCard.tCardMaterials)
     readyProducts = tCard.tCardMaterials.map(material => {
       return {
-        id: material.id,        
-        code: material.code,        
+        id: material.id,
+        code: material.code,
         qtu: material.qtu,
-        product: material.product,        
+        product: material.product,
         date: '2000-01-01', // это со склада дата доступности
         time: 0,            //  время доступности
         reserved: 0,
@@ -846,40 +874,40 @@ export const planTCardFromOperINC = (
     tCardOperations.forEach((operation) => {
 
       let hasAllMatchingProducts = (operation.inn.length > 0)
-      ?operation.inn.every(innProduct => {
-        // Ищем продукт в tCardReady с таким же code и product
-        const matchingReadyProduct = readyProducts.find(elem =>
-          elem.code === innProduct.code && elem.product.id === innProduct.product.id
-        );
-        // Если соответствующий продукт найден, проверяем количество
-        if (matchingReadyProduct) {
-          // Если количество в tCardReady недостаточно для операции, пропускаем операцию
-          if (matchingReadyProduct.qtu < innProduct.qtu) {
-            message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu - matchingReadyProduct.qtu} единиц.\n`);
-            return false;
+        ? operation.inn.every(innProduct => {
+          // Ищем продукт в tCardReady с таким же code и product
+          const matchingReadyProduct = readyProducts.find(elem =>
+            elem.code === innProduct.code && elem.product.id === innProduct.product.id
+          );
+          // Если соответствующий продукт найден, проверяем количество
+          if (matchingReadyProduct) {
+            // Если количество в tCardReady недостаточно для операции, пропускаем операцию
+            if (matchingReadyProduct.qtu < innProduct.qtu) {
+              message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu - matchingReadyProduct.qtu} единиц.\n`);
+              return false;
+            }
+            // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
+            matchingReadyProduct.qtu -= innProduct.qtu;
+            // И заводим строку резервирования материала под операцию
+            readyProducts.push(
+              {
+                id: innProduct.id,
+                product: innProduct.product,
+                code: innProduct.code,
+                qtu: 0,
+                date: matchingReadyProduct.date,
+                time: matchingReadyProduct.time,
+                reserved: innProduct.qtu,
+                reservedTo: operation.idc
+              })
+            return true;
           }
-          // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
-          matchingReadyProduct.qtu -= innProduct.qtu;
-          // И заводим строку резервирования материала под операцию
-          readyProducts.push(
-            {
-              id: innProduct.id,
-              product: innProduct.product,
-              code: innProduct.code,
-              qtu: 0,
-              date: matchingReadyProduct.date,
-              time: matchingReadyProduct.time,
-              reserved: innProduct.qtu,
-              reservedTo: operation.idc
-            })
-          return true;
-        }
-        message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu} единиц.\n`);
+          message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu} единиц.\n`);
 
-        return false; // Если продукта нет или не совпадает по uom
-      })
-      :true
- 
+          return false; // Если продукта нет или не совпадает по uom
+        })
+        : true
+
       // Если все продукты прошли проверку, добавляем операцию в selectedOperations
       if (hasAllMatchingProducts) {
         selectedOperations.push(operation);
@@ -1040,7 +1068,8 @@ export const planOperOnUnit = (
   const stopDate_ = getCurrentDateInDate(schedule_.timeZone)
 
   stopDate_.setDate(stopDate_.getDate() + 90);
-  const stopDateStr = stopDate_.toLocaleDateString("en-CA");
+  // const stopDateStr = stopDate_.toLocaleDateString("en-CA");
+  const stopDateStr = YYYYMMDD(stopDate_);
 
   let message = "";
 
