@@ -1,6 +1,8 @@
 // lib/client/cardsHandlers.tsx
 // import 'client-only'
 "use client"
+
+
 import { TCardProductItem, TCardOperationItem, StatusEnum } from "@/types/types";
 
 //  проверка наличия материальных активов
@@ -22,20 +24,53 @@ export const checkReconcilation = (
   let tCardWastes = [] as TCardProductItem[];
   let tCardMaterials = [] as TCardProductItem[];
 
+  // сворачиваю все результаты и вход  по количеству если у них одинаковый продукт и код
+  // ❗️Не мутируем op.out — создаём новый объект операции с агрегированным out
+  const tCardOperationsArg_ = tCardOperationsArg.map(op => {
+    const groupedOut = new Map<string, typeof op.out[number]>();
+    const groupedInn = new Map<string, typeof op.inn[number]>();
+
+    for (const item of op.out) {
+      const key = `${item.code}__${item.product.id}`;
+      const prev = groupedOut.get(key);
+      if (prev) {
+        prev.qtu += item.qtu;         // суммируем количество
+      } else {
+        groupedOut.set(key, { ...item }); // кладём копию
+      }
+    }
+
+     for (const item of op.inn) {
+      const key = `${item.code}__${item.product.id}`;
+      const prev = groupedInn.get(key);
+      if (prev) {
+        prev.qtu += item.qtu;         // суммируем количество
+      } else {
+        groupedInn.set(key, { ...item }); // кладём копию
+      }
+    }
+
+    return {
+      ...op,
+      out: Array.from(groupedOut.values()) as typeof op.out, // если out readonly — см. примечание ниже
+      inn: Array.from(groupedInn.values()) as typeof op.out, // если inn readonly — см. примечание ниже
+    };
+  });
+
   // собираю все произведенные (out) МА в операциях исключая брак - он сразу в отходы
   let outArr1 = [] as TCardProductItem[];
-  tCardOperationsArg.forEach(toper => {
-    if (toper.status === StatusEnum.defective) { // сразу в отход
-      tCardWastes = [...tCardWastes, ...toper.out]
-    } else {
-      outArr1 = [...outArr1, ...toper.out];
-    }
+  tCardOperationsArg_.forEach(toper => {
+    // if (toper.status === StatusEnum.defective) { // сразу в отход
+    //   tCardWastes = [...tCardWastes, ...toper.out]
+    // } else {
+    outArr1 = [...outArr1, ...toper.out];
+    // }
   });
 
   // проверяю все операции на ВХОД in->out (code)
   // чтобы все что было на вход соответствовало out или со склада 
   // если не соответствует беру со склада
-  tCardOperations = tCardOperationsArg.map(oper => {
+  tCardOperations = tCardOperationsArg_.map(oper => {
     // просматриваем все oper.inn  и ищем их в outArr и материалах (должно гдето найтись )
     const updatedInn = [] as TCardProductItem[]
     // операция, перебираем вход
@@ -52,8 +87,9 @@ export const checkReconcilation = (
       }// количество больше 0 и источник указан  распределяем
       else {
         while (qtuinn > 0) {
-          const itemoutIndex = outArr1.findIndex(itemout => { 
-            return (itemout.code === iteminn.code && itemout.product.idc === iteminn.product.idc && itemout.qtu > 0) })
+          const itemoutIndex = outArr1.findIndex(itemout => {
+            return (itemout.code === iteminn.code && itemout.product.idc === iteminn.product.idc && itemout.qtu > 0)
+          })
 
           // если не нашли - берем со склада
           if (itemoutIndex === -1) {
@@ -85,7 +121,8 @@ export const checkReconcilation = (
   let innArr = [] as TCardProductItem[];
   // собираю все добавленные и все истраченные МА в операциях заново после проверки  на согласованность
   tCardOperations.forEach(toper => {
-    if (toper.status !== StatusEnum.defective) outArr = [...outArr, ...toper.out];
+    // if (toper.status !== StatusEnum.defective) 
+    outArr = [...outArr, ...toper.out];
 
     innArr = [...innArr, ...toper.inn];
   });

@@ -1,6 +1,7 @@
 import { Dispatch } from "redux";
 import { UnitLoadItem, TCardItem, StatusEnum } from "./../../types/types";
 import { setUnitLoads, setTCardPrepared, setTCardLighted, setTCards } from "./../../store/slices";
+import { TCardOperationTable } from "@/db/models/data/t_card_operations";
 
 export const erazeCard = async (
     tCardId: number,
@@ -15,7 +16,8 @@ export const erazeCard = async (
     setMessage: (msg: string) => void,
 
 ) => {
-
+ 
+    setMessage("");
     const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
 
     if (tCardLoads.length === 0) {
@@ -25,7 +27,7 @@ export const erazeCard = async (
 
     const unitLoadsWithoutCard = unitLoads.filter(load => load.id_tCard !== tCardId)
     try {
-        const res = await fetch(`/api/eraze-card-plan-api`,
+        const res = await fetch(`/api/plan/eraze-card-plan-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -47,15 +49,41 @@ export const erazeCard = async (
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
-                // Если успешно меняем статусы карты и операций
-                const tCardStatus = receivedData.tCardStatus as StatusEnum;
+                // Если успешно меняем статусы операций
+
+
+                // Если успешно меняем статусы лоадов
                 const updatedLoads = [...unitLoadsWithoutCard, ...receivedData.tCardLoads]
                 dispatch(setUnitLoads(updatedLoads));
 
+                //  поменять статусы операций карты
+
+                const canceledOperIds = receivedData.canceledOperIds as number[];
+                const preparedOperIds = receivedData.preparedOperIds as number[];
                 //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
+                const tCardStatus = receivedData.tCardStatus as StatusEnum;
+
                 const index = tCards.findIndex(tCard => tCard.id === tCardId);
+
+                //  поменять статусы операций карты  если изменились
+                const tCardOperations = tCards[index].tCardOperations?.map(oper => {
+                    if (!oper.id) return oper;
+
+                    if (preparedOperIds.includes(oper.id) && oper.status !== StatusEnum.prepared) {
+                        return { ...oper, status: StatusEnum.prepared }
+                    }
+
+                    if (canceledOperIds.includes(oper.id) && oper.status !== StatusEnum.cancelled) {
+                        return { ...oper, status: StatusEnum.cancelled }
+                    }
+
+                    return oper;
+
+                })
+
+                //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
                 if (tCards[index].status !== tCardStatus) {
-                    const updatedTCard = { ...tCards[index], status: tCardStatus }
+                    const updatedTCard = { ...tCards[index], status: tCardStatus, tCardOperations: tCardOperations }
                     const _tCards = [...tCards]
                     _tCards.splice(index, 1, updatedTCard);
                     dispatch(setTCardPrepared(updatedTCard))

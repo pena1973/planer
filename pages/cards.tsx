@@ -410,6 +410,7 @@ export default function Cards() {
       const matchTo = target.match(regexTo);
       const idcOperTo = (matchTo) ? parseInt(matchTo[2], 10) : NaN;
 
+
       // код источник в продукте и код результат в операции
       const operFrom = tCardOperations.find(oper => oper.idc === idcOperFrom)
       const tPproduct = operFrom?.inn[indexProductFrom]
@@ -421,6 +422,8 @@ export default function Cards() {
 
       // обновляем операции
       updatedOperations = tCardOperations.map((oper) => {
+        // пресекаем обновление если операция уже в состоянии планирована и выше
+        if (![StatusEnum.prepared, StatusEnum.draft].includes(oper.status)) return oper
 
         // выход
         if (oper.idc === idcOperTo) {
@@ -497,7 +500,9 @@ export default function Cards() {
 
       // // обновляем операции
       updatedOperations = tCardOperations.map((oper) => {
-
+      // пресекаем обновление если операция уже в состоянии планирована и выше
+        if (![StatusEnum.prepared, StatusEnum.draft].includes(oper.status)) return oper
+        
         // вход
         if (oper.idc === idcOperTo) {
           // добавим предмет на входе
@@ -1601,15 +1606,15 @@ export default function Cards() {
           deleteOperHandler={deleteOperHandler}
           cancelOperHandler={cancelOperHandler}
           saveOperHandler={saveOperHandler}
-          updateIdc={updateIdc}
-          maxIdc={tCards[tCardIndex].maxIdc}
+          // updateIdc={updateIdc}
+          // maxIdc={tCards[tCardIndex].maxIdc}
         />}
       </>)
     }
     )
 
     return (
-      <div key={'tStage' + index2}
+      <div key={'tStage' + tStage.idc}
         className="container_stage"
         onDragOver={(e) => dragOverHandler(e)}
         onDrop={(e) => { handleDrop(e, `S${tStage.idc}`) }}
