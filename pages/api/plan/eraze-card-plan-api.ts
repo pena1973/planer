@@ -1,28 +1,28 @@
 
 import { Repository, In, MoreThanOrEqual } from "typeorm";
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { getEarliestStart } from './../../handlers/handlers-plan';  // планирование карты
+import { getEarliestStart } from './../../../handlers/handlers-plan';  // планирование карты
 
 
-import { UnitLoadTable } from './../../db/models/plan/unit_loads';
-import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
-import { TCardTable } from './../../db/models/data/t_cards'
-import { TeamTable } from './../../db/models/catalogs/teams'
-import { TCardOperationTable } from './../../db/models/data/t_card_operations'
-import { TCardProductTable } from './../../db/models/data/t_card_products'
-import { ProductTable } from './../../db/models/data/products'
-import { getTCardFull, getTeamShedule } from './../../handlers/handlers-get';  // 
-import { updateStatusTCard } from './../../handlers/handlers-update';  // 
-import { ActionTable } from './../../db/models/catalogs/actions'
-import { TCardStageTable } from './../../db/models/data/t_card_stages'
+import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
+import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
+import { TCardTable } from './../../../db/models/data/t_cards'
+import { TeamTable } from './../../../db/models/catalogs/teams'
+import { TCardOperationTable } from './../../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../../db/models/data/t_card_products'
+import { ProductTable } from './../../../db/models/data/products'
+import { getTCardFull, getTeamShedule } from './../../../handlers/handlers-get';  // 
+import { updateStatusTCard } from './../../../handlers/handlers-update';  // 
+import { ActionTable } from './../../../db/models/catalogs/actions'
+import { TCardStageTable } from './../../../db/models/data/t_card_stages'
 
-import { TCardOperationItem, UnitLoadItem, StatusEnum } from "./../../types/types";
+import { TCardOperationItem, UnitLoadItem, StatusEnum } from "./../../../types/types";
 import { getCurrentDateInString } from "@/lib/common/timezone";
 
 interface RequestBody {
@@ -147,6 +147,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           success: true,
           tCardLoads: tCardLoadsUpdated,
           tCardStatus: tCardStatus,
+          canceledOperIds:operToCancellIds, // лоады отменены, операция переведена в отменен
+          preparedOperIds:operToDeleteIds,  // лоады удалены, операция переведена в подготовлен
           message: ""
         });
         break;

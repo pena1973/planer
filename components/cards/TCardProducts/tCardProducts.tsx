@@ -161,7 +161,7 @@ export default function TCardProducts({
 
     return (
 
-        <div
+        <div 
             className={styles.container}
             onDragOver={(e) => dragOverHandler(e)}
             onDrop={(e) => {

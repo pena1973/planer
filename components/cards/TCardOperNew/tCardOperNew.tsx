@@ -42,8 +42,8 @@ export interface TCardOperNewProps {
         coment: string,
         duration: number) => void,
     cancelOperHandler: (id: number) => void,
-    updateIdc: (currentId: number) => void,
-    maxIdc: number
+    // updateIdc: (currentId: number) => void,
+    // maxIdc: number
 }
 
 export default function TCardOperNew({
@@ -52,8 +52,8 @@ export default function TCardOperNew({
     deleteOperHandler,
     saveOperHandler,
     cancelOperHandler,
-    updateIdc,
-    maxIdc
+    // updateIdc,
+    // maxIdc
 }: TCardOperNewProps) {
     const { t } = useTranslation();
 
