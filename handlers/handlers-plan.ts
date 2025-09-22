@@ -754,12 +754,9 @@ const doLoopProductsOper = (
     const readyProductsOut = operation.out.map(elem => {
       return {
         id: elem.id,
-        product: elem.product,
-        // idc: elem.idc,
-        code: elem.code,
-        // title: elem.title,
-        qtu: elem.qtu,
-        // uom: elem.uom,
+        product: elem.product,        
+        code: elem.code,        
+        qtu: elem.qtu,        
         date: dateFinish,
         time: timeFinish,
         reserved: 0,
@@ -939,7 +936,8 @@ export const planTCardFromOperINC = (
       //  проворачиваем без пертеписывания лоадов
       if (!operationsToPlanIds.includes(Number(operation.id))) {
 
-        const operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.id_oper === operation.id);
+        // вместо id  делаю по карте и idc
+        const operLoads: UnitLoadItem[] = updatedUnitLoads.filter(load => load.idc_oper === operation.idc && load.id_tCard ===tCard.id);
 
         // вытаскиваем последний лоад операции соответствующий статусу самой операции (для позиционирования во времени)
         const { dateFinish, timeFinish } = dateResultLoad(operLoads, operation.status);
@@ -1299,7 +1297,7 @@ export const getFinishOperations = (
   if (opers.length === 0) return { date: today, time: 0 };
 
   // Допустимые статусы
-  const validStatuses = [StatusEnum.ready, StatusEnum.performed, StatusEnum.planed, StatusEnum.prepared];
+  const validStatuses = [StatusEnum.ready, StatusEnum.performed, StatusEnum.planed, StatusEnum.prepared,StatusEnum.defective];
 
   // Проверяем, что для каждого идентификатора операции в opers есть хотя бы один load с нужным статусом
   for (const opId of opers) {
