@@ -1,14 +1,17 @@
 import { TCardItem } from './../../types/types';
 import { setTCards } from './../../store/slices';
 import { Dispatch } from 'redux';
+import { ulogger } from "./../../lib/common/universal-logger";
 
+// Загружаем карты
 export const downloadTCards = async (
     userId: number,
     teamId: number,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
-    dispatch: Dispatch,   
+    dispatch: Dispatch,
 ) => {
     try {
         const res = await fetch(`/api/tcards-api?userId=${userId}&teamId=${teamId}`,
@@ -16,15 +19,23 @@ export const downloadTCards = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale,
                 }),
             }
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
             const error = receivedData.error;
-            setMessage(error);
-            
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            await ulogger.error({
+                userId: userId,
+                location: "services/initial/downloadTCards",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const downloadTCards = async (",
+            });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -32,17 +43,24 @@ export const downloadTCards = async (
                 // Сортируем tCards по номеру (если number это число)
                 const tCards_ = tCards.sort((a, b) => a.idc - b.idc);
                 const tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
-                dispatch(setTCards(tCardsUpdated));                
+                dispatch(setTCards(tCardsUpdated));
                 setMessage(t('index.downloadTCards'))
             }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+        //  logger
+        await ulogger.error({
+            userId: userId,
+            location: "services/initial/downloadTCards",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const downloadTCards = async (",
+        });
     }
-
 };

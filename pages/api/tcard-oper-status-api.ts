@@ -2,6 +2,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { getStatusPriority } from "./../../lib/common/utils"
@@ -13,8 +14,6 @@ import { TCardOperationItem, StatusEnum } from './../../types/types';
 
 import { updateStatusOperationByOperId, updateStatusLoads, updateStatusTCard } from './../../handlers/handlers-update';
 import { getTCard, getTCardOperationsByCardId, getTCardOperationLoads } from './../../handlers/handlers-get';
-
-
 
 interface RequestBody {
   tCardId: number,
@@ -33,6 +32,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
 
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
       case 'POST':
 
@@ -40,7 +41,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { tCardId, operId, version, status, teamId, userId } = req.body as RequestBody;
 
         //Обновляем СТАТУС ОПЕРАЦИИ       
-        const resOperation = await updateStatusOperationByOperId(tCardOperationsRepository, operId, status)
+        const resOperation = await updateStatusOperationByOperId(Number(userId), locale, tCardOperationsRepository, operId, status)
         if (!resOperation.success) {
           res.status(200).json({
             success: false,
@@ -50,12 +51,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
 
         //  получим лоады операции заданной версии планирования
-        const operLoadsIds = await getTCardOperationLoads(tCardId, operId, version, unitLoadRepository)
+        const operLoadsIds = await getTCardOperationLoads(Number(userId), locale, tCardId, operId, version, unitLoadRepository)
 
 
         if (operLoadsIds.length > 0) {
           //Обновляем СТАТУС ЛОАДОВ этой версии планирования
-          const resLoads = await updateStatusLoads(unitLoadRepository, operLoadsIds, status)
+          const resLoads = await updateStatusLoads(Number(userId), locale, unitLoadRepository, operLoadsIds, status)
           if (!resLoads.success) {
             res.status(200).json({
               success: false,
@@ -65,9 +66,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
         }
         // проверяем все операции карты и если  статусы не ниже текущего  меняем статус самой карты
-        const tCardOperations = await getTCardOperationsByCardId(tCardId, tCardOperationsRepository)
+        const tCardOperations = await getTCardOperationsByCardId(Number(userId), locale, tCardId, tCardOperationsRepository)
 
-        const tCard = await getTCard(tCardId, tCardRepository)
+        const tCard = await getTCard(Number(userId), locale, tCardId, tCardRepository)
         if (!tCard) {
           res.status(200).json({
             success: false,
@@ -102,7 +103,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // обновим статус карты если изменился
         if (tCard.status !== tCardStatus) {
-          const resCard = await updateStatusTCard(tCardRepository, tCardId, tCardStatus)
+          const resCard = await updateStatusTCard(Number(userId), locale, tCardRepository, tCardId, tCardStatus)
           if (!resCard.success) {
             res.status(200).json({
               success: false,

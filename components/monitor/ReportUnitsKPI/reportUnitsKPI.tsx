@@ -92,6 +92,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
       token,
       today,
       t,
+      i18n.language,
       setMessage,
       setUnitsKPIValue,
       filter

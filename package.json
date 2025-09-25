@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "trans": "i18next -c i18next-parser.config.ts --fail-on-warnings",    
-    "typeorm": "cross-env TS_NODE_PROJECT=tsconfig.server.json typeorm-ts-node-commonjs -d ./db/data-source.ts",
+    
+    "typeorm": "cross-env TS_NODE_PROJECT=tsconfig.server.json ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d db/cli-data-source.ts",
     "migration:create": "powershell -Command \"$ts=(Get-Date).ToString('yyyyMMddHHmmss'); npm run typeorm -- migration:create ./db/migrations/Mig_$ts\"",
     "migration:generate": "powershell -Command \"$ts=(Get-Date).ToString('yyyyMMddHHmmss'); npm run typeorm -- migration:generate ./db/migrations/Mig_$ts\"",
     "migration:create:bash": "npm run typeorm -- migration:create ./db/migrations/$(date +%Y%m%d%H%M%S)",
@@ -17,8 +18,9 @@
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "build:orm": "tsc -p tsconfig.server.json",
+     
+    "migration:run:prod": "node ./node_modules/typeorm/cli.js -d dist/db/cli-data-source.js migration:run",
     
-    "migration:run:prod": "typeorm -d ./db/data-source.js migration:run",
     "clean": "rimraf .next node_modules package-lock.json"
   },
   "dependencies": {

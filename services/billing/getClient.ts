@@ -7,6 +7,7 @@ export const getClient = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setClientForm: (val: ClientItem) => void,) => {
 
@@ -17,7 +18,8 @@ export const getClient = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
             }
         );

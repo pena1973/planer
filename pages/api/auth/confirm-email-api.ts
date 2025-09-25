@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from './../../../db/database';  // Импортируем функцию подключения
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { UserTable } from './../../../db/models/catalogs/users';
-import { UserItem } from './../../../types/types';
 
 import { getTypedRepository } from './../../../db/utilites'
 import {  confirmUserEmail } from './../../../handlers/handlers-auth';  // расчеты
@@ -11,21 +11,20 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
  const db = await connectDb();
-
  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);  
-
-  console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
+ console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
 
   try {
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'POST':
         // Извлекаем данные из тела запроса
         const { email } = req.body as RequestBody;
 
-        const resUser = await confirmUserEmail(email, usersRepository)
+        const resUser = await confirmUserEmail(locale,email, usersRepository)
         if (!resUser.success) {
           res.status(200).json({
             success: false,

@@ -1,11 +1,12 @@
 
 import { JobSettingItem } from '@/types/service-types'
 
-export const setJobSetting = async (
-    token: string,
+export const setJobSetting = async (   
     userId: number,
-    jobSetting: JobSettingItem,
+    jobSetting: JobSettingItem, 
+    token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 ) => {
 
@@ -15,7 +16,8 @@ export const setJobSetting = async (
                 method: 'POST',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     jobSetting: jobSetting,

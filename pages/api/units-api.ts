@@ -2,12 +2,12 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { getUnits } from './../../handlers/handlers-get';
 import { updateUnits, updateUnitActions, updateExceptions } from './../../handlers/handlers-update';
 import { UnitTable } from './../../db/models/catalogs/units'
-import { ActionTable } from './../../db/models/catalogs/actions'
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
 
@@ -28,11 +28,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
 
   try {
-
-    const { teamId: getTeamId } = req.query;
+   
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    
     switch (req.method) {
       case 'GET':
-        const units__ = await getUnits(Number(getTeamId), unitRepository)
+        const { teamId: teamIdget, userId:userIdget } = req.query;
+        const units__ = await getUnits(Number(userIdget), locale, Number(teamIdget), unitRepository)
 
         units__.sort((a, b) => {
           // Проверяем, что id определено
@@ -56,7 +58,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // СПИСОК ЮНИТОВ
 
-        const resUnit = await updateUnits(unitRepository, units, teamId)
+        const resUnit = await updateUnits(Number(userId), locale, unitRepository, units, teamId)
 
         if (!resUnit.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUnit.message });
@@ -84,6 +86,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // СПИСОК ДЕЙСТВИЙ ЮНИТОВ
         const resUnitActions = await updateUnitActions(
+          Number(userId), 
+          locale,
           unitActionsRepository,
           unitActions_,
           teamId)
@@ -98,7 +102,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // ОТКЛОНЕНИЯ ЮНИТА ОТ РАСПИСАНИЯ КОМПАНИИ
 
-        const resEx = await updateExceptions(unitExceptionsRepository, exceptions_, teamId)
+        const resEx = await updateExceptions(Number(userId), locale, unitExceptionsRepository, exceptions_, teamId)
 
         if (!resEx.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resEx.message });

@@ -3,6 +3,7 @@ import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { cnangeStatusMail } from './../../../handlers/handlers-update';  // расчеты
@@ -12,7 +13,8 @@ import { StatusEnum } from './../../../types/types';
 
 interface RequestBody {
   mailId: number,
-  status: string
+  status: string,
+  userId: number
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -20,13 +22,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
 
   try {
+    
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
       case 'POST':
 
         // Извлекаем данные из тела запроса
-        const { mailId, status } = req.body as RequestBody;
-        // status: string
-       
+        const { mailId, status , userId} = req.body as RequestBody;
+               
         const statusEnum: StatusEnum = (() => {
           switch ((status ?? '').trim().toLowerCase()) {
             case 'prepared': return StatusEnum.prepared;
@@ -39,6 +43,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // СПИСОК ДЕЙСТВИЙ 
         const resSupport = await cnangeStatusMail(
+          Number(userId),
+          locale,
           Number(mailId),
           statusEnum,
           supportRepository

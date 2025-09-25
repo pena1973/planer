@@ -2,6 +2,7 @@ import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { BanerTable } from './../../../db/models/support/baners';
@@ -11,6 +12,7 @@ import { BanerItem } from '@/types/service-types'
 
 interface RequestBody {
   baner: BanerItem,
+  userId: number
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -19,12 +21,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
 
-    const { teamId, userId } = req.query;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
 
     switch (req.method) {
       case 'GET':
+
+        const { teamId, userId: userIdget } = req.query;
+
         const baner__ = await getBaner(
-          teamId ? Number(teamId) : undefined,
+          Number(userIdget),
+          locale,
+          (teamId) ? Number(teamId) : undefined, // банер может быть безадресный
           banerRepository)
 
         // отправляем ответ
@@ -36,8 +44,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         break;
       case 'POST':
-        const { baner } = req.body as RequestBody;
-        const baner_ = await setBaner(baner, banerRepository)
+        const { baner, userId } = req.body as RequestBody;
+        const baner_ = await setBaner(Number(userId), locale, baner, banerRepository)
 
         // отправляем ответ
         res.status(200).json({

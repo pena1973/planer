@@ -3,6 +3,7 @@ import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getDependentOperationsIds } from './../../../handlers/handlers-plan';  // планирование карты
@@ -19,7 +20,7 @@ import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
 import { ActionTable } from './../../../db/models/catalogs/actions'
 import { UnitLoadItem, StatusEnum, } from "./../../../types/types";
 
-import { getCurrentDateInString} from "@/lib/common/timezone"
+import { getCurrentDateInString } from "@/lib/common/timezone"
 
 import { In, Raw, Repository } from 'typeorm';
 
@@ -32,6 +33,7 @@ interface RequestBody {
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
+  
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
@@ -39,11 +41,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
   const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
-   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+
   try {
 
-    // const { userId, teamId } = req.query;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'POST':
@@ -54,6 +57,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard = await getTCardFull(
+          Number(userId), 
+          locale, 
           Number(teamId),
           erazload.id_tCard,
           tCardRepository,
@@ -66,21 +71,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
-  // запросим расписание компании
-        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
+        // запросим расписание компании
+        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
 
-       const todayStr = getCurrentDateInString(shedule_.timeZone)
+        const todayStr = getCurrentDateInString(shedule_.timeZone)
 
 
         const oper = tCard.tCardOperations?.find(oper => oper.id === erazload?.id_oper);
-         if (!oper) {
-           res.status(200).json({ success: false, message: "Операция в базе не найдена" });
-           return
-         }
+        if (!oper) {
+          res.status(200).json({ success: false, message: "Операция в базе не найдена" });
+          return
+        }
 
         //  получаем список Id операций которые зависимы от нашей  -  
         // их будем удалять или отменять в зависимости от даты и статуса
-        const dependentOperationsIds = getDependentOperationsIds(tCard, oper);
+        const dependentOperationsIds = getDependentOperationsIds(Number(userId), locale, tCard, oper);
 
         // добавлю и нашу операцию тоже
         dependentOperationsIds.push(Number(oper.id));
@@ -106,14 +111,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         tCardLoadsUpdated = tCardLoadsUpdated.filter(lo => {
           return !(dependentOperationsIds.includes(lo.id_oper) && lo.status === StatusEnum.prepared)
         })
-      
+
         // если стираемый лоад в статусе planed и он раньще текущей даты (в исторической части шкалы)
         //  - можем просто отменить
         const tCardLoadsToCancel = tCardLoadsUpdated.filter(lo => {
           return (dependentOperationsIds.includes(lo.id_oper)
             && lo.date < todayStr && lo.status === StatusEnum.planed)
         })
-        
+
         // если стираемый лоад в статусе planed и он позже или равен текущей даты (в плановой части шкалы)
         //   - можем просто стереть (удалить) из базы
         const tCardLoadsToDelete = tCardLoadsUpdated.filter(lo => {
@@ -175,6 +180,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // Получим карту в ее новом состоянии и тоже передадим      
 
         const _tCard = await getTCardFull(
+          Number(userId), 
+          locale, 
           Number(teamId),
           erazload.id_tCard,
           tCardRepository,
@@ -201,10 +208,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     res.status(405).end(); // Метод не поддерживается
 
-    // } catch (error) {
-    //   console.error('Ошибка подключения или выполнения запроса (eraze-load-plan-api):', error);
-    //   res.status(500).json({ error: 'Не удалось обработать запрос' + error });
-    // }
   } catch (error: unknown) {
     let errorMessage = "Неизвестная ошибка";
 
@@ -219,49 +222,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
 }
-
-// const cancelLoads = async (
-//   cancellLoads: UnitLoadItem[],
-//   today: string, // формат "YYYY-MM-DD"
-//   unitLoadRepository: Repository<UnitLoadTable>
-// ): Promise<{ success: boolean, message: string }> => {
-//   // Извлекаем id загрузок, которые переданы в массиве
-//   const loadIds = cancellLoads
-//     .map(load => load.id)
-//     .filter((id): id is number => id !== undefined);
-
-//   if (loadIds.length === 0) {
-//     return { success: true, message: "Нет загрузок для отмены." };
-//   }
-
-//   try {
-//     const result = await unitLoadRepository
-//       .createQueryBuilder()
-//       .update(UnitLoadTable)
-//       .set({ status: StatusEnum.cancelled })
-//       .where("id IN (:...loadIds)", { loadIds })
-//       .andWhere("status = :planed", { planed: StatusEnum.planed })
-//       .andWhere("date < :today", { today })
-//       .execute();
-
-//     if (result.affected && result.affected > 0) {
-//       return { success: true, message: `Обновлено ${result.affected} загрузок.` };
-//     } else {
-//       return { success: false, message: "Нет загрузок для отмены." };
-//     }
-
-//   } catch (error: unknown) {
-//     let message = "Ошибка при отмене загрузок.";
-//     if (error instanceof Error) {
-//       message = error.message;
-//       console.error("Ошибка при отмене загрузок:", error);
-//     } else {
-//       console.error("Неизвестная ошибка при отмене загрузок:", error);
-//     }
-//     return { success: false, message };
-//   }
-// };
-// 
 
 const cancelLoads = async (
   cancellLoads: UnitLoadItem[],
@@ -348,75 +308,7 @@ const deleteLoads = async (
   }
 };
 
-// const deleteLoads = async (
-//   delLoads: UnitLoadItem[],
-//   today: string, // "YYYY-MM-DD"
-//   unitLoadRepository: Repository<UnitLoadTable>
-// ): Promise<{ success: boolean, message: string }> => {
-//   // Извлекаем id загрузок, фильтруя возможные undefined
-//   const loadIds = delLoads.map(load => load.id).filter((id): id is number => id !== undefined);
-//   if (loadIds.length === 0) {
-//     return { success: true, message: "Нет загрузок для удаления." };
-//   }
 
-//   try {
-//     const result = await unitLoadRepository
-//       .createQueryBuilder()
-//       .delete()
-//       .from(UnitLoadTable)
-//       .where("id IN (:...loadIds)", { loadIds })
-//       .andWhere("status = :status", { status: StatusEnum.planed })
-//       .andWhere("date >= :today", { today })
-//       .execute();
-
-//     if (result.affected && result.affected > 0) {
-//       return { success: true, message: `Удалено ${result.affected} загрузок.` };
-//     } else {
-//       return { success: false, message: "Нет загрузок для удаления." };
-//     }
-
-//   } catch (error: unknown) {
-//     let message = "Ошибка при удалении загрузок.";
-//     if (error instanceof Error) {
-//       message = error.message;
-//       console.error("Ошибка при удалении загрузок:", error);
-//     } else {
-//       console.error("Неизвестная ошибка при удалении загрузок:", error);
-//     }
-//     return { success: false, message };
-//   }
-// };
-
-// const setOperStatus = async (
-//   operationIds: number[],
-//   newStatus: StatusEnum,
-//   tCardOperationsRepository: Repository<TCardOperationTable>
-// ): Promise<{ success: boolean, message: string }> => {
-//   try {
-//     const result = await tCardOperationsRepository
-//       .createQueryBuilder()
-//       .update(TCardOperationTable)
-//       .set({ status: newStatus })
-//       .where("id IN (:...operationIds)", { operationIds })
-//       .execute();
-
-//     if (result.affected && result.affected > 0) {
-//       return { success: true, message: `Обновлено ${result.affected} операций.` };
-//     } else {
-//       return { success: false, message: "Ни одна операция не обновлена." };
-//     }
-
-//   } catch (error: unknown) {
-//     let message = "Ошибка обновления статуса операций.";
-//     if (error instanceof Error) {
-//       message = error.message;
-//       console.error("Ошибка обновления операций:", error);
-//     } else {
-//       console.error("Неизвестная ошибка обновления операций:", error);
-//     }
-//     return { success: false, message };
-//   }
-// };
 
 const setOperStatus = async (
   operationIds: number[],
@@ -452,38 +344,6 @@ const setOperStatus = async (
     return { success: false, message };
   }
 };
-
-// const setTCardStatus = async (
-//   tCardId: number,
-//   newStatus: StatusEnum,
-//   tCardRepository: Repository<TCardTable>
-// ): Promise<{ success: boolean, message: string }> => {
-//   try {
-//     const result = await tCardRepository
-//       .createQueryBuilder()
-//       .update(TCardTable)
-//       .set({ status: newStatus })
-//       .where("id = :tCardId", { tCardId })
-//       .execute();
-
-//     if (result.affected && result.affected > 0) {
-//       return { success: true, message: `Обновлена карта с id: ${tCardId}` };
-//     } else {
-//       return { success: false, message: "Карта не обновлена." };
-//     }
-
-//   } catch (error: unknown) {
-//     let message = "Ошибка обновления статуса карты.";
-//     if (error instanceof Error) {
-//       message = error.message;
-//       console.error("Ошибка обновления карты:", error);
-//     } else {
-//       console.error("Неизвестная ошибка обновления карты:", error);
-//     }
-//     return { success: false, message };
-//   }
-
-// };
 
 
 const setTCardStatus = async (

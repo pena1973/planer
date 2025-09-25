@@ -7,6 +7,7 @@ export const getAttachedTeams = async (
     mainTeam: string,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setAttachedTeams: (val: TeamItem[]) => void,) => {
 
@@ -17,7 +18,8 @@ export const getAttachedTeams = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
             }
         );

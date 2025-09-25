@@ -6,6 +6,7 @@ export const getBalance = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setBalance: (val: number) => void,) => {
 
@@ -16,7 +17,8 @@ export const getBalance = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
             }
         );

@@ -10,6 +10,7 @@ export const changePassword = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
+    locale:string,
     dispatch: Dispatch,
     setMessage: (message: string) => void,
 
@@ -21,7 +22,8 @@ export const changePassword = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     userId: userId,
@@ -62,6 +64,7 @@ export const changeName = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
+    locale:string,
     dispatch: Dispatch,
     setMessage: (message: string) => void,
 ): Promise<boolean> => {
@@ -73,7 +76,8 @@ export const changeName = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     userId: userId,
@@ -114,6 +118,7 @@ export const deleteProfile = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (message: string) => void,
 ): Promise<boolean> => {
 
@@ -125,7 +130,8 @@ export const deleteProfile = async (
                 method: 'delete',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     userId: userId,

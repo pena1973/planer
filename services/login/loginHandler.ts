@@ -21,6 +21,7 @@ interface LoginPayload {
   pass: string;
   token: string;
   t: (key: string) => string;
+  locale: string,
   setMessage: (msg: string) => void;
   setMessageLogin: (msg: string) => void;
   dispatch: Dispatch;
@@ -39,6 +40,7 @@ export const loginHandler = async ({
   pass,
   token,
   t,
+  locale,
   setMessage,
   setMessageLogin,
   dispatch,
@@ -56,7 +58,8 @@ export const loginHandler = async ({
         method: 'post',
         headers: new Headers({
           'Authorization': 'Basic ' + token,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          "X-Lang": locale, 
         }),
         body: JSON.stringify({
           login: login,

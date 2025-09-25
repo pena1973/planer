@@ -2,6 +2,7 @@ import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { InvoiceTable } from '../../../db/models/billing/invoice';
 import { getInvoices } from '../../../handlers/handlers-get';
@@ -14,11 +15,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const invoicesRepository = getTypedRepository(db, 'InvoiceTable', InvoiceTable);
 
   try {
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
-    const { teamId: getTeamId } = req.query;
     switch (req.method) {
       case 'GET':
-        const invoices = await getInvoices(Number(getTeamId), invoicesRepository)
+
+        const { teamId: getTeamId, userId: userIdget } = req.query;
+
+        const invoices = await getInvoices(Number(userIdget), locale, Number(getTeamId), invoicesRepository)
 
         invoices.sort((a, b) => {
           // Проверяем, что id определено

@@ -6,6 +6,7 @@ export const getUnitsKPI = async (
     token: string,
     today: Date,  
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setUnitsKPIValue: (val: UnitKPIItem[]) => void,
     filter: string = "",
@@ -17,7 +18,8 @@ export const getUnitsKPI = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
             }
         );

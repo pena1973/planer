@@ -16,8 +16,10 @@ import { downloadLoadsStatuses } from '@/services/process/downloadLoadsStatuses'
 import { downloadBaner } from '@/services/process/downloadBaner';
 
 export const PollingWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
+  
+  const locale = i18n.language;
 
   const team       = useAppSelector((s: RootState) => s.catalogSlice.team, shallowEqual);
   const token      = useAppSelector((s: RootState) => s.authSlice.token);
@@ -85,21 +87,21 @@ export const PollingWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
 
       try {
         if (!curUser.isAdmin) {
-          await downloadUoms(curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
-          await downloadActions(curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
+          await downloadUoms(curUser.id, curTeam.id, curToken, t, i18n.language, setMessage, dispatch);
+          await downloadActions(curUser.id, curTeam.id, curToken, t, locale, setMessage, dispatch);
 
           if (curUnit?.id) {
-            await downloadUnutActions(curUnit.id, curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
-            await downloadUnutExceptions(curUnit.id, curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
+            await downloadUnutActions(curUnit.id, curUser.id, curTeam.id, curToken, t, i18n.language, setMessage, dispatch);
+            await downloadUnutExceptions(curUnit.id, curUser.id, curTeam.id, curToken, t, i18n.language, setMessage, dispatch);
           }
 
-          await downloadSchedule(curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
-          await downloadTCards(curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
-          await downloadLoads(curUser.id, curTeam.id, curToken, t, setMessage, dispatch);
+          await downloadSchedule(curUser.id, curTeam.id, curToken, t, i18n.language, setMessage, dispatch);
+          await downloadTCards(curUser.id, curTeam.id, curToken, t, i18n.language, setMessage, dispatch);
+          await downloadLoads(curUser.id, curTeam.id, curToken, t, i18n.language, setMessage, dispatch);
         }
 // curLoads.filter(c=>c.id_tCard===50)
-        await downloadLoadsStatuses(curUser.id, curTeam.id, curToken, curLoads, t, setMessage, dispatch);
-        await downloadBaner(undefined, undefined, curToken, t, setMessage, dispatch);
+        await downloadLoadsStatuses(curUser.id, curTeam.id, curToken, curLoads, t, i18n.language, setMessage, dispatch);
+        await downloadBaner(undefined, undefined, curToken, t, i18n.language, setMessage, dispatch);
 
         console.log('[poll] tick done');
       } catch (e) {

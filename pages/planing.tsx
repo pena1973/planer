@@ -104,7 +104,7 @@ export default function Planing() {
   // Запись запланированной карты
   const saveCardHandler = async () => {
     setSaveLoaderCard(tCardPrepared.id);
-    await saveCard(tCardPrepared, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
+    await saveCard(tCardPrepared, unitLoads, tCards, token, user.id, team.id, dispatch, t, i18n.language, setMessage);
     setSaveLoaderCard(NaN);
   }
   // На сервере

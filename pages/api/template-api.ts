@@ -2,6 +2,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { TemplateTable } from './../../db/models/catalogs/templates';
@@ -19,8 +20,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const tCardTemplateRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
 
     try {
-
-        const { teamId: getTeamId } = req.query;
+    
+        const locale = getLocaleFromHeader(req.headers["x-lang"]);    
 
         switch (req.method) {
             case 'POST':
@@ -112,8 +113,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                     template: template,
                 });
                 break;
-
-            // Нужно Удаление
 
             default:
                 res.status(405).end(); // Метод не поддерживается

@@ -6,8 +6,8 @@
 export const sendCodeHandler = async (
     login: string,
     purpose: string,
-    locale: string,
     t: (s: string) => string,
+    locale: string,
     messageLogin: (msg: string) => void,) => {
     try {
 
@@ -16,7 +16,8 @@ export const sendCodeHandler = async (
                 method: 'post',
                 headers: new Headers({
                     // 'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     email: login,

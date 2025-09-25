@@ -12,6 +12,7 @@ export const saveSettings = async (
     token: string,
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setModified: (val: boolean) => void,
     setTimeStartWorkValue: (val: number) => void,
@@ -35,7 +36,8 @@ export const saveSettings = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     userId: user.id,

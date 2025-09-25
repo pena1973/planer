@@ -8,6 +8,7 @@ export const setOperStatus = async (
     userId: number,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setStatusLoadsHandler: (
         tCardStatus: StatusEnum,
@@ -28,7 +29,8 @@ export const setOperStatus = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     tCardId:currentLoad.id_tCard,

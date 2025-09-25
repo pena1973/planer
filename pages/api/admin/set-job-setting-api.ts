@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { withAuth } from "@/lib/server/withAuth";
 
 import connectDb from '../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { JobSettingsTable } from './../../../db/models/job/job-settings';
 import { updateJobSetting } from './../../../handlers/handlers-update';
@@ -21,12 +22,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const jobSettingsRepository = getTypedRepository(db, 'JobSettingsTable', JobSettingsTable);
 
   try {
+    
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
       case 'POST': {
         const { jobSetting, userId } = req.body as RequestBody;
 
         // 1) Сохраняем/обновляем настройки
-        const resJobSetting = await updateJobSetting(jobSettingsRepository, jobSetting);
+        const resJobSetting = await updateJobSetting(Number(userId), locale, jobSettingsRepository, jobSetting);
         if (!resJobSetting.success || !resJobSetting.savedJobSetting) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + (resJobSetting.message ?? '') });
           return;

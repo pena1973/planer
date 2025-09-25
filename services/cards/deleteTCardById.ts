@@ -5,6 +5,7 @@ import { TCardItem, UnitLoadItem,TeamItem } from "./../../types/types";
 import { setTCards, setUnitLoads } from "./../../store/slices";
 
 export const deleteTCardById = async (
+    userId:number,
     idToRemove: number,
     token: string,
     team: TeamItem,
@@ -12,18 +13,25 @@ export const deleteTCardById = async (
     unitLoads: UnitLoadItem[],
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 ) => {
 
     try {
         // запрос получение текста из БД вместе со словами     textId: number, userId:number      
-        const res = await fetch(`api/tcard-api?tCardId=${idToRemove}&teamId=${team.id}`,
+        // const res = await fetch(`api/tcard-api?tCardId=${idToRemove}&teamId=${team.id}`,
+        const res = await fetch(`api/tcard-api`,
             {
                 method: 'delete',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-
+                    "X-Lang": locale, 
+                }),
+                body: JSON.stringify({
+                    tCardId: idToRemove,
+                    userId: userId,
+                    teamId: team.id,
                 }),
             }
         );

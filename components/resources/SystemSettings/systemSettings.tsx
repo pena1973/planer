@@ -47,7 +47,7 @@ export default function Settings({
 
     // На сервере
     const saveSettingsHandler = async () => {
-        await saveSystemSettings(settings, isQualControlValue, user, team, token, dispatch, t, setMessage, setModified);
+        await saveSystemSettings(settings, isQualControlValue, user, team, token, dispatch, t, i18n.language, setMessage, setModified);
        
     };
 

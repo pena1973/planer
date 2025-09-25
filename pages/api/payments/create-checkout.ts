@@ -5,6 +5,7 @@ import { getTypedRepository, } from './../../../db/utilites'
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 import connectDb from "@/db/database";
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { ClientTable } from "./../../../db/models/billing/clients";
 import { ClientItem } from './../../../types/service-types'
 import { randomUUID } from 'crypto';
@@ -17,6 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const db = await connectDb();
     const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
+    
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     const { amount, userId, teamId } = req.body as {
       amount: number; userId: number; teamId: number; customerId?: string;
@@ -34,13 +37,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const baseUrl = process.env.APP_BASE_URL;
     if (!baseUrl) return res.status(500).send('APP_BASE_URL is not set');
 
-    const client: ClientItem | undefined = await getClient(teamId, clientRepository);
+    const client: ClientItem | undefined = await getClient(Number(userId), locale, teamId, clientRepository);
 
     const metadata = {
       userId: String(userId),
       teamId: String(teamId),
       amountInCents: String(amountInCents),
-      purpose: 'balance_topup',      
+      purpose: 'balance_topup',
+      locale: locale,      
     };
 
     // определяем customer: либо из тела запроса, либо создаём

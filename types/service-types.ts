@@ -25,7 +25,6 @@ export interface JobSettingItem {
   every_minutes?: number | null;  // >0
 }
 
-
 export interface ClientItem {
   title: string,
   reg_n: string,
@@ -50,4 +49,16 @@ export interface MainItem {
   discount: number,      // 0..100 (%)
   from: string,          // 'YYYY-MM-DD'
   VAT: number    // %
+}
+
+export enum LogLevelEnum {
+  INFO = "info",
+  WARN = "warn",
+  ERROR = "error",
+  DEBUG = "debug",
+}
+
+export enum LogOriginEnum {
+  SERVER = "server",
+  CLIENT = "client",
 }

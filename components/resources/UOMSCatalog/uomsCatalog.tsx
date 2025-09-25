@@ -116,7 +116,7 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
                 return;
             }
         })
-        await saveUOMs(uomsValue, user, team, token, dispatch, t, setMessage, setUomsValue, setModified);
+        await saveUOMs(uomsValue, user, team, token, dispatch, t, i18n.language, setMessage, setUomsValue, setModified);
 
     };
     // На клиенте

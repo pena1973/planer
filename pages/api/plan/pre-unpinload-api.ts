@@ -3,6 +3,7 @@ import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './../../../handlers/handlers-get';  // 
@@ -45,7 +46,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
   const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+
   try {
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
 
@@ -69,6 +73,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard = await getTCardFull(
+          Number(userId), 
+          locale, 
           Number(teamId),
           Number(tCardId),
           tCardRepository,
@@ -98,7 +104,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return
         }
         //  получаем список операций которые зависимы от нашей  -  их будем перепланировать
-        const dependentOperationsIds = getDependentOperationsIds(tCard, oper);
+        const dependentOperationsIds = getDependentOperationsIds(Number(userId), locale, tCard, oper);
 
         // Формируем массив по карте без лоадов этой операции и зависимых от нее
         const cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
@@ -113,18 +119,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         let planedCardLoads = [...cardLoadsWithoutOperEndDep];
 
         // запросим юниты
-        const units_ = await getUnits(Number(teamId), unitRepository)
+        const units_ = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
 
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository)
+        const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
 
         // запросим расписание компании
-        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
+        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
 
         //  получим исключения рабочего времени юнитов         
-        const exceptionItems = await getExceptions(Number(teamId), unitExceptionsRepository)
+        const exceptionItems = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
         const unitLoadItemsBD = await getUnitLoads(
+          Number(userId), 
+          locale, 
           Number(teamId),
           units_,
           unitLoadRepository,
@@ -139,7 +147,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const operationsToPlanIds = [...dependentOperationsIds, Number(oper.id)]
 
         // Планируем карту начиная с нашей операции (есключая ее саму)
-        const resultPlaningNextOper = planTCardFromOperINC(operationsToPlanIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
+        const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, operationsToPlanIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
         //  Если не удалось запланировать
         if (!resultPlaningNextOper.success) {
           res.status(200).json({

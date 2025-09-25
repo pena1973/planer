@@ -6,6 +6,7 @@ export const getUsersUnits = async (
     team: TeamItem,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setUsersUnits: (val: UserUnitItem[]) => void,
     users_units_old_ref: React.MutableRefObject<UserUnitItem[]>,
@@ -18,7 +19,8 @@ export const getUsersUnits = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
             }
         );

@@ -82,7 +82,7 @@ export default function TeamSchedule({
             timeZone: timeZoneValue
         } as ScheduleItem;
 
-        await saveSchedule(schedule, team, user, token, dispatch, t, setMessage,
+        await saveSchedule(schedule, team, user, token, dispatch, t,i18n.language, setMessage,
             setTimeStartWorkValue, setTimeFinishWorkValue, setBreaksValue,
             setHolidaysValue, setWeekendsValue, setWorkdaysValue,
             setTimeZoneValue, setModified);

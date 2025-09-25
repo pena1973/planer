@@ -10,6 +10,7 @@ export const saveTeam = async (
     token: string,
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setModified: (val: boolean) => void
 ) => {
@@ -21,7 +22,8 @@ export const saveTeam = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     title: titleValue,

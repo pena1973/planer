@@ -24,7 +24,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
   userId,
   token
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [tCardsValue, setTCardsValue] = useState([] as TCardTermsItem[]);
   const [unitLoadsValue, setUnitLoadsValue] = useState([] as UnitLoadItem[]);
@@ -56,7 +56,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     filter = filter.concat(`&showClosed=${showClosed}`)
     if (useStatus) filter = filter.concat(`&tCardStatus=${tCardStatus}`)
 
-    await getTCardsTerms(userId, teamId, token, t, setMessage,
+    await getTCardsTerms(userId, teamId, token, t, i18n.language, setMessage,
       setUnitLoadsValue, setTCardsValue, filter,);
 
     setShowLoader(false);

@@ -10,6 +10,7 @@ export const saveSchedule = async (
     token: string,
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setTimeStartWorkValue: (val: number) => void,
     setTimeFinishWorkValue: (val: number) => void,
@@ -27,7 +28,8 @@ export const saveSchedule = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     schedule: schedule,

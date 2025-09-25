@@ -27,6 +27,7 @@ interface RegisterPayload {
     nickname: string,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setMessageRegister: (msg: string) => void,    
     dispatch: Dispatch,
@@ -45,6 +46,7 @@ export const registerHandler = async ({
     nickname,
     token,
     t,
+    locale,
     setMessage,
     setMessageRegister,    
     dispatch,
@@ -62,7 +64,8 @@ export const registerHandler = async ({
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     login: login,

@@ -1,14 +1,14 @@
 
-import { Repository, In, MoreThanOrEqual } from "typeorm";
+import { Repository, In } from "typeorm";
 
 import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getEarliestStart } from './../../../handlers/handlers-plan';  // планирование карты
-
 
 import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
 import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
@@ -28,7 +28,6 @@ import { getCurrentDateInString } from "@/lib/common/timezone";
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
   tCardId: number,
-  // today: string,
   teamId: number,
   userId: number
 }
@@ -45,21 +44,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
-  // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
   try {
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
 
       // Стираем планирование всех плановых и отменяем все что в истории кроме выполненных
-
       case 'POST':
-      const { tCardLoads, tCardId, teamId, userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        const { tCardLoads, tCardId, teamId, userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
         //tCardLoads //Это все лоады покарте
 
         // запросим расписание компании чтобы взять timezone
-       const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
-        
-       const today =  getCurrentDateInString(shedule_.timeZone) // на всякий случай синхронизируем дату с серверной
+        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
+
+        const today = getCurrentDateInString(shedule_.timeZone) // на всякий случай синхронизируем дату с серверной
 
         // Убираем prepared
         let tCardLoadsUpdated = tCardLoads.filter(lo => {
@@ -73,6 +73,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard = await getTCardFull(
+          Number(userId), 
+          locale, 
           Number(teamId),
           Number(tCardId),
           tCardRepository,
@@ -131,7 +133,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // КАРТА
         // меняем в базе статус карты на Prepared  если действительно есть что отменять
         if (operToMakePreparedIds.length > 0) {
-          const resSetTCardStatus = await updateStatusTCard(tCardRepository, tCardId, StatusEnum.prepared);
+          const resSetTCardStatus = await updateStatusTCard(Number(userId), locale, tCardRepository, tCardId, StatusEnum.prepared);
 
           if (!resSetTCardStatus.success) {
             res.status(200).json({ success: false, message: "Не удалось  поменять статус карты" });
@@ -147,8 +149,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           success: true,
           tCardLoads: tCardLoadsUpdated,
           tCardStatus: tCardStatus,
-          canceledOperIds:operToCancellIds, // лоады отменены, операция переведена в отменен
-          preparedOperIds:operToDeleteIds,  // лоады удалены, операция переведена в подготовлен
+          canceledOperIds: operToCancellIds, // лоады отменены, операция переведена в отменен
+          preparedOperIds: operToDeleteIds,  // лоады удалены, операция переведена в подготовлен
           message: ""
         });
         break;

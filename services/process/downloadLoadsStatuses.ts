@@ -8,6 +8,7 @@ export const downloadLoadsStatuses = async (
     token: string,
     unitsLoads: UnitLoadItem[],
     t: (key: string) => string,
+    locale:string,
     setMessage: (msg: string) => void,
     dispatch: Dispatch
 ) => {
@@ -18,7 +19,8 @@ export const downloadLoadsStatuses = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                      "X-Lang": locale,
                 }),
             }
         );

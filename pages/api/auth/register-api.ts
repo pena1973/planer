@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { extractIdFromTeamNumber } from './../../../lib/common/utils';
@@ -53,6 +54,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
 
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
       case 'POST':
         // Извлекаем данные из тела запроса
@@ -75,6 +78,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (Boolean(createTeam)) {
           // Внутри создания команды автозаполнение настроек и расписания
           const resTeam = await createNewTeam(
+            null,
+            locale,
             teamsRepository,
             active_timeRepository,
             settingsRepository,
@@ -94,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           //  иначе ищем команду по номеру
           const teamId = extractIdFromTeamNumber(teamNumber);
 
-          const resTeam1 = await getTeam(teamId, teamsRepository)
+          const resTeam1 = await getTeam(null, locale,teamId, teamsRepository)
 
           if (!resTeam1.success || !resTeam1.team) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam1.message });
@@ -107,6 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Юзер
 
         const resNewUser = await createNewUser(
+          locale,
           login,
           pass,
           team.id,
@@ -125,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const token = sign({ data: login }, String(process.env.JWTSECRET), { expiresIn: '24h' });
 
         //  юзер получен проверяю актуальное соглашение
-        const resAgreement = await getLastAgreement(savedUser.id, userAgreeRepository, agreementRepository)
+        const resAgreement = await getLastAgreement(savedUser.id,locale, userAgreeRepository, agreementRepository)
         //  { text: string, signed: boolean, dateSigned?: string, message?: string }> 
 
         const agreementText = resAgreement.agreementText;
@@ -135,6 +141,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // проводка пополнения  баланса  при создании новой независимой команды в режиме триал
         if (!basedOnTeam) {
           const balanceRes = await updateBalance(
+            savedUser.id,
+            locale, 
             balanceRepository,
             team.id,
             "",

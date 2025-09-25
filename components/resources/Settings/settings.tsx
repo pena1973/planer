@@ -54,7 +54,7 @@ export default function Settings({
     // На сервере
     const saveSettingsHandler = async () => {
         await saveSettings(timeStartWorkValue, timeFinishWorkValue, showWeekendValue, showHolidayValue,
-            user, team, token, dispatch, t, setMessage, setModified,
+            user, team, token, dispatch, t, i18n.language, setMessage, setModified,
             setTimeStartWorkValue, setTimeFinishWorkValue, setShowWeekendValue, setShowHolidayValue);
     };
     // На клиенте

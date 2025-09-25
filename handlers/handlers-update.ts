@@ -1,4 +1,6 @@
 
+import { ulogger } from "./../lib/common/universal-logger";
+import { t } from "./../lib/server/translate/locale";
 import { Repository, In } from 'typeorm';
 // tables
 import { UnitTable } from './../db/models/catalogs/units'
@@ -36,16 +38,19 @@ import {
   SupportMailItem, TCardItem, TCardOperationItem, TCardProductItem,
   ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
   SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum,
-  ScheduleItem} from './../types/types';
+  ScheduleItem
+} from './../types/types';
 
 import { ClientItem, JobSettingItem, BanerItem } from './../types/service-types';
 
 
 import { YYYYMMDD } from "@/lib/common/utils"
-import { getCurrentDateInString,getTimeZoneDateFromDateString } from "../lib/common/timezone"
+import { getCurrentDateInString, getTimeZoneDateFromDateString } from "../lib/common/timezone"
 
 // Создание c строки баланса
 export async function updateBalance(
+  userId: number | null,
+  locale: string,
   balanceRepository: Repository<BalanceTable>,
   teamId: number,
   transactionId: string,
@@ -55,6 +60,7 @@ export async function updateBalance(
   document: string,
   direction: string,
   coment: string,
+
 ) {
 
   // Получаем существующую транзакцию расписание для компании (предполагается, что только одно расписание для компании)
@@ -98,8 +104,10 @@ export async function updateBalance(
   };
 }
 
-// Создание c строки баланса
+// Установка настройки рег задания
 export async function updateJobSetting(
+  userId: number,
+  locale: string,
   jobSettingRepository: Repository<JobSettingsTable>,
   jobSetting: JobSettingItem,
 ) {
@@ -145,6 +153,8 @@ export async function updateJobSetting(
 
 // Состояние активности нескольких команд
 export async function changeStateTeamsByIds(
+  userId: number | null,
+  locale: string,
   activeTimeRepository: Repository<ActiveTimeTable>,
   teamIds: number[],
   state: boolean,
@@ -196,6 +206,8 @@ export async function changeStateTeamsByIds(
 
 // Состояние активности команды
 export async function changeStateTeambyId(
+  userId: number,
+  locale: string,
   activeTimeRepository: Repository<ActiveTimeTable>,
   teamId: number,
   state: boolean,
@@ -229,6 +241,8 @@ export async function changeStateTeambyId(
 
 // НАСТРОЙКИ
 export async function updateSettings(
+  userId: number,
+  locale: string,
   settingsRepository: Repository<SettingsTable>,
   settings: SettingsItem,
   teamId: number
@@ -270,6 +284,8 @@ export async function updateSettings(
 
 // ШАБЛОНЫ
 export async function updateTemplates(
+  userId: number,
+  locale: string,
   templatesRepository: Repository<TemplateTable>,
   templates: TemplateItem[],
   teamId: number
@@ -361,6 +377,8 @@ export async function updateTemplates(
 
 // КЛИЕНТ
 export async function updateClient(
+  userId: number,
+  locale: string,
   clientRepository: Repository<ClientTable>,
   client: ClientItem,
   teamId: number
@@ -425,6 +443,8 @@ export async function updateClient(
 
 // ЕДИНИЦЫ ИЗМЕРЕНИЯ
 export async function updateUOMS(
+  userId: number,
+  locale: string,
   uomsRepository: Repository<UOMsTable>,
   uoms: UOMItem[],
   teamId: number
@@ -516,13 +536,15 @@ export async function updateUOMS(
 
 // ДЕЙСТВИЯ
 export async function updateActions(
+  userId: number,
+  locale: string,
   actionsRepository: Repository<ActionTable>,
   actions: ActionItem[],
-  team_id: number
+  teamId: number,
 ) {
 
   // СПИСОК ДЕЙСТВИЙ в базе
-  const existingActions = await actionsRepository.find({ where: { team_id: team_id } });
+  const existingActions = await actionsRepository.find({ where: { team_id: teamId } });
 
   // 1. Найдём удалённые операции
   const actionToDelete = existingActions.filter(action =>
@@ -550,7 +572,7 @@ export async function updateActions(
       code: action.code,
       title: action.title,
       interruptible: action.interruptible,
-      team_id: team_id,
+      team_id: teamId,
     });
   });
   let savedNewActions = [] as ActionTable[]
@@ -610,17 +632,19 @@ export async function updateActions(
 
 // РАСПИСАНИЕ
 export async function updateShedule(
+  userId: number,
+  locale: string,
   scheduleRepository: Repository<TeamScheduleTable>,
   schedule: ScheduleItem,
   teamId: number
 ) {
 
   // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
-   const existingSchedule = await scheduleRepository.findOne({ where: { team_id: teamId }, });
+  const existingSchedule = await scheduleRepository.findOne({ where: { team_id: teamId }, });
   if (!existingSchedule) {
     // Если расписания нет, создаем новое
     const newSchedule = scheduleRepository.create({
-      team_id: teamId,      
+      team_id: teamId,
       timeStartWork: schedule.timeStartWork,
       timeFinishWork: schedule.timeFinishWork,
       breaks: schedule.breaks,
@@ -645,7 +669,7 @@ export async function updateShedule(
     existingSchedule.timeFinishWork = schedule.timeFinishWork;
     existingSchedule.breaks = schedule.breaks;
     //  existingSchedule.holidays = schedule.holidays.map(date => new Date(date));
-     existingSchedule.holidays = schedule.holidays;
+    existingSchedule.holidays = schedule.holidays;
     // existingSchedule.holidays = schedule.holidays.map(date => getTimeZoneDateFromDateString(date,schedule.timeZone));
     existingSchedule.weekends = schedule.weekends;
     existingSchedule.workdays = schedule.workdays.map(workday => ({
@@ -668,6 +692,8 @@ export async function updateShedule(
 // &&&&&
 // ЮНИТЫ
 export async function updateUnits(
+  userId: number,
+  locale: string,
   unitRepository: Repository<UnitTable>,
   units: UnitItem[],
   teamId: number
@@ -781,6 +807,8 @@ export async function updateUnits(
 // &&&&&
 // ДЕЙСТВИЯ ЮНИТА
 export async function updateUnitActions(
+  userId: number,
+  locale: string,
   unitActionsRepository: Repository<UnitActionTable>,
   unitActions: UnitActionItem[],
   teamId: number
@@ -874,6 +902,8 @@ export async function updateUnitActions(
 // &&&&
 // ОТКЛОНЕНИЯ ОТ РАСПИСАНИЯ ЮНИТА
 export async function updateExceptions(
+  userId: number,
+  locale: string,
   unitExceptionsRepository: Repository<UnitExceptionTable>,
   unitExceptions: UnitExceptionItem[],
   teamId: number
@@ -987,6 +1017,8 @@ export async function updateExceptions(
 
 // НАЗНАЧЕНИЯ ЮНИТА ПОЛЬЗОВАТЕЛЮ
 export async function updateUsersUnits(
+  userId: number,
+  locale: string,
   usersUnitsRepository: Repository<UserUnitTable>,
   users_units: UserUnitItem[],  // Новый массив юнитов для пользователей
   teamId: number
@@ -1113,6 +1145,8 @@ export async function updateUsersUnits(
 
 // Пользователи  снимаю отметку активности
 export async function updateUsers(
+  userId: number,
+  locale: string,
   usersRepository: Repository<UserTable>,
   users: UserItem[],
   teamId: number
@@ -1176,6 +1210,8 @@ export async function updateUsers(
 
 // Обновление лоадов карты
 export async function updateTCardLoads(
+  userId: number,
+  locale: string,
   teamId: number,
   tCardId: number,
   loads: UnitLoadItem[],
@@ -1268,7 +1304,12 @@ export async function updateTCardLoads(
 
 // получаю максимальный номер карты
 // не беру id потому что он в пределах таблицы
-async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>, teamId: number) {
+async function generateNewNumberForTeam(
+  userId: number,
+  locale: string,
+  tCardRepository: Repository<TCardTable>,
+  teamId: number
+) {
 
   const result = await tCardRepository
     .createQueryBuilder("tCard")
@@ -1291,9 +1332,10 @@ async function generateNewNumberForTeam(tCardRepository: Repository<TCardTable>,
 // &&&&
 // ТКАРТА  //  ПРОВЕРИТЬ ПРИ ЗАПИСИ ПРАВИЛЬНОСТЬ СТАТУСА (если есть БРАК!!
 export async function updateCard(
+  userId: number,
+  locale: string,
   tCardRepository: Repository<TCardTable>,
   tCard: TCardItem,
-  userId: number,
   teamId: number
 ): Promise<{ success: boolean; savedTCard?: TCardItem; message?: string }> {
   let savedTCard: TCardTable | null = null;
@@ -1302,7 +1344,7 @@ export async function updateCard(
     // Генерируем номер карты, если idc = 0
     let newCardNumber = Number(tCard.idc);
     if (tCard.idc === 0) {
-      newCardNumber = await generateNewNumberForTeam(tCardRepository, teamId);
+      newCardNumber = await generateNewNumberForTeam(userId, locale, tCardRepository, teamId);
       if (!newCardNumber) {
         return { success: false, message: `Ошибка при генерации номера карты` };
       }
@@ -1372,12 +1414,15 @@ export async function updateCard(
 // &&&&
 // СТАДИИ
 export async function updateStages(
+  userId: number,
+  locale: string,
   tCardStagesRepository: Repository<TCardStageTable>,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
   tCardStages: TCardStageItem[],
   savedTCard: TCardItem,
-  teamId: number
+  teamId: number,
+
 ): Promise<{ success: boolean, savedTCardStages?: TCardStageItem[], message?: string }> {
   try {
     // Получаем текущие стадии из БД
@@ -1390,12 +1435,23 @@ export async function updateStages(
       !tCardStages.some(newStage => newStage.id === stage.id)
     );
 
+    // вот здесь возможно ошибка!!! нельзя удалить стадию с операциями
     if (stagesToDelete.length > 0) {
       for (const stage of stagesToDelete) {
         // Операции для стадии
         const operationsToDelete = await tCardOperationsRepository.find({ where: { stage_id: stage.id } });
 
+
         if (operationsToDelete.length > 0) {
+          //  logger
+          await ulogger.error({
+            userId: userId,
+            location: "handlers-update/updateStages",
+            event: "error",
+            message: `Попытка удалить стадию с существующими операциями: tCardId=${savedTCard.id}, tCardIdc=${savedTCard.idc}`,
+            context: "await tCardOperationsRepository.find({ where: { stage_id: stage.id } })",
+          });
+
           // Удаляем продукты для операций
           const operationIds = operationsToDelete.map(op => op.id);
           const productsToDelete = await tCardProductRepository
@@ -1440,6 +1496,17 @@ export async function updateStages(
 
     const savedUpdatedStages = updatedStages.length > 0 ? await tCardStagesRepository.save(updatedStages) : [];
 
+    if (updatedStages.length !== savedUpdatedStages.length) {
+      //  logger
+      await ulogger.error({
+        userId: userId,
+        location: "handlers-update/updateStages",
+        event: "error",
+        message: `Количество к сохранению и реально сохраненных стадий не совпало: oldCount=${updatedStages.length}, newCount=${savedUpdatedStages.length}`,
+        context: "await tCardStagesRepository.save(updatedStages)",
+      });
+    }
+
     // 4. Объединяем результат
     const savedTCardStages = [...savedNewStages, ...savedUpdatedStages]
       .sort((a, b) => a.code - b.code)
@@ -1464,6 +1531,8 @@ export async function updateStages(
 // &&&&
 // ОПЕРАЦИИ
 export async function updateOperations(
+  userId: number,
+  locale: string,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardProductRepository: Repository<TCardProductTable>,
   tCardOperations: TCardOperationItem[],
@@ -1595,6 +1664,8 @@ export async function updateOperations(
 // &&&&
 // ПРОДУКТЫ
 export async function updateProducts(
+  userId: number,
+  locale: string,
   products: ProductItem[],
   tCardProductRepository: Repository<TCardProductTable>,
   savedTCard: TCardItem,
@@ -1730,11 +1801,12 @@ export async function updateProducts(
 
 // КАТАЛОГ
 export async function updateCatalogProducts(
-
+  userId: number,
+  locale: string,
   productRepository: Repository<ProductTable>,
   savedTCard: TCardItem,
   products: ProductItem[],
-  teamId: number
+  teamId: number,
 ): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
   let error = "";
 
@@ -1791,9 +1863,18 @@ export async function updateCatalogProducts(
           uom: source.uom // Используем UOM из исходного массива
         };
       });
-    } catch (err) {
-      console.error('Ошибка при сохранении новых продуктов:', err);
-      return { success: false, message: 'Ошибка при сохранении продуктов каталога' };
+    } catch (e) {
+      await ulogger.error({
+        userId: userId,
+        location: "handlers-update/updateCatalogProducts",
+        event: "endpoint_error",
+        message: e instanceof Error ? e.message : String(e),
+        context: "await productRepository.save(plainProducts)",
+        requestId: "tcard-api.ts",
+      });
+
+      // return { success: false, message: 'Ошибка при сохранении продуктов каталога' };
+      return { success: false, message: t(locale, "updateCatalogProducts") };
     }
   }
 
@@ -1852,6 +1933,8 @@ export async function updateCatalogProducts(
 ///////////////////// СТАТУСЫ//////////////////
 
 export async function updateStatusOperationByTCardId(
+  userId: number,
+  locale: string,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardId: number,
   status: StatusEnum
@@ -1882,6 +1965,8 @@ export async function updateStatusOperationByTCardId(
 }
 
 export async function updateStatusOperationByOperIds(
+  userId: number,
+  locale: string,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   operIds: number[],
   status: StatusEnum
@@ -1911,6 +1996,8 @@ export async function updateStatusOperationByOperIds(
 }
 
 export async function updateStatusOperationByOperId(
+  userId: number,
+  locale: string,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   operId: number,
   status: StatusEnum
@@ -1940,6 +2027,8 @@ export async function updateStatusOperationByOperId(
 }
 
 export async function updateStatusOperationsByOperIds(
+  userId: number,
+  locale: string,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   opersIds: number[],
   status: StatusEnum
@@ -1976,48 +2065,10 @@ export async function updateStatusOperationsByOperIds(
 
 }
 
-
-// // Функция для обновления статусов загрузок (интервалов)
-// export async function updateStatusLoads(
-//   unitLoadRepository: Repository<UnitLoadTable>,
-//   loadsIds: number[],
-//   status: StatusEnum
-// ): Promise<{ success: boolean, message: string }> {
-//   try {
-
-//     if (loadsIds.length === 0) {
-//       return { success: false, message: "Нет загрузок для обновления" };
-//     }
-
-//     const result = await unitLoadRepository
-//       .createQueryBuilder()
-//       .update(UnitLoadTable)
-//       .set({ status })
-//       .where("id IN (:...loadsIds)", { loadsIds })
-//       .execute();
-
-
-
-//     if (result.affected && result.affected > 0) {
-//       return { success: true, message: `Обновлено ${result.affected} загрузок` };
-//     } else {
-//       return { success: false, message: "Ни одна загрузка не обновлена" };
-//     }   
-//   } catch (error: unknown) {
-//     let message = "Ошибка обновления статусов загрузок";
-//     if (error instanceof Error) {
-//       message = error.message;
-//       console.error("Ошибка обновления статусов загрузок:", error);
-//     } else {
-//       console.error("Неизвестная ошибка обновления статусов загрузок:", error);
-//     }
-//     return { success: false, message };
-//   }
-
-// }
-
 // Функция для обновления статусов загрузок (интервалов)
 export async function updateStatusLoads(
+  userId: number,
+  locale: string,
   unitLoadRepository: Repository<UnitLoadTable>,
   loadsIds: number[],
   status: StatusEnum
@@ -2048,6 +2099,8 @@ export async function updateStatusLoads(
 
 // Функция для обновления статуса карты
 export async function updateStatusTCard(
+  userId: number,
+  locale: string,
   tCardRepository: Repository<TCardTable>,
   tCardId: number,
   status: StatusEnum
@@ -2072,6 +2125,7 @@ export async function updateStatusTCard(
 // Функция для обновления сообщения тех поддержки
 export async function updateSupportMessage(
   userId: number,
+  locale: string,
   supportMessage: SupportMailItem,
   supportRepository: Repository<MailTable>
 ): Promise<{ success: boolean, message: string, savedMessage: MailTable }> {
@@ -2097,7 +2151,7 @@ export async function updateSupportMessage(
       savedMessage: savedMessage,
 
     };
-    
+
   } catch (error: unknown) {
     let message = "Ошибка при сохранении сообщения.";
     if (error instanceof Error) {
@@ -2117,8 +2171,10 @@ export async function updateSupportMessage(
 
 // Функция для пометки что сообщение обработано
 export async function cnangeStatusMail(
+  userId: number,
+  locale: string,
   id: number,
-  status:StatusEnum,
+  status: StatusEnum,
   supportRepository: Repository<MailTable>
 ): Promise<{ success: boolean; message: string }> {
   try {
@@ -2145,6 +2201,8 @@ export async function cnangeStatusMail(
 
 // банер
 export async function setBaner(
+  userId: number,
+  locale: string,
   baner: BanerItem,
   banerRepository: Repository<BanerTable>
 ): Promise<BanerItem> {

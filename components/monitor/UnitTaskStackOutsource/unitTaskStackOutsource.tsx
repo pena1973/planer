@@ -34,12 +34,12 @@ const UnitTaskStackOutsource: React.FC<UnitTaskStackOutsourceProps> = ({
   token
 }) => {
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Меняем статус операции по нажатию кенопки юнитом 
   // На сервере
   const setOperStatusHandler = async (currentLoad: UnitLoadItem, status: StatusEnum) => {
-    setOperStatus(currentLoad, outerLoads, status, teamId, userId, token, t, setMessage, setStatusLoadsHandler);
+    setOperStatus(currentLoad, outerLoads, status, teamId, userId, token, t,i18n.language, setMessage, setStatusLoadsHandler);
   }
 
   // На клиенте

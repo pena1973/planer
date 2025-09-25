@@ -21,6 +21,7 @@ export const saveUnits = async (
     token: string,
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setUnitsValue: (val: UnitItem[]) => void,
     setActionsValue: (val: UnitActionItem[]) => void,
@@ -34,7 +35,8 @@ export const saveUnits = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     userId: user.id,

@@ -3,6 +3,7 @@ import { SupportMailItem } from "./../../types/types";
 export const getSupportMailsAdmin = async (    
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setSupportMailsValue: (messages: SupportMailItem[]) => void
 ) => {
@@ -12,7 +13,8 @@ export const getSupportMailsAdmin = async (
             method: 'get',
             headers: new Headers({
                 'Authorization': 'Basic ' + token,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                "X-Lang": locale, 
             }),
         });
         if (res.status !== 200) {

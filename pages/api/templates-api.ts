@@ -2,6 +2,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { TemplateTable } from './../../db/models/catalogs/templates';
@@ -18,13 +19,15 @@ interface RequestBody {
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
   const templateRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
+
   try {
-    const { teamId: getTeamId } = req.query;
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'GET':
-
-        const templates_ = await getTemplates(Number(getTeamId), templateRepository);
+        const { teamId: teamIdget,userId:userIdget } = req.query;
+        const templates_ = await getTemplates(Number(userIdget), locale, Number(teamIdget), templateRepository);
 
         res.status(200).json({
           success: true,
@@ -38,6 +41,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // СПИСОК ДЕЙСТВИЙ 
         const resTemplates = await updateTemplates(
+          Number(userIdget), 
+          locale, 
           templateRepository,
           templates,
           Number(teamId)

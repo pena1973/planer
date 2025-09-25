@@ -2,6 +2,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { TCardTable } from './../../db/models/data/t_cards';
@@ -12,11 +13,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   try {
-
-    const { userId, teamId: teamIdget } = req.query;
+ 
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'GET':
+           
+      const { userId, teamId: teamIdget } = req.query;
+
         const statuses = [
           StatusEnum.defective,
           StatusEnum.draft,
@@ -25,7 +29,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           StatusEnum.prepared,
           StatusEnum.ready]; // статусы для фильтрации
 
-        const tCards = await getTCards(Number(teamIdget), statuses, tCardRepository)
+        const tCards = await getTCards(Number(userId), locale, Number(teamIdget), statuses, tCardRepository)
 
         // Возвращаем результат
         res.status(200).json({ success: true, tCards: tCards });

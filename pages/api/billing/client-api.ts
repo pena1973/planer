@@ -2,6 +2,7 @@ import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from '../../../db/utilites'
 
 import { updateClient } from '../../../handlers/handlers-update';  // расчеты
@@ -20,13 +21,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
 
   try {
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
-    const { teamId: getTeamId } = req.query;
     switch (req.method) {
       case 'GET':
-        const client__ = await 
-        
-        getClient(Number(getTeamId), clientRepository)
+        const { teamId: getTeamId, userId: userIdget } = req.query;
+
+        const client__ = await getClient(Number(userIdget), locale, Number(getTeamId), clientRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -43,6 +44,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const customerId = await updateStripeCustomerFromClient(client);
 
         const resClient = await updateClient(
+          Number(userId), 
+          locale,
           clientRepository,
           { ...client, customerId: customerId ?? "" },
           Number(teamId)
@@ -63,7 +66,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           city: savedClient.city,
           postal_code: savedClient.postal_code,
           email: savedClient.email,
-          phone: savedClient.phone,          
+          phone: savedClient.phone,
           country: savedClient.country,
           customerId: savedClient.customer_id,
         };

@@ -43,7 +43,9 @@
     "loginLengthMustBe": "Login must be at least 5 characters and contain '@' and '.'.",
     "passLengthMustBe": "Password must be at least 12 characters and include letters, digits, and special characters.",
     "nicknameNotSelected": "No nickname selected.",
-    "pass1NotEqualPass2": "Passwords do not match."
+    "pass1NotEqualPass2": "Passwords do not match.",
+    "toPost": "To the email address ",
+    "sentCodeMail": " an email with a verification code has been sent. Please confirm your email and then sign in."
   },
   "index": {
     "downloadBaner": "Banner uploaded",
@@ -92,7 +94,7 @@
     "canchange": "You can change the password.",
     "mailconfirmed": "Email confirmed. You will be redirected to the home page in 10 seconds.",
     "incorrectcode": "The code is incorrect or has expired.",
-   "session": "Confirmation session is missing. Please request the code again."
+    "session": "Confirmation session is missing. Please request the code again."
   },
   "planing": {
     "planed": "Planed",

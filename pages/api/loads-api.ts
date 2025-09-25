@@ -3,14 +3,12 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+
 import { getTypedRepository } from './../../db/utilites'
-
 import { getUnits, getUnitLoads, getTCardOperations, getUnitActions } from './../../handlers/handlers-get';  // расчеты
-
 import { UnitLoadTable } from '../../db/models/plan/unit_loads';
-
 import { UnitTable } from '../../db/models/catalogs/units'
-
 import { UnitActionTable } from '../../db/models/catalogs/unit_actions'
 import { TCardOperationTable } from '../../db/models/data/t_card_operations'
 import { UnitTypeEnum } from './../../types/types';
@@ -23,32 +21,34 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
 
   try {
-
-    // userId, teamId в любом случае
-    const { userId, teamId, unitId } = req.query;
-
-    const unitIdNumber = Array.isArray(unitId)
-      ? Number(unitId[0])
-      : unitId !== undefined
-        ? Number(unitId)
-        : undefined;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'GET':
+        // userId, teamId в любом случае
+        const { userId, teamId, unitId } = req.query;
+
+        const unitIdNumber = Array.isArray(unitId)
+          ? Number(unitId[0])
+          : unitId !== undefined
+            ? Number(unitId)
+            : undefined;
 
         // запросим юнитов                
-        const units = await getUnits(Number(teamId), unitRepository, unitIdNumber)
+        const units = await getUnits(Number(userId), locale, Number(teamId), unitRepository, unitIdNumber)
         // если отбор по юниту и он получен то проверим может это контролер
         const isControler = (unitIdNumber && units.length > 0) ? (units[0].type === UnitTypeEnum.control) : false
         // если это контролер то запросим всех юнитов поскольку проверяем его лоады а иначе оставим старый массив 
-        const allunits = (isControler) ? await getUnits(Number(teamId), unitRepository) : units
+        const allunits = (isControler) ? await getUnits(Number(userId), locale, Number(teamId), unitRepository) : units
 
 
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(Number(teamId), unitActionsRepository, unitIdNumber)
+        const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository, unitIdNumber)
 
         //  получим юниты с загрузкой  до планирования новой карты         
         const unitsLoads = await getUnitLoads(
+          Number(userId), 
+          locale, 
           Number(teamId),
           allunits,
           unitLoadRepository,
@@ -57,7 +57,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // запросим операции  чтобы дополнить информацию по лоадам
         const operIds = Array.from(new Set(unitsLoads.map(load => load.id_oper)));
 
-        const opers = await getTCardOperations(operIds, tCardOperationsRepository)
+        const opers = await getTCardOperations(Number(userId), locale, operIds, tCardOperationsRepository)
 
         const unitsLoads_ = unitsLoads.map(lo => {
           const oper = opers.find(op => op.id === lo.id_oper);

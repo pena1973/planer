@@ -52,7 +52,7 @@ export default function UsersCatalog({
     // На сервере
     const getUsersUnitsHandler = async () => {
         setShowLoader(true);
-        await getUsersUnits(user, team, token, t,
+        await getUsersUnits(user, team, token, t, i18n.language,
             setMessage, setUsersUnits, users_units_old,);
 
         setShowLoader(false);
@@ -65,7 +65,7 @@ export default function UsersCatalog({
     // На сервере
     const saveUsersUnitsHandler = async () => {
         setButtonLoader(true);
-        await saveUsersUnits(users_units, user, team, token, t,
+        await saveUsersUnits(users_units, user, team, token, t, i18n.language,
             setMessage, setUsersUnits, users_units_old, setModified);
 
         setButtonLoader(false);

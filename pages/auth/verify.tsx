@@ -2,13 +2,14 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
 import React, { useState, useEffect, useRef } from 'react';
+import { verifyCodeHandler } from '@/services/login/verifyCodeHandler';
 
 export default function VerifyPage() {
     const router = useRouter();
     const [emailValue, setEmailValue] = useState('');
     const [purpose, setPurpose] = useState<'signup' | 'password_reset'>('signup');
     const [code, setCode] = useState('');
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [pass1Value, setPass1Value] = useState('');
     const [pass2Value, setPass2Value] = useState('');
     const [passMessage, setpassMessage] = useState('');
@@ -39,27 +40,35 @@ export default function VerifyPage() {
         return () => clearInterval(id);
     }, [redirectIn, router]);
 
+
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
+      
         setMessage('');
-        const r = await fetch('/api/auth/verify-code', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: emailValue, purpose, code }),
-        }).then((r) => r.json());
+      
+        verifyToken.current = await verifyCodeHandler(
+            emailValue, purpose, code, verifyToken.current,
+            t, i18n.language, setMessage, setStep, setRedirectIn,);
 
-        if ((r?.success || r?.ok) && r.verifyToken) {
-            verifyToken.current = r.verifyToken;
-            if (purpose === 'password_reset') {
-                setMessage(t('register.canchange'));
-                setStep(1);
-            } else {
-                setMessage(t('register.mailconfirmed'));
-                setRedirectIn(10); // ← запуск таймера редиректа
-            }
-        } else {
-            setMessage(t('register.incorrectcode'));
-        }
+        // setMessage('');
+        // const r = await fetch('/api/auth/verify-code', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ email: emailValue, purpose, code }),
+        // }).then((r) => r.json());
+
+        // if ((r?.success || r?.ok) && r.verifyToken) {
+        //     verifyToken.current = r.verifyToken;
+        //     if (purpose === 'password_reset') {
+        //         setMessage(t('register.canchange'));
+        //         setStep(1);
+        //     } else {
+        //         setMessage(t('register.mailconfirmed'));
+        //         setRedirectIn(10); // ← запуск таймера редиректа
+        //     }
+        // } else {
+        //     setMessage(t('register.incorrectcode'));
+        // }
     };
 
     // Смена пароля

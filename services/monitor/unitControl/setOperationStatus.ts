@@ -1,9 +1,4 @@
-import {
-  StatusEnum,
-  UnitLoadItem,
-  TCardOperationItem,
-  TCardItem
-} from "./../../../types/types";
+import { StatusEnum, UnitLoadItem, TCardOperationItem, TCardItem} from "./../../../types/types";
 
 export const setOperationStatus = async (
   status: StatusEnum,
@@ -15,6 +10,7 @@ export const setOperationStatus = async (
   teamId: number,
   userId: number,
   t: (key: string) => string,
+  locale: string,
   setMessage: (msg: string) => void,
   setStatusLoadsHandler: (
     tCardStatus: StatusEnum,
@@ -36,7 +32,8 @@ export const setOperationStatus = async (
           method: 'post',
           headers: new Headers({
             'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            "X-Lang": locale, 
           }),
           body: JSON.stringify({
             tCardId:currentLoad.id_tCard,

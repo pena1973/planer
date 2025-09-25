@@ -1,5 +1,5 @@
 
-import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere,Not } from 'typeorm';
+import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere, Not } from 'typeorm';
 
 // tables
 import { UnitTable } from './../db/models/catalogs/units'
@@ -45,11 +45,13 @@ import { ClientItem, InvoiceItem, MainItem } from './../types/service-types';
 import { BanerItem } from './../types/service-types';
 
 import { getTeam } from './../handlers/handlers-auth';
-import {  getTimeZoneDateFromDateString } from "@/lib/common/timezone"
+import { getTimeZoneDateFromDateString } from "@/lib/common/timezone"
 import { YYYYMMDD } from "@/lib/common/utils"
 
 //&&&&&&
 export async function getMain(
+  userId: number|null,
+  locale: string,
   mainRepository: Repository<MainTable>,
   at: Date | string
 ): Promise<MainItem> {
@@ -83,6 +85,8 @@ export async function getMain(
 
 
 export async function getCostForDay(
+  userId: number|null,
+  locale: string,
   teamId: number,
   day: string,  // yyyy-mm-dd
   teamsRepository: Repository<TeamTable>,
@@ -104,7 +108,7 @@ export async function getCostForDay(
   const daysInMonth: number = getDaysInMonth(day);
 
   // настройки цены
-  const main = await getMain(mainRepository, day);
+  const main = await getMain(userId, locale, mainRepository, day);
   if (!main) {
     console.log('Не удалось обработать запрос getCostForDay');
     return 0;
@@ -114,7 +118,7 @@ export async function getCostForDay(
   const discount = main.discount;
 
   // главная команда
-  const resTeam = await getTeam(Number(teamId), teamsRepository);
+  const resTeam = await getTeam(userId, locale, teamId, teamsRepository);
   if (!resTeam.success || !resTeam.team) return NaN;
   const mainTeamInGrope = resTeam.team;
 
@@ -122,7 +126,7 @@ export async function getCostForDay(
   const groupCode = mainTeamInGrope.main_team;
 
   // все команды группы
-  const teams = await getTeamsByMainteamNumber(String(groupCode), teamsRepository);
+  const teams = await getTeamsByMainteamNumber(userId, locale, String(groupCode), teamsRepository);
   const uniqIds = Array.from(new Set(teams.map(t => t.id)));
   if (!uniqIds.length) return 0;
 
@@ -189,6 +193,8 @@ export async function getCostForDay(
 
 // баланс команды
 export async function getBalance(
+  userId: number|null,
+  locale: string,
   date: Date | string,   // yyyy-mm-dd
   teamId: number,
   balanceRepository: Repository<BalanceTable>
@@ -220,41 +226,9 @@ export async function getBalance(
   return Math.round((total + Number.EPSILON) * 100) / 100 || 0; // если NaN, то отдаём 0
 }
 
-// баланс всех команд
-// Вернёт [{ teamId: number, balance: number }, ...]
-export async function getBalances_old(
-  date: Date | string,
-  balanceRepository: Repository<BalanceTable>,
-  teamIds?: number[] // опционально: посчитать только для заданных команд
-): Promise<Array<{ teamId: number; balance: number }>> {
-  const qb = balanceRepository
-    .createQueryBuilder('b')
-    .select('b.team_id', 'teamId')
-    // summa может быть decimal/varchar — приводим к numeric и считаем плюсы/минусы
-    .addSelect(
-      `SUM(CASE WHEN b.direction = '+'
-                THEN (b.summa)::numeric
-                ELSE -(b.summa)::numeric
-           END)`,
-      'balance'
-    );
-
-  if (teamIds && teamIds.length > 0) {
-    qb.where('b.team_id IN (:...teamIds)', { teamIds });
-  }
-
-  qb.groupBy('b.team_id');
-
-  const rows = await qb.getRawMany<{ teamId: number; balance: string }>();
-
-  // приводим баланс к number
-  return rows.map(r => ({
-    teamId: Number(r.teamId),
-    balance: Number(r.balance ?? 0),
-  }));
-}
-
 export async function getBalances(
+  userId: number,
+  locale: string,
   date: Date | string,
   balanceRepository: Repository<BalanceTable>,
   teamIds?: number[] // опционально: посчитать только для заданных команд
@@ -305,9 +279,10 @@ export async function getBalances(
   return result
 }
 
-
 // все команды
 export async function getTeams(
+  userId: number|null,
+  locale: string,
   teamsRepository: Repository<TeamTable>
 ): Promise<TeamItem[]> {
 
@@ -328,6 +303,8 @@ export async function getTeams(
 
 // состояние активности команд
 export async function getTeamActivity(
+  userId: number|null,
+  locale: string,
   teams: TeamItem[],
   activeTimeRepository: Repository<ActiveTimeTable>
 ): Promise<{ teamId: number; active: boolean }[]> {
@@ -366,6 +343,8 @@ export async function getTeamActivity(
 
 // все команды по главной
 export async function getTeamsByMainteamNumber(
+  userId: number|null,
+  locale: string,
   main_team: string,
   teamsRepository: Repository<TeamTable>
 ): Promise<TeamItem[]> {
@@ -388,6 +367,8 @@ export async function getTeamsByMainteamNumber(
 }
 
 export async function getClient(
+  userId: number,
+  locale: string,
   teamId: number,
   clientRepository: Repository<ClientTable>
 ): Promise<ClientItem> {
@@ -412,6 +393,8 @@ export async function getClient(
   return client;
 }
 export async function getClients(
+  userId: number,
+  locale: string,
   clientRepository: Repository<ClientTable>
 ): Promise<ClientItem[]> {
 
@@ -441,6 +424,8 @@ export async function getClients(
 // &&&&
 // единицы измерения
 export async function getUOMs(
+  userId: number,
+  locale: string,
   teamId: number,
   uomsRepository: Repository<UOMsTable>
 ): Promise<UOMItem[]> {
@@ -463,6 +448,8 @@ export async function getUOMs(
 // &&&&
 //  операции команды
 export async function getActions(
+  userId: number,
+  locale: string,
   teamId: number,
   actionsRepository: Repository<ActionTable>
 ): Promise<ActionItem[]> {
@@ -489,6 +476,8 @@ export async function getActions(
 // &&&&
 // юниты
 export async function getUnits(
+  userId: number,
+  locale: string,
   teamId: number,
   unitRepository: Repository<UnitTable>,
   unitId?: number,
@@ -520,6 +509,8 @@ export async function getUnits(
 // &&&&
 // шаблоны
 export async function getTemplates(
+  userId: number,
+  locale: string,
   teamId: number,
   templatesRepository: Repository<TemplateTable>
 ): Promise<TemplateItem[]> {
@@ -540,10 +531,11 @@ export async function getTemplates(
   return templates;
 }
 
-
 // &&&&
 // Статусы лоадов
 export async function getLoadStatuses(
+  userId: number,
+  locale: string,
   teamId: number,
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<{ idc_load: number, status: StatusEnum }[]> {
@@ -559,6 +551,8 @@ export async function getLoadStatuses(
 // &&&&
 // загрузка юнитов
 export async function getUnitLoads(
+  userId: number,
+  locale: string,
   teamId: number,
   units: UnitItem[],
   unitLoadRepository: Repository<UnitLoadTable>,
@@ -569,7 +563,7 @@ export async function getUnitLoads(
   const unitIds = units.map(unit => unit.id);
   if (unitIds.length === 0) return [];
 
-  const unitActions: UnitActionItem[] = await getUnitActions(teamId, unitActionsRepository)
+  const unitActions: UnitActionItem[] = await getUnitActions(userId, locale, teamId, unitActionsRepository)
 
   const query = unitLoadRepository
     .createQueryBuilder('unitLoad')
@@ -625,6 +619,8 @@ export async function getUnitLoads(
 
 // id лоадов по операции с определенной версией
 export async function getTCardOperationLoads(
+  userId: number,
+  locale: string,
   tCardId: number, // ID карты для фильтрации
   operId: number, // ID операции для фильтрации
   version: number, // Версия для фильтрации
@@ -646,6 +642,8 @@ export async function getTCardOperationLoads(
 
 // ВСЕ лоады по КАРТЕ (ДЛЯ ПРОВЕРКИ удаления карты)
 export async function getTCardLoads(
+  userId: number,
+  locale: string,
   tCard: TCardItem,
   units: UnitItem[],
   unitLoadRepository: Repository<UnitLoadTable>,
@@ -705,11 +703,11 @@ export async function getTCardLoads(
   });
 }
 
-
-
 // &&&&
 // список карт только шапка
 export async function getTCards(
+  userId: number,
+  locale: string,
   teamId: number,
   statuses: StatusEnum[],
   tCardRepository: Repository<TCardTable>
@@ -731,9 +729,10 @@ export async function getTCards(
   }));
 }
 
-
 // КАРТА! только шапка
 export async function getTCard(
+  userId: number,
+  locale: string,
   tcardId: number,
   tCardRepository: Repository<TCardTable>
 ): Promise<TCardItem | undefined> {
@@ -770,6 +769,8 @@ export async function getTCard(
 // &&&&
 // КАРТА! Вместе с составными частями карты
 export async function getTCardFull(
+  userId: number,
+  locale: string,
   teamId: number,
   tcardId: number,
   tCardRepository: Repository<TCardTable>,
@@ -932,16 +933,18 @@ export async function getTCardFull(
 }
 // запрос для отчета о состоянии готовности карты + операции + лоады
 export async function getTCardsTerms(
+  userId: number,
+  locale: string,
   teamId: number,
   tCardIdc: number | undefined,
   tCardDateFrom: string | undefined,
   tCardDateTo: string | undefined,
   tCardStatus: StatusEnum | undefined,
   tCardRepository: Repository<TCardTable>,
-  tCardOperationRepository: Repository<TCardOperationTable>,  
+  tCardOperationRepository: Repository<TCardOperationTable>,
   unitLoadRepository: Repository<UnitLoadTable>,
   timezone: string,
-  showClosed:boolean
+  showClosed: boolean
 ): Promise<{ tCardsTerms: TCardTermsItem[], loads: UnitLoadItem[] }> {
 
   const where: FindOptionsWhere<TCardTable> = {
@@ -970,16 +973,16 @@ export async function getTCardsTerms(
   } else if (dateTo) {
     where.date = LessThanOrEqual(toYMD(dateTo));
   }
-  
-  if (!showClosed){
-  where.status = Not(StatusEnum.closed);
+
+  if (!showClosed) {
+    where.status = Not(StatusEnum.closed);
   }
 
   if (tCardStatus) {
     where.status = tCardStatus;
   }
 
-  
+
   // Создаем объект фильтра для карты
   const tCardFilter: FindManyOptions<TCardTable> = { where, };
 
@@ -1168,6 +1171,8 @@ export async function getTCardsTerms(
 // &&&&
 // исключения расписания команды
 export async function getExceptions(
+  userId: number,
+  locale: string,
   teamId: number,
   unitExceptionsRepository: Repository<UnitExceptionTable>,
   unitId?: number
@@ -1205,6 +1210,8 @@ export async function getExceptions(
 // &&&&  ??
 // возможные операции юнита
 export async function getUnitActions(
+  userId: number,
+  locale: string,
   teamId: number,
   unitActionsRepository: Repository<UnitActionTable>,
   unitId?: number
@@ -1247,44 +1254,28 @@ export async function getUnitActions(
   return unitActions;
 }
 
-
 // &&&&
 // расписание команды
 export async function getTeamShedule(
+  userId: number,
+  locale: string,
   teamId: number,
   teamScheduleRepository: Repository<TeamScheduleTable>,
   teamsRepository: Repository<TeamTable>
 ): Promise<ScheduleItem> {
-  //const [scheduleTable, team] = await Promise.all([
-  // teamScheduleRepository.findOne({ where: { team_id: teamId } }),
-  //  teamsRepository.findOne({ where: { id: teamId } })
-  // ]);
-
-  // if (!scheduleTable || !team) return {} as ScheduleItem;
 
   const scheduleTable = await teamScheduleRepository.findOne({ where: { team_id: teamId } });
-  
+
   if (!scheduleTable) return {} as ScheduleItem;
 
   return {
-    // team: {
-    //   id: team.id,
-    //   title: team.title,
-    //   coment: team.coment,
-    //   prefix: team.prefix,
-    //   main_team: team.main_team,
-    // },
     teamId: scheduleTable.team_id,
     timeStartWork: scheduleTable.timeStartWork,
     timeFinishWork: scheduleTable.timeFinishWork,
     breaks: scheduleTable.breaks ?? [],
-    // holidays: (scheduleTable.holidays ?? []).map(date =>
-    //   new Date(date).toLocaleDateString('en-CA')
-    // ),
     holidays: (scheduleTable.holidays ?? []),
     weekends: scheduleTable.weekends ?? [],
     workdays: (scheduleTable.workdays ?? []).map(wd => ({
-      // date: new Date(wd.date).toLocaleDateString('en-CA'),
       date: YYYYMMDD(wd.date),
       timeStart: wd.timeStart,
       timeFinish: wd.timeFinish,
@@ -1295,6 +1286,8 @@ export async function getTeamShedule(
 
 // расписание команд
 export async function getTeamsShedule(
+  userId: number|null,
+  locale: string,
   teams: TeamItem[],
   teamScheduleRepository: Repository<TeamScheduleTable>,
 
@@ -1308,27 +1301,15 @@ export async function getTeamsShedule(
   });
 
   const schedules = scheduleTables.map(scheduleTable => {
-    // const team = teams.find(team => team.id === scheduleTable.team_id) ?? {} as TeamItem
 
     return {
-      // team: {
-      //   id: team.id,
-      //   title: team.title,
-      //   coment: team.coment,
-      //   prefix: team.prefix,
-      //   main_team: team.main_team,
-      // },
-      teamId:scheduleTable.team_id,
+      teamId: scheduleTable.team_id,
       timeStartWork: scheduleTable.timeStartWork,
       timeFinishWork: scheduleTable.timeFinishWork,
       breaks: scheduleTable.breaks ?? [],
-      // holidays: (scheduleTable.holidays ?? []).map(date =>
-      //   new Date(date).toLocaleDateString('en-CA')
-      // ),
       holidays: (scheduleTable.holidays ?? []),
       weekends: scheduleTable.weekends ?? [],
       workdays: (scheduleTable.workdays ?? []).map(wd => ({
-        // date: new Date(wd.date).toLocaleDateString('en-CA'),
         date: YYYYMMDD(wd.date),
         timeStart: wd.timeStart,
         timeFinish: wd.timeFinish,
@@ -1343,6 +1324,8 @@ export async function getTeamsShedule(
 // &&&&&
 // настройки команды
 export async function getSettings(
+  userId: number,
+  locale: string,
   teamId: number,
   settingsRepository: Repository<SettingsTable>
 ): Promise<SettingsItem> {
@@ -1359,6 +1342,8 @@ export async function getSettings(
 
 //  ПОЛУЧЕНИЕ ОПЕРАЦИИ ПО ID
 export async function getTCardOperation(
+  userId: number,
+  locale: string,
   operId: number,
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem | undefined> {
@@ -1369,11 +1354,6 @@ export async function getTCardOperation(
     filter.id = operId;
   }
 
-  // Получаем карту по id
-  // const tCardOpertab = await tCardOperationsRepository.findOne({
-  //   where: filter,  // Применяем фильтр к запросу
-  //   relations: ['stage', 'action'],  // Указываем связанные таблицы (если необходимо)
-  // });
   const tCardOpertab = await tCardOperationsRepository
     .createQueryBuilder('oper')
     .leftJoin('t_card_stages', 'stage', 'oper.stage_id = stage.id')
@@ -1408,6 +1388,8 @@ export async function getTCardOperation(
 // &&&&&
 // получение операций по ID ОПЕРАЦИЙ
 export async function getTCardOperations(
+  userId: number,
+  locale: string,
   operIds: number[],
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem[]> {
@@ -1451,10 +1433,10 @@ export async function getTCardOperations(
   } as TCardOperationItem));
 }
 
-
 // получение операций по ID карт
 export async function getTCardOperationsByCardId(
-
+  userId: number,
+  locale: string,
   tCardId: number,
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem[]> {
@@ -1500,11 +1482,13 @@ export async function getTCardOperationsByCardId(
 }
 // получение юнитов пользователей команды
 export async function getUsersUnits(
+  userId: number,
+  locale:string,  
   teamId: number,
   withoutAdmin: boolean,
   usersRepository: Repository<UserTable>,
   usersUnitsRepository: Repository<UserUnitTable>,
-  userId?: number, // Добавляем необязательный параметр userId
+  userIdforUnit?: number, // Добавляем необязательный параметр userId
 ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
 
   try {
@@ -1514,7 +1498,7 @@ export async function getUsersUnits(
       team_id: teamId,
       active: true
     };
-    if (userId) { userCondition.id = userId; }
+    if (userIdforUnit) { userCondition.id = userIdforUnit; }
     if (withoutAdmin) { userCondition.isAdmin = false; }
 
     const activeUsers = await usersRepository.find({ where: userCondition });
@@ -1594,6 +1578,8 @@ export async function getUsersUnits(
 
 // получение пользователей команды
 export async function getUsers(
+  userId: number,
+  locale:string,  
   teamId: number,
   usersRepository: Repository<UserTable>,
 ): Promise<{ success: boolean, users: UserItem[], message: string }> {
@@ -1645,6 +1631,8 @@ export async function getUsers(
 
 // банер
 export async function getBaner(
+  userId: number,
+  locale:string,  
   teamId: number | undefined,
   banerRepository: Repository<BanerTable>
 ): Promise<BanerItem[]> {
@@ -1672,9 +1660,10 @@ export async function getBaner(
   return baner;
 }
 
-
 // счета
 export async function getInvoices(
+  userId: number,
+  locale:string,  
   teamId: number,
   invoicesRepository: Repository<InvoiceTable>
 ): Promise<InvoiceItem[]> {
@@ -1700,6 +1689,8 @@ export async function getInvoices(
 
 // тех поддержка получение
 export async function getSuportMails(
+  userId: number,
+  locale:string,  
   teamId: number | null,
   supportRepository: Repository<MailTable>
 ): Promise<SupportMailItem[]> {

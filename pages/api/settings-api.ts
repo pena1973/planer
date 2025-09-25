@@ -2,17 +2,18 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
-import { getSettings } from './../../handlers/handlers-get';  
-import { updateSettings } from './../../handlers/handlers-update'; 
-import { SettingsTable} from './../../db/models/plan/settings'
+import { getSettings } from './../../handlers/handlers-get';
+import { updateSettings } from './../../handlers/handlers-update';
+import { SettingsTable } from './../../db/models/plan/settings'
 
 import { SettingsItem } from './../../types/types';
 
 interface RequestBody {
-  userId:number,
-  teamId:number,
+  userId: number,
+  teamId: number,
   settings: SettingsItem
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -20,13 +21,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
 
   try {
-  
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
     switch (req.method) {
-      case 'GET': 
-      
-        const {teamId:getTeamId } = req.query;
-        const settings_ = await getSettings(Number(getTeamId), settingsRepository)
-        
+      case 'GET':
+
+        const { teamId: teamIdget, userId: userIdget } = req.query;
+        const settings_ = await getSettings( Number(userIdget), locale, Number(teamIdget), settingsRepository)
+
         // отправляем ответ
         res.status(200).json({
           success: true,
@@ -36,9 +37,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         break;
       case 'POST':
         // Извлекаем данные из тела запроса
-        const { settings, userId, teamId  } = req.body as RequestBody;
-        
+        const { settings, userId, teamId } = req.body as RequestBody;
+
         const resSettings = await updateSettings(
+          Number(userId), 
+          locale,
           settingsRepository,
           settings,
           Number(teamId)

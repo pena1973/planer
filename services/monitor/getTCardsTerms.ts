@@ -5,6 +5,7 @@ export const getTCardsTerms = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setUnitLoadsValue: (val: UnitLoadItem[]) => void,
     setTCardsValue: (val: TCardTermsItem[]) => void,
@@ -17,7 +18,8 @@ export const getTCardsTerms = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
             }
         );

@@ -14,14 +14,7 @@ import { TeamScheduleTable } from './../db/models/plan/team_schedule'
 import { UserItem, TeamItem, SettingsItem, TimeZoneEnum, DaysOfWeek, ScheduleItem, } from './../types/types';
 import { generateTeamNumber } from '@/lib/common/utils';
 import { checkCode } from './../lib/server/code';
-// // хеш функция 
-// export const hashFoo = async (data: string) => {
-//   const { createHmac } = await import('node:crypto')
-//   const hash = createHmac('sha256', data)
-//     .digest('hex');
-//   return hash
-// }
-// handlers/handlers-auth.ts
+
 
 // хеш функция — без import('crypto')
 export const hashFoo = async (data: string) => {
@@ -40,6 +33,8 @@ import { getCurrentDateInString, } from "@/lib/common/timezone"
 // import { time } from 'node:console';
 
 export async function createNewTeam(
+  userId: number|null, // может быть null когда создается команда а юзер еще не создан
+  locale: string,
   teamsRepository: Repository<TeamTable>,
   activeTimeRepository: Repository<ActiveTimeTable>,
   settingsRepository: Repository<SettingsTable>,
@@ -48,7 +43,7 @@ export async function createNewTeam(
   main_team: string | null
 ): Promise<{
   success: boolean,
-  team: TeamItem,  
+  team: TeamItem,
   message?: string
 }> {
 
@@ -107,7 +102,7 @@ export async function createNewTeam(
     });
     const savedNewSettings = await settingsRepository.save(newSettings);
 
-    
+
     return {
       success: true,
       team: {
@@ -129,7 +124,7 @@ export async function createNewTeam(
     }
     return {
       success: false,
-      team: {} as TeamItem,     
+      team: {} as TeamItem,
       message,
     };
   }
@@ -137,6 +132,7 @@ export async function createNewTeam(
 }
 
 export async function createNewUser(
+  locale: string,
   login: string,
   pass: string,
   teamId: number,
@@ -178,7 +174,8 @@ export async function createNewUser(
 
 }
 // &&&&& проверяет код при подтверждении мейла либо восстаенволении пароля
-export async function verifyCode(
+export async function verifyCode(  
+  locale: string,
   email: string,
   code: string,
   purpose: string,
@@ -217,7 +214,8 @@ export async function verifyCode(
   }
   return { success: true }
 }
-export async function confirmUserEmail(
+export async function confirmUserEmail(   
+  locale: string,
   email: string,
   usersRepository: Repository<UserTable>,
 ): Promise<{ success: boolean, message?: string }> {
@@ -259,6 +257,7 @@ export async function confirmUserEmail(
 }
 
 export async function resetUserPass(
+  locale: string,
   login: string,
   pass: string,
   usersRepository: Repository<UserTable>,
@@ -320,9 +319,9 @@ export async function resetUserPass(
 
 }
 
-
 export async function updateUser(
   userId: number,
+  locale: string,
   oldpass: string | undefined,
   newpass: string | undefined,
   name: string | undefined,
@@ -394,9 +393,9 @@ export async function updateUser(
 
 }
 
-
 // &&&&&
 export async function getUser(
+  locale: string,
   login: string,
   pass: string,
   usersRepository: Repository<UserTable>
@@ -439,7 +438,6 @@ export async function getUser(
   return { success: true, user, message: '' };
 }
 
-
 export async function isUserExist(
   login: string,
   usersRepository: Repository<UserTable>
@@ -457,6 +455,8 @@ export async function isUserExist(
 
 //&&&&&&
 export async function getTeam(
+  userId: number|null,
+  locale: string,
   teamId: number,
   teamsRepository: Repository<TeamTable>
 ): Promise<{ success: boolean, team: TeamItem, message?: string }> {
@@ -485,9 +485,11 @@ export async function getTeam(
   };
 
 }
+
 // &&&&&
 export async function getLastAgreement(
   userId: number,
+  locale: string,
   userAgreeRepository: Repository<UserAgreeTable>,
   agreementRepository: Repository<AgreementTable>
 ): Promise<{ agreementText: string, agreementId: number | null, signed: boolean, dateSigned?: string, message?: string }> {
@@ -540,6 +542,7 @@ export async function getLastAgreement(
 
 export async function signAgreement(
   userId: number,
+  locale: string,  
   signedAgreement: boolean,
   agreementId: number,
   userAgreeRepository: Repository<UserAgreeTable>

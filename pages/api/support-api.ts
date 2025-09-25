@@ -2,6 +2,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { updateSupportMessage } from './../../handlers/handlers-update';  // расчеты
@@ -17,16 +18,20 @@ interface RequestBody {
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-const db = await connectDb();
+  const db = await connectDb();
   const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
 
   try {
-  
-    const { teamId: getTeamId } = req.query;
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
+
     switch (req.method) {
-      
+
       case 'GET':
-        const messages_ = await getSuportMails(Number(getTeamId), supportRepository)
+        const { teamId: getTeamId, userId: userIdget } = req.query;
+
+        const messages_ = await getSuportMails(Number(userIdget), locale, Number(getTeamId), supportRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -41,8 +46,9 @@ const db = await connectDb();
         const { supportMessage, userId } = req.body as RequestBody;
 
         // СПИСОК ДЕЙСТВИЙ 
-        const resSupport = await updateSupportMessage(          
+        const resSupport = await updateSupportMessage(
           Number(userId),
+          locale,
           supportMessage,
           supportRepository
 
@@ -63,7 +69,7 @@ const db = await connectDb();
           userId: savedMessage.user_id,
           fromUser: savedMessage.fromUser,
           basedOn: savedMessage.basedOn,
-          status:savedMessage.status,
+          status: savedMessage.status,
         } as SupportMailItem
 
         // отправляем ответ
@@ -72,10 +78,7 @@ const db = await connectDb();
           supportMessage: supportMessage_,
         });
         break;
-      // case 'DELETE':
-      //   deleteSupport(idsToDelete, supportRepository)
 
-      //   break;
       default:
         res.status(405).end(); // Метод не поддерживается
     }

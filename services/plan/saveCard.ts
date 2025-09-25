@@ -11,8 +11,8 @@ export const saveCard = async (
     teamId: number,
     dispatch: Dispatch,
     t: (key: string) => string,
-    setMessage: (msg: string) => void,
-    //   setSaveLoaderCard: (val: number) => void
+    locale: string,
+    setMessage: (msg: string) => void,    
 ) => {
 
     // setSaveLoaderCard(tCardPrepared.id);
@@ -32,7 +32,8 @@ export const saveCard = async (
                     method: 'post',
                     headers: new Headers({
                         'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        "X-Lang": locale, 
                     }),
                     body: JSON.stringify({
                         tCardId: tCardPrepared.id,

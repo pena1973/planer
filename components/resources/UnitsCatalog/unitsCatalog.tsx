@@ -210,7 +210,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             return
         };
         await saveUnits(unitsValue, unitActionsValue, exceptionsValue,
-            user, team, token, dispatch, t,
+            user, team, token, dispatch, t, i18n.language,
             setMessage, setUnitsValue, setUnitActionsValue, setExceptionsValue,);
 
         setButtonLoader(false)

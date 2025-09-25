@@ -2,6 +2,7 @@ import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
 import { BalanceTable } from '../../../db/models/billing/balance';
@@ -16,17 +17,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-  try {
 
-    const { teamId } = req.query;
+  try {
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
       case 'GET':
 
+        const { teamId, userId } = req.query;
+
         // запросим расписание компании чтобы взять timezone
-        const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
+        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
 
         const today = getCurrentDateInString(shedule_.timeZone);
-        const balance_ = await getBalance(today, Number(teamId), balanceRepository)
+        const balance_ = await getBalance(Number(userId), locale, today, Number(teamId), balanceRepository)
 
         // отправляем ответ
         res.status(200).json({

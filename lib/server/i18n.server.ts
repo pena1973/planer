@@ -1,6 +1,6 @@
 
 // export default i18n;
-// lib/i18n.ts
+// lib/server/i18n.server.ts
 import i18n, { Resource } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 

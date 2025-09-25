@@ -2,6 +2,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from './../../db/database';
 
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 import { ActionTable } from './../../db/models/catalogs/actions';
 import { ActionItem } from './../../types/types';
@@ -18,12 +19,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const actionsRepository = getTypedRepository(db, 'ActionTable', ActionTable);
 
   try {
-
-    const { teamId: getTeamId } = req.query;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'GET':
-        const actions__ = await getActions(Number(getTeamId), actionsRepository)
+        const { teamId: teamIdget, userId: userIdget } = req.query;
+        const actions__ = await getActions(Number(userIdget), locale, Number(teamIdget), actionsRepository)
+
 
         actions__.sort((a, b) => a.id - b.id);
 
@@ -41,9 +43,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // СПИСОК ДЕЙСТВИЙ 
         const resActions = await updateActions(
+          Number(userId), 
+          locale, 
           actionsRepository,
           actions,
-          Number(teamId)
+          Number(teamId),                  
         )
         if (!resActions.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resActions.message });

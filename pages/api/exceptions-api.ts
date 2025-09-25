@@ -2,37 +2,31 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+
 import { getTypedRepository } from './../../db/utilites'
-
 import { getExceptions } from './../../handlers/handlers-get';  // расчеты
-
-import { TeamTable } from './../../db/models/catalogs/teams'
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
-
-import { UnitExceptionItem } from './../../types/types';
-
-interface RequestBody {
-  exceptions: UnitExceptionItem
-}
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
-  const teamRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
-  
-  try {
-    
-    const { userId, teamId, unitId } = req.query;
 
-    const unitIdNumber = Array.isArray(unitId)
-      ? Number(unitId[0])
-      : unitId !== undefined
-        ? Number(unitId)
-        : undefined;
+  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+
+  try {
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'GET':
-        const exceptions_ = await getExceptions(Number(teamId), unitExceptionsRepository, unitIdNumber,)
+
+      const { userId, teamId, unitId } = req.query;
+
+        const unitIdNumber = Array.isArray(unitId)
+          ? Number(unitId[0])
+          : unitId !== undefined
+            ? Number(unitId)
+            : undefined;
+        const exceptions_ = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository, unitIdNumber,)
 
         exceptions_.sort((a, b) => {
           // Проверяем, что даты определены

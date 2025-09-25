@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout/layout";
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef } from "react";
 import { configureTokenAccess } from '@/lib/client/fetchWithRefresh'
 
 import { downloadUoms } from '@/services/initial/downloadUoms';
@@ -9,10 +9,11 @@ import { downloadLoads } from '@/services/initial/downloadLoads';
 import { downloadSchedule } from '@/services/initial/downloadSchedule';
 import { downloadSettings } from '@/services/initial/downloadSettings';
 import { downloadTCards } from '@/services/initial/downloadTCards';
-// import { downloadProducts } from '@/services/initial/downloadProducts';
 import { downloadUnits } from '@/services/initial/downloadUnits';
 import { downloadUnutsActions } from '@/services/initial/downloadUnutsActions';
 import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExceptions';
+
+import { signAgreement } from '@/services/initial/signAgreement';
 
 import { downloadUnutActions } from '@/services/initial/downloadUnut-Actions';
 import { downloadUnutExceptions } from '@/services/initial/downloadUnut-Exceptions';
@@ -36,7 +37,7 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
-import { setSignedAgreement, setLoadingComplete } from '@/store/slices'
+import { setLoadingComplete } from '@/store/slices'
 
 import ico1 from "@/public/ico1.png";
 import ico2 from "@/public/ico2.png";
@@ -45,17 +46,9 @@ import ico4 from "@/public/ico3.png";
 import ico5 from "@/public/ico4.png";
 import ico6 from "@/public/ico6.png";
 
-import {
-
-} from '@/store/slices';
-
-const URL = process.env.NEXT_PUBLIC_URL;
-let _url = String(URL);
-_url = _url.concat((_url[_url.length - 1] === "/") ? "" : "/");
-
-
 export default function Index() {
   const { t, i18n } = useTranslation();
+  const locale = i18n.language;
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();
@@ -67,7 +60,6 @@ export default function Index() {
   const [loginValue, setLoginValue] = useState('');
   const [passValue, setPassValue] = useState('');
   const [loaderButtonLogin, setLoaderButtonLogin] = useState(false);
-  // const [loginMode, setLoginMode] = useState(false); // false- логин true - регистрация
   // register
   const [pass1Value, setPass1Value] = useState('');
   const [pass2Value, setPass2Value] = useState('');
@@ -80,7 +72,6 @@ export default function Index() {
   const [basedTeamNumberValue, setBasedTeamNumberValue] = useState('');
 
   // agreement для временного хранения
-  // const [textAgreementValue, setTextAgreementValue] = useState("");
   const agreementId = useRef(0);
   const textAgreement = useRef("");
 
@@ -128,6 +119,7 @@ export default function Index() {
       pass: passValue,
       token,
       t,
+      locale,
       setMessage: setMessage,
       setMessageLogin: setMessageLogin,
       dispatch,
@@ -140,46 +132,41 @@ export default function Index() {
 
     setLoaderButtonLogin(false)
   }
+
   // Восстановление пароля
   const loginRecovery = async (e: React.MouseEvent<HTMLElement>) => {
-
     if (loginValue.length < 5) {
       setMessage(t('service.loginNotEntered'));
       return
     };
     if (loginValue) {
-
-      await sendCodeHandler(loginValue, 'password_reset', i18n.language, t, setMessageLogin);
+      await sendCodeHandler(loginValue, 'password_reset', t, i18n.language, setMessageLogin);
     }
-
   }
+  // Регистрация
   const registerClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonRegister(true)
 
     if (loginValue.length < 5) {
       setMessageRegister(t('service.loginLengthMustBe'));
-      // setMessageRegister("Длина логина должна быть не менее 5 символов и содержать @  и . ");
       setLoaderButtonRegister(false);
       return
     };
 
     if (pass1Value.length < 6) {
       setMessageRegister(t('service.passLengthMustBe'));
-      // setMessageRegister("Длина пароля должна быть не менее 6 символов. пароль должен содержать буквы, цифры  и специальные символы");
       setLoaderButtonRegister(false);
       return
     }
 
     if (nicknameValue.length < 1) {
       setMessageRegister(t('service.nicknameNotSelected'));
-      // setMessageRegister("Не выбран псевдоним");
       setLoaderButtonRegister(false);
       return
     };
 
     if (pass1Value !== pass2Value) {
       setMessageRegister(t('service.pass1NotEqualPass2'));
-      // setMessageRegister("Пароль и его повтор не совпадают");
       setLoaderButtonRegister(false);
       return
     };
@@ -187,7 +174,7 @@ export default function Index() {
     //  далее адресуем на страницу соглашения и после этого регистрируем, 
     // загружаем начальное состояние а потом на мастер настроек
 
-    const tt = await registerHandler({
+    await registerHandler({
       login: loginValue,
       pass: pass1Value,
       teamNumber: teamNumberValue,
@@ -197,6 +184,7 @@ export default function Index() {
       nickname: nicknameValue,
       token,
       t,
+      locale,
       setMessage: setMessage,
       setMessageRegister: setMessageRegister,
       dispatch,
@@ -211,12 +199,11 @@ export default function Index() {
     // мейла подтверждение юзера
     const confirmEmailAndRedirect = async () => {
       if (user.login && !user?.confirmed && token.trim() !== "") {
-        await sendCodeHandler(user.login, 'signup', i18n.language, t, setMessage);
+        await sendCodeHandler(user.login, 'signup', t, i18n.language, setMessage);
       }
     };
     confirmEmailAndRedirect();
   }, [user]);
-
 
   useEffect(() => {
     // ждем подтверждения мейла
@@ -224,19 +211,15 @@ export default function Index() {
     if (token.trim() !== "" && !user?.confirmed) {
 
       if (team.id && user.id) {
-        setMessageLogin("На почту " + user.login
-          + " отправлено письмо с кодом подтверждения. Подтвердите свой e-mail и после этого войдите в систему.");
+        setMessageLogin(t('service.toPost') + user.login + t('service.sentCodeMail'));
       } else {
         setMessageLogin("");
       }
-
       setStep(2);
       dispatch(setLoadingComplete(true))
-
-      return; // ждем подтверждения мейла
+      return;
     }
 
-    
     const loadDataAndRedirect = async () => {
 
       dispatch(setLoadingComplete(false))
@@ -244,17 +227,17 @@ export default function Index() {
       if (team.id && user && token.trim() !== "" && signedAgreement && user?.confirmed) {
         setStep(4);
         if (user.isAdmin) {
-          await downloadBaner(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadTemplates(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnits(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnutsActions(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnutsExceptions(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadLoads(user.id, team.id, token, t, setMessage, dispatch);
+          await downloadBaner(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadUoms(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadActions(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadTemplates(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadUnits(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadUnutsActions(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadUnutsExceptions(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadSettings(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadSchedule(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadTCards(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadLoads(user.id, team.id, token, t, locale, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           setStep(5);
           // Переходим на страницу "cards"
@@ -262,15 +245,15 @@ export default function Index() {
         }
         else {
           // Только для одного юнита           
-          await downloadBaner(undefined, undefined, token, t, setMessage, dispatch);
-          await downloadUoms(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadActions(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnutActions(unit?.id, user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnutExceptions(unit?.id, user.id, team.id, token, t, setMessage, dispatch);
-          await downloadSettings(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadSchedule(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadTCards(user.id, team.id, token, t, setMessage, dispatch);
-          await downloadUnitLoads(unit?.id, user.id, team.id, token, t, setMessage, dispatch);
+          await downloadBaner(undefined, undefined, token, t, locale, setMessage, dispatch);
+          await downloadUoms(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadActions(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadUnutActions(unit?.id, user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadUnutExceptions(unit?.id, user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadSettings(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadSchedule(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadTCards(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadUnitLoads(unit?.id, user.id, team.id, token, t, locale, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           setStep(5);
           // Переходим на страницу "cards"
@@ -283,54 +266,15 @@ export default function Index() {
     loadDataAndRedirect();  // Вызываем асинхронную функцию
   }, [user, token, team, signedAgreement]);  // Зависимости от user, token и team
 
-  const signAgreement = async (signedAgreement: boolean, agreementId: number) => {
-
-
+  const signAgreementHandler = async (signedAgreement: boolean, agreementId: number) => {
     // обращаемся к базе и подписываем соглашение
     // после этого переходим к загрузке начальных таблиц
     // после этого вываливаемся на начальные настройки
-    try {
-
-      const res = await fetch(`api/agreement-api`,
-        {
-          method: 'post',
-          headers: new Headers({
-            'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
-          body: JSON.stringify({
-            userId: user.id,
-            signedAgreement: signedAgreement,
-            agreementId: agreementId,
-          }),
-        }
-      );
-      if (res.status !== 200) {
-        const receivedData = await res.json();
-        const error = receivedData.error;
-        setMessageLogin(error);
-      } else {
-        const receivedData = await res.json();
-        if (receivedData.success) {
-          const signed_ = receivedData.signed as boolean;
-          //   Обновим настройки          
-          dispatch(setSignedAgreement(signed_));
-          setStep(4);
-        } else setMessageLogin(receivedData.message);
-      }
-    } catch (e: unknown) {
-      let message = t('service.serverUnavailable');
-      if (e instanceof Error) {
-        message += e.message;
-      }
-      setMessage(message);
-    }
-    // setLoaderButtonLogin(false)
-
+    await signAgreement(user.id, agreementId, signedAgreement, token, t, locale, setMessageLogin, setStep, setMessage, dispatch)
   }
 
   // отказ регистрироватся на этапе подписания
-  const cancelSignAgreement = () => {
+  const cancelSignAgreementHandler = () => {
     setStep(2);
   }
 
@@ -340,7 +284,6 @@ export default function Index() {
       <div className="container_index">
         {(step !== 3) && <div className="container_index_left">
           <div className="index_title">Plan&Track Pro</div>
-          {/* <div className="index_describtion">Планировщик загрузки ресурсов компании */}
           <div className="index_describtion">{t('index.title')}
             <div className="index_line"></div>
           </div>
@@ -351,13 +294,6 @@ export default function Index() {
           <div className="ads"><Image className="img_" src={ico4} alt="ico4" />{t('index.ico4')}</div>
           <div className="ads"><Image className="img_" src={ico5} alt="ico5" />{t('index.ico5')}</div>
           <div className="ads"><Image className="img_" src={ico6} alt="ico6" />{t('index.ico6')}</div>
-
-          {/* <div className="ads"><Image className="img_" src={ico1} alt="ico1" />Работает в соответствии с заказом от клиента</div>
-          <div className="ads"><Image className="img_" src={ico2} alt="ico2" />Выстраивает технологическую карту выполнения заказа</div>
-          <div className="ads"><Image className="img_" src={ico3} alt="ico3" />Отслеживает кажый произведенный предмет индивидуально</div>
-          <div className="ads"><Image className="img_" src={ico4} alt="ico4" /> Формирует индивидуальный код каждого изделия, легко найти</div>
-          <div className="ads"><Image className="img_" src={ico5} alt="ico5" />Автоматически моделирует загрузку ваших приизводственных центров</div>
-          <div className="ads"><Image className="img_" src={ico6} alt="ico6" />Формирует задания исполнителям и отслеживает выполнение</div> */}
         </div>}
         {(step !== 3) && <div className="container_index_right">
 
@@ -371,7 +307,6 @@ export default function Index() {
                   placeholder={t('login.email')}
                   onChange={(e) => setLoginValue(e.target.value)}
                   required
-                // autoComplete="off"
                 />
               </div>
               <div className="login_input_container">
@@ -419,7 +354,6 @@ export default function Index() {
                   placeholder={t('register.email')}
                   value={loginValue} onChange={(e) => setLoginValue(e.target.value)}
                   required
-                // autoComplete="off" 
                 />
               </div>
 
@@ -550,8 +484,8 @@ export default function Index() {
           user={user}
           textAgreement={textAgreement.current}
           agreementId={agreementId.current}
-          signAgreement={signAgreement}
-          cancelSignAgreement={cancelSignAgreement}
+          signAgreement={signAgreementHandler}
+          cancelSignAgreement={cancelSignAgreementHandler}
           setMessage={(message: string) => { }}
         />}
       </div>

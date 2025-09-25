@@ -2,6 +2,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { updateUOMS } from './../../handlers/handlers-update';  // расчеты
@@ -20,10 +21,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
 
-    const { teamId: getTeamId } = req.query;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    
     switch (req.method) {
       case 'GET':
-        const uoms__ = await getUOMs(Number(getTeamId), uomsRepository)
+        const { teamId: teamIdget, userId:userIdget } = req.query;
+        const uoms__ = await getUOMs(Number(userIdget), locale, Number(teamIdget), uomsRepository)
 
         uoms__.sort((a, b) => {
           // Проверяем, что id определено
@@ -46,6 +49,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // СПИСОК ДЕЙСТВИЙ 
         const resUOMS = await updateUOMS(
+          Number(userId), locale, 
           uomsRepository,
           uoms,
           Number(teamId)

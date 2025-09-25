@@ -1,15 +1,11 @@
 import { withAuth } from './../../lib/server/withAuth'
-import { toYMD } from './../../lib/common/utils'
-
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
-
 import { getTeamShedule } from './../../handlers/handlers-get';  // расчеты
 import { updateShedule } from './../../handlers/handlers-update';  // расчеты
-
-import { Repository } from 'typeorm';
 import { TeamTable } from './../../db/models/catalogs/teams'
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
 
@@ -26,11 +22,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+
   try {
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
       case 'GET':
         const { userId: userIdget, teamId: teamIdget } = req.query;
-        const shedule_ = await getTeamShedule(Number(teamIdget), teamScheduleRepository, teamsRepository)
+        const shedule_ = await getTeamShedule(Number(userIdget), locale, Number(teamIdget), teamScheduleRepository, teamsRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -44,6 +43,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { schedule, userId, teamId } = req.body as RequestBody;
 
         const resSchedule = await updateShedule(
+          Number(userId), locale, 
           teamScheduleRepository,
           schedule,
           Number(teamId)
@@ -68,7 +68,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // holidays: (savedSchedule.holidays ?? []).map(toYMD),
           holidays: (savedSchedule.holidays ?? []),
           weekends: savedSchedule.weekends ?? [],
-          workdays: savedSchedule.workdays ?? [],         
+          workdays: savedSchedule.workdays ?? [],
           timeZone: savedSchedule.timeZone as TimeZoneEnum,
         };
 
@@ -89,7 +89,5 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(500).json({ error: 'Не удалось обработать запрос' });
   }
 }
-
-
 
 export default withAuth(handler)

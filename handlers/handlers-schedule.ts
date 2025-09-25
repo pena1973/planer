@@ -1,7 +1,7 @@
 
 
 import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "./../types/types";
-import { getCurrentDateInDate, getTimeZoneDateFromDateString,addDaysInZone } from "./../lib/common/timezone"
+import { getTimeZoneDateFromDateString,addDaysInZone } from "./../lib/common/timezone"
 
 import { YYYYMMDD } from "@/lib/common/utils"
 //  функция определяемт входит ли  дата в список дат дополнительного времени работы
@@ -130,6 +130,8 @@ const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem
 
 // получение массива дней для списка юнитов с учеитом исключений 90  после даты и 90 дней до 
 export const getUnitsSchedule = (
+  userId: number,
+  locale:string,  
   today: string,           // формат "YYYY-MM-DD"
   schedule: ScheduleItem,
   exceptions: UnitExceptionItem[],

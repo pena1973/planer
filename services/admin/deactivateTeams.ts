@@ -2,18 +2,26 @@
 
 // принудительно девктивирует команды у которых нулевой баланс
 export const deactivateTeams = async (
-    token: string,   
+    userId: number,
+    token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 ) => {
 
     try {
         const res = await fetch(`api/admin/deactivate-teams-api`,
             {
-                method: 'get',
+                method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale,
+                }),
+
+                body: JSON.stringify({
+                    userId: userId,
+
                 }),
             }
         );

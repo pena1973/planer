@@ -2,7 +2,7 @@
 import { BanerItem } from './../../types/service-types';
 import { setBaner } from './../../store/slices';
 import { Dispatch } from 'redux';
-
+import { ulogger } from "./../../lib/common/universal-logger";
 
 // Показываем либо всем либо команде либо юзеру
 export const downloadBaner = async (
@@ -10,6 +10,7 @@ export const downloadBaner = async (
     teamId: number | undefined,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     dispatch: Dispatch
 ) => {
@@ -24,18 +25,25 @@ export const downloadBaner = async (
             method: 'get',
             headers: new Headers({
                 'Authorization': 'Basic ' + token,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                "X-Lang": locale,
             }),
         }
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
             const error = receivedData.error;
-            setMessage(error);
-            setMessage(t('service.serverUnavailable') + error);
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            await ulogger.error({
+                userId: userId,
+                location: "services/process/downloadBaner",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const downloadBaner = async (",
+            });
         } else {
             const receivedData = await res.json();
-            // console.log("receivedData", receivedData)        
             if (receivedData.success) {
                 //  массив банера на разных языках
                 const baner = (receivedData.baner as BanerItem[])
@@ -45,12 +53,19 @@ export const downloadBaner = async (
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        await ulogger.error({
+            userId: userId,
+            location: "services/process/downloadBaner",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const downloadBaner = async (",
+        });
     }
-
-
 };

@@ -58,6 +58,7 @@ export async function deleteUsers(
 
 export async function deleteUser(
   userId: number,
+  locale:string,    
   usersRepository: Repository<UserTable>
 ): Promise<{ success: boolean; message: string }> {
   if (!Number.isFinite(userId)) {
@@ -88,6 +89,8 @@ export async function deleteUser(
 
 // 
 export async function deleteSupport(
+  userId: number,
+  locale:string,  
   idsToDelete: number[],  // Массив сообщений
   supportRepository: Repository<MailTable>,
 ) {
@@ -111,6 +114,8 @@ export async function deleteSupport(
 
 // ОПАСНАЯ ОПЕРАЦИЯ !!!!!
 export async function deleteDataTeam(
+  userId: number,
+  locale:string,  
   teamId: number,
   timezone: string,
   teamRepository: Repository<TeamTable>,
@@ -146,7 +151,7 @@ export async function deleteDataTeam(
 
     // // Деактивация команды
     // изменение состояния активности команды
-    const resTeam = await changeStateTeambyId(activeTimeRepository, Number(teamId), false, timezone)
+    const resTeam = await changeStateTeambyId(userId, locale, activeTimeRepository, Number(teamId), false, timezone)
 
     if (!resTeam.success) {
       console.warn('Не удалось деактивировать команду перед удалением:', resTeam.message);
@@ -199,6 +204,8 @@ export async function deleteDataTeam(
 }
 
 export async function deleteDataOlder90(
+  userId: number|null,
+  locale:string,  
   unitLoads: Repository<UnitLoadTable>,
   tCardOperations: Repository<TCardOperationTable>,
   tCardStages: Repository<TCardStageTable>,

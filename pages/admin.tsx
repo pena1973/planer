@@ -70,7 +70,7 @@ export default function Admin() {
       dateTo: periodTo,
       locale: banerLocale,
     } as BanerItem
-    await setBaner(token, user.id, baner, t, setMessage);
+    await setBaner(token, user.id, baner, t, i18n.language, setMessage);
 
   }
 
@@ -82,11 +82,11 @@ export default function Admin() {
     const [yStr, mStr] = periodDeactTeam.split('-');
     const year = Number(yStr);
     const month = Number(mStr); // 1..12
-    await deactivateTeams(token, t, setMessage);
+    await deactivateTeams(user.id,token, t, i18n.language, setMessage);
   };
 
   const setJobSettinghandler = async (jobSetting: JobSettingItem) => {
-    await setJobSetting(token, user.id, jobSetting, t, setMessage);
+    await setJobSetting(user.id, jobSetting, token,  t,  i18n.language, setMessage);
   };
 
   return (

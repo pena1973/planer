@@ -2,6 +2,7 @@ import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getUnits, getUnitLoads, getTeamShedule, getExceptions } from './../../../handlers/handlers-get';  // 
@@ -27,13 +28,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
 
   try {
-    const { userId, teamId, today, unitId, dateFrom, dateTo, month } = req.query;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'GET':
 
+        const { userId, teamId, today, unitId, dateFrom, dateTo, month } = req.query;
         // запросим юниты
-        const units = await getUnits(Number(teamId), unitRepository)
+        const units = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
 
         // Применяем фильтр  если есть    
         let filteredUnits = units;
@@ -41,6 +43,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // запросим лоады по юнитам
         const unitLoads = await getUnitLoads(
+          Number(userId),
+          locale,
           Number(teamId),
           filteredUnits,
           unitLoadRepository,
@@ -48,17 +52,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
 
         // запросим расписание команды
-        const schedule = await getTeamShedule(Number(teamId), teamScheduleRepository, teamRepository)
+        const schedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamRepository)
 
         // запросим исключения расписания по юнитам
 
-        const exceptions = await getExceptions(Number(teamId), unitExceptionsRepository)
+        const exceptions = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
 
         // запросим расписание юнитов по дням
-        const unitShedule = getUnitsSchedule(String(today), schedule, exceptions, filteredUnits)
+        const unitShedule = getUnitsSchedule(Number(userId), locale, String(today), schedule, exceptions, filteredUnits)
 
         // рассчитываем производственное время юнита его загруженность и результат
         const unitsKPI = getDailyProductionSummary(
+          Number(userId),
+          locale,
           Number(teamId),
           unitShedule,
           unitLoads,
@@ -86,6 +92,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export function getDailyProductionSummary(
+  userId: number,
+  locale: string,
   teamId: number,
   unitSchedule: UnitCalendarItem[],
   unitLoads: UnitLoadItem[],
@@ -99,14 +107,6 @@ export function getDailyProductionSummary(
   // Проходим по каждому элементу расписания для юнита
   for (let i = 0; i < unitSchedule.length; i++) {
     const dayItem = unitSchedule[i];
-
-    // if (dateFrom && dayItem.date.toLocaleDateString('en-CA') < dateFrom) continue;
-    // if (dateTo && dayItem.date.toLocaleDateString('en-CA') > dateTo) continue;
-    // if (month && dayItem.date.getMonth() !== month) continue;
-
-    // // Переводим дату в формат "YYYY-MM-DD"
-    // const dayStr = dayItem.date.toLocaleDateString("en-CA");
-
     if (dateFrom && dayItem.date < dateFrom) continue;
     if (dateTo && dayItem.date > dateTo) continue;
 

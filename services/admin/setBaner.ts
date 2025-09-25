@@ -5,6 +5,7 @@ export const setBaner = async (
     userId: number,
     baner: BanerItem,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 ) => {
 
@@ -14,7 +15,8 @@ export const setBaner = async (
                 method: 'POST',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     baner: baner,

@@ -6,8 +6,10 @@ export const getTeamActivity = async (
     mainTeam: string,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
-    setTeamActivity: (val: { teamId: number, active: boolean }[]) => void,) => {
+    setTeamActivity: (val: { teamId: number, active: boolean }[]) => void,
+) => {
 
     try {
 
@@ -16,7 +18,8 @@ export const getTeamActivity = async (
                 method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale,
                 }),
             }
         );

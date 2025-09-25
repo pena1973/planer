@@ -62,7 +62,7 @@ export default function Product({
             }}>
             <div className={styles.idc} >{idc}</div>
             <div className={styles.title}>{title}</div>
-            <div className={styles.uom}>{uom.title}</div>
+            <div className={styles.uom}>{uom?.title}</div>
             <div className={styles.sync}>{sync}</div>
         </div>
 

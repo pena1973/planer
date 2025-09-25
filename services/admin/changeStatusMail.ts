@@ -7,6 +7,7 @@ export const changeStatusMail = async (
     setSupportMails: (val: SupportMailItem[]) => void,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 
 ) => {
@@ -17,7 +18,8 @@ export const changeStatusMail = async (
                 method: 'POST',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale, 
                 }),
                 body: JSON.stringify({
                     mailId: mailId,

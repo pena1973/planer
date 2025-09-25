@@ -2,6 +2,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { Repository} from 'typeorm';
@@ -20,8 +21,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
 
-    // userId, teamId в любом случае
-    const { userId, teamId } = req.query;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
 

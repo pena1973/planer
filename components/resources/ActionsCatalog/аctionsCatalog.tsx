@@ -110,7 +110,7 @@ export default function ActionsCatalog({
             seen.add(key);
         }
 
-        saveActions(actionsValue, user, team, token, dispatch, t, setMessage, setActionsValue, setModified);
+        saveActions(actionsValue, user, team, token, dispatch, t,i18n.language, setMessage, setActionsValue, setModified);
 
     };
 

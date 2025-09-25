@@ -3,6 +3,7 @@ import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { TCardTable } from './../../db/models/data/t_cards'
@@ -26,6 +27,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
         
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
       case 'POST':
 
@@ -33,9 +36,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { tCardId, teamId, userId } = req.body as RequestBody;
 
         // проверяем все операции карты и если  статусы не ниже текущего  меняем статус самой карты
-        const tCardOperations = await getTCardOperationsByCardId(tCardId, tCardOperationsRepository)
+        const tCardOperations = await getTCardOperationsByCardId(Number(userId), locale, tCardId, tCardOperationsRepository)
 
-        const tCard = await getTCard(tCardId, tCardRepository)
+        const tCard = await getTCard(Number(userId), locale, tCardId, tCardRepository)
         if (!tCard) {
           res.status(200).json({
             success: false,
@@ -64,7 +67,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // / Обновим статус карты если он изменился
         if (tCard.status !== finalCardStatus) {
-          const resCard = await updateStatusTCard(tCardRepository, tCardId, finalCardStatus);
+          const resCard = await updateStatusTCard(Number(userId), locale, tCardRepository, tCardId, finalCardStatus);
           if (!resCard.success) {
             res.status(200).json({
               success: false,
