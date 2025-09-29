@@ -2,6 +2,8 @@ import { Dispatch } from "redux";
 import { TeamItem, UserItem } from "./../../types/types";
 import { setTeam } from "./../../store/slices";
 
+import { ulogger } from "./../../lib/common/universal-logger";
+
 export const saveTeam = async (
     titleValue: string,
     comentValue: string,
@@ -12,7 +14,6 @@ export const saveTeam = async (
     t: (key: string) => string,
     locale: string,
     setMessage: (msg: string) => void,
-    setModified: (val: boolean) => void
 ) => {
     setMessage("");
 
@@ -23,7 +24,7 @@ export const saveTeam = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     title: titleValue,
@@ -34,23 +35,50 @@ export const saveTeam = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: user.id,
+                location: "services/resources/saveTeam",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const saveTeam = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
                 const team_ = receivedData.team as TeamItem
                 dispatch(setTeam(team_));
-                setModified(false);
                 setMessage(t('team.settingUpdated'));
-            } else setMessage(receivedData.error);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: user.id,
+                    location: "services/resources/saveTeam",
+                    event: "error",
+                    message: `success=false запрос api/team-api?userId=${user.id}&teamId=${team.id}`,
+                    context: "export const saveTeam = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: user.id,
+            location: "services/resources/saveTeam",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const saveTeam = async (",
+        }).catch(() => { console.error("logger error") });
     }
-    setModified(false);
+
 };

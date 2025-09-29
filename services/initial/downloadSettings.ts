@@ -29,22 +29,30 @@ export const downloadSettings = async (
       const error = receivedData.error;
       setMessage(`${t('service.serverUnavailable')} ${error}`);
       //  logger
-      await ulogger.error({
+      void ulogger.error({
         userId: userId,
         location: "services/initial/downloadSettings",
         event: "endpoint_error",
         message: `res.status=${res.status} error=${error}`,
         context: "export const downloadSettings = async (",
-      });
+      }).catch(() => { console.error("logger error") });
     } else {
       const receivedData = await res.json();
       if (receivedData.success) {
         const settings = receivedData.schedule as SettingsItem
         dispatch(setSettings(settings));
         setMessage(t('index.downloadSettings'))
+      } else {
+        setMessage(receivedData.message);
+        //  logger
+        void ulogger.error({
+          userId: userId,
+          location: "services/initial/downloadSettings",
+          event: "error",
+          message: `success=false запрос api/settings-api?userId=${userId}&teamId=${teamId}`,
+          context: "export const downloadSettings = async (",
+        }).catch(() => { console.error("logger error") });
       }
-      else
-        setMessage(receivedData.error);
     }
 
   } catch (e: unknown) {
@@ -54,12 +62,12 @@ export const downloadSettings = async (
     }
     setMessage(`${t('service.serverUnavailable')} ${error}`);
     //  logger
-    await ulogger.error({
+    void ulogger.error({
       userId: userId,
       location: "services/initial/downloadSettings",
       event: "endpoint_error",
       message: `catch: ${error}`,
       context: "export const downloadSettings = async (",
-    });
+    }).catch(() => { console.error("logger error") });
   }
 }

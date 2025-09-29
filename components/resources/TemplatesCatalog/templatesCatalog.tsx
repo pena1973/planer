@@ -74,8 +74,10 @@ export default function TemplatesCatalog({
 
     // На сервере
     const saveTemplatesHandler = async () => {
-        await saveTemplates(templatesValue, user, team, token, dispatch, t, i18n.language, setMessage, setModified);
-        
+        await saveTemplates(templatesValue, user, team, token, dispatch, t, i18n.language, setMessage)
+            .then(() => {
+                setModified(false);
+            });
     };
     // На клиенте
     const addTemplateHandler = () => {

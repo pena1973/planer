@@ -4,8 +4,11 @@ import { Billing } from "@/components/support/Billing/billing";
 import { Profile } from "@/components/support/Profile/profile";
 import { CookiePolicyBlock } from '@/components/CookiePolicyBlock/сookiePolicyBlock'
 import Docs from "@/components/support/Docs/docs";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { generateTeamNumber } from '@/lib/client/utils.client'
+
+import { YYYYMMDD } from "@/lib/common/utils";
+import { ulogger } from "./../lib/common/universal-logger";
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
@@ -44,11 +47,7 @@ export default function Support() {
 
   const isMainTeam = useMemo(() => team ? team.main_team === generateTeamNumber(team.prefix, team.id) : false, [team]);
 
-  // Начальный загруз
-  useEffect(() => {
-
-  }, []);
-
+  
   return (
     <Layout>
       <div className="container_global" >

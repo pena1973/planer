@@ -35,21 +35,30 @@ export const downloadUnutExceptions = async (
             const error = receivedData.error;
             setMessage(`${t('service.serverUnavailable')} ${error}`);
             //  logger
-            await ulogger.error({
+            void ulogger.error({
                 userId: userId,
                 location: "services/initial/downloadUnutExceptions",
                 event: "endpoint_error",
                 message: `res.status=${res.status} error=${error}`,
                 context: "export const downloadUnutExceptions = async (",
-            });
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
                 const exceptions = receivedData.exceptions as UnitExceptionItem[]
                 dispatch(setUnitExceptions(exceptions));
                 setMessage(t('index.downloadUnutsExceptions'))
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/initial/downloadUnutExceptions",
+                    event: "error",
+                    message: `success=false запрос api/exceptions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
+                    context: "export const downloadUnutExceptions = async (",
+                }).catch(() => { console.error("logger error") });
             }
-            else setMessage(receivedData.error);
         }
     } catch (e: unknown) {
         let error = "";
@@ -58,12 +67,12 @@ export const downloadUnutExceptions = async (
         }
         setMessage(`${t('service.serverUnavailable')} ${error}`);
         //  logger
-        await ulogger.error({
+        void ulogger.error({
             userId: userId,
             location: "services/initial/downloadUnutExceptions",
             event: "endpoint_error",
             message: `catch: ${error}`,
             context: "export const downloadUnutExceptions = async (",
-        });
+        }).catch(() => { console.error("logger error") });
     }
 }

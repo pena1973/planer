@@ -2,6 +2,7 @@
 import { Dispatch } from "redux";
 import { TeamItem, ScheduleItem, UserItem, DaysOfWeek } from "./../../types/types";
 import { setSchedule } from "./../../store/slices";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const saveSchedule = async (
     schedule: ScheduleItem,
@@ -18,8 +19,7 @@ export const saveSchedule = async (
     setHolidaysValue: (val: string[]) => void,
     setWeekendsValue: (val: (DaysOfWeek | null)[]) => void,
     setWorkdaysValue: (val: { date: string, timeStart: number, timeFinish: number }[]) => void,
-    setTimeZoneValue: (val: string) => void,
-    setModified: (val: boolean) => void
+    setTimeZoneValue: (val: string) => void,    
 ) => {
 
     try {
@@ -29,7 +29,7 @@ export const saveSchedule = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     schedule: schedule,
@@ -40,7 +40,16 @@ export const saveSchedule = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: user.id,
+                location: "services/resources/saveSchedule",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const saveSchedule = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
 
@@ -53,19 +62,35 @@ export const saveSchedule = async (
                 setHolidaysValue(schedule.holidays);
                 setWeekendsValue(schedule.weekends);
                 setWorkdaysValue(schedule.workdays);
-                setTimeZoneValue(schedule.timeZone);
-                setModified(false);
+                setTimeZoneValue(schedule.timeZone);                
                 setMessage(t('teamSchedule.schedueUpdated'));
-
-            } else setMessage(receivedData.error);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: user.id,
+                    location: "services/resources/saveSchedule",
+                    event: "error",
+                    message: `success=false запрос api/schedule-api`,
+                    context: "export const saveSchedule = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
-    }
-    setModified(false);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: user.id,
+            location: "services/resources/saveSchedule",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const saveSchedule = async (",
+        }).catch(() => { console.error("logger error") });
+    }    
 };

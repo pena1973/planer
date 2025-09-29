@@ -29,13 +29,13 @@ export const downloadTCards = async (
             const error = receivedData.error;
             setMessage(`${t('service.serverUnavailable')} ${error}`);
             //  logger
-            await ulogger.error({
+            void ulogger.error({
                 userId: userId,
                 location: "services/initial/downloadTCards",
                 event: "endpoint_error",
                 message: `res.status=${res.status} error=${error}`,
                 context: "export const downloadTCards = async (",
-            });
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -45,9 +45,18 @@ export const downloadTCards = async (
                 const tCardsUpdated = tCards_.map(card => { return { ...card, date: card.date, status: card.status } });
                 dispatch(setTCards(tCardsUpdated));
                 setMessage(t('index.downloadTCards'))
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/initial/downloadTCards",
+                    event: "error",
+                    message: `success=false запрос /api/tcards-api?userId=${userId}&teamId=${teamId}`,
+                    context: "export const downloadTCards = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
-
     } catch (e: unknown) {
         let error = "";
         if (e instanceof Error) {
@@ -55,12 +64,12 @@ export const downloadTCards = async (
         }
         setMessage(`${t('service.serverUnavailable')} ${error}`);
         //  logger
-        await ulogger.error({
+        void ulogger.error({
             userId: userId,
             location: "services/initial/downloadTCards",
             event: "endpoint_error",
             message: `catch: ${error}`,
             context: "export const downloadTCards = async (",
-        });
+        }).catch(() => { console.error("logger error") });
     }
 };

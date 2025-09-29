@@ -1444,13 +1444,13 @@ export async function updateStages(
 
         if (operationsToDelete.length > 0) {
           //  logger
-          await ulogger.error({
+          void ulogger.error({
             userId: userId,
             location: "handlers-update/updateStages",
             event: "error",
             message: `Попытка удалить стадию с существующими операциями: tCardId=${savedTCard.id}, tCardIdc=${savedTCard.idc}`,
             context: "await tCardOperationsRepository.find({ where: { stage_id: stage.id } })",
-          });
+          }).catch(() => { console.error("logger error") });
 
           // Удаляем продукты для операций
           const operationIds = operationsToDelete.map(op => op.id);
@@ -1498,13 +1498,13 @@ export async function updateStages(
 
     if (updatedStages.length !== savedUpdatedStages.length) {
       //  logger
-      await ulogger.error({
+      void ulogger.error({
         userId: userId,
         location: "handlers-update/updateStages",
         event: "error",
         message: `Количество к сохранению и реально сохраненных стадий не совпало: oldCount=${updatedStages.length}, newCount=${savedUpdatedStages.length}`,
         context: "await tCardStagesRepository.save(updatedStages)",
-      });
+      }).catch(() => { console.error("logger error") });
     }
 
     // 4. Объединяем результат
@@ -1864,14 +1864,14 @@ export async function updateCatalogProducts(
         };
       });
     } catch (e) {
-      await ulogger.error({
+      void ulogger.error({
         userId: userId,
         location: "handlers-update/updateCatalogProducts",
         event: "endpoint_error",
         message: e instanceof Error ? e.message : String(e),
         context: "await productRepository.save(plainProducts)",
         requestId: "tcard-api.ts",
-      });
+      }).catch(() => { console.error("logger error") });
 
       // return { success: false, message: 'Ошибка при сохранении продуктов каталога' };
       return { success: false, message: t(locale, "updateCatalogProducts") };

@@ -1,20 +1,8 @@
 // status 0 - архив, 1 актив, 2 запрос 
 import { Dispatch } from 'redux';
-import {
-  UserItem,
-  TeamItem,
-  SettingsItem,
-  UnitItem,
-} from './../../types/types';
-import {
-  setUser,
-  setToken,
-  setTeam,
-  setSettings,
-  setSignedAgreement,
-  setUnit,
-  setActiveTeam,
-} from './../../store/slices';
+import { UserItem, TeamItem, SettingsItem, UnitItem, } from './../../types/types';
+import { setUser, setToken, setTeam, setSettings, setSignedAgreement, setUnit, setActiveTeam, } from './../../store/slices';
+import { ulogger } from "./../../lib/common/universal-logger";
 
 interface LoginPayload {
   login: string;
@@ -59,7 +47,7 @@ export const loginHandler = async ({
         headers: new Headers({
           'Authorization': 'Basic ' + token,
           'Content-Type': 'application/json',
-          "X-Lang": locale, 
+          "X-Lang": locale,
         }),
         body: JSON.stringify({
           login: login,
@@ -70,11 +58,17 @@ export const loginHandler = async ({
     if (res.status !== 200) {
       const receivedData = await res.json();
       const error = receivedData.error;
-      setMessageLogin(error);
-      setMessageLogin(t('service.serverUnavailable') + res.status);
+      setMessageLogin(`${t('service.serverUnavailable')} ${error}`);
+      //  logger
+      void ulogger.error({
+        userId: null,
+        location: "services/login/loginHandler",
+        event: "endpoint_error",
+        message: `res.status=${res.status} error=${error}`,
+        context: `export const loginHandler = async ({, login = ${login}`,
+      }).catch(() => { console.error("logger error") });
     } else {
       const receivedData = await res.json();
-      // console.log("receivedData", receivedData)
 
       if (receivedData.success) {
         const user_ = receivedData.user as UserItem;
@@ -103,19 +97,33 @@ export const loginHandler = async ({
         dispatch(setActiveTeam(activeTeam));
         agreementIdRef.current = agreementId_;
         agreementTextRef.current = agreementText_;
-        
-        
         setStep(3);
-      } else setMessageLogin(receivedData.message);
+      } else {
+        setMessage(receivedData.message);
+        //  logger
+        void ulogger.error({
+          userId: null,
+          location: "services/login/loginHandler",
+          event: "error",
+          message: `success=false запрос api/auth/login-api`,
+          context: "export const loginHandler = async ({, login = ${login}",
+        }).catch(() => { console.error("logger error") });
+      }
     }
-
-
   } catch (e: unknown) {
-    let message = t('service.serverUnavailable');
+    let error = "";
     if (e instanceof Error) {
-      message += e.message;
+      error = e.message;
     }
-    setMessage(message);
-  }
+    setMessageLogin(`${t('service.serverUnavailable')} ${error}`);
 
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "services/login/loginHandler",
+      event: "endpoint_error",
+      message: `catch: ${error}`,
+      context: `export const loginHandler = async ({, login = ${login}`,
+    }).catch(() => { console.error("logger error") });
+  }
 }

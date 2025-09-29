@@ -1,6 +1,7 @@
 import { Dispatch } from "redux";
 import { TCardItem, UnitLoadItem, StatusEnum } from "./../../types/types";
 import { setTCardLighted, setTCardPrepared, setTCards, setUnitLoads } from "./../../store/slices";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const saveCard = async (
     tCardPrepared: TCardItem,
@@ -12,7 +13,7 @@ export const saveCard = async (
     dispatch: Dispatch,
     t: (key: string) => string,
     locale: string,
-    setMessage: (msg: string) => void,    
+    setMessage: (msg: string) => void,
 ) => {
 
     // setSaveLoaderCard(tCardPrepared.id);
@@ -33,7 +34,7 @@ export const saveCard = async (
                     headers: new Headers({
                         'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json',
-                        "X-Lang": locale, 
+                        "X-Lang": locale,
                     }),
                     body: JSON.stringify({
                         tCardId: tCardPrepared.id,
@@ -44,10 +45,18 @@ export const saveCard = async (
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                setMessage(receivedData.error);
+                const error = receivedData.error;
+                setMessage(`${t('service.serverUnavailable')} ${error}`);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/plan/saveCard",
+                    event: "endpoint_error",
+                    message: `res.status=${res.status} error=${error}`,
+                    context: "(tCardLoadsPrepared.length === 0)",
+                }).catch(() => { console.error("logger error") });
             } else {
                 const receivedData = await res.json();
-                setMessage(receivedData.message);
                 if (receivedData.success) {
                     // проверили и вернули общий статус карты
                     const tCardStatus = receivedData.tCardStatus as StatusEnum
@@ -56,20 +65,42 @@ export const saveCard = async (
                     const _tCards = [...tCards]
                     _tCards.splice(index, 1, updatedTCard);
                     dispatch(setTCards(_tCards));
+                    // setMessage(receivedData.message);
+                    // "tCardSaved": "Карта сохранена"
+                    setMessage(t("tCardSaved"));
+                } else {
                     setMessage(receivedData.message);
+                    //  logger
+                    void ulogger.error({
+                        userId: userId,
+                        location: "services/plan/saveCard",
+                        event: "error",
+                        message: `success=false запрос api/tcard-status-api`,
+                        context: "(tCardLoadsPrepared.length === 0)",
+                    }).catch(() => { console.error("logger error") });
                 }
             }
 
         } catch (e: unknown) {
-            let message = t('service.serverUnavailable');
+            let error = "";
             if (e instanceof Error) {
-                message += e.message;
+                error = e.message;
             }
-            setMessage(message);
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/plan/saveCard",
+                event: "endpoint_error",
+                message: `catch: ${error}`,
+                context: "(tCardLoadsPrepared.length === 0)",
+            }).catch(() => { console.error("logger error") });
         }
 
         return;
     }
+
     // если есть что записывать  то записываем подгоитовленное
     if (tCardLoadsPrepared.length > 0) {
         try {
@@ -90,7 +121,16 @@ export const saveCard = async (
             );
             if (res.status !== 200) {
                 const receivedData = await res.json();
-                setMessage(receivedData.error);
+                const error = receivedData.error;
+                setMessage(`${t('service.serverUnavailable')} ${error}`);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/plan/saveCard",
+                    event: "endpoint_error",
+                    message: `res.status=${res.status} error=${error}`,
+                    context: "(tCardLoadsPrepared.length > 0)",
+                }).catch(() => { console.error("logger error") });
             } else {
                 const receivedData = await res.json();
                 if (receivedData.success) {
@@ -101,7 +141,6 @@ export const saveCard = async (
 
                     //  поменяем статус карты  и после этого она перерисуется в запланированные
                     //  и статус операций
-
                     const index = tCards.findIndex(tCard => tCard.id === tCardPrepared.id);
 
                     // idc операций в которых меняем статус
@@ -121,16 +160,35 @@ export const saveCard = async (
                     dispatch(setTCardLighted(updatedTCard))
                     dispatch(setTCardPrepared({} as TCardItem));
                     dispatch(setTCards(_tCards));
-                    setMessage("Планировка карты успешно записана");
+                    // setMessage("Планировка карты успешно записана");
+                    setMessage(t("tCardSaved"));
+                } else {
+                    setMessage(receivedData.message);
+                    //  logger
+                    void ulogger.error({
+                        userId: userId,
+                        location: "services/plan/saveCard",
+                        event: "error",
+                        message: `success=false запрос api/tcard-status-api`,
+                        context: " (tCardLoadsPrepared.length > 0) ",
+                    }).catch(() => { console.error("logger error") });
                 }
             }
-
         } catch (e: unknown) {
-            let message = t('service.serverUnavailable');
+            let error = "";
             if (e instanceof Error) {
-                message += e.message;
+                error = e.message;
             }
-            setMessage(message);
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/plan/saveCard",
+                event: "endpoint_error",
+                message: `catch: ${error}`,
+                context: "(tCardLoadsPrepared.length > 0)",
+            }).catch(() => { console.error("logger error") });
         }
 
     };

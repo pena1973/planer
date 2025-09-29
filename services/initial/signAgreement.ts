@@ -42,13 +42,13 @@ export const signAgreement = async (
       const error = receivedData.error;
       setMessage(`${t('service.serverUnavailable')} ${error}`);
       //  logger
-      await ulogger.error({
+      void ulogger.error({
         userId: userId,
         location: "services/initial/signAgreement",
         event: "endpoint_error",
         message: `res.status=${res.status} error=${error}`,
         context: "export const signAgreement = async (",
-      });
+      }).catch(() => { console.error("logger error") });
     } else {
       const receivedData = await res.json();
       if (receivedData.success) {
@@ -56,7 +56,17 @@ export const signAgreement = async (
         //   Обновим настройки          
         dispatch(setSignedAgreement(signed_));
         setStep(4);
-      } else setMessageLogin(receivedData.message);
+      } else {
+        setMessage(receivedData.message);
+        //  logger
+        void ulogger.error({
+          userId: userId,
+          location: "services/initial/signAgreement",
+          event: "error",
+          message: `success=false запрос api/agreement-api`,
+          context: "export const signAgreement = async (",
+        }).catch(() => { console.error("logger error") });
+      }
     }
   } catch (e: unknown) {
     let error = "";
@@ -65,12 +75,12 @@ export const signAgreement = async (
     }
     setMessage(`${t('service.serverUnavailable')} ${error}`);
     //  logger
-    await ulogger.error({
+    void ulogger.error({
       userId: userId,
       location: "services/initial/signAgreement",
       event: "endpoint_error",
       message: `catch: ${error}`,
       context: "export const signAgreement = async (",
-    });
+    }).catch(() => { console.error("logger error") });
   }
 }

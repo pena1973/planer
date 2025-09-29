@@ -29,7 +29,7 @@ export const SupportMailsAdmin: React.FC<SupportMailsProps> = ({
   
   // Получаем сообщения
   const getSupportMailsAdminHandler = async () => {
-    await getSupportMailsAdmin(token, t,i18n.language, setMessage, setSupportMailsValue);
+    await getSupportMailsAdmin(userId,token, t,i18n.language, setMessage, setSupportMailsValue);
   };
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export const SupportMailsAdmin: React.FC<SupportMailsProps> = ({
 
   
 const changeStatusMailHandler = async (id: number,status:StatusEnum) => {
-    await changeStatusMail(id, status, supportMailsValue, setSupportMailsValue,token, t,i18n.language, setMessage)
+    await changeStatusMail(userId,id, status, supportMailsValue, setSupportMailsValue,token, t,i18n.language, setMessage)
   }
 
   // На клиенте если не записано

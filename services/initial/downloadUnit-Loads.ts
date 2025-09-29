@@ -31,19 +31,29 @@ export const downloadUnitLoads = async (
             const error = receivedData.error;
             setMessage(`${t('service.serverUnavailable')} ${error}`);
             //  logger
-            await ulogger.error({
+            void ulogger.error({
                 userId: userId,
                 location: "services/initial/downloadUnitLoads",
                 event: "endpoint_error",
                 message: `res.status=${res.status} error=${error}`,
                 context: "export const downloadUnitLoads = async (",
-            });
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
                 const unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
                 dispatch(setUnitLoads(unitsLoads));
                 setMessage(t('index.downloadLoads'))
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/initial/downloadUnitLoads",
+                    event: "error",
+                    message: `success=false запрос /api/loads-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
+                    context: "export const downloadUnitLoads = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
     } catch (e: unknown) {
@@ -53,12 +63,12 @@ export const downloadUnitLoads = async (
         }
         setMessage(`${t('service.serverUnavailable')} ${error}`);
         //  logger
-        await ulogger.error({
+        void ulogger.error({
             userId: userId,
             location: "services/initial/downloadUnitLoads",
             event: "endpoint_error",
             message: `catch: ${error}`,
             context: "export const downloadUnitLoads = async (",
-        });
+        }).catch(() => { console.error("logger error") });
     }
 };

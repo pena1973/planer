@@ -30,21 +30,30 @@ export const downloadTemplates = async (
       const error = receivedData.error;
       setMessage(`${t('service.serverUnavailable')} ${error}`);
       //  logger
-      await ulogger.error({
+      void ulogger.error({
         userId: userId,
         location: "services/initial/downloadTemplates",
         event: "endpoint_error",
         message: `res.status=${res.status} error=${error}`,
         context: "export const downloadTemplates = async (",
-      });
+      }).catch(() => { console.error("logger error") });
     } else {
       const receivedData = await res.json();
       if (receivedData.success) {
         const templates_ = receivedData.templates as TemplateItem[]
         dispatch(setTemplates(templates_));
         setMessage(t('index.downloadTemplates'))
+      } else {
+        setMessage(receivedData.message);
+        //  logger
+        void ulogger.error({
+          userId: userId,
+          location: "services/initial/downloadTemplates",
+          event: "error",
+          message: `success=false запрос api/templates-api?userId=${userId}&teamId=${teamId}`,
+          context: "export const downloadTemplates = async (",
+        }).catch(() => { console.error("logger error") });
       }
-      else setMessage(receivedData.error);
     }
   } catch (e: unknown) {
     let error = "";
@@ -53,13 +62,13 @@ export const downloadTemplates = async (
     }
     setMessage(`${t('service.serverUnavailable')} ${error}`);
     //  logger
-    await ulogger.error({
+    void ulogger.error({
       userId: userId,
       location: "services/initial/downloadTemplates",
       event: "endpoint_error",
       message: `catch: ${error}`,
       context: "export const downloadTemplates = async (",
-    });
+    }).catch(() => { console.error("logger error") });
   }
 
 

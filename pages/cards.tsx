@@ -573,6 +573,7 @@ export default function Cards() {
   // СТАДИИ
   // На клиенте
   const addStage = async (afterStageCode: number) => {
+
     // проверка на возможность редактирования    
     if (readonlyCardStatuses.includes(tCards[tCardIndex].status))
       return; // если у карты нередактируемый статус ничего не делаем
@@ -639,7 +640,14 @@ export default function Cards() {
       dispatch(setTCards(updatedTCards));
 
     } else {
-      console.error(`Stage with code ${afterStageCode} not found.`);
+      //  logger
+      void ulogger.warn({
+        userId: user.id,
+        location: "pages/cards/delStage",
+        event: "error",
+        message: `Stage with code ${afterStageCode} not found.`,
+        context: "if (stageIndex !== -1) {",
+      }).catch(() => { console.error("logger error") });
     }
   };
 
@@ -710,13 +718,13 @@ export default function Cards() {
 
     } else {
       //  logger
-      await ulogger.warn({
+      void ulogger.warn({
         userId: user.id,
         location: "pages/cards/delStage",
         event: "error",
         message: `Stage with code ${stage.code} not found.`,
         context: "if (stageIndex !== -1) {",
-      });
+      }).catch(() => { console.error("logger error") });
 
     }
   };
@@ -750,7 +758,6 @@ export default function Cards() {
 
   // На клиенте
   const addTCardHandler = async () => {
-    // setModified(true);
     setMessage("");
     const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
     const tempId = generateUniqueIdc();
@@ -1081,13 +1088,13 @@ export default function Cards() {
       }
       setMessage(`${t('impossibleToDownloasTemplate')} ${error}`);
       //  logger
-      await ulogger.error({
+      void ulogger.error({
         userId: user.id,
         location: "pages/cards/applyTemplate",
         event: "endpoint_error",
         message: `catch: ${error}`,
         context: " const applyTemplate = async (fileContent: string) =>  {",
-      });
+      }).catch(() => { console.error("logger error") });
     }
   };
 
@@ -1201,7 +1208,7 @@ export default function Cards() {
 
     if (hasPlannedLoads) {
       // setMessage("Невозможно удалить операцию, т.к. есть запланированное или отмененное время выполнения. Операацию можно перевести в статус отменить");
-        setMessage(t('impossibleToDelOperHistory'));
+      setMessage(t('impossibleToDelOperHistory'));
       return;
     }
 
@@ -1227,7 +1234,6 @@ export default function Cards() {
   // На клиенте
   const cancelOperHandler = (idToCancel: number) => {
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
-    // setModified(false);
     const tOperToUpdate = tCardOperations.find(tOper => tOper.idc === idToCancel);
     if (tOperToUpdate) {
       const updatedOper = { ...tOperToUpdate, mode: false }
@@ -1568,7 +1574,8 @@ export default function Cards() {
         onDrop={(e) => { handleDrop(e, `S${tStage.idc}`) }}
       >
         <div className="container_stage_title">
-          {t('cards.stage')} {tStage.code}
+          &nbsp;
+          {/* {t('cards.stage')} {tStage.code} */}
           <Image className="icon_del_stage"
             src={delL} alt="del" width={20} height={20}
             onClick={() => delStage(tStage)}

@@ -35,13 +35,13 @@ export const downloadBaner = async (
             const error = receivedData.error;
             setMessage(`${t('service.serverUnavailable')} ${error}`);
             //  logger
-            await ulogger.error({
+            void ulogger.error({
                 userId: userId,
                 location: "services/process/downloadBaner",
                 event: "endpoint_error",
                 message: `res.status=${res.status} error=${error}`,
                 context: "export const downloadBaner = async (",
-            });
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -49,6 +49,16 @@ export const downloadBaner = async (
                 const baner = (receivedData.baner as BanerItem[])
                 dispatch(setBaner(baner));
                 setMessage(t('index.downloadBaner'))
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/process/downloadBaner",
+                    event: "error",
+                    message: `success=false запрос /api/admin/baner-api${params.toString() ? "?" + params.toString() : ""}`,
+                    context: "export const downloadBaner = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
 
@@ -60,12 +70,12 @@ export const downloadBaner = async (
         setMessage(`${t('service.serverUnavailable')} ${error}`);
 
         //  logger
-        await ulogger.error({
+        void ulogger.error({
             userId: userId,
             location: "services/process/downloadBaner",
             event: "endpoint_error",
             message: `catch: ${error}`,
             context: "export const downloadBaner = async (",
-        });
+        }).catch(() => { console.error("logger error") });
     }
 };

@@ -15,9 +15,11 @@ import DefectiveCardRow from "@/components/plan/DefectiveCardRow/defectiveCardRo
 
 import { useState, useCallback } from "react";
 
+import { YYYYMMDD } from "@/lib/common/utils";
+import { ulogger } from "./../lib/common/universal-logger";
+
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
-
 
 import { useRouter } from 'next/navigation';
 
@@ -87,13 +89,8 @@ export default function Planing() {
   if (!activeTeam) push('/support')
 
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-
-
-  // const today = new Date();
   const today = getCurrentDateInDate(schedule.timeZone)
-  // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-
-
+  
   // Выбор запланированной карты
   const lightTCardHandler = useCallback(async (selectedTCard: TCardItem, on: boolean) => {
     if (on) dispatch(setTCardLighted(selectedTCard))
@@ -118,31 +115,25 @@ export default function Planing() {
   // На сервере
   // удаление лоада из контекстного меню для сторонних юнитов
   const erazLoadHandler = async (load_idc: number) => {
-
     await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
-
   }
   // На сервере
   // перетаскивание лоада на шкале  возвращает измененное планирование карты
   const moveLoadHandler = async (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => {
-
-    await moveLoad(load, unit, date, timeStart, timeFinish, unitLoads, tCardPrepared.id, token, user.id, team.id, today.toLocaleDateString("en-CA"), dispatch, t, setMessage);
-
+    await moveLoad(load, unit, date, timeStart, timeFinish, unitLoads, tCardPrepared.id, token, user.id, team.id, YYYYMMDD(today), dispatch, t, setMessage);
   }
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
-  const pinLoadHandler = async (oper_id: number, version: number) => {
-    // unitLoads.filter(load => load.id_oper ===oper_id )
+  const pinLoadHandler = async (oper_id: number, version: number) => {    
     const tCardLoads_ = unitLoads.map(load => {
       return (load.id_oper === oper_id && load.version === version) ? { ...load, isPinned: true } : load
     })
-    // tCardLoads_.filter(load => load.id_oper ===oper_id )     
-    dispatch(setUnitLoads([...tCardLoads_]))
+        dispatch(setUnitLoads([...tCardLoads_]))
   }
   // На сервере
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
   const unPinLoadHandler = async (operId: number, tCardId: number, version: number) => {
-    await unPinLoad(tCardId, operId, unitLoads, today.toLocaleDateString("en-CA"), version,
+    await unPinLoad(tCardId, operId, unitLoads, YYYYMMDD(today), version,
       token, user.id, team.id, dispatch, t, setMessage);
   }
 
@@ -162,7 +153,6 @@ export default function Planing() {
   const handleDragStartTCard = (event: React.DragEvent, itemId: number) => {
     // Устанавливаем данные, которые будут переданы в event
     event.dataTransfer.setData("itemId", String(itemId));
-
     // // Можно добавить визуальные эффекты или логику на этапе захвата элемента
     // console.log(`Перетаскивается элемент с id: ${itemId}`);
   };
@@ -188,14 +178,11 @@ export default function Planing() {
     //  в базу пока не пишем это предварительный расчет
     // чистим все лоады в статусе prepared (предыдущее несохраненное планирование)
     const unitLoads_ = unitLoads.filter(lo => lo.status !== StatusEnum.prepared)
-    const today = getCurrentDateInString(schedule.timeZone);
-   
+    const today = getCurrentDateInString(schedule.timeZone);   
     await preFullCardPlan(tCard_.id, unitLoads_, token, user.id, team.id, today, dispatch, t, setMessage,);
-
     setDropLoaderCard(NaN)
   };
   ///////////////////////////
-
 
   /// ВИЗУАЛИЗАЦИЯ СПИСКА КАРТ
   // временно уберу фильтр  нужен признак по которому я пойму какая карта запланирована а какая нет
@@ -216,8 +203,7 @@ export default function Planing() {
       erazLoaderCard={erazLoaderCard}
       tCardLighted={tCardLighted}
       lightTCardHandler={lightTCardHandler}
-      erazCardHandler={erazCardHandler}
-    // formatDate={formatDate}
+      erazCardHandler={erazCardHandler}    
     />)
   })
   // Карты
@@ -231,8 +217,7 @@ export default function Planing() {
       saveLoaderCard={saveLoaderCard}
       erazLoaderCard={erazLoaderCard}
       tCardLighted={tCardLighted}
-      isDragging={isDragging}
-      // formatDate={formatDate}
+      isDragging={isDragging}      
       lightTCardHandler={lightTCardHandler}
       saveCardHandler={saveCardHandler}
       erazCardHandler={erazCardHandler}
@@ -248,8 +233,7 @@ export default function Planing() {
       tCard={tCard}
       droploaderCard={droploaderCard}
       erazLoaderCard={erazLoaderCard}
-      tCardLighted={tCardLighted}
-      // formatDate={formatDate}
+      tCardLighted={tCardLighted}      
       lightTCardHandler={lightTCardHandler}
       erazCardHandler={erazCardHandler}
     />)

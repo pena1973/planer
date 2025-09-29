@@ -50,35 +50,35 @@ export const ulogger = {
 // ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ
 
 // 7.1 Смена id при перезаписи (не должно быть для существующей записи)
-// await ulogger.error({
+// void ulogger.error({
 //   userId: user?.id ?? null,
 //   location: "services/plan/erazeCard.ts:45",
 //   event: "id_mismatch",
 //   message: `Попытка перезаписать существующую запись: oldId=${oldId}, newId=${newId}`,
 //   context: { oldId, newId, tCardId },
-// });
+// }).catch(() => { console.error("logger error") });
 
 // 7.2 В catch блока при ошибке эндпойнта
 // try {
 //   // ...
 // } catch (e) {
-//   await ulogger.error({
+//   void ulogger.error({
 //     userId: req.user?.id ?? null,
 //     location: "pages/api/plan/pre-fullcardplan-api.ts",
 //     event: "endpoint_error",
 //     message: e instanceof Error ? e.message : String(e),
 //     context: { stack: e instanceof Error ? e.stack : e, query: req.query },
 //     requestId: req.headers["x-request-id"]?.toString() ?? null,
-//   });
+//   }).catch(() => { console.error("logger error") });
 //   // ...
 // }
 
 // 7.3 Ошибка записи в dispatch (не то значение по типу)
 // // на клиенте (React)
-// await ulogger.warn({
+// void ulogger.warn({
 //   userId: user?.id ?? null,
 //   location: "components/UnitForm.tsx:120",
 //   event: "dispatch_type_error",
 //   message: "Попытка записать значение неправильного типа",
 //   context: { expected: "number", got: typeof value, value },
-// });
+// }).catch(() => { console.error("logger error") });

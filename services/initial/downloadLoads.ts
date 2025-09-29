@@ -9,7 +9,7 @@ export const downloadLoads = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
-     locale:string,
+    locale: string,
     setMessage: (msg: string) => void,
     dispatch: Dispatch
 ) => {
@@ -21,28 +21,38 @@ export const downloadLoads = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                      "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
             }
         );
         if (res.status !== 200) {
-             const receivedData = await res.json();
+            const receivedData = await res.json();
             const error = receivedData.error;
             setMessage(`${t('service.serverUnavailable')} ${error}`);
             //  logger
-            await ulogger.error({
+            void ulogger.error({
                 userId: userId,
                 location: "services/initial/downloadLoads",
                 event: "endpoint_error",
                 message: `res.status=${res.status} error=${error}`,
                 context: "export const downloadLoads = async (",
-            });
+            }).catch(() => { console.error("logger error") });
         } else {
-            const receivedData = await res.json();            
-            if (receivedData.success) {                
+            const receivedData = await res.json();
+            if (receivedData.success) {
                 const unitsLoads = (receivedData.unitsLoads as UnitLoadItem[])
-                dispatch(setUnitLoads(unitsLoads));                
+                dispatch(setUnitLoads(unitsLoads));
                 setMessage(t('index.downloadLoads'))
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/initial/downloadLoads",
+                    event: "error",
+                    message: `success=false запрос /api/loads-api?userId=${userId}&teamId=${teamId}`,
+                    context: "export const downloadLoads = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
 
@@ -53,12 +63,12 @@ export const downloadLoads = async (
         }
         setMessage(`${t('service.serverUnavailable')} ${error}`);
         //  logger
-        await ulogger.error({
+        void ulogger.error({
             userId: userId,
             location: "services/initial/downloadLoads",
             event: "endpoint_error",
             message: `catch: ${error}`,
             context: "export const downloadLoads = async (",
-        });
+        }).catch(() => { console.error("logger error") });
     }
 };

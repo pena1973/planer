@@ -2,6 +2,7 @@
 import { Dispatch } from "redux";
 import { UnitLoadItem } from "./../../types/types";
 import { setUnitLoads } from "./../../store/slices";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const unPinLoad = async (
     tCardId: number,
@@ -16,7 +17,6 @@ export const unPinLoad = async (
     t: (key: string) => string,
     setMessage: (message: string) => void,
 ) => {
-
 
     //  последующее перепланирование
     const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
@@ -46,23 +46,50 @@ export const unPinLoad = async (
 
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/plan/unPinLoad",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const unPinLoad = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
                 const tCardLoads_ = (receivedData.tCardLoads as UnitLoadItem[])
                 const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
                 dispatch(setUnitLoads(updatedLoads));
-                setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
+                // setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
+                setMessage(t("prePlanCganged"));
+
             } else {
                 setMessage(receivedData.message);
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/plan/unPinLoad",
+                    event: "error",
+                    message: `success=false запрос /api/plan/pre-unpinload-api`,
+                    context: "export const unPinLoad = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/plan/unPinLoad",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const unPinLoad = async (",
+        }).catch(() => { console.error("logger error") });
     }
 }

@@ -1,15 +1,10 @@
 import Layout from "@/components/Layout/layout";
-import { useEffect, useState, useRef, use } from "react";
+import { useState,  } from "react";
 
 import ScheduleEditor from "@/components/admin/ScheduleEditor/scheduleEditor";
 import { SupportMailsAdmin } from "@/components/admin/SupportMailsAdmin/supportMailsAdmin";
 
 import { JobSettingItem, BanerItem } from '@/types/service-types'
-
-
-import { store } from '@/store' // путь к твоему Redux store
-
-import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import { useTranslation } from 'react-i18next';
 
@@ -20,7 +15,6 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
-// import { createBills } from '@/services/admin/createBills';
 import { deactivateTeams } from '@/services/admin/deactivateTeams';
 import { setJobSetting } from '@/services/admin/setJobSetting';
 import { setBaner } from '@/services/admin/setBaner';

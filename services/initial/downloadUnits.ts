@@ -30,13 +30,13 @@ export const downloadUnits = async (
             const error = receivedData.error;
             setMessage(`${t('service.serverUnavailable')} ${error}`);
             //  logger
-            await ulogger.error({
+            void ulogger.error({
                 userId: userId,
                 location: "services/initial/downloadUnits",
                 event: "endpoint_error",
                 message: `res.status=${res.status} error=${error}`,
                 context: "export const downloadUnits = async (",
-            });
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -48,8 +48,17 @@ export const downloadUnits = async (
                 });
                 dispatch(setUnits(units_));
                 setMessage(t('index.downloadUnits'))
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/initial/downloadUnits",
+                    event: "error",
+                    message: `success=false запрос api/units-api?userId=${userId}&teamId=${teamId}`,
+                    context: "export const downloadUnits = async (",
+                }).catch(() => { console.error("logger error") });
             }
-            else setMessage(receivedData.error);
         }
     } catch (e: unknown) {
         let error = "";
@@ -58,12 +67,12 @@ export const downloadUnits = async (
         }
         setMessage(`${t('service.serverUnavailable')} ${error}`);
         //  logger
-        await ulogger.error({
+        void ulogger.error({
             userId: userId,
             location: "services/initial/downloadUnits",
             event: "endpoint_error",
             message: `catch: ${error}`,
             context: "export const downloadUnits = async (",
-        });
+        }).catch(() => { console.error("logger error") });
     }
 }

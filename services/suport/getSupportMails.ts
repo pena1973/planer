@@ -1,5 +1,7 @@
 import { SupportMailItem } from "./../../types/types";
 
+import { ulogger } from "./../../lib/common/universal-logger";
+
 export const getSupportMails = async (
     userId: number,
     teamId: number,
@@ -21,21 +23,49 @@ export const getSupportMails = async (
         });
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/suport/getSupportMails",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const getSupportMails = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             setMessage(receivedData.message);
             if (receivedData.success) {
                 const messages = receivedData.supportMessages as SupportMailItem[];
                 setSupportMessagesValue(messages);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/suport/getSupportMails",
+                    event: "error",
+                    message: `success=false запрос api/support-api?teamId=${teamId}&userId=${userId}`,
+                    context: "export const getSupportMails = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/suport/getSupportMails",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const getSupportMails = async (",
+        }).catch(() => { console.error("logger error") });
     }
 
 };

@@ -61,7 +61,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // const now = new Date();
           const now = getCurrentDateInDate(shedule_.timeZone);
 
-          const balance = await getBalance(Number(userId), locale, now.toLocaleDateString('en-CA'), Number(teamId), balanceRepository);
+          const balance = await getBalance(Number(userId),  now.toLocaleDateString('en-CA'), Number(teamId), balanceRepository);
 
           if (balance <= 0) {
             res.status(200).json({

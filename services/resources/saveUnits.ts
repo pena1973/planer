@@ -1,16 +1,8 @@
 import { Dispatch } from "redux";
-import {
-    UnitItem,
-    UnitActionItem,
-    UnitExceptionItem,
-    TeamItem,
-    UserItem
-} from "./../../types/types";
-import {
-    setUnits,
-    setUnitActions,
-    setUnitExceptions
-} from "./../../store/slices";
+import { UnitItem, UnitActionItem, UnitExceptionItem, TeamItem, UserItem } from "./../../types/types";
+import { setUnits, setUnitActions, setUnitExceptions } from "./../../store/slices";
+
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const saveUnits = async (
     unitsValue: UnitItem[],
@@ -36,7 +28,7 @@ export const saveUnits = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     userId: user.id,
@@ -49,7 +41,16 @@ export const saveUnits = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: user.id,
+                location: "services/resources/saveUnits",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const saveUnits = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -69,19 +70,38 @@ export const saveUnits = async (
                 // отклонения                    
                 setExceptionsValue(exceptions_)
                 dispatch(setUnitExceptions(exceptions_));
-                // отклонения                    
+                // действия
                 setActionsValue(actions_)
                 dispatch(setUnitActions(actions_));
                 setMessage(receivedData.error)
                 setMessage(t('units.unitsUpdated'));
-            } else setMessage(receivedData.error);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: user.id,
+                    location: "services/resources/saveUnits",
+                    event: "error",
+                    message: `success=false запрос api/units-api`,
+                    context: "export const saveUnits = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: user.id,
+            location: "services/resources/saveUnits",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const saveUnits = async (",
+        }).catch(() => { console.error("logger error") });
     }
 
 };

@@ -30,22 +30,30 @@ export const downloadUnutsActions = async (
       const error = receivedData.error;
       setMessage(`${t('service.serverUnavailable')} ${error}`);
       //  logger
-      await ulogger.error({
+      void ulogger.error({
         userId: userId,
         location: "services/initial/downloadUnutsActions",
         event: "endpoint_error",
         message: `res.status=${res.status} error=${error}`,
         context: "export const downloadUnutsActions = async (",
-      });
+      }).catch(() => { console.error("logger error") });
     } else {
       const receivedData = await res.json();
       if (receivedData.success) {
         const unitActions = receivedData.actions as UnitActionItem[]
-        dispatch(setUnitActions(unitActions));
-        // setMessage("Загружены действия юнитов")
+        dispatch(setUnitActions(unitActions));        
         setMessage(t('index.downloadUnutsActions'))
+      } else {
+        setMessage(receivedData.message);
+        //  logger
+        void ulogger.error({
+          userId: userId,
+          location: "services/initial/downloadUnutsActions",
+          event: "error",
+          message: `success=false запрос api/unit-actions-api?userId=${userId}&teamId=${teamId}`,
+          context: "export const downloadUnutsActions = async (",
+        }).catch(() => { console.error("logger error") });
       }
-      else setMessage(receivedData.error);
     }
 
   } catch (e: unknown) {
@@ -55,12 +63,12 @@ export const downloadUnutsActions = async (
     }
     setMessage(`${t('service.serverUnavailable')} ${error}`);
     //  logger
-    await ulogger.error({
+    void ulogger.error({
       userId: userId,
       location: "services/initial/downloadUnutsActions",
       event: "endpoint_error",
       message: `catch: ${error}`,
       context: "export const downloadUnutsActions = async (",
-    });
+    }).catch(() => { console.error("logger error") });
   }
 }

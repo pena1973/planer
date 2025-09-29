@@ -1,21 +1,8 @@
 import { Dispatch } from 'redux';
-import {
-    UserItem,
-    TeamItem,
-    SettingsItem,
-} from './../../types/types';
-import {
-    setUser,
-    setToken,
-    setTeam,
-    setSettings,
-    setSignedAgreement,
-    setActiveTeam,
-    
-} from './../../store/slices';
+import { UserItem, TeamItem, SettingsItem, } from './../../types/types';
+import { setUser, setToken, setTeam, setSettings, setSignedAgreement, setActiveTeam, } from './../../store/slices';
 import { getUserTimeZoneEnum } from './../../lib/common/timezone';
-
-
+import { ulogger } from "./../../lib/common/universal-logger";
 
 interface RegisterPayload {
     login: string,
@@ -29,7 +16,7 @@ interface RegisterPayload {
     t: (key: string) => string,
     locale: string,
     setMessage: (msg: string) => void,
-    setMessageRegister: (msg: string) => void,    
+    setMessageRegister: (msg: string) => void,
     dispatch: Dispatch,
     setStep: (step: number) => void,
     agreementIdRef: React.MutableRefObject<number>,
@@ -48,7 +35,7 @@ export const registerHandler = async ({
     t,
     locale,
     setMessage,
-    setMessageRegister,    
+    setMessageRegister,
     dispatch,
     setStep,
     agreementIdRef,
@@ -65,7 +52,7 @@ export const registerHandler = async ({
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     login: login,
@@ -74,7 +61,7 @@ export const registerHandler = async ({
                     createTeam: createTeam,
                     nickname: nickname,
                     basedOnTeam: basedOnTeam,
-                    basedTeamNumber : basedTeamNumber,
+                    basedTeamNumber: basedTeamNumber,
                     timezone: tzValue,
                 }),
             }
@@ -82,13 +69,17 @@ export const registerHandler = async ({
         if (res.status !== 200) {
             const receivedData = await res.json();
             const error = receivedData.error;
-            setMessageRegister(error);
-            //  console.log(t('service.serverUnavailable') + res.status);
-            // setMessageRegister(t('service.serverUnavailable') + res.status);
+            setMessageRegister(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: null,
+                location: "services/login/loginHandler",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: `export const registerHandler = async ({, login = ${login}`,
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
-            // console.log("receivedData", receivedData)
-
             if (receivedData.success) {
 
                 const user_ = receivedData.user as UserItem;
@@ -107,20 +98,38 @@ export const registerHandler = async ({
                 dispatch(setSettings(settings_));
                 dispatch(setSignedAgreement(false));
                 dispatch(setActiveTeam(Boolean(activeTeam)));
-                 
+
                 agreementIdRef.current = agreementId_;
                 agreementTextRef.current = agreementText_
                 //  далее адресуем на страницу соглашения и после этого переправляем на страницу настроек
                 setStep(3);
-                // setMessageRegister("Обновлены настройки");
-            } else setMessageRegister(receivedData.message);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: null,
+                    location: "services/login/loginHandler",
+                    event: "error",
+                    message: `success=false запрос api/auth/register-api`,
+                    context: `export const registerHandler = async ({, login = ${login}`,
+                }).catch(() => { console.error("logger error") });
+            }
         }
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessageRegister(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: null,
+            location: "services/login/registerHandler",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: `export const registerHandler = async ({, login = ${login}`,
+        }).catch(() => { console.error("logger error") });
     }
 
 }

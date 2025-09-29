@@ -1,4 +1,5 @@
-import { StatusEnum, TCardItem, TCardOperationItem, UnitLoadItem } from "./../../../types/types";
+import { StatusEnum } from "./../../../types/types";
+import { ulogger } from "./../../../lib/common/universal-logger";
 
 export const setOperationStatus = async (
     status: StatusEnum,
@@ -29,7 +30,7 @@ export const setOperationStatus = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     tCardId: tCardId,
@@ -43,7 +44,16 @@ export const setOperationStatus = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/monitor/unitProcess/setOperationStatus",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const setOperStatus = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             setMessage(receivedData.message);
@@ -54,20 +64,32 @@ export const setOperationStatus = async (
                 //   Обновим статус лоадов
                 setStatusLoadsHandler(tCardStatus, status, operLoadsIds, operId, tCardId);
                 setMessage(receivedData.message);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/monitor/unitProcess/setOperationStatus",
+                    event: "error",
+                    message: `success=false запрос api/tcard-oper-status-api`,
+                    context: "export const setOperStatus = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/monitor/unitProcess/setOperationStatus",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const setOperStatus = async (",
+        }).catch(() => { console.error("logger error") });
     }
-
-
-    // setCurrentOper({} as TCardOperationItem);
-    // setCurrentTCard({} as TCardItem);
-    // setCurrentLoad({} as UnitLoadItem);
-    // // закроем детали операции
-    // setOperView(false);
 }

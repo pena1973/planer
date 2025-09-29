@@ -1,9 +1,10 @@
 import { Dispatch } from "redux";
 import { TCardItem, TeamItem } from "./../../types/types";
 import { setTCards } from "./../../store/slices";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const resetTCardById = async (
-    userId:number,
+    userId: number,
     idToReset: number,
     tCards: TCardItem[],
     token: string,
@@ -15,13 +16,10 @@ export const resetTCardById = async (
 
 ) => {
 
-
     const indexCardToSave = tCards.findIndex(card => card.id === idToReset);
     if (indexCardToSave < 0) return;
     // если карта не модифицирована то нечего сбрасывать все идентично
     if (!tCards[indexCardToSave].modified) return;
-
-
     const tCard = tCards[indexCardToSave]
 
     try {
@@ -37,7 +35,16 @@ export const resetTCardById = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/cards/resetTCardById",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const resetTCardById = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -46,15 +53,34 @@ export const resetTCardById = async (
                 const updatedTCards = [...tCards];
                 updatedTCards.splice(indexCardToSave, 1, { ...tCard, modified: false })
                 dispatch(setTCards(updatedTCards));
-                setMessage("Карта успешно прочитана");
+                setMessage(t("tCardRead"));
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/cards/resetTCardById",
+                    event: "error",
+                    message: `success=false запрос api/tcard-api?tCardId=${tCard.id}&teamId=${team.id}&userId=${userId}`,
+                    context: "export const resetTCardById = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/cards/resetTCardById",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const resetTCardById = async (",
+        }).catch(() => { console.error("logger error") });
     }
 };

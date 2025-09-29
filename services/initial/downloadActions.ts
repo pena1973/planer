@@ -13,7 +13,7 @@ export const downloadActions = async (
   setMessage: (msg: string) => void,
   dispatch: Dispatch
 ) => {
-  
+
   try {
     const res = await fetch(`api/actions-api?userId=${userId}&teamId=${teamId}`,
       {
@@ -30,13 +30,13 @@ export const downloadActions = async (
       const error = receivedData.error;
       setMessage(`${t('service.serverUnavailable')} ${error}`);
       //  logger
-      await ulogger.error({
+      void ulogger.error({
         userId: userId,
         location: "services/initial/downloadActions",
         event: "endpoint_error",
         message: `res.status=${res.status} error=${error}`,
-        context: " export const downloadActions = async (",
-      });
+        context: "export const downloadActions = async (",
+      }).catch(() => { console.error("logger error") });
 
     } else {
       const receivedData = await res.json();
@@ -44,8 +44,17 @@ export const downloadActions = async (
         const actions_ = receivedData.actions as ActionItem[]
         dispatch(setActions(actions_));
         setMessage(t('index.downloadActions'))
+      } else {
+        setMessage(receivedData.message);
+        //  logger
+        void ulogger.error({
+          userId: userId,
+          location: "services/initial/downloadActions",
+          event: "error",
+          message: `success=false запрос api/actions-api?userId=${userId}&teamId=${teamId}`,
+          context: "export const downloadActions = async (",
+        }).catch(() => { console.error("logger error") });
       }
-      else setMessage(receivedData.error);
     }
   } catch (e: unknown) {
     let error = "";
@@ -53,14 +62,13 @@ export const downloadActions = async (
       error = e.message;
     }
     setMessage(`${t('service.serverUnavailable')} ${error}`);
-
     //  logger
-    await ulogger.error({
+    void ulogger.error({
       userId: userId,
       location: "services/initial/downloadActions",
       event: "endpoint_error",
       message: `catch: ${error}`,
       context: "export const downloadActions = async (",
-    });
+    }).catch(() => { console.error("logger error") });
   }
 }

@@ -30,7 +30,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
 
         const today = getCurrentDateInString(shedule_.timeZone);
-        const balance_ = await getBalance(Number(userId), locale, today, Number(teamId), balanceRepository)
+        const balance_ = await getBalance(Number(userId),  today, Number(teamId), balanceRepository)
 
         // отправляем ответ
         res.status(200).json({

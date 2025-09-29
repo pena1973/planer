@@ -79,8 +79,8 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
     };
 
     // На сервере  // На клиенте
-    const saveUOMSHandler = async () => {        
-           setMessage("");
+    const saveUOMSHandler = async () => {
+        setMessage("");
         //  валидация сохраняемых данных
         // 1 Код синхронизации должен быть заполнен и уникален
         // 2 Название должно быть заполнено
@@ -92,31 +92,28 @@ export default function UOMSCatalog({ setMessage }: UOMSCatalogProps) {
             const title = (elem.title ?? '').trim();
 
             if (!code) {
-                setMessage(t('uomsCatalog.fillcode')); // "Заполните код действия!"
-                return ;
+                setMessage(t('uomsCatalog.fillcode')); // "Заполните код !"
+                return;
             }
             if (!title) {
-                setMessage(t('uomsCatalog.filltitle')); // "Заполните название действия!"
-                return ;
+                setMessage(t('uomsCatalog.filltitle')); // "Заполните название !"
+                return;
             }
 
             const key = code.toLowerCase();
 
             if (seen.has(key)) {
-                setMessage(t('uomsCatalog.codeNotUnique', { code })); // Код не уникальный
-                return ;
+                setMessage(`${t('uomsCatalog.codeNotUnique')}, ${ code }`); // Код не уникальный
+                return;
             }
             seen.add(key);
         }
-     
 
-        uomsValue.forEach((elem, index) => {
-            if (!elem.title) {
-                setMessage(`Заполните название единицы измерения строка ${index}!`);
-                return;
-            }
-        })
-        await saveUOMs(uomsValue, user, team, token, dispatch, t, i18n.language, setMessage, setUomsValue, setModified);
+        await saveUOMs(uomsValue, user, team, token, dispatch, t, i18n.language, setMessage, setUomsValue)
+        .then(() => {
+            setModified(false);
+        });
+
 
     };
     // На клиенте

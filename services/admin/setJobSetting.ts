@@ -1,9 +1,11 @@
 
 import { JobSettingItem } from '@/types/service-types'
 
-export const setJobSetting = async (   
+import { ulogger } from "./../../lib/common/universal-logger";
+
+export const setJobSetting = async (
     userId: number,
-    jobSetting: JobSettingItem, 
+    jobSetting: JobSettingItem,
     token: string,
     t: (key: string) => string,
     locale: string,
@@ -17,31 +19,56 @@ export const setJobSetting = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     jobSetting: jobSetting,
                     userId: userId,
-
                 }),
             }
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/admin/setJobSetting",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const setJobSetting = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
-                setMessage("Успешно изменено рамписание");
-            } else setMessage(receivedData.error);
+                setMessage("Успешно изменено раcписание");
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/admin/setJobSetting",
+                    event: "error",
+                    message: `success=false запрос api/admin/set-job-setting-api`,
+                    context: "export const setJobSetting = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
-
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/admin/setJobSetting",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const setJobSetting = async (",
+        }).catch(() => { console.error("logger error") });
     }
 
 

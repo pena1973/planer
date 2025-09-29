@@ -1,7 +1,7 @@
 @import '@/styles/colors.scss';
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
-.container {            
+.container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -9,29 +9,32 @@
     height: auto;
     margin: 5px;
     background-color: $main_container_background_color;
-    border-radius: $border-radius;    
-    border: $border;    
+    border-radius: $border-radius;
+    border: $border;
     box-shadow: $box-shadow;
     transition: box-shadow 0.3s ease;
-    
-    padding: 5px;
+
+    padding: 25px 5px 5px 5px;
     position: relative;
     color: $second_text_color;
     font-size: $header4_font_size;
 }
+
 ///////////////
-._table{
+._table {
     width: 100%;
     margin-bottom: 5px;
 }
-._table thead th:nth-child(1) {
-    width: 29px;    
-  }
-._table thead th:nth-child(2) {
-    width: 60px;    
-  }
 
-  .uoms_input {    
+._table thead th:nth-child(1) {
+    width: 29px;
+}
+
+._table thead th:nth-child(2) {
+    width: 60px;
+}
+
+.uoms_input {
     width: 100%;
 }
 
@@ -39,21 +42,25 @@
     display: flex;
     flex-direction: row;
     align-items: flex-end;
-    justify-content: flex-end;    
-    width: calc(100% - 4px);    
+    justify-content: flex-end;
+    width: calc(100% - 4px);
     overflow: hidden;
-    border-top:$border; ;
+    border-top: $border;
+    ;
 }
-.container_icon_edit_save{
-     display: flex;
-     flex-direction: row;
-     align-items: center;   
-     cursor: pointer;   
+
+.container_icon_edit_save {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
 }
-.icon_edit_save{       
+
+.icon_edit_save {
     border-top-left-radius: 5px;
 }
-.icon_cancel{       
+
+.icon_cancel {
     border-radius: 10px;
     position: absolute;
     right: 0;
@@ -62,5 +69,3 @@
     width: 24px;
     height: 24px;
 }
-
-

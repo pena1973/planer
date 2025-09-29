@@ -1,5 +1,6 @@
 
 import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere, Not } from 'typeorm';
+import { ulogger } from "./../lib/common/universal-logger";
 
 // tables
 import { UnitTable } from './../db/models/catalogs/units'
@@ -50,22 +51,34 @@ import { YYYYMMDD } from "@/lib/common/utils"
 
 //&&&&&&
 export async function getMain(
-  userId: number|null,
-  locale: string,
+  userId: number | null,
+  // locale: string,
   mainRepository: Repository<MainTable>,
   at: Date | string
-): Promise<MainItem> {
+): Promise<MainItem | null> {
 
-  const toYMD = (d: Date | string) => typeof d === "string" ? d : d.toISOString().slice(0, 10);
+  // const toYMD = (d: Date | string) => typeof d === "string" ? d : d.toISOString().slice(0, 10);
+  // const date = toYMD(at);
 
-  const date = toYMD(at);
+  const date = YYYYMMDD(at);
 
   const row = await mainRepository.findOne({
     where: { from: LessThanOrEqual(date) as any }, // varchar 'YYYY-MM-DD' сравнивается лексикографически как дата
     order: { from: "DESC" },                       // берём ближайшую к дате
   });
 
-  if (!row) return {} as MainItem
+  if (!row) {
+    //  logger
+    void ulogger.error({
+      userId: userId,
+      location: "handlers/handlers-get/getMain",
+      event: "error",
+      message: `date=${date}(!row)-> return {} as MainItem`,
+      context: "const row = await mainRepository.findOne({",
+    }).catch(() => { console.error("logger error") });
+
+    return null
+  }
 
   const main = {
     title: row.title,
@@ -83,9 +96,8 @@ export async function getMain(
   return main;
 }
 
-
 export async function getCostForDay(
-  userId: number|null,
+  userId: number | null,
   locale: string,
   teamId: number,
   day: string,  // yyyy-mm-dd
@@ -108,9 +120,17 @@ export async function getCostForDay(
   const daysInMonth: number = getDaysInMonth(day);
 
   // настройки цены
-  const main = await getMain(userId, locale, mainRepository, day);
+  const main = await getMain(userId, mainRepository, day);
   if (!main) {
-    console.log('Не удалось обработать запрос getCostForDay');
+    //  logger
+    void ulogger.error({
+      userId: userId,
+      location: "handlers/handlers-get/getCostForDay",
+      event: "error",
+      message: `userId=${userId}day=${day} (!main) -> return 0`,
+      context: "const main = await getMain(userId, mainRepository, day)",
+    }).catch(() => { console.error("logger error") });
+
     return 0;
   }
 
@@ -136,6 +156,7 @@ export async function getCostForDay(
     select: ['team_id', 'date', 'direction'],
     where: { team_id: In(uniqIds), date: day },
   });
+
   const usedToday = new Set<number>(eventsToday.map(e => e.team_id));
 
   // === 2) последнее событие ДО ДНЯ для каждой команды
@@ -155,6 +176,17 @@ export async function getCostForDay(
       `,
       [uniqIds, day]
     );
+
+  if (priorLatestRows.length === 0) {
+    //  logger
+    void ulogger.warn({
+      userId: userId,
+      location: "handlers/handlers-get/getCostForDay",
+      event: "warn",
+      message: `нет активного времени для вычисления цены что подозрительно: userId=${userId} day=${day} teamId=${teamId}`,
+      context: "const priorLatestRows: Array<Pick<ActiveTimeTable, 'team_id' | 'date' | 'direction'>> =",
+    }).catch(() => { console.error("logger error") });
+  }
 
   const activeBeforeDay = new Map<number, boolean>();
   for (const r of priorLatestRows) {
@@ -187,22 +219,18 @@ export async function getCostForDay(
       dayCost += Math.round(cost);
     }
   }
-
   return dayCost; // в центах
 }
 
+
 // баланс команды
 export async function getBalance(
-  userId: number|null,
-  locale: string,
+  userId: number | null,
   date: Date | string,   // yyyy-mm-dd
   teamId: number,
   balanceRepository: Repository<BalanceTable>
 ): Promise<number> {
-  // целевую дату приводим к yyyy-mm-dd (если пришёл Date)
-  const target = typeof date === 'string'
-    ? date
-    : date.toISOString().slice(0, 10) // yyyy-mm-dd
+  const target = YYYYMMDD(date) // yyyy-mm-dd
 
   // тянем только нужные строки: команда + все транзакции на дату и раньше
   const rows = await balanceRepository.find({
@@ -210,6 +238,16 @@ export async function getBalance(
     select: ['summa', 'direction', 'date'],
   })
 
+  if (rows.length === 0) {
+    //  logger
+    void ulogger.warn({
+      userId: userId,
+      location: "handlers/handlers-get/getBalance",
+      event: "warn",
+      message: `нет записей баланса что подозрительно: userId=${userId} date=${target} teamId=${teamId}`,
+      context: "const rows = await balanceRepository.find({",
+    }).catch(() => { console.error("logger error") });
+  }
   // суммируем с учётом направления
   const total = rows.reduce((acc, tr) => {
     const amount = Number(tr.summa) || 0;
@@ -228,7 +266,6 @@ export async function getBalance(
 
 export async function getBalances(
   userId: number,
-  locale: string,
   date: Date | string,
   balanceRepository: Repository<BalanceTable>,
   teamIds?: number[] // опционально: посчитать только для заданных команд
@@ -274,14 +311,12 @@ export async function getBalances(
       balance: Number(map.get(id) ?? 0),
     }))
   }
-
-
   return result
 }
 
 // все команды
 export async function getTeams(
-  userId: number|null,
+  userId: number | null,
   locale: string,
   teamsRepository: Repository<TeamTable>
 ): Promise<TeamItem[]> {
@@ -303,7 +338,7 @@ export async function getTeams(
 
 // состояние активности команд
 export async function getTeamActivity(
-  userId: number|null,
+  userId: number | null,
   locale: string,
   teams: TeamItem[],
   activeTimeRepository: Repository<ActiveTimeTable>
@@ -343,7 +378,7 @@ export async function getTeamActivity(
 
 // все команды по главной
 export async function getTeamsByMainteamNumber(
-  userId: number|null,
+  userId: number | null,
   locale: string,
   main_team: string,
   teamsRepository: Repository<TeamTable>
@@ -1286,7 +1321,7 @@ export async function getTeamShedule(
 
 // расписание команд
 export async function getTeamsShedule(
-  userId: number|null,
+  userId: number | null,
   locale: string,
   teams: TeamItem[],
   teamScheduleRepository: Repository<TeamScheduleTable>,
@@ -1483,7 +1518,7 @@ export async function getTCardOperationsByCardId(
 // получение юнитов пользователей команды
 export async function getUsersUnits(
   userId: number,
-  locale:string,  
+  locale: string,
   teamId: number,
   withoutAdmin: boolean,
   usersRepository: Repository<UserTable>,
@@ -1579,7 +1614,7 @@ export async function getUsersUnits(
 // получение пользователей команды
 export async function getUsers(
   userId: number,
-  locale:string,  
+  locale: string,
   teamId: number,
   usersRepository: Repository<UserTable>,
 ): Promise<{ success: boolean, users: UserItem[], message: string }> {
@@ -1632,7 +1667,7 @@ export async function getUsers(
 // банер
 export async function getBaner(
   userId: number,
-  locale:string,  
+  locale: string,
   teamId: number | undefined,
   banerRepository: Repository<BanerTable>
 ): Promise<BanerItem[]> {
@@ -1663,7 +1698,7 @@ export async function getBaner(
 // счета
 export async function getInvoices(
   userId: number,
-  locale:string,  
+  locale: string,
   teamId: number,
   invoicesRepository: Repository<InvoiceTable>
 ): Promise<InvoiceItem[]> {
@@ -1690,7 +1725,7 @@ export async function getInvoices(
 // тех поддержка получение
 export async function getSuportMails(
   userId: number,
-  locale:string,  
+  locale: string,
   teamId: number | null,
   supportRepository: Repository<MailTable>
 ): Promise<SupportMailItem[]> {

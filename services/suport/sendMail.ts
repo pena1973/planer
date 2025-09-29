@@ -1,4 +1,5 @@
 import { SupportMailItem } from "./../../types/types";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const sendMail = async (
   messageToSend: SupportMailItem,
@@ -32,7 +33,16 @@ export const sendMail = async (
     );
     if (res.status !== 200) {
       const receivedData = await res.json();
-      setMessage(receivedData.error);
+      const error = receivedData.error;
+      setMessage(`${t('service.serverUnavailable')} ${error}`);
+      //  logger
+      void ulogger.error({
+        userId: userId,
+        location: "services/suport/sendMail",
+        event: "endpoint_error",
+        message: `res.status=${res.status} error=${error}`,
+        context: "export const sendMail = async (",
+      }).catch(() => { console.error("logger error") });
     } else {
       const receivedData = await res.json();
       setMessage(receivedData.message);
@@ -43,17 +53,32 @@ export const sendMail = async (
         messages.splice(index, 1, message)
         setSupportMessagesValue(messages);
         setExpand?.(message.id);
+      } else {
+        setMessage(receivedData.message);
+        //  logger
+        void ulogger.error({
+          userId: userId,
+          location: "services/suport/sendMail",
+          event: "error",
+          message: `success=false запрос api/support-api`,
+          context: "export const sendMail = async (",
+        }).catch(() => { console.error("logger error") });
       }
     }
-
   } catch (e: unknown) {
-    let message = t('service.serverUnavailable');
+    let error = "";
     if (e instanceof Error) {
-      message += e.message;
+      error = e.message;
     }
-    setMessage(message);
+    setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+    //  logger
+    void ulogger.error({
+      userId: userId,
+      location: "services/suport/sendMail",
+      event: "endpoint_error",
+      message: `catch: ${error}`,
+      context: "export const sendMail = async (",
+    }).catch(() => { console.error("logger error") });
   }
-
-
-
 }

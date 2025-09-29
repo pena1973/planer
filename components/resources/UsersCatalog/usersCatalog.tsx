@@ -66,7 +66,10 @@ export default function UsersCatalog({
     const saveUsersUnitsHandler = async () => {
         setButtonLoader(true);
         await saveUsersUnits(users_units, user, team, token, t, i18n.language,
-            setMessage, setUsersUnits, users_units_old, setModified);
+            setMessage, setUsersUnits, users_units_old)
+            .then(() => {
+               setModified(false);
+            });
 
         setButtonLoader(false);
     };
@@ -160,7 +163,7 @@ export default function UsersCatalog({
     return (
         <div className={styles.container}>
 
-            {!showLoader && <div> &nbsp; </div>}
+            {/* {!showLoader && <div>  </div>} */}
 
             {!showLoader && <div className={styles.table_container}>
                 <Image className={styles.icon_cancel}

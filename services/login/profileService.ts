@@ -2,6 +2,7 @@
 import { Dispatch } from 'redux';
 import { UserItem } from "./../../types/types";
 import { setUser } from './../../store/slices';
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const changePassword = async (
     oldpass: string,
@@ -10,7 +11,7 @@ export const changePassword = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
-    locale:string,
+    locale: string,
     dispatch: Dispatch,
     setMessage: (message: string) => void,
 
@@ -23,7 +24,7 @@ export const changePassword = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     userId: userId,
@@ -35,7 +36,16 @@ export const changePassword = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/login/profileService/changePassword",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: `export const changePassword = async (`,
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
 
@@ -44,19 +54,37 @@ export const changePassword = async (
                 dispatch(setUser(user_));
                 setMessage(t('profile.passUpdated'));
                 success = true;
-            } else setMessage(receivedData.error);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/login/profileService/changePassword",
+                    event: "error",
+                    message: `success=false запрос api/profile-api`,
+                    context: "export const changePassword = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/login/profileService/changePassword",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const changePassword = async (",
+        }).catch(() => { console.error("logger error") });
     }
     return success
 }
-
 
 export const changeName = async (
     name: string,
@@ -64,7 +92,7 @@ export const changeName = async (
     teamId: number,
     token: string,
     t: (key: string) => string,
-    locale:string,
+    locale: string,
     dispatch: Dispatch,
     setMessage: (message: string) => void,
 ): Promise<boolean> => {
@@ -77,7 +105,7 @@ export const changeName = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     userId: userId,
@@ -88,7 +116,16 @@ export const changeName = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/login/profileService/changeName",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: `export const changeName = async (`,
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -98,15 +135,34 @@ export const changeName = async (
                 success = true;
 
                 setMessage(t('profile.userUpdated'));
-            } else setMessage(receivedData.error);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/login/profileService/changeName",
+                    event: "error",
+                    message: `success=false запрос api/profile-api`,
+                    context: "export const changeName = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/login/profileService/changeName",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const changeName = async (",
+        }).catch(() => { console.error("logger error") });
     }
     return success
 
@@ -123,7 +179,7 @@ export const deleteProfile = async (
 ): Promise<boolean> => {
 
     let success = false;
-  
+
     try {
         const res = await fetch(`api/profile-api`,
             {
@@ -131,7 +187,7 @@ export const deleteProfile = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     userId: userId,
@@ -142,18 +198,48 @@ export const deleteProfile = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/login/profileService/deleteProfile",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: `export const deleteProfile = async (`,
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
-            return receivedData.success;
+            if (receivedData.success) {
+                return receivedData.success;
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/login/profileService/deleteProfile",
+                    event: "error",
+                    message: `success=false запрос api/profile-api`,
+                    context: "export const deleteProfile = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/login/profileService/deleteProfile",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const deleteProfile = async (",
+        }).catch(() => { console.error("logger error") });
     }
     return success
 }

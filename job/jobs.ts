@@ -77,7 +77,7 @@ export const jobs: Record<string, JobHandler> = {
             }
 
             // ДЕАКТИВАЦИЯ за неуплату  только если сейчас активный
-            const balance = await getBalance(null,"ru", prevDay, team.id, balanceRepository);
+            const balance = await getBalance(null, prevDay, team.id, balanceRepository);
             if (balance <= 0) {
                 // деактивируем Группу (только активных)
                 const grope_teams = teams.filter(team => {

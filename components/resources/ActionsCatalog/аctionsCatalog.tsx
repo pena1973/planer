@@ -94,23 +94,26 @@ export default function ActionsCatalog({
 
             if (!code) {
                 setMessage(t('actionsCatalog.fillcode')); // "Заполните код действия!"
-                return ;
+                return;
             }
             if (!title) {
                 setMessage(t('actionsCatalog.filltitle')); // "Заполните название действия!"
-                return ;
+                return;
             }
 
             const key = code.toLowerCase();
 
             if (seen.has(key)) {
-                setMessage(t('actionsCatalog.codeNotUnique', { code })); // Код не уникальный
-                return ;
+                setMessage(`${t('actionsCatalog.codeNotUnique')}, ${ code }`); // Код не уникальный                
+                return;
             }
             seen.add(key);
         }
 
-        saveActions(actionsValue, user, team, token, dispatch, t,i18n.language, setMessage, setActionsValue, setModified);
+        await saveActions(actionsValue, user, team, token, dispatch, t, i18n.language, setMessage, setActionsValue)
+            .then(() => {
+                setModified(false);
+            });
 
     };
 

@@ -14,6 +14,7 @@ import { generateTeamNumber } from '@/lib/common/utils'
 import { changeStateTeamsByIds } from './../../../handlers/handlers-update';
 import { getTeams, getBalances } from './../../../handlers/handlers-get';
 import { TeamItem } from "@/types/types";
+import { YYYYMMDD } from "@/lib/common/utils"
 
 const round2 = (n: number) => +Number(n ?? 0).toFixed(2);
 
@@ -38,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { userId } = req.body as RequestBody;
 
         // 1) все балансы главных (или вообще всех) команд
-        const balances = await getBalances(Number(userId), locale, new Date().toLocaleDateString('en-CA'), balanceRepository); // [{teamId,balance}]
+        const balances = await getBalances(Number(userId),  YYYYMMDD(), balanceRepository); // [{teamId,balance}]
 
         const balanceByTeam = new Map<number, number>(
           balances.map(b => [b.teamId, round2(b.balance)])

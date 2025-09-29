@@ -1,5 +1,6 @@
 import { Dispatch } from "redux";
 import { TeamItem, UserItem, UserUnitItem } from "./../../types/types";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const getUsersUnits = async (
     user: UserItem,
@@ -20,26 +21,54 @@ export const getUsersUnits = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
             }
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: user.id,
+                location: "services/resources/getUsersUnits",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const getUsersUnits = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
-                const users_units_ = receivedData.users_units as UserUnitItem[];                
+                const users_units_ = receivedData.users_units as UserUnitItem[];
                 setUsersUnits(users_units_);
                 users_units_old_ref.current = users_units_;
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: user.id,
+                    location: "services/resources/getUsersUnits",
+                    event: "error",
+                    message: `success=false запрос api/users-units-api?userId=${user.id}&teamId=${team.id}&withoutAdmin=${true}`,
+                    context: "export const getUsersUnits = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
-    } catch (error: unknown) {
-        let message = t('service.serverUnavailable');
-        if (error instanceof Error) {
-            message += error.message;
+    } catch (e: unknown) {
+        let error = "";
+        if (e instanceof Error) {
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: user.id,
+            location: "services/resources/getUsersUnits",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const getUsersUnits = async (",
+        }).catch(() => { console.error("logger error") });
     }
 }

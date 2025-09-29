@@ -1,6 +1,7 @@
 import { Dispatch } from "redux";
 import { TemplateItem, TeamItem, UserItem } from "./../../types/types";
 import { setTemplates } from "./../../store/slices";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const saveTemplates = async (
     templatesValue: TemplateItem[],
@@ -9,9 +10,8 @@ export const saveTemplates = async (
     token: string,
     dispatch: Dispatch,
     t: (key: string) => string,
-     locale: string,
+    locale: string,
     setMessage: (msg: string) => void,
-    setModified: (val: boolean) => void,
 ) => {
 
     setMessage("");
@@ -33,7 +33,6 @@ export const saveTemplates = async (
         return;
     }
 
-    // запрос на сохранение
     try {
 
         const res = await fetch(`api/templates-api`,
@@ -42,7 +41,7 @@ export const saveTemplates = async (
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
-                    "X-Lang": locale, 
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     userId: user.id,
@@ -53,23 +52,50 @@ export const saveTemplates = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: user.id,
+                location: "services/templates/saveTemplates",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const saveTemplates = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
                 //   Обновим текущую карту
                 const templates_ = receivedData.templates as TemplateItem[]
                 dispatch(setTemplates(templates_));
-                setModified(false);
                 setMessage(t('templates.templatesUpdated'));
-            } else setMessage(receivedData.error);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: user.id,
+                    location: "services/templates/saveTemplates",
+                    event: "error",
+                    message: `success=false запрос api/templates-api`,
+                    context: "export const saveTemplates = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: user.id,
+            location: "services/templates/saveTemplates",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const saveTemplates = async (",
+        }).catch(() => { console.error("logger error") });
     }
 };

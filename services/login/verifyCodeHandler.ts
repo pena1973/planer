@@ -2,6 +2,7 @@
 // запрос дает команду сформировать код подтверждения в базе и отправить его юзеру
 // (на email или телефон, в зависимости от purpose)
 // не ждём результата отправки - просто ждём, что запрос принят к обработке
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const verifyCodeHandler = async (
     emailValue: string,
@@ -38,9 +39,15 @@ export const verifyCodeHandler = async (
         if (res.status !== 200) {
             const receivedData = await res.json();
             const error = receivedData.error;
-
-            console.log(t('service.serverUnavailable') + error);
-            setMessage(t('service.serverUnavailable') + res.status);
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: null,
+                location: "services/login/verifyCodeHandler",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: `export const verifyCodeHandler = async ({, login = ${emailValue}`,
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success && receivedData.verifyToken) {
@@ -48,23 +55,30 @@ export const verifyCodeHandler = async (
                 if (purpose === 'password_reset') {
                     setMessage(t('register.canchange'));
                     setStep(1);
-
                 } else {
                     setMessage(t('register.mailconfirmed'));
                     setRedirectIn(10); // ← запуск таймера редиректа
                 }
             } else {
                 setMessage(t('register.incorrectcode'));
+                // здесь без логера - это не ошибка сервера, а просто неверный код
             }
         }
-
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
-            setMessage(message);
+            error = e.message;
         }
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
 
+        //  logger
+        void ulogger.error({
+            userId: null,
+            location: "services/login/verifyCodeHandler",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: `export const verifyCodeHandler = async ({, login = ${emailValue}`,
+        }).catch(() => { console.error("logger error") });
     }
     return verifyToken;
 
