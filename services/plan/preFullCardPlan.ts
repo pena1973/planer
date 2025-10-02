@@ -46,7 +46,7 @@ export const preFullCardPlan = async (
         const updatedLoads = [...tCardLoadsWithout, ...tCardLoadsPlaned, ...tCardLoads_]
         dispatch(setUnitLoads(updatedLoads));
         // setMessage("Карта успешно предварительно запланирована НО НЕЗАПИСАНА! Если все в порядке ЗАПИШИ!");
-        setMessage(t("tCardPlaned"));
+        setMessage(t("mes.tCardPlaned"));
       } else {
         setMessage(receivedData.message);
         //  logger

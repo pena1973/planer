@@ -33,7 +33,7 @@ interface RequestBody {
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
-  
+
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
@@ -57,8 +57,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard = await getTCardFull(
-          Number(userId), 
-          locale, 
+          Number(userId),
+          locale,
           Number(teamId),
           erazload.id_tCard,
           tCardRepository,
@@ -72,8 +72,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return
         }
         // запросим расписание компании
-        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
-
+        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+        if (!shedule_) {
+          res.status(200).json({
+            success: false,
+            message: "Ошибка, не найдено расписание команды",
+          });
+          break;
+        }
         const todayStr = getCurrentDateInString(shedule_.timeZone)
 
 
@@ -180,8 +186,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // Получим карту в ее новом состоянии и тоже передадим      
 
         const _tCard = await getTCardFull(
-          Number(userId), 
-          locale, 
+          Number(userId),
+          locale,
           Number(teamId),
           erazload.id_tCard,
           tCardRepository,

@@ -69,7 +69,7 @@ export const erazeLoad = async (
           dispatch(setTCards(_tCards));
 
           // setMessage(" Успешно удалено планирование операции и все последующие зависимые планирования");
-          setMessage(t("erazeOperLoads"));
+          setMessage(t("mes.erazeOperLoads"));
         } else {
           setMessage(receivedData.message);
           //  logger

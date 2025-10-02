@@ -20,7 +20,7 @@ interface RequestBody {
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  // const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
 
   try {
@@ -29,8 +29,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     switch (req.method) {
       case 'GET':
         const { userId: userIdget, teamId: teamIdget } = req.query;
-        const shedule_ = await getTeamShedule(Number(userIdget), locale, Number(teamIdget), teamScheduleRepository, teamsRepository)
-
+        const shedule_ = await getTeamShedule(Number(userIdget), locale, Number(teamIdget), teamScheduleRepository)
+        
+        if (!shedule_) {
+          res.status(200).json({
+            success: false,
+            message: "Ошибка, не найдено расписание команды",
+          });
+          break;
+        }
         // отправляем ответ
         res.status(200).json({
           success: true,
@@ -43,7 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { schedule, userId, teamId } = req.body as RequestBody;
 
         const resSchedule = await updateShedule(
-          Number(userId), locale, 
+          Number(userId), locale,
           teamScheduleRepository,
           schedule,
           Number(teamId)

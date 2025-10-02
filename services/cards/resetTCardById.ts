@@ -53,7 +53,7 @@ export const resetTCardById = async (
                 const updatedTCards = [...tCards];
                 updatedTCards.splice(indexCardToSave, 1, { ...tCard, modified: false })
                 dispatch(setTCards(updatedTCards));
-                setMessage(t("tCardRead"));
+                setMessage(t("mes.tCardRead"));
             } else {
                 setMessage(receivedData.message);
                 //  logger

@@ -44,7 +44,7 @@ export const sendCodeHandler = async (
             const receivedData = await res.json();
             if (receivedData.success) {
                 // messageLogin("Ушло писмо с кодом на " + login);
-                messageLogin(t("mailCodeSent") + login);
+                messageLogin(t("mes.mailCodeSent") + login);
             } else {
                 messageLogin(receivedData.message);
                 //  logger

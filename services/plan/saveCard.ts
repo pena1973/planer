@@ -67,7 +67,7 @@ export const saveCard = async (
                     dispatch(setTCards(_tCards));
                     // setMessage(receivedData.message);
                     // "tCardSaved": "Карта сохранена"
-                    setMessage(t("tCardSaved"));
+                    setMessage(t("mes.tCardSaved"));
                 } else {
                     setMessage(receivedData.message);
                     //  logger
@@ -161,7 +161,7 @@ export const saveCard = async (
                     dispatch(setTCardPrepared({} as TCardItem));
                     dispatch(setTCards(_tCards));
                     // setMessage("Планировка карты успешно записана");
-                    setMessage(t("tCardSaved"));
+                    setMessage(t("mes.tCardSaved"));
                 } else {
                     setMessage(receivedData.message);
                     //  logger

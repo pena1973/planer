@@ -30,7 +30,7 @@ import {
   ProductItem
 } from './../../types/types';
 
-import { getTeamShedule, getTCardFull, getTCardLoads, getUnitActions, getUnits } from './../../handlers/handlers-get';  // 
+import { getTeamShedule, getTCardFull, getTCardLoadsToCheckforDelete, getUnitActions, getUnits } from './../../handlers/handlers-get';  // 
 import {
   updateCard, updateStages, updateOperations, updateCatalogProducts,
   updateProducts, updateTCardLoads, updateStatusTCard,
@@ -44,7 +44,7 @@ interface RequestBody {
   userId: number, // универсально
   tCard: TCardItem, // post
   tCardStages: TCardStageItem[], // post
-  tCardId:number // del 
+  tCardId: number // del 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();
@@ -65,7 +65,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     switch (req.method) {
       case 'GET':
-        const {userId: userIdget, teamId: teamIdget, tCardId: tCardIdget } = req.query;
+        const { userId: userIdget, teamId: teamIdget, tCardId: tCardIdget } = req.query;
         // получаем полную карту со всеми входящими и исходящими
         const tCard_ = await getTCardFull(
           Number(userIdget),
@@ -103,7 +103,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         } = req.body as RequestBody;
 
         // КАРТА
-        const resCard = await updateCard( Number(userId),locale,tCardRepository, tCard, Number(teamId))
+        const resCard = await updateCard(Number(userId), locale, tCardRepository, tCard, Number(teamId))
 
         if (!resCard.success) {
           res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
@@ -120,7 +120,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             productRepository,
             savedTCard,
             tCard.products ?? [] as ProductItem[],
-            Number(teamId),            
+            Number(teamId),
           )
 
           if (!resProducts.success) {
@@ -142,7 +142,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             tCard.tCardStages,
             savedTCard,
             Number(teamId),
-            )
+          )
           if (!resStages.success) {
             res.status(500).json({ error: 'Не удалось обработать запрос. ' + resStages.message });
             return;
@@ -230,24 +230,32 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'DELETE':
 
         // Извлекаем данные из тела запроса
-        const { tCardId: tCardIddel, teamId: teamIddel, userId: userIddel} = req.body as RequestBody;        
+        const { tCardId: tCardIddel, teamId: teamIddel, userId: userIddel } = req.body as RequestBody;
         const tCardId = Number(tCardIddel);
 
-        const shedule_ = await getTeamShedule(Number(userIddel),locale,Number(teamIddel), teamScheduleRepository, teamsRepository)
+        const shedule_ = await getTeamShedule(Number(userIddel), locale, Number(teamIddel), teamScheduleRepository)
+
+        if (!shedule_) {
+          res.status(200).json({
+            success: false,
+            message: "Ошибка, не найдено расписание команды",
+          });
+          break;
+        }
 
         // получаем полную карту со всеми входящими и исходящими
-        const tCard__ = await getTCardFull(Number(userIddel),locale,Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository)
+        const tCard__ = await getTCardFull(Number(userIddel), locale, Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository)
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(Number(userIddel),locale,Number(teamIddel), unitActionsRepository)
+        const unitActions_ = await getUnitActions(Number(userIddel), locale, Number(teamIddel), unitActionsRepository)
 
         if (!tCard__) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
           return
         }
 
-        const units = await getUnits(Number(userIddel),locale,Number(teamIddel), unitRepository)
+        const units = await getUnits(Number(userIddel), locale, Number(teamIddel), unitRepository)
 
-        const loads = await getTCardLoads(Number(userIddel),locale,tCard__, units, unitLoadRepository)
+        const loads = await getTCardLoadsToCheckforDelete(Number(userIddel), locale, tCard__, units, unitLoadRepository)
         // if (!loads) { res.status(200).json({ success: false, message: "Карта с таким id не найдена" }); }
 
         // фильтруем лоады по сегодняшней дате  в таймзоне команды
@@ -276,7 +284,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const allLoads = [...historyLoads, ...planLoads];
 
         // !!!!Проверить
-        const resDel = await updateTCardLoads(Number(userIddel),locale,Number(teamIddel), tCardId, allLoads, unitLoadRepository);
+        const resDel = await updateTCardLoads(Number(userIddel), locale, Number(teamIddel), tCardId, allLoads, unitLoadRepository);
         if (!resDel.success) { res.status(200).json({ success: false, message: resDel.message }); }
 
         // Переводим в тип UnitLoadItem[]                
@@ -355,7 +363,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 .every(l => [StatusEnum.planed, StatusEnum.cancelled].includes(l.status))  // нет других статусов
             );
           if (operIds.length > 0) {
-            const resOpers = await updateStatusOperationByOperIds(Number(userIddel),locale,tCardOperationRepository, operIds, StatusEnum.cancelled)
+            const resOpers = await updateStatusOperationByOperIds(Number(userIddel), locale, tCardOperationRepository, operIds, StatusEnum.cancelled)
             if (!resOpers.success) {
               res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
               break;
@@ -363,7 +371,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
 
           // обновим статус  карты
-          const resCard = await updateStatusTCard(Number(userIddel),locale,tCardRepository, tCardId, StatusEnum.cancelled)
+          const resCard = await updateStatusTCard(Number(userIddel), locale, tCardRepository, tCardId, StatusEnum.cancelled)
           if (!resCard.success) {
             res.status(200).json({
               success: false,
@@ -373,7 +381,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
 
           // собираем все что осталось от карты
-          const tCard_ = await getTCardFull(Number(userIddel),locale,Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository);
+          const tCard_ = await getTCardFull(Number(userIddel), locale, Number(teamIddel), tCardId, tCardRepository, tCardOperationRepository, tCardProductRepository, tCardStageRepository, productRepository, actionRepository);
           // Возвращаем успешный ответ
           res.status(200).json({ success: true, tCard: tCard_, loads: loads_, message: `TCard canceled successfully` });
           break

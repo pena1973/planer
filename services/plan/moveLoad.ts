@@ -68,7 +68,7 @@ export const moveLoad = async (
                     const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
                     dispatch(setUnitLoads(updatedLoads));
                     // setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
-                    setMessage(t("changeOperLoads"));
+                    setMessage(t("mes.changeOperLoads"));
                 } else {
                     setMessage(receivedData.message);
                     //  logger

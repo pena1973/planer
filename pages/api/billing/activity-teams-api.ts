@@ -52,7 +52,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { teamIdToChange, userId, state, teamId } = req.body as RequestBody;
         
         // запросим расписание компании чтобы взять timezone
-        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
+        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+          
+        if (!shedule_) {
+          res.status(200).json({
+            success: false,
+            message: "Ошибка, не найдено расписание команды",
+          });
+          break;
+        }
 
         //  проверим прогноз баланс если запрос на активацию
         if (state) {

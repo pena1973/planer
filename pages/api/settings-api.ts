@@ -26,8 +26,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'GET':
 
         const { teamId: teamIdget, userId: userIdget } = req.query;
-        const settings_ = await getSettings( Number(userIdget), locale, Number(teamIdget), settingsRepository)
+        const settings_ = await getSettings(Number(userIdget), locale, Number(teamIdget), settingsRepository)
 
+        if (!settings_) {
+          res.status(200).json({
+            success: false,
+            message: 'Не удалось получить настройки.',
+          });
+          return;
+        }
         // отправляем ответ
         res.status(200).json({
           success: true,
@@ -40,7 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { settings, userId, teamId } = req.body as RequestBody;
 
         const resSettings = await updateSettings(
-          Number(userId), 
+          Number(userId),
           locale,
           settingsRepository,
           settings,

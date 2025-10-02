@@ -8,7 +8,7 @@ import { getTypedRepository } from './../../../db/utilites'
 
 import { getUnits, getUnitLoads } from './../../../handlers/handlers-get';  // расчеты
 import { getAllPreparedOperationsIds, planTCardFromOperINC } from './../../../handlers/handlers-plan';  // планирование карты
-import { getTeamShedule, getExceptions, getTCardFull, getUnitActions } from './../../../handlers/handlers-get';  // 
+import { getTeamShedule, getUnitExceptions, getTCardFull, getUnitActions } from './../../../handlers/handlers-get';  // 
 
 import { TeamTable } from './../../../db/models/catalogs/teams'
 import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
@@ -54,8 +54,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard = await getTCardFull(
-          Number(userId), 
-          locale, 
+          Number(userId),
+          locale,
           Number(teamId),
           Number(tCardId),
           tCardRepository,
@@ -82,14 +82,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
 
         // запросим расписание компании
-        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
+        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+        
+        if (!shedule_) {
+          res.status(200).json({
+            success: false,
+            message: "Ошибка, не найдено расписание команды",
+          });
+          break;
+        }
 
         //  получим исключения рабочего времени юнитов         
-        const exceptionItems = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
+        const exceptionItems = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
         const unitLoadItemsBD = await getUnitLoads(
-          Number(userId), 
-          locale, 
+          Number(userId),
+          locale,
           Number(teamId),
           units_,
           unitLoadRepository,

@@ -5,7 +5,7 @@ import connectDb from './../../../db/database';
 import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
-import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getExceptions, getUnitActions } from './../../../handlers/handlers-get';  // 
+import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getUnitExceptions, getUnitActions } from './../../../handlers/handlers-get';  // 
 import { planTCardFromOperINC, planOperOnUnit, getDependentOperationsIds, getOperationReadyMoment } from './../../../handlers/handlers-plan';  // 
 
 import { TeamTable } from './../../../db/models/catalogs/teams'
@@ -51,9 +51,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
   try {
-   
+
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-   
+
     switch (req.method) {
 
       // ПЕРЕПЛАНИРОВАНИЕ по перемещению лоада
@@ -73,7 +73,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard = await getTCardFull(
-          Number(userId), locale, 
+          Number(userId), locale,
           Number(teamId),
           pinnedLoad.id_tCard,
           tCardRepository,
@@ -192,15 +192,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
 
             // запросим расписание компании
-            const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
-
+            const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+           
+            if (!shedule_) {
+              res.status(200).json({
+                success: false,
+                message: "Ошибка, не найдено расписание команды",
+              });
+              break;
+            }
             //  получим исключения рабочего времени юнитов         
-            const exceptionItems = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
+            const exceptionItems = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
 
             //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
             const unitLoadItemsBD = await getUnitLoads(
-              Number(userId), 
-              locale, 
+              Number(userId),
+              locale,
               Number(teamId),
               units_,
               unitLoadRepository,
@@ -319,14 +326,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
 
             // запросим расписание компании
-            const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
-
+            const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+           
+            if (!shedule_) {
+              res.status(200).json({
+                success: false,
+                message: "Ошибка, не найдено расписание команды",
+              });
+              break;
+            }
             //  получим исключения рабочего времени юнитов         
-            const exceptionItems = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
+            const exceptionItems = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
             //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
             const unitLoadItemsBD = await getUnitLoads(
-              Number(userId), 
-              locale, 
+              Number(userId),
+              locale,
               Number(teamId),
               units_,
               unitLoadRepository,
@@ -373,14 +387,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           const units_ = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
 
           // запросим расписание компании
-          const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
-
+          const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+          
+          if (!shedule_) {
+            res.status(200).json({
+              success: false,
+              message: "Ошибка, не найдено расписание команды",
+            });
+            break;
+          }
           //  получим исключения рабочего времени юнитов         
-          const exceptionItems = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
+          const exceptionItems = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
           //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
           const unitLoadItemsBD = await getUnitLoads(
-            Number(userId), 
-            locale, 
+            Number(userId),
+            locale,
             Number(teamId),
             units_,
             unitLoadRepository,

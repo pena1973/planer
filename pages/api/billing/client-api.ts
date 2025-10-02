@@ -28,7 +28,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { teamId: getTeamId, userId: userIdget } = req.query;
 
         const client__ = await getClient(Number(userIdget), locale, Number(getTeamId), clientRepository)
-
+        if (!client__) {
+          // отправляем ответ
+          res.status(200).json({
+            success: false,
+            message: "Данные клиента не найдены",
+          });
+        }
         // отправляем ответ
         res.status(200).json({
           success: true,
@@ -44,7 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const customerId = await updateStripeCustomerFromClient(client);
 
         const resClient = await updateClient(
-          Number(userId), 
+          Number(userId),
           locale,
           clientRepository,
           { ...client, customerId: customerId ?? "" },

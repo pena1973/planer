@@ -30,8 +30,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'GET':
 
         const { userId, teamId, tCardNumber, tCardDateFrom, tCardDateTo, tCardStatus, showClosed } = req.query;
-        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
-
+        
         // Проверяем, что tCardStatus является допустимым значением для StatusEnum
         const status = Object.values(StatusEnum).includes(tCardStatus as StatusEnum) ? tCardStatus as StatusEnum : undefined;
 
@@ -46,8 +45,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           status,
           tCardRepository,
           tCardOperationsRepository,
-          unitLoadRepository,
-          shedule_.timeZone,
+          unitLoadRepository,          
           Boolean(showClosed === 'true')
         )
         if (!tCardsTerms) {

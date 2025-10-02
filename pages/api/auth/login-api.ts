@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // console.log('👀 userRepository:', usersRepository.target);
         //&&&&&
-        const resUser = await getUser(locale,login, pass, usersRepository)
+        const resUser = await getUser(locale, login, pass, usersRepository)
         if (!resUser.success) {
           res.status(200).json({
             success: false,
@@ -67,10 +67,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         const team = resTeam.team;
 
-        const resActiveTeam = await getTeamActivity(user.id, locale,[team], activeTimeRepository)
+        const resActiveTeam = await getTeamActivity(user.id, locale, [team], activeTimeRepository)
         const activeTeam = resActiveTeam.length > 0 ? resActiveTeam[0].active : false;
         //  юзер получен проверяю актуальное соглашение
-        const resAgreement = await getLastAgreement(user.id,locale, userAgreeRepository, agreementRepository)
+        const resAgreement = await getLastAgreement(user.id, locale, userAgreeRepository, agreementRepository)
 
 
         if (!resAgreement.agreementId) {
@@ -107,23 +107,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         //  получаю Юнит который занимает юзер
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
-        const resUserUnits_ = await getUsersUnits(
-          user.id, // для ошибок
-          locale,
-          team.id,
-          false,
-          usersRepository,
-          usersUnitsRepository,
-          user.id // для получения своего юнита  может и не указыватся когда получаем за всех юнитов команды
-        ) 
+        
+          const resUserUnits_ = await getUsersUnits(
+            user.id, // для ошибок
+            locale,
+            team.id,
+            false,
+            usersRepository,
+            usersUnitsRepository,
+            user.id // для получения своего юнита  может и не указыватся когда получаем за всех юнитов команды
+          )
 
-        if (!resUserUnits_.success) {
-          res.status(200).json({
-            success: false,
-            message: resUserUnits_.message,
-          });
-          ;
-        }
+          if (!resUserUnits_.success) {
+            res.status(200).json({
+              success: false,
+              message: resUserUnits_.message,
+            });
+            ;
+          }
 
         const userunit = resUserUnits_.userUnits.find((uu) => { return uu.userId === user.id; })
 

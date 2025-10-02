@@ -47,7 +47,7 @@ export const selectTCardById = async (
                 const updatedTCards = [...tCards];
                 updatedTCards.splice(indexCurrentCard, 1, { ...tCard, modified: false })
                 dispatch(setTCards(updatedTCards));
-                setMessage(t("tCardRead"));
+                setMessage(t("mes.tCardRead"));
             } else {
                 setMessage(receivedData.message);
                 //  logger

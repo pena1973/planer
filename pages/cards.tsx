@@ -666,7 +666,7 @@ export default function Cards() {
     // если есть операции в стадии ничего не делаем, сначала пользователь должен удалить операции из стадии
     if (tCardCurrentOperationsDeleted.length > 0) {
       // setMessage("Невозможно удалить стадию, в ней есть операции. Сначала удалите операции из стадии.");
-      setMessage(t('impossibleToDelStage'));
+      setMessage(t('mes.impossibleToDelStage'));
       return;
     }
 
@@ -1086,7 +1086,7 @@ export default function Cards() {
       if (e instanceof Error) {
         error = e.message;
       }
-      setMessage(`${t('impossibleToDownloasTemplate')} ${error}`);
+      setMessage(`${t('mes.impossibleToDownloasTemplate')} ${error}`);
       //  logger
       void ulogger.error({
         userId: user.id,
@@ -1197,7 +1197,7 @@ export default function Cards() {
 
     if (hasReadyLoads) {
       // setMessage("Невозможно удалить операцию, т.к. есть выполнение операции с результатом или браком.");
-      setMessage(t('impossibleToDelOperReady'));
+      setMessage(t('mes.impossibleToDelOperReady'));
       return;
     }
 
@@ -1208,7 +1208,7 @@ export default function Cards() {
 
     if (hasPlannedLoads) {
       // setMessage("Невозможно удалить операцию, т.к. есть запланированное или отмененное время выполнения. Операацию можно перевести в статус отменить");
-      setMessage(t('impossibleToDelOperHistory'));
+      setMessage(t('mes.impossibleToDelOperHistory'));
       return;
     }
 

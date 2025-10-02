@@ -22,7 +22,7 @@ export const erazeCard = async (
 
     if (tCardLoads.length === 0) {
         // setMessage("Нет лоадов для отмены");
-        setMessage(t("noLoadsToCancel"));
+        setMessage(t("mes.noLoadsToCancel"));
         return
     }
 
@@ -99,7 +99,7 @@ export const erazeCard = async (
 
                     // } else {
                     //     // setMessage("Карта уже выполнена и нет операций где статус меняется");
-                    //     setMessage(t("cardPerformed"));
+                    //     setMessage(t("mes.cardPerformed"));
                 }
             } else {
                 setMessage(receivedData.message);

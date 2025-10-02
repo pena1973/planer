@@ -5,7 +5,7 @@ import connectDb from './../../../db/database';
 import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
-import { getUnits, getUnitLoads, getTeamShedule, getExceptions } from './../../../handlers/handlers-get';  // 
+import { getUnits, getUnitLoads, getTeamShedule, getUnitExceptions } from './../../../handlers/handlers-get';  // 
 import { getUnitsSchedule } from './../../../handlers/handlers-schedule';  // 
 
 
@@ -52,11 +52,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
 
         // запросим расписание команды
-        const schedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamRepository)
-
+        const schedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+        if (!schedule) {
+          // Отправляем ответ с данными
+          res.status(200).json({
+            success: false,
+            messsage: "Отсутствует расписание команды невозможно рассчитать KPI юнитов.",
+          });
+          return;
+        }
         // запросим исключения расписания по юнитам
 
-        const exceptions = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
+        const exceptions = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
 
         // запросим расписание юнитов по дням
         const unitShedule = getUnitsSchedule(Number(userId), locale, String(today), schedule, exceptions, filteredUnits)

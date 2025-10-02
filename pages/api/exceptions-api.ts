@@ -5,7 +5,7 @@ import connectDb from './../../db/database';
 import { getLocaleFromHeader } from './../../lib/server/translate/locale';
 
 import { getTypedRepository } from './../../db/utilites'
-import { getExceptions } from './../../handlers/handlers-get';  // расчеты
+import { getUnitExceptions } from './../../handlers/handlers-get';  // расчеты
 import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -26,7 +26,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           : unitId !== undefined
             ? Number(unitId)
             : undefined;
-        const exceptions_ = await getExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository, unitIdNumber,)
+        const exceptions_ = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository, unitIdNumber,)
 
         exceptions_.sort((a, b) => {
           // Проверяем, что даты определены

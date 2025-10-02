@@ -53,7 +53,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const unitLoadsRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
   const tCardsRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-  const templatesRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);  
+  const templatesRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
   const productsRepository = getTypedRepository(db, 'ProductTable', ProductTable);
   const tCardProductsRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
@@ -67,16 +67,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
   try {
-    const locale = getLocaleFromHeader(req.headers["x-lang"]); 
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
     const { teamId, userId, oldpass, newpass, name, isAdmin } = req.body as RequestBody;
-    
+
     switch (req.method) {
       // регистрируем пользователя
       case 'POST':
-       
+
         const resUpdUser = await updateUser(
           userId,
-          locale, 
+          locale,
           oldpass,
           newpass,
           name,
@@ -110,11 +110,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
 
           // запросим расписание компании чтобы взять timezone
-          const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository, teamsRepository)
+          const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
 
+          if (!shedule_) {
+            res.status(200).json({
+              success: false,
+              message: "Ошибка, не найдено расписание команды",
+            });
+            break;
+          }
           const resTeam = await deleteDataTeam(
-            Number(userId), 
-            locale, 
+            Number(userId),
+            locale,
             Number(teamId),
             shedule_.timeZone,
             teamsRepository,

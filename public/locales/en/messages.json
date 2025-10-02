@@ -1,6 +1,0 @@
-{
-  "impossibleToDelStage": "Unable to delete the stage: it contains operations. Delete the operations from the stage first.",
-  "impossibleToDownloasTemplate": "Error processing the template.",
-  "impossibleToDelOperReady": "Unable to delete the operation because it has a completion record with a result or a defect.",
-  "impossibleToDelOperHistory": "Unable to delete the operation because there is scheduled or cancelled execution time. You can change the operation status to 'cancelled'."
-}

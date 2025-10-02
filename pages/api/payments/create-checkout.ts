@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const db = await connectDb();
     const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
-    
+
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     const { amount, userId, teamId } = req.body as {
@@ -38,18 +38,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!baseUrl) return res.status(500).send('APP_BASE_URL is not set');
 
     const client: ClientItem | undefined = await getClient(Number(userId), locale, teamId, clientRepository);
+    if (!client) {
+      // отправляем ответ
+      return res.status(200).json({
+        success: false,
+        message: "Данные клиента не найдены",
+      });
+    }
 
     const metadata = {
       userId: String(userId),
       teamId: String(teamId),
       amountInCents: String(amountInCents),
       purpose: 'balance_topup',
-      locale: locale,      
+      locale: locale,
     };
 
     // определяем customer: либо из тела запроса, либо создаём
     const customerId = client.customerId;
-   
+
     const params: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
       currency: 'eur',

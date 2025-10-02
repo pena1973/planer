@@ -63,7 +63,7 @@ export const saveTCardById = async (
                     updatedTCards.splice(indexCardToSave, 1, tCard1)
                 }
                 dispatch(setTCards(updatedTCards));
-                setMessage(t("tCardRecorded"));
+                setMessage(t("mes.tCardRecorded"));
             } else {
                 setMessage(receivedData.message);
                 //  logger

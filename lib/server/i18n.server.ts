@@ -48,3 +48,8 @@ if (!i18n.isInitialized) {
 }
 
 export default i18n;
+
+export function getServerT(locale: string, ns: 'translation' | 'ui' | 'help' | 'cookies' = 'translation') {
+  const lang = locale === 'ru' ? 'ru' : 'en'; // жёстко нормализуем
+  return i18n.getFixedT(lang, ns);
+}
