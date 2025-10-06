@@ -1,5 +1,9 @@
-
-import { DataSource, Repository, ObjectLiteral, FindOptionsWhere, In, LessThan } from 'typeorm';
+//handlers/handlers-delete.ts
+// Функции для удаления пользователей и данных команд
+// Используется в настройках профиля (ProfileSettings) и настройках команд (TeamSettings)
+import { ulogger } from "./../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+import { Repository, In, LessThan } from 'typeorm';
 
 // tables
 import { UserTable } from './../db/models/catalogs/users';
@@ -11,7 +15,7 @@ import { UnitLoadTable } from './../db/models/plan/unit_loads';
 import { TCardTable } from './../db/models/data/t_cards'
 import { TCardStageTable } from './../db/models/data/t_card_stages'
 import { TemplateTable } from './../db/models/catalogs/templates'
-import { UserAgreeTable } from './../db/models/catalogs/user_agree';
+
 
 import { ProductTable } from './../db/models/data/products'
 import { TCardProductTable } from './../db/models/data/t_card_products'
@@ -56,14 +60,22 @@ export async function deleteUsers(
 
 
 
+// !ОПАСНАЯ ОПЕРАЦИЯ! УДАЛЯЕТ ПОЛЬЗОВАТЕЛЯ И ВСЕ ЕГО ДАННЫЕ
 export async function deleteUser(
   userId: number,
-  locale:string,    
+  locale: string,
   usersRepository: Repository<UserTable>
 ): Promise<{ success: boolean; message: string }> {
+
+  const t = getServerT(locale, 'translation');
+
   if (!Number.isFinite(userId)) {
-    return { success: false, message: 'Пользователь для удаления не указан или неверный id.' };
-  }
+    return {
+      success: false,
+      // message: 'Пользователь для удаления не указан или неверный id.' 
+      message: t('mes.wrongUserId')
+    }
+  };
 
   try {
     const userToDelete = await usersRepository.findOne({
@@ -71,26 +83,47 @@ export async function deleteUser(
     });
 
     if (!userToDelete) {
-      return { success: false, message: `Пользователь с id=${userId} не найден.` };
+      return {
+        success: false,
+        // message: `Пользователь с id=${userId} не найден.` 
+        message: `${t('mes.userNotFound')} id=${userId}`
+
+      };
     }
 
     const deleteResult = await usersRepository.delete({ id: userId });
 
     if ((deleteResult.affected ?? 0) === 0) {
-      return { success: false, message: `Не удалось удалить пользователя с id=${userId}.` };
+      return { success: false, 
+        // message: `Не удалось удалить пользователя с id=${userId}.` 
+        message: `${t('mes.userNotDeleted')}  id=${userId}`      
+      };
     }
 
-    return { success: true, message: `Пользователь с id=${userId} успешно удалён.` };
-  } catch (err) {
-    console.error("Ошибка при удалении пользователя:", err);
-    return { success: false, message: `Ошибка удаления: ${err instanceof Error ? err.message : String(err)}` };
+    return { success: true, 
+      // message: `Пользователь с id=${userId} успешно удалён.` 
+      message: `${t('mes.userDeleted')}  id=${userId}`      
+    };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-delete/deleteUser",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateActions",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
 
 // 
 export async function deleteSupport(
   userId: number,
-  locale:string,  
+  locale: string,
   idsToDelete: number[],  // Массив сообщений
   supportRepository: Repository<MailTable>,
 ) {
@@ -112,10 +145,10 @@ export async function deleteSupport(
   return { success: true, message: 'Сообщения успешно удалены.' };
 }
 
-// ОПАСНАЯ ОПЕРАЦИЯ !!!!!
+//! ОПАСНАЯ ОПЕРАЦИЯ УДАЛЯЕТ ВСЕ ДАННЫЕ КОМАНДЫ
 export async function deleteDataTeam(
   userId: number,
-  locale:string,  
+  locale: string,
   teamId: number,
   timezone: string,
   teamRepository: Repository<TeamTable>,
@@ -138,15 +171,27 @@ export async function deleteDataTeam(
     teamSchedule: Repository<TeamScheduleTable>
   }
 ): Promise<{ success: boolean; message: string }> {
-  if (!Number.isFinite(teamId)) {
-    return { success: false, message: 'Команда для удаления не указана.' };
-  }
+  const t = getServerT(locale, 'translation');
 
   try {
+
+    if (!Number.isFinite(teamId)) {
+      return {
+        success: false,
+        // message: 'Команда для удаления не указана.' 
+        message: `${t('mes.noTeamId')} id=${teamId}`
+      };
+    }
+
     // Проверка команды
     const teamToUpdate = await teamRepository.findOne({ where: { id: teamId } });
+
     if (!teamToUpdate) {
-      throw new Error(`Команда с id=${teamId} не найдена`);
+      return {
+        success: false,
+        // message: `Команда с id=${teamId} не найдена` 
+        message: `${t('mes.teamNotFound')} id=${teamId}`
+      };
     }
 
     // // Деактивация команды
@@ -154,11 +199,13 @@ export async function deleteDataTeam(
     const resTeam = await changeStateTeambyId(userId, locale, activeTimeRepository, Number(teamId), false, timezone)
 
     if (!resTeam.success) {
-      console.warn('Не удалось деактивировать команду перед удалением:', resTeam.message);
+      return {
+        success: false,
+        // message: `Не удалось деактивировать команду с id=${teamId} перед удалением` 
+        message: `${t('mes.teamNotDeactivated')} id=${teamId}`
+      };
 
     }
-    // teamToUpdate.active = false;
-    // await teamRepository.save(teamToUpdate);
 
     // Список всех репозиториев с подписью
     const repoList: [string, Repository<any>][] = [
@@ -188,6 +235,7 @@ export async function deleteDataTeam(
 
       if (affected > 0) {
         console.log(`✅ ${label}: удалено ${affected} записей`);
+
       } else {
         console.warn(`⚠️ ${label}: ничего не удалено`);
       }
@@ -195,17 +243,27 @@ export async function deleteDataTeam(
 
     return {
       success: true,
-      message: `Удаление завершено. Всего затронуто ${totalDeleted} записей`
+      // message: `Удаление завершено. Всего затронуто записей: ${totalDeleted} `
+      message: `t('mes.deletedRecords') ${totalDeleted} `
     };
-  } catch (err) {
-    console.error('Ошибка при удалении данных команды:', err);
-    return { success: false, message: `Ошибка удаления: ${err instanceof Error ? err.message : String(err)}` };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-delete/deleteDataTeam",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateActions",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
 
 export async function deleteDataOlder90(
-  userId: number|null,
-  locale:string,  
+  userId: number | null,
+  locale: string,
   unitLoads: Repository<UnitLoadTable>,
   tCardOperations: Repository<TCardOperationTable>,
   tCardStages: Repository<TCardStageTable>,
@@ -219,7 +277,7 @@ export async function deleteDataOlder90(
     const now = new Date();
     now.setDate(now.getDate() - days);
     return now.toISOString().slice(0, 10); // yyyy-mm-dd
-  }  
+  }
   const cutoff = getDateNDaysAgo(90);
   // удаляем лоады старше 90 дней
   const result = await unitLoads.delete({
@@ -248,7 +306,7 @@ export async function deleteDataOlder90(
   // 5) Удаляем связанные записи в правильном порядке
   const prodDel = await tCardProducts.delete({ tcard_id: In(idsToDelete) });
   const opsDel = await tCardOperations.delete({ tcard_id: In(idsToDelete) });
-  const stagesDel = await tCardStages.delete({ tcard_id: In(idsToDelete) });  
+  const stagesDel = await tCardStages.delete({ tcard_id: In(idsToDelete) });
   const prodMasterDel = await products.delete({ tcard_id: In(idsToDelete) });
   // 6) Удаляем сами карты
   const cardsDel = await tCards.delete(idsToDelete);

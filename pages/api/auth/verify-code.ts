@@ -7,7 +7,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import connectDb from '@/db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 
 import { getTypedRepository } from './../../../db/utilites';
 import { VerificationCodeTable } from './../../../db/models/auth/verification_code';

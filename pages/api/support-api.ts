@@ -1,8 +1,14 @@
+//pages/api/support-api.ts
+// API для получения и обновления сообщений поддержки (support messages)
+// Используется для отправки сообщений в поддержку и просмотра ответов 
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { updateSupportMessage } from './../../handlers/handlers-update';  // расчеты
@@ -11,6 +17,7 @@ import { MailTable } from './../../db/models/support/mails';
 import { SupportMailItem } from './../../types/types';
 import { getSuportMails } from './../../handlers/handlers-get';
 
+
 interface RequestBody {
   userId: number,
   teamId: number,
@@ -18,73 +25,81 @@ interface RequestBody {
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
-
   try {
+    const db = await connectDb();
+    const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
-
+      // получение сообщений поддержки для указанной команды
       case 'GET':
         const { teamId: getTeamId, userId: userIdget } = req.query;
 
-        const messages_ = await getSuportMails(Number(userIdget), locale, Number(getTeamId), supportRepository)
+        const messages = await getSuportMails(Number(userIdget), locale, Number(getTeamId), supportRepository)
 
-        // отправляем ответ
         res.status(200).json({
           success: true,
-          message: "",
-          supportMessages: messages_,
+          supportMessages: messages,
         });
 
         break;
       case 'POST':
-        // Извлекаем данные из тела запроса
+        // запись сообщения поддержки
         const { supportMessage, userId } = req.body as RequestBody;
 
-        // СПИСОК ДЕЙСТВИЙ 
         const resSupport = await updateSupportMessage(
           Number(userId),
           locale,
           supportMessage,
           supportRepository
-
         )
         if (!resSupport.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSupport.message });
-          return;
+          res.status(200).json({
+            success: false,
+            message: resSupport.message
+          });
+          break;
         }
 
-        const savedMessage = resSupport.savedMessage as MailTable;
+        const savedMessage_ = resSupport.savedMessage as MailTable;
 
-        const supportMessage_ = {
-          id: savedMessage.id,
-          // date: new Date(savedMessage.date).toLocaleDateString('en-CA'),
-          date: savedMessage.date,
-          title: savedMessage.title,
-          body: savedMessage.body,
-          userId: savedMessage.user_id,
-          fromUser: savedMessage.fromUser,
-          basedOn: savedMessage.basedOn,
-          status: savedMessage.status,
+        const savedMessage = {
+          id: savedMessage_.id,
+          date: savedMessage_.date,
+          title: savedMessage_.title,
+          body: savedMessage_.body,
+          userId: savedMessage_.user_id,
+          fromUser: savedMessage_.fromUser,
+          basedOn: savedMessage_.basedOn,
+          status: savedMessage_.status,
         } as SupportMailItem
 
-        // отправляем ответ
         res.status(200).json({
           success: true,
-          supportMessage: supportMessage_,
+          supportMessage: savedMessage,
         });
         break;
 
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (support-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/support-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

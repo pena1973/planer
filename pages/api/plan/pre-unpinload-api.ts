@@ -1,9 +1,16 @@
+//pages/api/units-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../../lib/server/withAuth'
 // Обработка перемещения операции лоада
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getUnitExceptions, getUnitActions } from './../../../handlers/handlers-get';  // 
@@ -33,7 +40,8 @@ interface RequestBody {
   today: string // дата раздела 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
+ try {
+    const db = await connectDb();
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
   const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
@@ -47,9 +55,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
   const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
 
-  try {
+ 
 
-    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+   const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
 
@@ -125,12 +134,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
 
         // запросим расписание компании
-        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+        const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
       
-        if (!shedule_) {
+        if (!shedule) {
           res.status(200).json({
             success: false,
-            message: "Ошибка, не найдено расписание команды",
+            // message: "Ошибка, не найдено расписание команды",
+            message: t('mes.sheduleNotFound'),
           });
           break;
         }
@@ -155,7 +165,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const operationsToPlanIds = [...dependentOperationsIds, Number(oper.id)]
 
         // Планируем карту начиная с нашей операции (есключая ее саму)
-        const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, operationsToPlanIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, today)
+        const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, operationsToPlanIds, tCard, units_, unitActions_, shedule, unitLoadItemsFull, exceptionItems, today)
         //  Если не удалось запланировать
         if (!resultPlaningNextOper.success) {
           res.status(200).json({

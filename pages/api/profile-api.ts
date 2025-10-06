@@ -1,8 +1,14 @@
+// pages/api/profile-api.ts
+// API для получения и обновления профиля пользователя
+// Используется в настройках профиля (ProfileSettings) для изменения пароля и имени пользователя, а также удаления пользователя
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { UserTable } from './../../db/models/catalogs/users';
@@ -14,7 +20,6 @@ import { UnitLoadTable } from './../../db/models/plan/unit_loads';
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardStageTable } from './../../db/models/data/t_card_stages'
 import { TemplateTable } from './../../db/models/catalogs/templates'
-import { UserAgreeTable } from './../../db/models/catalogs/user_agree';
 
 import { ProductTable } from './../../db/models/data/products'
 import { TCardProductTable } from './../../db/models/data/t_card_products'
@@ -34,7 +39,6 @@ import { updateUser } from './../../handlers/handlers-auth';  // расчеты
 import { deleteDataTeam, deleteUser } from './../../handlers/handlers-delete';
 import { getTeamShedule } from '@/handlers/handlers-get';
 
-
 interface RequestBody {
   userId: number,
   teamId: number,
@@ -44,30 +48,31 @@ interface RequestBody {
   isAdmin: boolean,
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-
-  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const unitsRepository = getTypedRepository(db, 'UnitTable', UnitTable);
-  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
-  const unitLoadsRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-  const tCardsRepository = getTypedRepository(db, 'TCardTable', TCardTable);
-  const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-  const templatesRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
-  const productsRepository = getTypedRepository(db, 'ProductTable', ProductTable);
-  const tCardProductsRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
-  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
-  const actionsRepository = getTypedRepository(db, 'ActionTable', ActionTable);
-  const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
-  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
-  const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
-  const userUnitRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
-  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-  const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
-
-
   try {
+    const db = await connectDb();
+
+    const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+    const unitsRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+    const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+    const unitLoadsRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+    const tCardsRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+    const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+    const templatesRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
+    const productsRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+    const tCardProductsRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+    const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+    const actionsRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+    const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
+    const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+    const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
+    const userUnitRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
+    const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+    const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
+
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+
     const { teamId, userId, oldpass, newpass, name, isAdmin } = req.body as RequestBody;
 
     switch (req.method) {
@@ -83,47 +88,52 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           usersRepository);
 
         if (!resUpdUser.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUpdUser.message });
-          return;
+          res.status(200).json({
+            success: false,
+            message: resUpdUser.message,
+          });
+          break;
         }
-
         const user = resUpdUser.savedUser as UserItem;
-        // отправляем ответ
         res.status(200).json({
           success: true,
           user: user,
-
         });
         break;
+      // удаляем пользователя
       case 'DELETE':
-        // удаляем пользователя        
+
         if (typeof userId !== 'number' || Number.isNaN(userId)) {
-          res.status(400).json({ error: 'userId обязателен и должен быть числом' });
-          return;
+          // res.status(400).json({ error: 'userId обязателен и должен быть числом' });
+          res.status(400).json({ error: t('mes.mandatoryUserId') });
+          break;
         }
 
         // если админ — сначала чистим данные команды
         if (isAdmin) {
           if (typeof teamId !== 'number' || Number.isNaN(teamId)) {
-            res.status(400).json({ error: 'teamId обязателен для админа и должен быть числом' });
-            return;
+            res.status(400).json({ error: t('mes.mandatoryTeamId') });
+            // res.status(400).json({ error: 'teamId обязателен для админа и должен быть числом' });
+            break;
           }
 
           // запросим расписание компании чтобы взять timezone
-          const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+          const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
 
-          if (!shedule_) {
+          if (!shedule) {
             res.status(200).json({
               success: false,
-              message: "Ошибка, не найдено расписание команды",
+              // message: "Ошибка, не найдено расписание команды",
+              message: t('mes.sheduleNotFound'),
             });
             break;
           }
+          ////// удаляем все данные команды ОПАСНАЯ ОПЕРАЦИЯ ///////
           const resTeam = await deleteDataTeam(
             Number(userId),
             locale,
             Number(teamId),
-            shedule_.timeZone,
+            shedule.timeZone,
             teamsRepository,
             activeTimeRepository,
             {
@@ -147,15 +157,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           );
 
           if (!resTeam.success) {
-            res.status(500).json({ error: 'Не удалось удалить данные команды: ' + resTeam.message });
-            return;
+            res.status(200).json({
+              success: false,
+              // error: 'Не удалось удалить данные команды: ' + resTeam.message });
+              // message: 'Не удалось удалить данные команды: ' + resTeam.message });
+              message: `${t('mes.teamNotDeleted')} ${resTeam.message}`
+            });
+            break;
           }
         }
         // затем удаляем пользователя
         const resUser = await deleteUser(Number(userId), locale, usersRepository);
 
         if (!resUser.success) {
-          res.status(500).json({ error: 'Не удалось удалить пользователя: ' + resUser.message });
+          res.status(200).json({
+            success: false,
+            message: `${t('mes.userNotDeleted')} ${resUser.message}`
+            // error: 'Не удалось удалить пользователя: ' + resUser.message 
+          });
           return;
         }
 
@@ -163,11 +182,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         break;
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (profile-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/profile-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 export default withAuth(handler)

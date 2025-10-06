@@ -1,17 +1,24 @@
-// Корректировка текущего статуса карты по ее состоянию в БД
+//pages/api/tcard-oper-status-api
+// API для изменения статуса карты
+// Корректировка текущего статуса карты по ее состоянию в БД 
+
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 
 import { TCardOperationItem, StatusEnum } from './../../types/types';
-import { updateStatusTCard} from './../../handlers/handlers-update';
-import { getTCard, getTCardOperationsByCardId} from './../../handlers/handlers-get';
+import { updateStatusTCard } from './../../handlers/handlers-update';
+import { getTCard, getTCardOperationsByCardId } from './../../handlers/handlers-get';
 
 import { getStatusPriority } from "./../../lib/common/utils"
 
@@ -21,13 +28,13 @@ interface RequestBody {
   userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-    const db = await connectDb(); 
+  try {
+    const db = await connectDb();
     const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
     const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
 
-  try {
-        
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'POST':
@@ -42,11 +49,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!tCard) {
           res.status(200).json({
             success: false,
-            message: 'Карта не найдена',
+            message: t('mes.tCardNotFound'),
           });
           break;
         }
-    
+
         // Рекурсивное определение "фактического" статуса операции
         const resolveFinalStatus = (op: TCardOperationItem): StatusEnum => {
           if (op.status === StatusEnum.defective) {
@@ -71,7 +78,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           if (!resCard.success) {
             res.status(200).json({
               success: false,
-              message: 'Статус карты не обновлен',
+              message: resCard.message,
             });
             break;
           }
@@ -80,17 +87,29 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         res.status(200).json({
           success: true,
           tCardStatus: finalCardStatus,
-          message: 'Карта успешно обновлена',
+          // message: 'Карта успешно обновлена',
+          message: t('mes.tCardUpdated'),
         });
         break;
 
       default:
-        res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
 
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (tcard-oper-status-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/tcard-oper-status-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 export default withAuth(handler)

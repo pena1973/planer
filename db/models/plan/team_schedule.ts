@@ -30,7 +30,7 @@ export class TeamScheduleTable {
   @Column('json', { nullable: true })
   workdays!: { date: string, timeStart: number, timeFinish: number }[]; // Даты, когда работа возможна в выходные (переносы), использует строковый формат для даты
     
-  @Column('int')
+  @Column('int', {unique: true })
   team_id!: number;
 
   @Column('varchar', {default:"", length: 255 })

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from './../../../db/database';  // Импортируем функцию подключения
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { UserTable } from './../../../db/models/catalogs/users';
 
 import { getTypedRepository } from './../../../db/utilites'

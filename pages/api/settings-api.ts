@@ -1,8 +1,14 @@
+//pages/api/settings-api.ts
+// API для получения и обновления настроек (settings)
+// Используется в настройках команд (TeamSettings)
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { getSettings } from './../../handlers/handlers-get';
@@ -17,31 +23,35 @@ interface RequestBody {
   settings: SettingsItem
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
-
   try {
+    const db = await connectDb();
+    const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
+
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
     switch (req.method) {
+      // получение настроек команды
       case 'GET':
-
         const { teamId: teamIdget, userId: userIdget } = req.query;
-        const settings_ = await getSettings(Number(userIdget), locale, Number(teamIdget), settingsRepository)
 
-        if (!settings_) {
+        const settingsGet = await getSettings(Number(userIdget), locale, Number(teamIdget), settingsRepository)
+
+        if (!settingsGet) {
           res.status(200).json({
             success: false,
-            message: 'Не удалось получить настройки.',
+            // message: 'Не удалось получить настройки.',
+            message: t('mes.settingsNotFound'),
           });
-          return;
+          break;
         }
         // отправляем ответ
         res.status(200).json({
           success: true,
-          schedule: settings_,
+          schedule: settingsGet,
         });
 
         break;
+      // обновление настроек команды
       case 'POST':
         // Извлекаем данные из тела запроса
         const { settings, userId, teamId } = req.body as RequestBody;
@@ -54,11 +64,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           Number(teamId)
         )
         if (!resSettings.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSettings.message });
-          return;
-        }
 
-        const savedSettings = resSettings.savedSettings as SettingsItem;  //  можно сразу привести типы простые
+          res.status(200).json({
+            success: false,
+            message: `${t('mes.settingsNotSaved')}  + ${resSettings.message}`
+          });
+          break;
+        }
+        //  можно сразу привести все типы простые
+        const savedSettings = resSettings.savedSettings as SettingsItem;
 
         // отправляем ответ
         res.status(200).json({
@@ -68,12 +82,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         break;
 
       default:
-        res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
 
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (setting-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/settings-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 export default withAuth(handler)

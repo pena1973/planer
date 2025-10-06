@@ -1,3 +1,4 @@
+//handlers/handlers-get
 
 import { Repository, In, Between, MoreThanOrEqual, LessThanOrEqual, FindManyOptions, FindOptionsWhere, Not } from 'typeorm';
 import { ulogger } from "./../lib/common/universal-logger";
@@ -2182,7 +2183,6 @@ export async function getSettings(
       context: "export async function getSettings(",
     }).catch(() => { console.error("logger error") });
 
-    return undefined;
   }
 }
 
@@ -2599,6 +2599,7 @@ export async function getUsers(
     return { success: false, users: [], message };
   }
 }
+
 
 //! банер
 export async function getBaner(

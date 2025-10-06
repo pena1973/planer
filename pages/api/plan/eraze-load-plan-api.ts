@@ -1,9 +1,15 @@
+//pages/api/units-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
 
 import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getDependentOperationsIds } from './../../../handlers/handlers-plan';  // планирование карты
@@ -32,7 +38,9 @@ interface RequestBody {
   userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
+   try {
+    
+    const db = await connectDb();
 
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
@@ -44,9 +52,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
-  try {
+ 
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'POST':
@@ -72,15 +81,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return
         }
         // запросим расписание компании
-        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
-        if (!shedule_) {
+        const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+        if (!shedule) {
           res.status(200).json({
             success: false,
-            message: "Ошибка, не найдено расписание команды",
+            // message: "Ошибка, не найдено расписание команды",
+            message: t('mes.sheduleNotFound'),
           });
           break;
         }
-        const todayStr = getCurrentDateInString(shedule_.timeZone)
+        const todayStr = getCurrentDateInString(shedule.timeZone)
 
 
         const oper = tCard.tCardOperations?.find(oper => oper.id === erazload?.id_oper);

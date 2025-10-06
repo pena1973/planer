@@ -1,7 +1,7 @@
 
 import { ulogger } from "./../lib/common/universal-logger";
-import { t } from "./../lib/server/translate/locale";
-import { Repository, In } from 'typeorm';
+import { getServerT } from '@/lib/server/i18n.server';
+import { Repository, In, Not } from 'typeorm';
 // tables
 import { UnitTable } from './../db/models/catalogs/units'
 import { UnitActionTable } from './../db/models/catalogs/unit_actions'
@@ -38,14 +38,14 @@ import {
   SupportMailItem, TCardItem, TCardOperationItem, TCardProductItem,
   ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
   SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum,
-  ScheduleItem
+  ScheduleItem, TeamItem
 } from './../types/types';
 
 import { ClientItem, JobSettingItem, BanerItem } from './../types/service-types';
 
 
 import { YYYYMMDD } from "@/lib/common/utils"
-import { getCurrentDateInString, getTimeZoneDateFromDateString } from "../lib/common/timezone"
+import { getCurrentDateInString, } from "../lib/common/timezone"
 
 // Создание c строки баланса
 export async function updateBalance(
@@ -60,7 +60,6 @@ export async function updateBalance(
   document: string,
   direction: string,
   coment: string,
-
 ) {
 
   // Получаем существующую транзакцию расписание для компании (предполагается, что только одно расписание для компании)
@@ -239,7 +238,7 @@ export async function changeStateTeambyId(
   }
 }
 
-// НАСТРОЙКИ
+//! НАСТРОЙКИ
 export async function updateSettings(
   userId: number,
   locale: string,
@@ -247,42 +246,52 @@ export async function updateSettings(
   settings: SettingsItem,
   teamId: number
 ) {
+  const t = getServerT(locale, 'translation');
 
-  // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
-  const existingSetting = await settingsRepository.findOne({ where: { team_id: teamId } });
+  try {
+    // Получаем существующее настройки для компании (предполагается, что только одни настройки для компании)
+    const existingSetting = await settingsRepository.findOne({ where: { team_id: teamId } });
 
-  if (!existingSetting) {
-    // Если расписания нет, создаем новое
-    const newSettings = settingsRepository.create({
-      // team: { id: teamId }, 
-      team_id: teamId,
-      timeStartWork: settings.timeStartWork,
-      timeFinishWork: settings.timeFinishWork,
-      showWeekend: settings.showWeekend,
-      showHoliday: settings.showHoliday,
-      isQualControl: settings.isQualControl,
-    });
+    if (!existingSetting) {
+      // Если настроек нет, создаем новые
+      const newSettings = settingsRepository.create({
+        team_id: teamId,
+        timeStartWork: settings.timeStartWork,
+        timeFinishWork: settings.timeFinishWork,
+        showWeekend: settings.showWeekend,
+        showHoliday: settings.showHoliday,
+        isQualControl: settings.isQualControl,
+      });
 
-    const savedNewSettings = await settingsRepository.save(newSettings);
-    if (!savedNewSettings) return { success: false, message: "Не удалось сохранить расписание" };
+      const savedNewSettings = await settingsRepository.save(newSettings);
+      return { success: true, savedSettings: savedNewSettings };
 
-    return { success: true, savedSettings: savedNewSettings };
+    } else {
+      // Если расписание существует, обновляем его
+      existingSetting.timeStartWork = settings.timeStartWork;
+      existingSetting.timeFinishWork = settings.timeFinishWork;
+      existingSetting.showHoliday = settings.showHoliday;
+      existingSetting.showWeekend = settings.showWeekend;
+      existingSetting.isQualControl = settings.isQualControl;
+      const savedUpdatedSettings = await settingsRepository.save(existingSetting);
+      return { success: true, savedSettings: savedUpdatedSettings };
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
 
-  } else {
-    // Если расписание существует, обновляем его
-    existingSetting.timeStartWork = settings.timeStartWork;
-    existingSetting.timeFinishWork = settings.timeFinishWork;
-    existingSetting.showHoliday = settings.showHoliday;
-    existingSetting.showWeekend = settings.showWeekend;
-    existingSetting.isQualControl = settings.isQualControl;
-    const savedUpdatedSchedule = await settingsRepository.save(existingSetting);
-    if (!savedUpdatedSchedule) return { success: false, message: "Не удалось обновить расписание" };
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateSettings",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateSettings",
+    }).catch(() => { console.error("logger error"); });
 
-    return { success: true, savedSettings: savedUpdatedSchedule };
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
 
-// ШАБЛОНЫ
+//! ШАБЛОНЫ
 export async function updateTemplates(
   userId: number,
   locale: string,
@@ -290,89 +299,72 @@ export async function updateTemplates(
   templates: TemplateItem[],
   teamId: number
 ) {
+  const t = getServerT(locale, 'translation');
 
-  // // СПИСОК ДЕЙСТВИЙ в базе
-  const existingTemplates = await templatesRepository.find({ where: { team_id: teamId } });
+  try {
+    // // СПИСОК ДЕЙСТВИЙ в базе
+    const existingTemplates = await templatesRepository.find({ where: { team_id: teamId } });
 
-  // 1. Найдём удалённые шаблоны
-  const templatesToDelete = existingTemplates.filter(template =>
-    !templates.some(newTemplate => newTemplate.id === template.id) // Сравниваем id существующих стадий с переданными
-  );
+    // 1. Найдём удалённые шаблоны
+    const templatesToDelete = existingTemplates.filter(template =>
+      !templates.some(newTemplate => newTemplate.id === template.id) // Сравниваем id существующих стадий с переданными
+    );
 
-  // 2. Найдём новые единицы измерения, которых нет в базе
-  const templatesToAdd = templates.filter(template =>
-    !existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id переданных стадий с существующими
-  );
+    // 2. Найдём новые единицы измерения, которых нет в базе
+    const templatesToAdd = templates.filter(template =>
+      !existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id переданных стадий с существующими
+    );
 
-  // 3. Найдём существующие единицы измерения для обновления
-  const templatesToUpdate = templates.filter(template =>
-    existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id для существующих стадий
-  );
+    // 3. Найдём существующие единицы измерения для обновления
+    const templatesToUpdate = templates.filter(template =>
+      existingTemplates.some(existingTemplates => existingTemplates.id === template.id) // Сравниваем id для существующих стадий
+    );
 
-  // Удаляем старые единицы измерения
-  if (templatesToDelete.length > 0) {
-    await templatesRepository.remove(templatesToDelete);
-  }
-
-  // Добавляем новые единицы измерения
-  const newTemplates = templatesToAdd.map(template => {
-    return templatesRepository.create({
-      fileContent: template.fileContent,
-      name: template.name,
-      team_id: teamId,
-    });
-  });
-  let savedNewTemplates = [] as TemplateTable[]
-  if (newTemplates.length > 0) savedNewTemplates = await templatesRepository.save(newTemplates);
-  if (!savedNewTemplates) return { success: false, message: "Не удалось сохранить действие" }
-
-
-  // // Обновляем существующие единицы измерения
-  const updatedTemplates = templatesToUpdate.map(template => {
-    const existingTemplate = existingTemplates.find(existingTemplate => existingTemplate.id === template.id);
-    if (existingTemplate) {
-      existingTemplate.name = template.name;
-      existingTemplate.fileContent = template.fileContent;
-      return templatesRepository.create(existingTemplate);
+    // Удаляем старые единицы измерения
+    if (templatesToDelete.length > 0) {
+      await templatesRepository.remove(templatesToDelete);
     }
-    return null;
-  }).filter(template => template !== null);
 
-  let savedUpdatedTemplates = [] as TemplateTable[]
-  if (updatedTemplates.length > 0) savedUpdatedTemplates = await templatesRepository.save(updatedTemplates);
-  if (!savedUpdatedTemplates) return { success: false, message: "Не удалось сохранить шаблоны " }
-
-  // Все единицы измерения сохранены, проверка
-  let error = ""
-  const savedTemplates = [...savedNewTemplates, ...savedUpdatedTemplates] as TemplateTable[]
-
-  // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
-  if (savedTemplates.length > 0 && templates.length !== savedTemplates.length) {
-    error = `Не удалось сохранить шаблоны`;
-    //  console.log(error);
-    return { success: false, message: error }
-  }
-
-  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-  if (savedTemplates.length > 0 && templates.length > 0) {
-    if (savedTemplates.length > 0) {
-
-      savedTemplates.forEach((template, index) => {
-        if (template.id) {
-          console.log(`Шаблон успешно сохранен с id: ${template.id}`);
-        } else {
-          error = `Ошибка при сохранении шаблона ${index + 1}`;
-          console.log(error);
-          return { success: false, message: error }
-        }
+    // Добавляем новые единицы измерения
+    const newTemplates = templatesToAdd.map(template => {
+      return templatesRepository.create({
+        fileContent: template.fileContent,
+        name: template.name,
+        team_id: teamId,
       });
-    } else {
-      error = `Не удалось сохранить шаблон`;
-      console.log(error);
-      return { success: false, message: error }
-    }
+    });
+
+    const savedNewTemplates = await templatesRepository.save(newTemplates);
+
+    // Обновляем существующие единицы измерения
+    const updatedTemplates = templatesToUpdate.map(template => {
+      const existingTemplate = existingTemplates.find(existingTemplate => existingTemplate.id === template.id);
+      if (existingTemplate) {
+        existingTemplate.name = template.name;
+        existingTemplate.fileContent = template.fileContent;
+        return templatesRepository.create(existingTemplate);
+      }
+      return null;
+    }).filter(template => template !== null);
+
+    const savedUpdatedTemplates = await templatesRepository.save(updatedTemplates);
+
+    const savedTemplates = [...savedNewTemplates, ...savedUpdatedTemplates] as TemplateTable[]
+
+    return { success: true, savedTemplates: savedTemplates, message: "" }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateTemplates",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateTemplates",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
-  return { success: true, savedTemplates: savedTemplates, message: "" }
 }
 
 // КЛИЕНТ
@@ -534,7 +526,7 @@ export async function updateUOMS(
   return { success: true, savedUOMS: savedUOMS }
 }
 
-// ДЕЙСТВИЯ
+//! ДЕЙСТВИЯ
 export async function updateActions(
   userId: number,
   locale: string,
@@ -542,95 +534,87 @@ export async function updateActions(
   actions: ActionItem[],
   teamId: number,
 ) {
+  const t = getServerT(locale, 'translation');
 
-  // СПИСОК ДЕЙСТВИЙ в базе
-  const existingActions = await actionsRepository.find({ where: { team_id: teamId } });
+  try {
+    // Что есть в БД по команде
+    const existingActions = await actionsRepository.find({ where: { team_id: teamId } });
 
-  // 1. Найдём удалённые операции
-  const actionToDelete = existingActions.filter(action =>
-    !actions.some(newActions => newActions.id === action.id) // Сравниваем id существующих стадий с переданными
-  );
+    // Быстрые структуры по id
+    const existingIds = new Set(existingActions.map(a => Number(a.id)));
+    const incomingIds = new Set(actions.map(a => Number(a.id)));
+    const byId = new Map(existingActions.map(a => [Number(a.id), a]));
 
-  // 2. Найдём новые стадии, которых нет в базе
-  const actionToAdd = actions.filter(action =>
-    !existingActions.some(existingAction => existingAction.id === action.id) // Сравниваем id переданных стадий с существующими
-  );
+    // 1) На удаление: есть в БД, нет во входящих
+    const actionToDelete = existingActions.filter(a => !incomingIds.has(Number(a.id)));
 
-  // 3. Найдём существующие стадии для обновления
-  const actionToUpdate = actions.filter(action =>
-    existingActions.some(existingAction => existingAction.id === action.id) // Сравниваем id для существующих стадий
-  );
+    // 2) На добавление: есть во входящих, нет в БД
+    const actionToAdd = actions.filter(a => !existingIds.has(Number(a.id)));
 
-  // Удаляем старые стадии
-  if (actionToDelete.length > 0) {
-    await actionsRepository.remove(actionToDelete);
-  }
+    // 3) На обновление: есть и там, и там
+    const actionToUpdate = actions.filter(a => existingIds.has(Number(a.id)));
 
-  // Добавляем новые стадии
-  const newAction = actionToAdd.map(action => {
-    return actionsRepository.create({
-      code: action.code,
-      title: action.title,
-      interruptible: action.interruptible,
-      team_id: teamId,
-    });
-  });
-  let savedNewActions = [] as ActionTable[]
-  if (newAction.length > 0) savedNewActions = await actionsRepository.save(newAction);
-  if (!savedNewActions) return { success: false, message: "Не удалось сохранить действие" }
+    let savedNewActions: ActionTable[] = [];
+    let savedUpdatedActions: ActionTable[] = [];
 
+    // Короткая транзакция — всё или ничего
+    await actionsRepository.manager.transaction(async (m) => {
 
-  // Обновляем существующие стадии
-  const updatedActions = actionToUpdate.map(action => {
-    const existingAction = existingActions.find(existingAction => existingAction.id === action.id);
-    if (existingAction) {
-      existingAction.code = action.code;
-      existingAction.title = action.title; // Обновляем нужные поля
-      existingAction.interruptible = action.interruptible; // Обновляем нужные поля
-      return actionsRepository.create(existingAction);
-    }
-    return null;
-  }).filter(unitAction => unitAction !== null);
+      const repo = m.withRepository(actionsRepository);
 
-  let savedUpdatedActions = [] as ActionTable[]
-  if (updatedActions.length > 0) savedUpdatedActions = await actionsRepository.save(updatedActions);
-  if (!savedUpdatedActions) return { success: false, message: "Не удалось сохранить действия " }
+      if (actionToDelete.length > 0) {
+        await repo.remove(actionToDelete);
+      }
 
-  // Все действия сохранены, проверка
-  let error = ""
-  const savedActions = [...savedNewActions, ...savedUpdatedActions] as ActionTable[]
+      if (actionToAdd.length > 0) {
+        const newActionEntities = actionToAdd.map(a =>
+          repo.create({
+            code: a.code,
+            title: a.title,
+            interruptible: a.interruptible,
+            team_id: teamId,
+          })
+        );
+        savedNewActions = await repo.save(newActionEntities, { chunk: 500 });
+      }
 
-  // вход и выход массив операций не совпадает количество записей - чтото не сохранилось
-  if (savedActions.length > 0 && actions.length !== savedActions.length) {
-    error = `Не удалось сохранить действия`;
-    console.log(error);
-    return { success: false, message: error }
-  }
+      if (actionToUpdate.length > 0) {
+        const updatedEntities = actionToUpdate
+          .map(a => {
+            const ex = byId.get(Number(a.id));
+            if (!ex) return null;
+            ex.code = a.code;
+            ex.title = a.title;
+            ex.interruptible = a.interruptible;
+            return ex;
+          })
+          .filter((x): x is ActionTable => x !== null);
 
-  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-  if (savedActions.length > 0 && actions.length > 0) {
-    if (savedActions.length > 0) {
-
-      savedActions.forEach((action, index) => {
-        if (action.id) {
-          console.log(`Действие успешно сохранено с id: ${action.id}`);
-        } else {
-          error = `Ошибка при сохранении действия ${index + 1}`;
-          console.log(error);
-          return { success: false, message: error }
+        if (updatedEntities.length > 0) {
+          savedUpdatedActions = await repo.save(updatedEntities, { chunk: 500 });
         }
-      });
-    } else {
-      error = `Не удалось сохранить действия`;
-      console.log(error);
-      return { success: false, message: error }
-    }
+      }
+    });
+
+    const savedActions = [...savedNewActions, ...savedUpdatedActions];
+    return { success: true, savedActions };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateActions",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateActions",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
-  return { success: true, savedActions: savedActions }
 }
 
-
-// РАСПИСАНИЕ
+//! РАСПИСАНИЕ
 export async function updateShedule(
   userId: number,
   locale: string,
@@ -638,59 +622,124 @@ export async function updateShedule(
   schedule: ScheduleItem,
   teamId: number
 ) {
+  const t = getServerT(locale, 'translation');
 
-  // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
-  const existingSchedule = await scheduleRepository.findOne({ where: { team_id: teamId }, });
-  if (!existingSchedule) {
-    // Если расписания нет, создаем новое
-    const newSchedule = scheduleRepository.create({
-      team_id: teamId,
-      timeStartWork: schedule.timeStartWork,
-      timeFinishWork: schedule.timeFinishWork,
-      breaks: schedule.breaks,
-      holidays: schedule.holidays,
-      weekends: schedule.weekends,
-      workdays: schedule.workdays.map(workday => ({
+  if (!schedule.teamId) return { success: false, message: t('mes.no_team') };
+
+  try {
+    // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)
+    const existingSchedule = await scheduleRepository.findOne({ where: { team_id: teamId }, });
+
+    if (!existingSchedule) {
+      // Если расписания нет, создаем новое
+      const newSchedule = scheduleRepository.create({
+        team_id: teamId,
+        timeStartWork: schedule.timeStartWork,
+        timeFinishWork: schedule.timeFinishWork,
+        breaks: schedule.breaks,
+        holidays: schedule.holidays,
+        weekends: schedule.weekends,
+        workdays: schedule.workdays.map(workday => ({
+          date: String(workday.date).split('T')[0],
+          timeStart: workday.timeStart,
+          timeFinish: workday.timeFinish
+        })),
+        timeZone: schedule.timeZone
+      });
+
+      const savedNewSchedule = await scheduleRepository.save(newSchedule);
+
+      return { success: true, savedSchedule: savedNewSchedule };
+
+    } else {
+      // Если расписание существует, обновляем его
+      existingSchedule.timeStartWork = schedule.timeStartWork;
+      existingSchedule.timeFinishWork = schedule.timeFinishWork;
+      existingSchedule.breaks = schedule.breaks;
+      existingSchedule.holidays = schedule.holidays;
+      existingSchedule.weekends = schedule.weekends;
+      existingSchedule.workdays = schedule.workdays.map(workday => ({
         date: String(workday.date).split('T')[0],
         timeStart: workday.timeStart,
         timeFinish: workday.timeFinish
-      })),
-      timeZone: schedule.timeZone
-    });
+      }));
+      existingSchedule.timeZone = schedule.timeZone;
 
-    const savedNewSchedule = await scheduleRepository.save(newSchedule);
-    if (!savedNewSchedule) return { success: false, message: "Не удалось сохранить расписание" };
+      const savedUpdatedSchedule = await scheduleRepository.save(existingSchedule);
+      return { success: true, savedSchedule: savedUpdatedSchedule };
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
 
-    return { success: true, savedSchedule: savedNewSchedule };
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateShedule",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateShedule",
+    }).catch(() => { console.error("logger error"); });
 
-  } else {
-    // Если расписание существует, обновляем его
-    existingSchedule.timeStartWork = schedule.timeStartWork;
-    existingSchedule.timeFinishWork = schedule.timeFinishWork;
-    existingSchedule.breaks = schedule.breaks;
-    //  existingSchedule.holidays = schedule.holidays.map(date => new Date(date));
-    existingSchedule.holidays = schedule.holidays;
-    // existingSchedule.holidays = schedule.holidays.map(date => getTimeZoneDateFromDateString(date,schedule.timeZone));
-    existingSchedule.weekends = schedule.weekends;
-    existingSchedule.workdays = schedule.workdays.map(workday => ({
-      date: String(workday.date).split('T')[0],
-      timeStart: workday.timeStart,
-      timeFinish: workday.timeFinish
-    }));
+    return { success: false, message: 'db_error: ' + msg };
+  }
 
-    existingSchedule.timeZone = schedule.timeZone;
+}
 
+//! КОМАНДА
+export async function updateTeam(
+  userId: number,
+  locale: string,
+  teamId: number,
+  title: string,
+  coment: string,
+  teamsRepository: Repository<TeamTable>,
+): Promise<{ success: boolean, savedTeam?: TeamItem, message?: string }> {
+  const t = getServerT(locale, 'translation');
+  try {
 
-    const savedUpdatedSchedule = await scheduleRepository.save(existingSchedule);
-    if (!savedUpdatedSchedule) return { success: false, message: "Не удалось обновить расписание" };
+    const team = await teamsRepository.findOne({ where: { id: teamId } });
 
+    if (!team) {
+      return {
+        success: false,
+        message: t('mes.teamNotFound'),
+      };
+    }
 
-    return { success: true, savedSchedule: savedUpdatedSchedule };
+    // Обновляем поля команды
+    team.title = title;
+    team.coment = coment;
+
+    // Сохраняем обновленную команду в базе данных
+    const savedTeam = await teamsRepository.save(team);
+
+    return {
+      success: true,
+      savedTeam: {
+        id: savedTeam.id,
+        title: savedTeam.title,
+        coment: savedTeam.coment,
+        prefix: savedTeam.prefix,
+        main_team: savedTeam.main_team,
+      },
+      message: t('mes.teamUpdated'),
+    };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateTeam",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateTeam",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
 
-// &&&&&
-// ЮНИТЫ
+
+//!ЮНИТЫ
 export async function updateUnits(
   userId: number,
   locale: string,
@@ -698,114 +747,98 @@ export async function updateUnits(
   units: UnitItem[],
   teamId: number
 ): Promise<{ success: boolean, savedUnits?: UnitItem[], message?: string }> {
+  const t = getServerT(locale, 'translation');
+  try {
 
-  // Получаем все существующие юниты в базе
-  const existingUnits = await unitRepository.find({ where: { team_id: teamId } });
+    // Получаем все существующие юниты в базе
+    const existingUnits = await unitRepository.find({ where: { team_id: teamId } });
 
-  // 1. Найдём юниты, которые нужно удалить
-  const unitsToDelete = existingUnits.filter(existingUnit =>
-    !units.some(unit => unit.id === existingUnit.id) // Сравниваем id существующих юнитов с переданными
-  );
+    // 1. Найдём юниты, которые нужно удалить
+    const unitsToDelete = existingUnits.filter(existingUnit =>
+      !units.some(unit => unit.id === existingUnit.id) // Сравниваем id существующих юнитов с переданными
+    );
 
-  // 2. Найдём юниты, которые нужно добавить
-  const unitsToAdd = units.filter(unit =>
-    !existingUnits.some(existingUnit => existingUnit.id === unit.id) // Сравниваем id переданных юнитов с существующими
-  );
+    // 2. Найдём юниты, которые нужно добавить
+    const unitsToAdd = units.filter(unit =>
+      !existingUnits.some(existingUnit => existingUnit.id === unit.id) // Сравниваем id переданных юнитов с существующими
+    );
 
-  // 3. Найдём юниты, которые нужно обновить
-  const unitsToUpdate = units.filter(unit =>
-    existingUnits.some(existingUnit => existingUnit.id === unit.id) // Сравниваем id для существующих юнитов
-  );
+    // 3. Найдём юниты, которые нужно обновить
+    const unitsToUpdate = units.filter(unit =>
+      existingUnits.some(existingUnit => existingUnit.id === unit.id) // Сравниваем id для существующих юнитов
+    );
 
-  // Удаляем старые юниты
-  if (unitsToDelete.length > 0) {
-    await unitRepository.remove(unitsToDelete);
-  }
-
-  // Добавляем новые юниты
-  const newUnits = unitsToAdd.map(unit => {
-    return unitRepository.create({
-      code: unit.code,
-      title: unit.title,
-      team_id: teamId,
-      retool: unit.retool,
-      coment: unit.coment,
-      belong: unit.belong,
-      type: unit.type,
-      idc: unit.idc
-    });
-  });
-
-  let savedNewUnits = [] as UnitTable[];
-  if (newUnits.length > 0) savedNewUnits = await unitRepository.save(newUnits);
-  if (!savedNewUnits) return { success: false, message: "Не удалось сохранить юниты" };
-
-  // Обновляем существующие юниты
-  const updatedUnits = unitsToUpdate.map(unit => {
-    const existingUnit = existingUnits.find(existingUnit => existingUnit.id === unit.id);
-    if (existingUnit) {
-      existingUnit.title = unit.title;
-      existingUnit.code = unit.code;
-      existingUnit.retool = unit.retool;
-      existingUnit.coment = unit.coment;
-      existingUnit.belong = unit.belong;
-      existingUnit.type = unit.type;
-      return unitRepository.create(existingUnit);
+    // Удаляем старые юниты
+    if (unitsToDelete.length > 0) {
+      await unitRepository.remove(unitsToDelete);
     }
-    return null;
-  }).filter(unit => unit !== null);
 
-  let savedUpdatedUnits = [] as UnitTable[];
-  if (updatedUnits.length > 0) savedUpdatedUnits = await unitRepository.save(updatedUnits);
-  if (!savedUpdatedUnits) return { success: false, message: "Не удалось обновить юниты" };
-
-  // Все юниты сохранены, проверка
-  let error = "";
-  const savedUnits = [...savedNewUnits, ...savedUpdatedUnits] as UnitTable[];
-
-  // Проверка, что количество юнитов совпадает
-  if (savedUnits.length > 0 && units.length !== savedUnits.length) {
-    error = `Не удалось сохранить юниты`;
-    console.log(error);
-    return { success: false, message: error };
-  }
-
-  // Проверка, что все объекты имеют сгенерированный id
-  if (savedUnits.length > 0) {
-    savedUnits.forEach((unit, index) => {
-      if (unit.id) {
-        console.log(`Юнит ${index + 1} успешно сохранён с id: ${unit.id}`);
-      } else {
-        error = `Ошибка при сохранении юнита ${index + 1}`;
-        console.log(error);
-        return { success: false, message: error };
-      }
+    // Добавляем новые юниты
+    const newUnits = unitsToAdd.map(unit => {
+      return unitRepository.create({
+        code: unit.code,
+        title: unit.title,
+        team_id: teamId,
+        retool: unit.retool,
+        coment: unit.coment,
+        belong: unit.belong,
+        type: unit.type,
+        idc: unit.idc
+      });
     });
-  } else {
-    error = `Не удалось сохранить юниты`;
-    console.log(error);
-    return { success: false, message: error };
-  }
 
-  const savedUnits_ = savedUnits.map(u => {
-    return {
-      id: u.id,
-      idc: u.idc,
-      title: u.title,
-      code: u.code,
-      retool: u.retool,
-      modified: false,
-      belong: u.belong as UnitBelongEnum,
-      type: u.type as UnitTypeEnum,
-      coment: u.coment,
-      active: u.active,
-    } as UnitItem
-  })
-  return { success: true, savedUnits: savedUnits_ };
+    const savedNewUnits = await unitRepository.save(newUnits);
+
+    // Обновляем существующие юниты
+    const updatedUnits = unitsToUpdate.map(unit => {
+      const existingUnit = existingUnits.find(existingUnit => existingUnit.id === unit.id);
+      if (existingUnit) {
+        existingUnit.title = unit.title;
+        existingUnit.code = unit.code;
+        existingUnit.retool = unit.retool;
+        existingUnit.coment = unit.coment;
+        existingUnit.belong = unit.belong;
+        existingUnit.type = unit.type;
+        return existingUnit;
+      }
+      return null;
+    }).filter(unit => unit !== null);
+
+    const savedUpdatedUnits = await unitRepository.save(updatedUnits);
+
+    const savedUnits = [...savedNewUnits, ...savedUpdatedUnits] as UnitTable[];
+
+    const savedUnits_ = savedUnits.map(u => {
+      return {
+        id: u.id,
+        idc: u.idc,
+        title: u.title,
+        code: u.code,
+        retool: u.retool,
+        modified: false,
+        belong: u.belong as UnitBelongEnum,
+        type: u.type as UnitTypeEnum,
+        coment: u.coment,
+        active: u.active,
+      } as UnitItem
+    })
+    return { success: true, savedUnits: savedUnits_ };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateTeam",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateTeam",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
 }
 
-// &&&&&
-// ДЕЙСТВИЯ ЮНИТА
+//! ДЕЙСТВИЯ ЮНИТА
 export async function updateUnitActions(
   userId: number,
   locale: string,
@@ -813,94 +846,78 @@ export async function updateUnitActions(
   unitActions: UnitActionItem[],
   teamId: number
 ): Promise<{ success: boolean; message?: string; savedUnitActions?: UnitActionItem[] }> {
-  const existingUnitActions = await unitActionsRepository.find({
-    where: { team_id: teamId }
-  });
 
-  const unitActionToDelete = existingUnitActions.filter(existing =>
-    !unitActions.some(u => u.id === existing.id)
-  );
+  const t = getServerT(locale, 'translation');
 
-  const unitActionToAdd = unitActions.filter(u =>
-    !existingUnitActions.some(existing => existing.id === u.id)
-  );
+  try {
+    const existing = await unitActionsRepository.find({ where: { team_id: teamId } });
 
-  const unitActionToUpdate = unitActions.filter(u =>
-    existingUnitActions.some(existing => existing.id === u.id)
-  );
+    // Быстрые структуры по id
+    const existingIds = new Set(existing.map(e => e.id));
+    const incomingWithId = unitActions.filter(u => u.id != null) as Array<UnitActionItem & { id: number }>;
+    const incomingIds = new Set(incomingWithId.map(u => u.id));
 
-  if (unitActionToDelete.length > 0) {
-    await unitActionsRepository.remove(unitActionToDelete);
-  }
+    // 1) На удаление: есть в БД, нет во входящих
+    const toDelete = existing.filter(e => !incomingIds.has(e.id));
+    await unitActionsRepository.remove(toDelete); // remove([]) безопасен
 
-  const newUnitActionEntities = unitActionToAdd.map(unitAction =>
-    unitActionsRepository.create({
-      idc: unitAction.idc,
-      koef: unitAction.koef,
-      action_id: unitAction.action.id,
-      unit_id: unitAction.unitId,
-      unit_idc: unitAction.unitIdc,
-      team_id: teamId,
-    })
-  );
-
-  const savedNewUnitActions = newUnitActionEntities.length > 0
-    ? await unitActionsRepository.save(newUnitActionEntities)
-    : [];
-
-  const updatedEntities = unitActionToUpdate.map(unitAction => {
-    const existing = existingUnitActions.find(e => e.id === unitAction.id);
-    if (existing) {
-      return unitActionsRepository.create({
-        id: unitAction.id,
-        idc: unitAction.idc,
-        koef: unitAction.koef,
-        action_id: unitAction.action.id,
-        unit_id: unitAction.unitId,
-        unit_idc: unitAction.unitIdc,
+    // 2) На добавление: нет id или такого id нет в БД
+    const toAdd = unitActions.filter(u => u.id == null || !existingIds.has(u.id as number));
+    const newEntities = toAdd.map(u =>
+      unitActionsRepository.create({
+        idc: u.idc,
+        koef: u.koef,
+        action_id: u.action.id,  // предполагаем, что id валиден
+        unit_id: u.unitId,
+        unit_idc: u.unitIdc,
         team_id: teamId,
-      });
-    }
-    return null;
-  }).filter(Boolean) as UnitActionTable[];
+      })
+    );
+    const savedNew = await unitActionsRepository.save(newEntities); // save([]) => []
 
-  const savedUpdatedUnitActions = updatedEntities.length > 0
-    ? await unitActionsRepository.save(updatedEntities)
-    : [];
+    // 3) На обновление: есть id и он в БД
+    const toUpdate = unitActions.filter(u => u.id != null && existingIds.has(u.id as number));
+    const updatedEntities: UnitActionTable[] = toUpdate.map(u => ({
+      id: u.id as number,
+      idc: u.idc,
+      koef: u.koef,
+      action_id: u.action.id,
+      unit_id: u.unitId,
+      unit_idc: u.unitIdc,
+      team_id: teamId,
+    } as UnitActionTable)); // достаточно partial с id
 
-  const savedUnitActions = [...savedNewUnitActions, ...savedUpdatedUnitActions].map(unitAction => ({
-    ...unitAction,
-    action: unitActions.find(u => u.id === unitAction.id)?.action
-  })) as (UnitActionTable & { action?: ActionTable })[];
+    const savedUpdated = await unitActionsRepository.save(updatedEntities);
 
-  if (savedUnitActions.length > 0 && unitActions.length !== savedUnitActions.length) {
-    const error = `Не удалось сохранить действия юнита`;
-    console.log(error);
-    return { success: false, message: error };
+    // Формируем итог (подтягиваем action из входного списка по idc)
+    const byIdcIncoming = new Map(unitActions.map(u => [u.idc, u.action]));
+    const savedUnitActions = [...savedNew, ...savedUpdated].map(uas => ({
+      id: uas.id,
+      idc: uas.idc,
+      action: byIdcIncoming.get(uas.idc) ?? ({} as ActionItem),
+      koef: uas.koef,
+      unitId: uas.unit_id,
+      unitIdc: uas.unit_idc,
+    })) as UnitActionItem[];
+
+    return { success: true, savedUnitActions };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateUnitActions",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateUnitActions",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
-
-  for (const [index, unitAction] of savedUnitActions.entries()) {
-    if (!unitAction.id) {
-      const error = `Ошибка при сохранении действия юнита ${index + 1}`;
-      console.log(error);
-      return { success: false, message: error };
-    }
-  }
-  const savedUnitActions_ = savedUnitActions.map(uasaved => {
-    const unitAction = unitActions.find(ua => ua.idc === uasaved.idc)
-    return {
-      id: uasaved.id,
-      idc: uasaved.idc,
-      action: unitAction?.action ?? {} as ActionItem,
-      koef: uasaved.koef,
-      unitId: uasaved.unit_id,
-      unitIdc: uasaved.unit_idc,
-    } as UnitActionItem
-  })
-  return { success: true, savedUnitActions: savedUnitActions_ };
 }
-// &&&&
-// ОТКЛОНЕНИЯ ОТ РАСПИСАНИЯ ЮНИТА
+
+//! ОТКЛОНЕНИЯ ОТ РАСПИСАНИЯ ЮНИТА
 export async function updateExceptions(
   userId: number,
   locale: string,
@@ -908,111 +925,92 @@ export async function updateExceptions(
   unitExceptions: UnitExceptionItem[],
   teamId: number
 ): Promise<{ success: boolean; message?: string; savedUnitExceptions?: UnitExceptionItem[] }> {
+  
+  const t = getServerT(locale, 'translation');
+  try {
+    // СПИСОК ЮНИТОВ в базе
+    const existingUnitExceptions = await unitExceptionsRepository.find({ where: { team_id: teamId } });
 
-  // СПИСОК ЮНИТОВ в базе
-  const existingUnitExceptions = await unitExceptionsRepository.find({ where: { team_id: teamId } });
+    // 1. Найдём удалённые  отклонения Юнита
+    const unitExceptionsToDelete = existingUnitExceptions.filter(unitException =>
+      !unitExceptions.some(newUnitExceptions => newUnitExceptions.id === unitException.id)
+    );
 
-  // 1. Найдём удалённые  отклонения Юнита
-  const unitExceptionsToDelete = existingUnitExceptions.filter(unitException =>
-    !unitExceptions.some(newUnitExceptions => newUnitExceptions.id === unitException.id)
-  );
+    // 2. Найдём новые отклонения Юнита, которых нет в базе
+    const unitExceptionsToAdd = unitExceptions.filter(unitException =>
+      !existingUnitExceptions.some(existingUnitException => existingUnitException.id === unitException.id)
+    );
 
-  // 2. Найдём новые отклонения Юнита, которых нет в базе
-  const unitExceptionsToAdd = unitExceptions.filter(unitException =>
-    !existingUnitExceptions.some(existingUnitException => existingUnitException.id === unitException.id)
-  );
+    // 3. Найдём существующие отклонения Юнита для обновления
+    const unitExceptionToUpdate = unitExceptions.filter(unitException =>
+      existingUnitExceptions.some(existingUnitException => existingUnitException.id === unitException.id)
+    );
 
-  // 3. Найдём существующие отклонения Юнита для обновления
-  const unitExceptionToUpdate = unitExceptions.filter(unitException =>
-    existingUnitExceptions.some(existingUnitException => existingUnitException.id === unitException.id)
-  );
-
-  // Удаляем старые отклонения Юнита
-  if (unitExceptionsToDelete.length > 0) {
-    await unitExceptionsRepository.remove(unitExceptionsToDelete);
-  }
-
-  // Добавляем новые действия Юнита
-  const newUnitException = unitExceptionsToAdd.map(unitException => {
-    // const date = new Date(unitException.date);
-    return unitExceptionsRepository.create({
-      idc: unitException.idc,
-      date: unitException.date,
-      type: unitException.type,
-      timeStart: unitException.timeStart,
-      timeFinish: unitException.timeFinish,
-      unit_id: unitException.unitId,
-      unit_idc: unitException.unitIdc,
-      team_id: teamId,
-    });
-  });
-  let savedNewUnitExceptions = [] as UnitExceptionTable[]
-  if (newUnitException.length > 0) savedNewUnitExceptions = await unitExceptionsRepository.save(newUnitException);
-  if (!savedNewUnitExceptions) return { success: false, message: "Не удалось сохранить отклонения Юнита" }
-
-  // Обновляем существующие исключения
-  const updatedUnitExceptions = unitExceptionToUpdate.map(unitException => {
-    const existingUnitException = existingUnitExceptions.find(existingUnitException => existingUnitException.id === unitException.id);
-    if (existingUnitException) {
-      // existingUnitException.date = new Date(unitException.date);
-      existingUnitException.date = unitException.date;
-      existingUnitException.timeFinish = unitException.timeFinish;
-      existingUnitException.timeStart = unitException.timeStart;
-      existingUnitException.type = unitException.type;
-      return unitExceptionsRepository.create(existingUnitException);
+    // Удаляем старые отклонения Юнита
+    if (unitExceptionsToDelete.length > 0) {
+      await unitExceptionsRepository.remove(unitExceptionsToDelete);
     }
-    return null;
-  }).filter(unitException => unitException !== null);
 
-  let savedUpdatedUnitExceptions = [] as UnitExceptionTable[]
-  if (updatedUnitExceptions.length > 0) savedUpdatedUnitExceptions = await unitExceptionsRepository.save(updatedUnitExceptions);
-
-  if (!savedUpdatedUnitExceptions) return { success: false, message: "Не удалось сохранить отклонения Юнита" }
-
-  // Все действия юнита сохранены, проверка
-  let error = ""
-  const savedUnitExceptions = [...savedNewUnitExceptions, ...savedUpdatedUnitExceptions] as UnitExceptionTable[]
-
-  // вход и выход массив операций не совпадает количество записей - чтото не сохранилось
-  if (savedUnitExceptions.length > 0 && unitExceptions.length !== savedUnitExceptions.length) {
-    error = `Не удалось сохранить стадии`;
-    console.log(error);
-    return { success: false, message: error }
-  }
-
-  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-  if (savedUnitExceptions.length > 0 && unitExceptions.length > 0) {
-    if (savedUnitExceptions.length > 0) {
-
-      savedUnitExceptions.forEach((unitException, index) => {
-        if (unitException.id) {
-          // console.log(`Отклонение юнита ${index + 1} успешно сохранено с id: ${unitException.id}`);
-        } else {
-          error = `Ошибка при сохранении отклонения ${index + 1}`;
-          console.log(error);
-          return { success: false, message: error }
-        }
+    // Добавляем новые действия Юнита
+    const newUnitException = unitExceptionsToAdd.map(unitException => {
+      return unitExceptionsRepository.create({
+        idc: unitException.idc,
+        date: unitException.date,
+        type: unitException.type,
+        timeStart: unitException.timeStart,
+        timeFinish: unitException.timeFinish,
+        unit_id: unitException.unitId,
+        unit_idc: unitException.unitIdc,
+        team_id: teamId,
       });
-    } else {
-      error = `Не удалось сохранить отклонения расписания юнита`;
-      console.log(error);
-      return { success: false, message: error }
-    }
+    });
+
+    const savedNewUnitExceptions = await unitExceptionsRepository.save(newUnitException);
+
+    // Обновляем существующие исключения
+    const updatedUnitExceptions = unitExceptionToUpdate.map(unitException => {
+      const existingUnitException = existingUnitExceptions.find(existingUnitException => existingUnitException.id === unitException.id);
+      if (existingUnitException) {
+        existingUnitException.date = YYYYMMDD(unitException.date);
+        existingUnitException.timeFinish = unitException.timeFinish;
+        existingUnitException.timeStart = unitException.timeStart;
+        existingUnitException.type = unitException.type;
+        return existingUnitException;
+      }
+      return null;
+    }).filter(unitException => unitException !== null);
+
+
+    const savedUpdatedUnitExceptions = await unitExceptionsRepository.save(updatedUnitExceptions);
+
+    const savedUnitExceptions = [...savedNewUnitExceptions, ...savedUpdatedUnitExceptions] as UnitExceptionTable[]
+
+    const savedUnitExceptions_ = savedUnitExceptions.map(sue => {
+      return {
+        id: sue.id,
+        idc: sue.idc,
+        date: YYYYMMDD(sue.date),
+        type: sue.type,
+        timeStart: sue.timeStart,
+        timeFinish: sue.timeFinish,
+        unitId: sue.unit_id,
+        unitIdc: sue.unit_idc,
+      } as UnitExceptionItem
+    })
+    return { success: true, savedUnitExceptions: savedUnitExceptions_ }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateExceptions",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateExceptions",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
-  const savedUnitExceptions_ = savedUnitExceptions.map(sue => {
-    return {
-      id: sue.id,
-      idc: sue.idc,
-      // date: new Date(sue.date).toLocaleDateString('en-CA'),
-      date: sue.date,
-      type: sue.type,
-      timeStart: sue.timeStart,
-      timeFinish: sue.timeFinish,
-      unitId: sue.unit_id,
-      unitIdc: sue.unit_idc,
-    } as UnitExceptionItem
-  })
-  return { success: true, savedUnitExceptions: savedUnitExceptions_ }
 }
 
 // НАЗНАЧЕНИЯ ЮНИТА ПОЛЬЗОВАТЕЛЮ
@@ -1208,7 +1206,7 @@ export async function updateUsers(
   return { success: true, savedUsers: savedUpdatedUsers }
 }
 
-// Обновление лоадов карты
+//! Обновление лоадов карты
 export async function updateTCardLoads(
   userId: number,
   locale: string,
@@ -1216,34 +1214,35 @@ export async function updateTCardLoads(
   tCardId: number,
   loads: UnitLoadItem[],
   unitLoadRepository: Repository<UnitLoadTable>
-): Promise<{ success: boolean, loads: UnitLoadTable[], message: string }> {
+): Promise<{ success: boolean, loads?: UnitLoadTable[], message: string }> {
 
-  // // СПИСОК ДЕЙСТВИЙ в базе
-  const existingLoads = await unitLoadRepository.find({ where: { id_tCard: tCardId } });
+  const t = getServerT(locale, 'translation');
 
-  // 1. Найдём удалённые лоады
-  const loadsToDelete = existingLoads.filter(load =>
-    !loads.some(newLoad => newLoad.id === load.id) // Сравниваем id существующих лоадов
-  );
+  try {
 
-  // 2. Найдём новые лоады, которых нет в базе
-  const loadsToAdd = loads.filter(load =>
-    !existingLoads.some(existingLoads => existingLoads.id === load.id) // Сравниваем id переданных стадий с существующими
-  );
+    const existingLoads = await unitLoadRepository.find({ where: { id_tCard: tCardId } });
 
-  // 3. Найдём существующие лоады для обновления
-  const loadsToUpdate = loads.filter(load =>
-    existingLoads.some(existingLoads => existingLoads.id === load.id) // Сравниваем id для существующих стадий
-  );
+    // 1. Найдём удалённые лоады
+    const loadsToDelete = existingLoads.filter(load =>
+      !loads.some(newLoad => newLoad.id === load.id) // Сравниваем id существующих лоадов
+    );
 
-  // Удаляем лоады которые надо удалить
-  if (loadsToDelete.length > 0) {
-    await unitLoadRepository.remove(loadsToDelete);
-  }
+    // 2. Найдём новые лоады, которых нет в базе
+    const loadsToAdd = loads.filter(load =>
+      !existingLoads.some(existingLoads => existingLoads.id === load.id) // Сравниваем id переданных стадий с существующими
+    );
 
-  // Добавляем новые единицы лоады  -  операция нереальная! добавлено для совместимости с остальными функциями
-  let savedNewLoads = [] as UnitLoadTable[];
-  if (loadsToAdd.length > 0) {
+    // 3. Найдём существующие лоады для обновления
+    const loadsToUpdate = loads.filter(load =>
+      existingLoads.some(existingLoads => existingLoads.id === load.id) // Сравниваем id для существующих стадий
+    );
+
+    // Удаляем лоады которые надо удалить
+    if (loadsToDelete.length > 0) {
+      await unitLoadRepository.remove(loadsToDelete);
+    }
+
+    // Добавляем новые единицы лоады  -  операция нереальная! добавлено для совместимости с остальными функциями    
     const newLoads = loadsToAdd.map(load => {
       return unitLoadRepository.create({
         date: load.date,
@@ -1266,47 +1265,131 @@ export async function updateTCardLoads(
       });
     });
 
-    if (newLoads.length > 0) savedNewLoads = await unitLoadRepository.save(newLoads);
-    if (!savedNewLoads) return { success: false, loads: [] as UnitLoadTable[], message: "Не удалось сохранить интервалы загрузок" }
+    let savedNewLoads = await unitLoadRepository.save(newLoads);
+
+    // // Обновляем существующие лоады (только статус)
+    const updatedLoads = loadsToUpdate.map(load => {
+      const existingLoad = existingLoads.find(existingLoad => existingLoad.id === load.id);
+      if (existingLoad) {
+        existingLoad.status = load.status
+        return unitLoadRepository.create(existingLoad);
+      }
+      return null;
+    }).filter(load => load !== null);
+
+    let savedUpdatedLoads = await unitLoadRepository.save(updatedLoads);
+
+    const savedLoads = [...savedNewLoads, ...savedUpdatedLoads] as UnitLoadTable[]
+
+    return { success: true, loads: savedLoads as UnitLoadTable[], message: "" }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateTCardLoads",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateTCardLoads",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
-
-  // // Обновляем существующие лоады (только статус)
-  const updatedLoads = loadsToUpdate.map(load => {
-    const existingLoad = existingLoads.find(existingLoad => existingLoad.id === load.id);
-    if (existingLoad) {
-      existingLoad.status = load.status
-      return unitLoadRepository.create(existingLoad);
-    }
-    return null;
-  }).filter(load => load !== null);
-
-  let savedUpdatedLoads = [] as UnitLoadTable[]
-  if (updatedLoads.length > 0) savedUpdatedLoads = await unitLoadRepository.save(updatedLoads);
-  if (!savedUpdatedLoads) return { success: false, loads: [] as UnitLoadTable[], message: "Не удалось сохранить интервалы загрузок" }
-
-  // Все единицы измерения сохранены, проверка
-  let error = ""
-  const savedLoads = [...savedNewLoads, ...savedUpdatedLoads] as UnitLoadTable[]
-
-  // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
-  if (loads.length !== savedLoads.length) {
-    error = `Не удалось сохранить интервалы загрузки`;
-    return { success: false, loads: [] as UnitLoadTable[], message: error }
-  }
-
-
-  return { success: true, loads: savedLoads as UnitLoadTable[], message: "" }
 }
 
-
-
-///////////////////// КАРТА ТЕХНОЛОГИЧЕСКИХ ОПЕРАЦИЙ//////////////////
-
-// получаю максимальный номер карты
-// не беру id потому что он в пределах таблицы
-async function generateNewNumberForTeam(
+//! Запись новых лоадов карты
+export async function saveNewLoads(
   userId: number,
   locale: string,
+  unitLoadRepository: Repository<UnitLoadTable>,
+  loadsToAdd: UnitLoadItem[],
+  teamId: number
+): Promise<{ success: boolean, savedUnitLoads?: UnitLoadItem[], message?: string }> {
+
+  const t = getServerT(locale, 'translation');
+
+  try {
+    // Нет новых загрузок
+    if (loadsToAdd.length === 0) {
+      return {
+        success: true,
+        savedUnitLoads: [] as UnitLoadItem[],
+      }
+    }
+
+    // Добавляем новые Загрузки и меняем статус
+    const newLoads = loadsToAdd.map(load => {
+      return unitLoadRepository.create({
+        date: load.date,
+        idc: load.idc,
+        id_oper: load.id_oper,
+        idc_oper: load.idc_oper,
+        id_tCard: load.id_tCard,
+        timeStart: Math.ceil(load.timeStart), // Время начала в минутах окр в большую сторону
+        timeFinish: Math.ceil(load.timeFinish), // Время окончания в минутах окр в большую сторону
+        team_id: teamId,
+        unit_id: load.unit.id,
+        status: StatusEnum.planed,
+        isActive: load.isActive,
+        isRetool: load.isRetool,
+        isPinned: load.isPinned,
+        isOuterStart: load.isOuterStart,
+        isOuterFinish: load.isOuterFinish,
+        version: load.version,
+        isFirst: load.isFirst,
+      });
+    });
+
+    let savedNewLoads = [] as UnitLoadTable[]
+    if (newLoads.length > 0) savedNewLoads = await unitLoadRepository.save(newLoads);
+
+    const savedUnitLoads = savedNewLoads.map(loadT => {
+      const load = loadsToAdd.find(lo => lo.id_oper === loadT.id_oper && lo.idc === loadT.idc)
+      return {
+        id: loadT.id,
+        idc: loadT.idc,
+        unit: (load) ? load.unit as UnitItem : {} as UnitItem,
+        date: String(loadT.date), //   перевели в строковый формат
+        idc_oper: loadT.idc_oper,
+        id_oper: loadT.id_oper,
+        id_tCard: loadT.id_tCard,
+        timeStart: loadT.timeStart,
+        timeFinish: loadT.timeFinish,
+        status: loadT.status,
+        isActive: loadT.isActive,
+        isRetool: loadT.isRetool,
+        loadInfo: (load) ? load.loadInfo : undefined,
+        isPinned: loadT.isPinned,//  перенесен вручшую на шкале
+        isOuterStart: loadT.isOuterStart,//  это старт оутсортера
+        isOuterFinish: loadT.isOuterFinish,
+        version: loadT.version,
+        isFirst: loadT.isFirst,
+      } as UnitLoadItem
+    })
+
+    return {
+      success: true,
+      savedUnitLoads: savedUnitLoads
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/saveNewLoads",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "saveNewLoads",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
+}
+
+///////////////////// КАРТА ТЕХНОЛОГИЧЕСКИХ ОПЕРАЦИЙ//////////////////
+//! получаю максимальный номер карты  !!!доделать сброс в предкелах года
+// не беру id потому что он в пределах таблицы
+async function generateNewNumberForTeam(
   tCardRepository: Repository<TCardTable>,
   teamId: number
 ) {
@@ -1329,8 +1412,7 @@ async function generateNewNumberForTeam(
 }
 
 ///////////////////// ЗАПИСЬ КАРТЫ//////////////////
-// &&&&
-// ТКАРТА  //  ПРОВЕРИТЬ ПРИ ЗАПИСИ ПРАВИЛЬНОСТЬ СТАТУСА (если есть БРАК!!
+//! ТКАРТА  //  ПРОВЕРИТЬ ПРИ ЗАПИСИ ПРАВИЛЬНОСТЬ СТАТУСА (если есть БРАК!!
 export async function updateCard(
   userId: number,
   locale: string,
@@ -1338,18 +1420,25 @@ export async function updateCard(
   tCard: TCardItem,
   teamId: number
 ): Promise<{ success: boolean; savedTCard?: TCardItem; message?: string }> {
-  let savedTCard: TCardTable | null = null;
+
+  const t = getServerT(locale, 'translation');
 
   try {
+    let savedTCard: TCardTable | null = null;
     // Генерируем номер карты, если idc = 0
     let newCardNumber = Number(tCard.idc);
     if (tCard.idc === 0) {
-      newCardNumber = await generateNewNumberForTeam(userId, locale, tCardRepository, teamId);
+      newCardNumber = await generateNewNumberForTeam(tCardRepository, teamId);
       if (!newCardNumber) {
-        return { success: false, message: `Ошибка при генерации номера карты` };
+        return {
+          success: false,
+          // message: `Ошибка при генерации номера карты` 
+          message: t("mes.numCardGenerationError"),
+        };
       }
     }
-    // проверка если есть брак и нет исправления то у карты статус брак  (если она приходит со статусом брак, планирован, подготовлен и драфт)
+    // проверка если есть брак и нет исправления то у карты статус брак  
+    // (если она приходит со статусом брак, планирован, подготовлен и драфт)
     const opDefective = tCard.tCardOperations?.filter(op => op.status === StatusEnum.defective);
 
     const hasUnfixedDefect = opDefective?.some(op => {
@@ -1387,11 +1476,6 @@ export async function updateCard(
       savedTCard = await tCardRepository.save(newTCard);
     }
 
-    // Проверка успешности
-    if (!savedTCard || !savedTCard.id) {
-      return { success: false, message: `Ошибка при сохранении карты` };
-    }
-
     // Формируем TCardItem
     const savedItem: TCardItem = {
       id: savedTCard.id,
@@ -1406,24 +1490,35 @@ export async function updateCard(
 
     return { success: true, savedTCard: savedItem };
 
-  } catch (error) {
-    console.error('Ошибка при обновлении/создании карты:', error);
-    return { success: false, message: 'Ошибка при сохранении карты' };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateCard",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateCard",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
-// &&&&
-// СТАДИИ
+
+//! СТАДИИ
 export async function updateStages(
   userId: number,
   locale: string,
   tCardStagesRepository: Repository<TCardStageTable>,
   tCardOperationsRepository: Repository<TCardOperationTable>,
-  tCardProductRepository: Repository<TCardProductTable>,
   tCardStages: TCardStageItem[],
   savedTCard: TCardItem,
   teamId: number,
 
 ): Promise<{ success: boolean, savedTCardStages?: TCardStageItem[], message?: string }> {
+
+  const t = getServerT(locale, 'translation');
+
   try {
     // Получаем текущие стадии из БД
     const existingTCardStages = await tCardStagesRepository.find({
@@ -1435,39 +1530,26 @@ export async function updateStages(
       !tCardStages.some(newStage => newStage.id === stage.id)
     );
 
-    // вот здесь возможно ошибка!!! нельзя удалить стадию с операциями
+    // FIX: ранняя проверка — если у каких-либо удаляемых стадий есть операции, прекращаем всю операцию.
     if (stagesToDelete.length > 0) {
-      for (const stage of stagesToDelete) {
-        // Операции для стадии
-        const operationsToDelete = await tCardOperationsRepository.find({ where: { stage_id: stage.id } });
+      const stageIds = stagesToDelete.map(s => s.id);
+      const opsCount = await tCardOperationsRepository.count({ where: { stage_id: In(stageIds) } });
+      if (opsCount > 0) {
+        // логируем и выходим без каких-либо изменений
+        void ulogger.error({
+          userId,
+          location: "handlers-update/updateStages",
+          event: "refuse_delete_stage_with_ops",
+          message: `Попытка удалить стадии с операциями: tCardId=${savedTCard.id}, tCardIdc=${savedTCard.idc}`,
+          context: { stageIds, opsCount },
+        }).catch(() => { console.error("logger error") });
 
-
-        if (operationsToDelete.length > 0) {
-          //  logger
-          void ulogger.error({
-            userId: userId,
-            location: "handlers-update/updateStages",
-            event: "error",
-            message: `Попытка удалить стадию с существующими операциями: tCardId=${savedTCard.id}, tCardIdc=${savedTCard.idc}`,
-            context: "await tCardOperationsRepository.find({ where: { stage_id: stage.id } })",
-          }).catch(() => { console.error("logger error") });
-
-          // Удаляем продукты для операций
-          const operationIds = operationsToDelete.map(op => op.id);
-          const productsToDelete = await tCardProductRepository
-            .createQueryBuilder('product')
-            .where('product.operation_id IN (:...operationIds)', { operationIds })
-            .getMany();
-
-          if (productsToDelete.length > 0) {
-            await tCardProductRepository.remove(productsToDelete);
-            console.log(`Удалено ${productsToDelete.length} продуктов для стадии ${stage.id}`);
-          }
-
-          await tCardOperationsRepository.remove(operationsToDelete);
-          console.log(`Удалено ${operationsToDelete.length} операций для стадии ${stage.id}`);
-        }
+        return { success: false, message: t('mes.impossibleToDelStage') /* "Невозможно удалить стадию, в ней есть операции. Сначала удалите операции из стадии." */ };
       }
+    }
+
+    // 1b. Удаляем стадии (операций на них уже нет по проверке выше)
+    if (stagesToDelete.length > 0) {
       await tCardStagesRepository.remove(stagesToDelete);
     }
 
@@ -1483,7 +1565,7 @@ export async function updateStages(
 
     const savedNewStages = newStages.length > 0 ? await tCardStagesRepository.save(newStages) : [];
 
-    // 3. Обновляем существующие стадии
+    // 3. Обновляем существующие стадии  если отказатся от визуализации столбца то вообще не нужен, но пока осталю
     const updatedStages = tCardStages
       .filter(stage => existingTCardStages.some(existingStage => existingStage.id === stage.id))
       .map(stage => {
@@ -1496,17 +1578,6 @@ export async function updateStages(
 
     const savedUpdatedStages = updatedStages.length > 0 ? await tCardStagesRepository.save(updatedStages) : [];
 
-    if (updatedStages.length !== savedUpdatedStages.length) {
-      //  logger
-      void ulogger.error({
-        userId: userId,
-        location: "handlers-update/updateStages",
-        event: "error",
-        message: `Количество к сохранению и реально сохраненных стадий не совпало: oldCount=${updatedStages.length}, newCount=${savedUpdatedStages.length}`,
-        context: "await tCardStagesRepository.save(updatedStages)",
-      }).catch(() => { console.error("logger error") });
-    }
-
     // 4. Объединяем результат
     const savedTCardStages = [...savedNewStages, ...savedUpdatedStages]
       .sort((a, b) => a.code - b.code)
@@ -1516,20 +1587,33 @@ export async function updateStages(
         code: stage.code,
       } as TCardStageItem));
 
-    // Проверка корректности
-    if (tCardStages.length > 0 && savedTCardStages.length === 0) {
-      return { success: false, message: 'Не удалось сохранить стадии' };
-    }
+    const changed =
+      (stagesToDelete.length > 0) ||
+      (savedNewStages.length > 0) ||
+      (savedUpdatedStages.length > 0);
 
-    return { success: true, savedTCardStages };
+    return {
+      success: true,
+      savedTCardStages,
+      message: changed ? '' : 'No changes',
+    };
 
-  } catch (error) {
-    console.error('Ошибка при обновлении стадий:', error);
-    return { success: false, message: 'Ошибка при обновлении стадий' };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateStages",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateStages",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
-// &&&&
-// ОПЕРАЦИИ
+
+//! ОПЕРАЦИИ
 export async function updateOperations(
   userId: number,
   locale: string,
@@ -1544,6 +1628,9 @@ export async function updateOperations(
   message?: string;
   savedTCardOperations?: TCardOperationItem[];
 }> {
+
+  const t = getServerT(locale, 'translation');
+
   try {
     // Получаем существующие операции для данного tCard
     const existingTCardOperations = await tCardOperationsRepository.find({
@@ -1570,7 +1657,6 @@ export async function updateOperations(
       await tCardOperationsRepository.remove(operationsToDelete);
     }
 
-
     // Добавляем новые операции
     const newOperations = operationsToAdd.map(op => {
       const savedStage = savedTCardStages.find(stage => stage.idc === op.stage.idc);
@@ -1590,16 +1676,14 @@ export async function updateOperations(
       });
     }).filter(Boolean) as TCardOperationTable[];
 
-    const savedNewOperations = newOperations.length
-      ? await tCardOperationsRepository.save(newOperations)
-      : [];
+    const savedNewOperations = await tCardOperationsRepository.save(newOperations)
 
     // Обновляем существующие операции
     const updatedOperations = operationsToUpdate.map(op => {
       const existingOperation = existingTCardOperations.find(eo => eo.id === op.id);
       const savedStage = savedTCardStages.find(stage => stage.idc === op.stage.idc);
 
-      if (!existingOperation || !savedStage || !op.action.id) return null;
+      if (!savedStage || !op.action.id) return null;
 
       return {
         ...existingOperation,
@@ -1656,13 +1740,22 @@ export async function updateOperations(
     }
 
     return { success: true, savedTCardOperations };
-  } catch (error) {
-    console.error('Ошибка при обновлении операций:', error);
-    return { success: false, message: 'Ошибка при обновлении операций' };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateOperations",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateOperations",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
-// &&&&
-// ПРОДУКТЫ
+
+//! ПРОДУКТЫ
 export async function updateProducts(
   userId: number,
   locale: string,
@@ -1682,6 +1775,8 @@ export async function updateProducts(
     operationId: number | null;
     productIdc: number;
   }
+
+  const t = getServerT(locale, 'translation');
 
   try {
     // Карта операций (idc -> id)
@@ -1721,17 +1816,30 @@ export async function updateProducts(
       where: { tcard_id: savedTCard.id },
     });
 
-    // Продукты для CRUD операций
+    // // Продукты для CRUD операций
+    // const productsToDelete = existingTCardProducts.filter(ep =>
+    //   !tCardAllProducts.some(np => np.id === ep.id && np.code === ep.code && np.type === ep.type && np.qtu === ep.qtu)
+    // );
+
+    // const productsToAdd = tCardAllProducts.filter(np =>
+    //   !existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
+    // );
+
+    // const productsToUpdate = tCardAllProducts.filter(np =>
+    //   existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
+    // );
+
+    // Продукты для CRUD по id 
     const productsToDelete = existingTCardProducts.filter(ep =>
-      !tCardAllProducts.some(np => np.id === ep.id && np.code === ep.code && np.type === ep.type && np.qtu === ep.qtu)
+      !tCardAllProducts.some(np => np.id === ep.id)
     );
 
     const productsToAdd = tCardAllProducts.filter(np =>
-      !existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
+      np.id == null || !existingTCardProducts.some(ep => ep.id === np.id)
     );
 
     const productsToUpdate = tCardAllProducts.filter(np =>
-      existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
+      np.id != null && existingTCardProducts.some(ep => ep.id === np.id)
     );
 
     // Удаляем продукты
@@ -1782,24 +1890,25 @@ export async function updateProducts(
           product: product ?? {} as ProductItem, // гарантируем структуру
         } as TCardProductItem;
       });
-    // Проверка результата
-    if (savedTCardProducts.length === 0 && tCardAllProducts.length > 0) {
-      return { success: false, message: "Не удалось сохранить продукты" };
-    }
-
-    savedTCardProducts.forEach((tp, index) => {
-      if (!tp.id) console.warn(`Ошибка при сохранении продукта ${index + 1}`);
-    });
 
     return { success: true, savedTCardProducts };
 
-  } catch (err) {
-    console.error("Ошибка в updateProducts:", err);
-    return { success: false, message: "Ошибка при обновлении продуктов" };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateProducts",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateProducts",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
 
-// КАТАЛОГ
+//! КАТАЛОГ ПРОДУКТОВ
 export async function updateCatalogProducts(
   userId: number,
   locale: string,
@@ -1808,41 +1917,44 @@ export async function updateCatalogProducts(
   products: ProductItem[],
   teamId: number,
 ): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
-  let error = "";
 
-  // Получаем существующие продукты с привязанными UOM
-  const existingProductsRaw = await productRepository
-    .createQueryBuilder('product')
-    .leftJoin('uoms', 'uom', 'product.uom_id = uom.id')
-    .addSelect(['uom.id', 'uom.title', 'uom.code'])
-    .where('product.tcard_id = :tcardId', { tcardId: savedTCard.id })
-    .getRawMany();
+  const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+  try {
 
-  const existingProducts: ProductItem[] = existingProductsRaw.map(row => ({
-    id: row.product_id,
-    idc: row.product_idc,
-    title: row.product_title,
-    sync: row.product_sync,
-    uom: {
-      id: row.uom_id,
-      title: row.uom_title,
-      code: row.uom_code
+
+    // Получаем существующие продукты с привязанными UOM
+    const existingProductsRaw = await productRepository
+      .createQueryBuilder('product')
+      .leftJoin('uoms', 'uom', 'product.uom_id = uom.id')
+      .addSelect(['uom.id', 'uom.title', 'uom.code'])
+      .where('product.tcard_id = :tcardId', { tcardId: savedTCard.id })
+      .getRawMany();
+
+    const existingProducts: ProductItem[] = existingProductsRaw.map(row => ({
+      id: row.product_id,
+      idc: row.product_idc,
+      title: row.product_title,
+      sync: row.product_sync,
+      uom: {
+        id: row.uom_id,
+        title: row.uom_title,
+        code: row.uom_code
+      }
+    }));
+
+    // 1. Продукты для удаления
+    const productsToDelete = existingProducts.filter(p => !products.some(np => np.id === p.id));
+    if (productsToDelete.length > 0) {
+      const idsToDelete = productsToDelete.map(p => p.id!) as number[];
+      await productRepository.delete(idsToDelete);
     }
-  }));
 
-  // 1. Продукты для удаления
-  const productsToDelete = existingProducts.filter(p => !products.some(np => np.id === p.id));
-  if (productsToDelete.length > 0) {
-    const idsToDelete = productsToDelete.map(p => p.id!) as number[];
-    await productRepository.delete(idsToDelete);
-  }
+    // 2. Продукты для добавления
+    let savedNewProducts: ProductItem[] = [];
+    const productsToAdd = products.filter(p => !existingProducts.some(ep => ep.id === p.id));
 
-  // 2. Продукты для добавления
-  let savedNewProducts: ProductItem[] = [];
-  const productsToAdd = products.filter(p => !existingProducts.some(ep => ep.id === p.id));
+    if (productsToAdd.length > 0) {
 
-  if (productsToAdd.length > 0) {
-    try {
       const plainProducts = productsToAdd.map(p => ({
         idc: p.idc,
         title: p.title,
@@ -1863,71 +1975,67 @@ export async function updateCatalogProducts(
           uom: source.uom // Используем UOM из исходного массива
         };
       });
-    } catch (e) {
-      void ulogger.error({
-        userId: userId,
-        location: "handlers-update/updateCatalogProducts",
-        event: "endpoint_error",
-        message: e instanceof Error ? e.message : String(e),
-        context: "await productRepository.save(plainProducts)",
-        requestId: "tcard-api.ts",
-      }).catch(() => { console.error("logger error") });
-
-      // return { success: false, message: 'Ошибка при сохранении продуктов каталога' };
-      return { success: false, message: t(locale, "updateCatalogProducts") };
     }
-  }
 
-  // 3. Продукты для обновления
-  let savedUpdatedProducts: ProductItem[] = [];
-  const productsToUpdate = products.filter(p => existingProducts.some(ep => ep.id === p.id));
+    // 3. Продукты для обновления
+    let savedUpdatedProducts: ProductItem[] = [];
+    const productsToUpdate = products.filter(p => existingProducts.some(ep => ep.id === p.id));
 
-  if (productsToUpdate.length > 0) {
-    const updateEntities = productsToUpdate.map(p => ({
-      id: p.id,
-      idc: p.idc,
-      title: p.title,
-      uom_id: p.uom.id,
-      tcard_id: savedTCard.id,
-      sync: p.sync,
-      team_id: teamId
-    }));
+    if (productsToUpdate.length > 0) {
+      const updateEntities = productsToUpdate.map(p => ({
+        id: p.id,
+        idc: p.idc,
+        title: p.title,
+        uom_id: p.uom.id,
+        tcard_id: savedTCard.id,
+        sync: p.sync,
+        team_id: teamId
+      }));
 
-    const updated = await productRepository.save(updateEntities);
-    savedUpdatedProducts = updated.map(saved => {
-      const source = productsToUpdate.find(p => p.id === saved.id)!;
-      return {
-        id: saved.id,
-        idc: saved.idc,
-        title: saved.title,
-        sync: saved.sync,
-        uom: source.uom
-      };
-    });
-  }
-
-  // Объединяем новые и обновленные продукты
-  const savedProducts: ProductItem[] = [...savedNewProducts, ...savedUpdatedProducts];
-
-  // Проверка сохраненных данных
-  if (products.length === 0) return { success: true, savedProducts };
-
-  if (savedProducts.length === 0) {
-    error = `Не удалось сохранить каталог`;
-    console.log(error);
-    return { success: false, message: error };
-  }
-
-  savedProducts.forEach((product, index) => {
-    if (!product.id) {
-      error = `Ошибка при сохранении продукта ${index + 1}`;
-      console.log(error);
+      const updated = await productRepository.save(updateEntities);
+      savedUpdatedProducts = updated.map(saved => {
+        const source = productsToUpdate.find(p => p.id === saved.id)!;
+        return {
+          id: saved.id,
+          idc: saved.idc,
+          title: saved.title,
+          sync: saved.sync,
+          uom: source.uom
+        };
+      });
     }
-  });
 
-  if (error) return { success: false, message: error };
+    // Объединяем новые и обновленные продукты
+    const savedProducts: ProductItem[] = [...savedNewProducts, ...savedUpdatedProducts];
 
-  return { success: true, savedProducts };
+    // Проверка сохраненных данных
+    if (products.length === 0) return { success: true, savedProducts };
+
+    const changed =
+      (productsToDelete.length > 0) ||
+      (savedNewProducts.length > 0) ||
+      (savedUpdatedProducts.length > 0);
+
+    return {
+      success: true,
+      savedProducts,
+      message: changed ? '' : 'No changes',
+    };
+
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateCatalogProducts",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateCatalogProducts",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
 }
 
 ///////////////////// СТАТУСЫ//////////////////
@@ -1963,69 +2071,69 @@ export async function updateStatusOperationByTCardId(
   }
 
 }
-
+//! обновление статусов операций по id
 export async function updateStatusOperationByOperIds(
   userId: number,
   locale: string,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   operIds: number[],
   status: StatusEnum
-): Promise<{ success: boolean, message: string }> {
-  try {
-    const result = await tCardOperationsRepository.update(operIds, { status });
-    if (result.affected && result.affected > 0) {
-      return { success: true, message: "Операция успешно обновлена" };
-    } else {
-      return { success: false, message: "Операция не обновлена" };
-    }
-    // } catch (error: any) {
-    //   console.error("Ошибка обновления операции:", error);
-    //   return { success: false, message: error.message || "Ошибка обновления операции" };
-    // }
-  } catch (error: unknown) {
-    let message = "Ошибка обновления операции";
-    if (error instanceof Error) {
-      message = error.message;
-      console.error("Ошибка обновления операции:", error);
-    } else {
-      console.error("Неизвестная ошибка обновления операции:", error);
-    }
-    return { success: false, message };
-  }
+): Promise<{ success: boolean, message?: string }> {
 
+  const t = getServerT(locale, 'translation');
+  try {
+
+    if (!operIds?.length) {
+      return { success: true };
+    }
+    await tCardOperationsRepository.update(operIds, { status });
+    return { success: true, };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateStatusOperationsByOperIds",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateStatusOperationsByOperIds",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
 }
 
+//! обновление статуса операции по id
 export async function updateStatusOperationByOperId(
   userId: number,
   locale: string,
   tCardOperationsRepository: Repository<TCardOperationTable>,
   operId: number,
   status: StatusEnum
-): Promise<{ success: boolean, message: string }> {
+): Promise<{ success: boolean, message?: string }> {
+  const t = getServerT(locale, 'translation');
   try {
-    const result = await tCardOperationsRepository.update(operId, { status });
-    if (result.affected && result.affected > 0) {
-      return { success: true, message: "Операция успешно обновлена" };
-    } else {
-      return { success: false, message: "Операция не обновлена" };
-    }
-    // } catch (error: any) {
-    //   console.error("Ошибка обновления операции:", error);
-    //   return { success: false, message: error.message || "Ошибка обновления операции" };
-    // }
-  } catch (error: unknown) {
-    let message = "Ошибка обновления операции";
-    if (error instanceof Error) {
-      message = error.message;
-      console.error("Ошибка обновления операции:", error);
-    } else {
-      console.error("Неизвестная ошибка обновления операции:", error);
-    }
-    return { success: false, message };
+    await tCardOperationsRepository.update(operId, { status });
+    return { success: true };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateStatusOperationsByOperId",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateStatusOperationsByOperId",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 
 }
 
+//! Функция для обновления статусов операций по массиву operIds
 export async function updateStatusOperationsByOperIds(
   userId: number,
   locale: string,
@@ -2034,38 +2142,45 @@ export async function updateStatusOperationsByOperIds(
   status: StatusEnum
 ): Promise<{ success: boolean, message?: string }> {
 
-  if (opersIds.length === 0) return { success: true };
-
+  const t = getServerT(locale, 'translation');
   try {
+    if (!opersIds?.length) return { success: true, message: 'No ids' };
+
+    const ids = Array.from(new Set(opersIds.filter(Number.isFinite)));
+    if (ids.length === 0) return { success: true, message: 'No valid ids' };
+
+    // обновляем только те строки, где статус другой (меньше лишних UPDATE)
     const updateResult = await tCardOperationsRepository.update(
-      { id: In(opersIds) },
+      { id: In(ids), status: Not(status) },
       { status }
     );
-
-    if (updateResult.affected && updateResult.affected > 0) {
-      // console.log('Операции успешно обновлены:', opersIds);
-      return { success: true };
+    const affected = updateResult.affected ?? 0;
+    if (affected > 0) {
+      return { success: true, message: `Updated: ${affected}` };
     } else {
-      const error = `Ошибка: операции с id ${JSON.stringify(opersIds)} не найдены или не обновлены.`;
-      // console.error(error);
-      return { success: false, message: error };
+      // тут либо все уже были в нужном статусе, либо id не найдены
+      // при желании можно проверить существование:
+      // const countExisting = await tCardOperationsRepository.countBy({ id: In(ids) });
+      return { success: true, message: 'No changes' };
     }
-    // } catch (error: any) {
-    //   // console.error("Ошибка при обновлении операций:", error);
-    //   return { success: false, message: error.message || "Ошибка при обновлении операций." };
-    // }
-  } catch (error: unknown) {
-    let message = "Ошибка при обновлении операций.";
-    if (error instanceof Error) {
-      message = error.message;
-      console.error("Ошибка при обновлении операций:", error);
-    }
-    return { success: false, message };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateStatusOperationsByOperIds",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateStatusOperationsByOperIds",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 
 }
 
-// Функция для обновления статусов загрузок (интервалов)
+//! Функция для обновления статусов загрузок (интервалов)
 export async function updateStatusLoads(
   userId: number,
   locale: string,
@@ -2073,62 +2188,104 @@ export async function updateStatusLoads(
   loadsIds: number[],
   status: StatusEnum
 ): Promise<{ success: boolean; message: string }> {
+
+  const t = getServerT(locale, 'translation');
   try {
     if (loadsIds.length === 0) {
-      return { success: false, message: "Нет загрузок для обновления" };
+      return {
+        success: true,
+        // message: "Нет загрузок для обновления" 
+        message: `${t('mes.noLoadsForUpdate')}`
+      };
     }
 
+    // фильтруем мусор и дубликаты
+    const ids = Array.from(new Set(loadsIds.filter(Number.isFinite)));
+    if (ids.length === 0) {
+      return { success: true, message: t('mes.noLoadsForUpdate') };
+    }
+
+    // избегаем лишних UPDATE: обновляем только где статус отличается
     const result = await unitLoadRepository.update(
-      loadsIds,
+      { id: In(ids), status: Not(status) },
       { status }
     );
 
-    if (result.affected && result.affected > 0) {
-      return { success: true, message: `Обновлено ${result.affected} загрузок` };
+    const affected = result.affected ?? 0;
+    if (affected > 0) {
+      return { success: true, message: `${t('mes.updatedLoads')}: ${affected}` };
     } else {
-      return { success: false, message: "Ни одна загрузка не обновлена" };
+      // либо все уже были с этим статусом, либо id не найдены
+      return { success: true, message: t('mes.noChanges') };
     }
 
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Неизвестная ошибка обновления статусов загрузок";
-    console.error("Ошибка обновления статусов загрузок:", error);
-    return { success: false, message };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateStatusLoads",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateStatusLoads",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
 
-
-// Функция для обновления статуса карты
+//! Функция для обновления статуса карты
 export async function updateStatusTCard(
   userId: number,
   locale: string,
   tCardRepository: Repository<TCardTable>,
   tCardId: number,
   status: StatusEnum
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; message?: string }> {
+  const t = getServerT(locale, 'translation');
   try {
     const result = await tCardRepository.update(tCardId, { status });
 
     if (result.affected && result.affected > 0) {
-      return { success: true, message: `Обновлен статус карты с id: ${tCardId}` };
+      return {
+        success: true,
+        // message: `Обновлен статус карты с id: ${tCardId}` 
+        message: `${t('mes.tCardStatusUpdated')} id: ${tCardId}`
+
+      };
     } else {
-      return { success: false, message: `Не удалось обновить статус карты с id: ${tCardId}` };
+      return {
+        success: false,
+        // message: `Не удалось обновить статус карты с id: ${tCardId}` 
+        message: `${t('mes.tCardStatusNotUpdated')} id: ${tCardId}`
+      };
     }
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Неизвестная ошибка обновления статуса карты";
-    console.error("Ошибка обновления статуса карты:", error);
-    return { success: false, message };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateStatusTCard",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateStatusTCard",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 }
 
 ///////////////////// SUPPORT //////////////////
 
-// Функция для обновления сообщения тех поддержки
+//! Функция для обновления сообщения тех поддержки
 export async function updateSupportMessage(
   userId: number,
   locale: string,
   supportMessage: SupportMailItem,
   supportRepository: Repository<MailTable>
-): Promise<{ success: boolean, message: string, savedMessage: MailTable }> {
+): Promise<{ success: boolean, savedMessage?: MailTable, message?: string }> {
+  const t = getServerT(locale, 'translation');
   try {
     // Создание нового сообщения для базы данных
     const newSupportMessage = supportRepository.create({
@@ -2147,29 +2304,26 @@ export async function updateSupportMessage(
     // Если сообщение сохранено успешно, возвращаем его с ID
     return {
       success: true,
-      message: "Сообщение успешно сохранено.",
       savedMessage: savedMessage,
-
     };
 
-  } catch (error: unknown) {
-    let message = "Ошибка при сохранении сообщения.";
-    if (error instanceof Error) {
-      message = error.message;
-      console.error("Ошибка при сохранении сообщения:", error);
-    } else {
-      console.error("Неизвестная ошибка при сохранении сообщения:", error);
-    }
-    return {
-      success: false,
-      message,
-      savedMessage: {} as MailTable,
-    };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateSupportMessage",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateSupportMessage",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
 
 }
 
-// Функция для пометки что сообщение обработано
+//! Функция для пометки что сообщение обработано
 export async function cnangeStatusMail(
   userId: number,
   locale: string,
@@ -2177,26 +2331,48 @@ export async function cnangeStatusMail(
   status: StatusEnum,
   supportRepository: Repository<MailTable>
 ): Promise<{ success: boolean; message: string }> {
+  const t = getServerT(locale, 'translation');
   try {
     if (!Number.isFinite(id)) {
-      return { success: false, message: 'Некорректный идентификатор сообщения.' };
+      return {
+        success: false,
+        // message: 'Некорректный идентификатор сообщения.' 
+        message: t('mes.uncorrectMailId')
+      };
     }
 
     // Обновляем только нужное поле
     const result = await supportRepository.update({ id }, { status: status });
 
-    if (!result.affected || result.affected === 0) {
-      return { success: false, message: 'Сообщение не найдено.' };
+    if ((result.affected ?? 0) === 0) {
+      return {
+        success: false,
+        // message: 'Сообщение не найдено.' 
+        message: t('mes.mailNotFound')
+      };
     }
 
-    return { success: true, message: 'Сообщение помечено как обработанное.' };
-  } catch (error) {
-    console.error('Ошибка при пометке сообщения обработанным:', error);
     return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Неизвестная ошибка.',
+      success: true,
+      // message: 'Сообщение помечено как обработанное.' 
+      message: t('mes.mailProcessed')
+
     };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/cnangeStatusMail",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "cnangeStatusMail",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
+
 }
 
 // банер

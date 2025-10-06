@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';  // Импортируем функцию подключения
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 
 import { UserTable } from './../../../db/models/catalogs/users';
 import { TeamTable } from './../../../db/models/catalogs/teams';
@@ -125,6 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
             ;
           }
+        
 
         const userunit = resUserUnits_.userUnits.find((uu) => { return uu.userId === user.id; })
 

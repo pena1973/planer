@@ -1,69 +1,72 @@
+//pages/api/save-card-loads-api.ts
+// API для сохранения запланированных лоадов карты
+// Используется в планировании карт (CardPlanning)
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
 
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { getTCardOperationsByCardId } from './../../handlers/handlers-get';  // расчеты
-import { } from './../../handlers/handlers-plan';  // планирование карты
-import { updateStatusOperationsByOperIds,updateStatusTCard } from './../../handlers/handlers-update';  // 
-
-import { Repository  } from 'typeorm';
+import { updateStatusOperationsByOperIds, updateStatusTCard } from './../../handlers/handlers-update';  // 
 import { UnitLoadTable } from './../../db/models/plan/unit_loads';
-
 import { TCardTable } from './../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../db/models/data/t_card_operations'
-import {getStatusPriority} from "./../../lib/common/utils"
-
-import {  UnitItem, TCardItem, UnitLoadItem, StatusEnum,TCardOperationItem} from "./../../types/types";
+import { getStatusPriority } from "./../../lib/common/utils"
+import { TCardItem, UnitLoadItem, StatusEnum, TCardOperationItem } from "./../../types/types";
+import { saveNewLoads } from './../../handlers/handlers-update';  // расчеты
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[];  // запланированные лоады в статусе prepared  по данной карте
   tCard: TCardItem & { status: StatusEnum },
-  teamId:number,
-  userId:number
+  teamId: number,
+  userId: number
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
-  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
-  
-
   try {
-  
+    const db = await connectDb();
+    const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+    const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+    const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
       case 'POST':
-        const { tCardLoads, tCard,teamId,userId } = req.body as RequestBody; //  загрузки по карте и только draft -  массив интервалов
+        //  лоады по карте только draft
+        const { tCardLoads, tCard, teamId, userId } = req.body as RequestBody;
+        // tCardLoads- приходит всегда в статусе prepared, нужно считать остальное      
 
-        // tCardLoads- приходит только в статусе prepared, нужно считать остальное
-        // СПИСОК Загрузок 
         // просто сохраняем в базу потому что это всегда новые подготовленные
-        const resLoads = await saveLoads(
-          unitLoadRepository,
-          tCardLoads,
-          Number(teamId)
-        )
+        const resLoads = await saveNewLoads(Number(userId), locale, unitLoadRepository, tCardLoads, Number(teamId))
         if (!resLoads.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resLoads.message });
-          return;
+          res.status(200).json({
+            success: false,
+            // error: 'Не удалось обработать запрос. ' + resLoads.message });
+            message: `${t('mes.loadsNotSaved')}  + ${resLoads.message}`
+          });
+          break;
         }
         const savedUnitLoads = resLoads.savedUnitLoads as UnitLoadItem[];
-
 
         // Статус Операций  меняем на planed
         const savedOpersIds = Array.from(new Set(savedUnitLoads.map(load => load.id_oper)));
 
         const resOpers = await updateStatusOperationsByOperIds(Number(userId), locale, tCardOperationsRepository, savedOpersIds, StatusEnum.planed)
         if (!resOpers.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resOpers.message });
-          return;
+          res.status(200).json({
+            success: false,
+            // error: 'Не удалось обработать запрос. ' + resOpers.message 
+            message: `${t('mes.operStatusesNotSaved')}  + ${resLoads.message}`
+          });
+          break;
         }
 
         // проверяем все операции карты и если  статусы не ниже текущего  меняем статус самой карты
@@ -95,12 +98,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
 
         const tCardStatus = (isAllOperationsNotLowerThanStatus) ? StatusEnum.planed : tCard.status
-        /////////////////////
         // Статус Карты  меняем на planed если все операции не ниже текущего статуса
 
         const resCard = await updateStatusTCard(Number(userId), locale, tCardRepository, tCard.id, tCardStatus)
         if (!resCard.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resCard.message });
+          res.status(200).json({
+            success: false,
+            message: `${t('mes.cardStatusNotUpdated')}  + ${resCard.message}`
+            // error: 'Не удалось обработать запрос. ' + resCard.message 
+          });
           return;
         }
 
@@ -112,103 +118,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
         break;
 
-
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса ((save-card-loads-api)):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' + error });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/save-card-loads-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
-}
-
-// Запись новых лоадов
-async function saveLoads(
-  unitLoadRepository: Repository<UnitLoadTable>,
-  loadsToAdd: UnitLoadItem[],
-  teamId: number
-): Promise<{ success: boolean, savedUnitLoads: UnitLoadItem[], message?: string }> {
-
-  if (loadsToAdd.length === 0) { return { success: true, savedUnitLoads: [] as UnitLoadItem[], message: "" } }
-
-  // Добавляем новые Загрузки и меняем статус
-  const newLoads = loadsToAdd.map(load => {
-    return unitLoadRepository.create({
-      date: load.date,
-      idc: load.idc,
-      id_oper: load.id_oper,
-      idc_oper: load.idc_oper, // Идентификатор операции  
-      id_tCard: load.id_tCard, // Идентификатор тех карты
-      timeStart: Math.ceil(load.timeStart), // Время начала в минутах окр в большую сторону
-      timeFinish: Math.ceil(load.timeFinish), // Время окончания в минутах окр в большую сторону
-      team_id: teamId,
-      unit_id: load.unit.id,
-      status: StatusEnum.planed,
-      isActive: load.isActive,
-      isRetool: load.isRetool,
-      isPinned: load.isPinned,
-      isOuterStart: load.isOuterStart,
-      isOuterFinish: load.isOuterFinish,
-      version: load.version,
-      isFirst: load.isFirst,
-    });
-  });
-  let savedNewLoads = [] as UnitLoadTable[]
-  if (newLoads.length > 0) savedNewLoads = await unitLoadRepository.save(newLoads);
-  if (!savedNewLoads) return { success: false, savedUnitLoads: [] as UnitLoadItem[], message: "Не удалось сохранить действие" }
-
-
-  // // Все действия сохранены, проверка
-  let error = ""
-  // const savedLoads = [...savedNewLoads, ...savedUpdatedLoads] as UnitLoadTable[]
-
-  // вход и выход массив операций не совпадает количество записей - чтото не сохранилось
-  if (savedNewLoads.length > 0 && loadsToAdd.length !== savedNewLoads.length) {
-    error = `Не удалось сохранить все загрузки`;
-    return { success: false, savedUnitLoads: [] as UnitLoadItem[], message: error }
-  }
-
-  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-  if (savedNewLoads.length > 0) {
-    savedNewLoads.forEach((load, index) => {
-      if (load.id) {
-        console.log(`Загрузка успешно сохранена с id: ${load.id}`);
-      } else {
-        error = `Ошибка при сохранении Загрузки ${index + 1}`;
-        console.log(error);
-        return { success: false, message: error }
-      }
-    });
-  } else {
-    error = `Не удалось сохранить загрузки`;
-    console.log(error);
-    return { success: false, savedUnitLoads: [] as UnitLoadItem[], message: error }
-  }
-
-  const savedUnitLoads = savedNewLoads.map(loadT => {
-    const load = loadsToAdd.find(lo => lo.id_oper === loadT.id_oper && lo.idc === loadT.idc)
-    return {
-      id: loadT.id,
-      idc: loadT.idc,
-      unit: (load) ? load.unit as UnitItem : {} as UnitItem,
-      date: String(loadT.date), //   перевели в строковый формат
-      idc_oper: loadT.idc_oper,
-      id_oper: loadT.id_oper,
-      id_tCard: loadT.id_tCard,
-      timeStart: loadT.timeStart,
-      timeFinish: loadT.timeFinish,
-      status: loadT.status,
-      isActive: loadT.isActive,
-      isRetool: loadT.isRetool,
-      loadInfo: (load) ? load.loadInfo : undefined,
-      isPinned: loadT.isPinned,//  перенесен вручшую на шкале
-      isOuterStart: loadT.isOuterStart,//  это старт оутсортера
-      isOuterFinish: loadT.isOuterFinish,
-      version: loadT.version,
-      isFirst: loadT.isFirst,
-    } as UnitLoadItem
-  })
-  return { success: true, savedUnitLoads: savedUnitLoads, message: "" }
 }
 
 export default withAuth(handler)

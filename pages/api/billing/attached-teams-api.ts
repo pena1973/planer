@@ -2,7 +2,7 @@ import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { generateTeamNumber } from '@/lib/common/utils'
 import { TeamTable } from '../../../db/models/catalogs/teams';

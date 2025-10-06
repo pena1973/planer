@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { withAuth } from "@/lib/server/withAuth";
 
 import connectDb from '../../../db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { BalanceTable } from '../../../db/models/billing/balance';
 import { TeamTable } from '../../../db/models/catalogs/teams';

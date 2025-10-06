@@ -2,7 +2,7 @@ import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getUnits, getUnitLoads, getTeamShedule, getUnitExceptions } from './../../../handlers/handlers-get';  // 

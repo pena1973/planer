@@ -1,8 +1,15 @@
+//pages/api/tcard-oper-status-api
+// API для изменения статуса карты
+// Используется в 
+
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { getStatusPriority } from "./../../lib/common/utils"
@@ -25,14 +32,15 @@ interface RequestBody {
 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
-  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
-  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-
   try {
+    const db = await connectDb();
+    const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+    const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+    const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+
 
     switch (req.method) {
       case 'POST':
@@ -45,7 +53,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!resOperation.success) {
           res.status(200).json({
             success: false,
-            message: 'Операция не обновлена',
+            message: resOperation.message,
           });
           break;
         }
@@ -53,18 +61,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //  получим лоады операции заданной версии планирования
         const operLoadsIds = await getTCardOperationLoads(Number(userId), locale, tCardId, operId, version, unitLoadRepository)
 
-
         if (operLoadsIds.length > 0) {
           //Обновляем СТАТУС ЛОАДОВ этой версии планирования
           const resLoads = await updateStatusLoads(Number(userId), locale, unitLoadRepository, operLoadsIds, status)
           if (!resLoads.success) {
             res.status(200).json({
               success: false,
-              message: 'Интервалы не обновлены',
+              message: resLoads.message,
             });
             break;
           }
         }
+
         // проверяем все операции карты и если  статусы не ниже текущего  меняем статус самой карты
         const tCardOperations = await getTCardOperationsByCardId(Number(userId), locale, tCardId, tCardOperationsRepository)
 
@@ -72,7 +80,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!tCard) {
           res.status(200).json({
             success: false,
-            message: 'Карта не найдена',
+            message: t("mes.tCardNotFound"),
           });
           break;
         }
@@ -107,7 +115,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           if (!resCard.success) {
             res.status(200).json({
               success: false,
-              message: 'Статус карты не обновлен',
+              message: resCard.message,
             });
             break;
           }
@@ -117,17 +125,28 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           success: true,
           operLoadsIds: operLoadsIds,
           tCardStatus: tCardStatus,
-          message: 'Карта успешно обновлена',
+          message: t('mes.tCardUpdated'),
         });
         break;
 
       default:
-        res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
 
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (tcard-oper-status-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/tcard-oper-status-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 export default withAuth(handler)

@@ -8,7 +8,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 // import { z } from 'zod';
 // import jwt from 'jsonwebtoken';
 import connectDb from './../../../db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites';
 import { UserTable } from './../../../db/models/catalogs/users';
 import { resetUserPass } from './../../../handlers/handlers-auth';

@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { withAuth } from "@/lib/server/withAuth";
 
 import connectDb from '../../../db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { JobSettingsTable } from './../../../db/models/job/job-settings';
 import { updateJobSetting } from './../../../handlers/handlers-update';

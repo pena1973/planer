@@ -5,7 +5,7 @@ import { getTypedRepository, } from './../../../db/utilites'
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 import connectDb from "@/db/database";
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { ClientTable } from "./../../../db/models/billing/clients";
 import { ClientItem } from './../../../types/service-types'
 import { randomUUID } from 'crypto';

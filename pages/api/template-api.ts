@@ -1,8 +1,15 @@
+//pages/api/template-api.ts
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { TemplateTable } from './../../db/models/catalogs/templates';
@@ -16,12 +23,11 @@ interface RequestBody {
     tCard: TCardItem,
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-    const db = await connectDb();
-    const tCardTemplateRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
-
     try {
-    
-        const locale = getLocaleFromHeader(req.headers["x-lang"]);    
+        const db = await connectDb();
+        const tCardTemplateRepository = getTypedRepository(db, 'TemplateTable', TemplateTable);
+        const locale = getLocaleFromHeader(req.headers["x-lang"]);
+        const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
         switch (req.method) {
             case 'POST':
@@ -115,11 +121,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 break;
 
             default:
-                res.status(405).end(); // Метод не поддерживается
+                res.status(405).json({ error: 'Method not supported.' });
         }
-    } catch (error) {
-        console.error('Ошибка подключения или выполнения запроса (template-api):', error);
-        res.status(500).json({ error: 'Не удалось обработать запрос' });
+    } catch (e: unknown) {
+        let error = "";
+        if (e instanceof Error) {
+            error = e.message;
+        }
+        //  logger
+        void ulogger.error({
+            userId: null,
+            location: "pages/api/template-api",
+            event: "api_error",
+            message: `catch: ${error}`,
+            context: "",
+        }).catch(() => { console.error("logger error") });
+        res.status(500).json({ error: `${error}` });
     }
 }
 export default withAuth(handler)

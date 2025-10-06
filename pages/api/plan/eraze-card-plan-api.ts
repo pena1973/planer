@@ -1,3 +1,9 @@
+//pages/api/units-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
 
 import { Repository, In } from "typeorm";
 
@@ -5,7 +11,7 @@ import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
-import { getLocaleFromHeader } from './../../../lib/server/translate/locale';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getEarliestStart } from './../../../handlers/handlers-plan';  // планирование карты
@@ -32,22 +38,21 @@ interface RequestBody {
   userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-
-  const db = await connectDb();
-  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
-  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
-  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
-  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-  const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
-  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-
-
+  
   try {
+    const db = await connectDb();
+    const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+    const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+    const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+    const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+    const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+    const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+    const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+    const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
 
@@ -57,17 +62,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //tCardLoads //Это все лоады покарте
 
         // запросим расписание компании чтобы взять timezone
-        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+        const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
 
-         if (!shedule_) {
+        if (!shedule) {
           res.status(200).json({
             success: false,
-            message: "Ошибка, не найдено расписание команды",
+            // message: "Ошибка, не найдено расписание команды",
+            message: t('mes.sheduleNotFound'),
           });
           break;
         }
-        
-        const today = getCurrentDateInString(shedule_.timeZone) // на всякий случай синхронизируем дату с серверной
+
+        const today = getCurrentDateInString(shedule.timeZone) // на всякий случай синхронизируем дату с серверной
 
         // Убираем prepared
         let tCardLoadsUpdated = tCardLoads.filter(lo => {
@@ -81,8 +87,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // получаем полную карту со всеми входящими и исходящими
         const tCard = await getTCardFull(
-          Number(userId), 
-          locale, 
+          Number(userId),
+          locale,
           Number(teamId),
           Number(tCardId),
           tCardRepository,

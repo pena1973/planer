@@ -1,37 +1,50 @@
-//pages/api/unit-actions-api
-// API для получения, создания, обновления и удаления 
-// Используется в 
-
+// pages/api/unit-exceptions-api.ts
+// API для получения исключений по юнитам (unit exceptions)
+// Используется в настройках команд (TeamSettings) и при создании/редактировании карт (TCardForm)
 import { ulogger } from "./../../lib/common/universal-logger";
 import { getServerT } from '@/lib/server/i18n.server';
-
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
 import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
 
-import { getUnitActions } from './../../handlers/handlers-get';  // расчеты
-import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
+import { getTypedRepository } from './../../db/utilites'
+import { getUnitExceptions } from './../../handlers/handlers-get';  // расчеты
+import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  
   try {
+    
     const db = await connectDb();
-    const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+
+    const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+
+    const t = getServerT(locale, 'translation');
 
     switch (req.method) {
       case 'GET':
+
         const { userId, teamId, unitId } = req.query;
 
-        const actionsGet = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository, Number(unitId))
+        const exceptions = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository, Number(unitId))
 
+        exceptions.sort((a, b) => {
+          if (a.date === undefined || b.date === undefined) {
+            return 0;
+          }
+
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        });
+
+        // отправляем ответ
         res.status(200).json({
           success: true,
-          actions: actionsGet,
+          exceptions: exceptions,
         });
 
         break;
@@ -48,7 +61,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/unit-actions-api",
+      location: "pages/api/unit-exceptions-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",
