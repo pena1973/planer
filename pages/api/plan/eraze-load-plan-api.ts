@@ -12,11 +12,12 @@ import connectDb from './../../../db/database';
 import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
-import { getDependentOperationsIds } from './../../../handlers/handlers-plan';  // планирование карты
-import { getTCardFull, getTeamShedule } from './../../../handlers/handlers-get';  // 
+import { getDependentOperations } from './../../../handlers/handlers-plan';  
+import { getTCardFull, getTeamShedule, getTCardOperationsByCardId } from './../../../handlers/handlers-get';  
+import { updateStatusTCard, updateStatusOperationsByOperIds, } from './../../../handlers/handlers-update';  
+import { calculateTCardStatusByOperations, cancelHistoryLoads, deleteFutureLoads } from './../../../handlers/handlers-erase';  
 
 import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
-import { TeamTable } from './../../../db/models/catalogs/teams'
 import { TCardTable } from './../../../db/models/data/t_cards'
 import { TCardOperationTable } from './../../../db/models/data/t_card_operations'
 import { TCardProductTable } from './../../../db/models/data/t_card_products'
@@ -28,8 +29,6 @@ import { UnitLoadItem, StatusEnum, } from "./../../../types/types";
 
 import { getCurrentDateInString } from "@/lib/common/timezone"
 
-import { In, Raw, Repository } from 'typeorm';
-
 interface RequestBody {
   tCardLoads: UnitLoadItem[],
   erazload: UnitLoadItem,
@@ -38,22 +37,19 @@ interface RequestBody {
   userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-   try {
-    
+  try {
+
     const db = await connectDb();
 
-  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
-  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
-  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
-  const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
-  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
-  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-
- 
-
+    const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+    const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+    const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+    const tCardStagesRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+    const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+    const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+    const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+    const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+    
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
     const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
@@ -76,10 +72,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           tCardStagesRepository,
           productRepository,
           actionRepository)
+
         if (!tCard) {
-          res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
-          return
+          res.status(200).json({
+            success: false,
+            message: t('mes.tCardNotFound')
+          });
+          break
         }
+
         // запросим расписание компании
         const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
         if (!shedule) {
@@ -90,103 +91,117 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           });
           break;
         }
+
         const todayStr = getCurrentDateInString(shedule.timeZone)
 
-
+        // находим операцию лоада который мы стираем
         const oper = tCard.tCardOperations?.find(oper => oper.id === erazload?.id_oper);
         if (!oper) {
-          res.status(200).json({ success: false, message: "Операция в базе не найдена" });
-          return
+          res.status(200).json({
+            success: false,
+            message: t('mes.opersNotFound'),
+          });
+          break;
         }
 
         //  получаем список Id операций которые зависимы от нашей  -  
-        // их будем удалять или отменять в зависимости от даты и статуса
-        const dependentOperationsIds = getDependentOperationsIds(Number(userId), locale, tCard, oper);
+        // им будем менять статус на подготовлен в зависимости от текущего статуса
+        const dependentOperations = getDependentOperations(tCard, oper);
 
         // добавлю и нашу операцию тоже
-        dependentOperationsIds.push(Number(oper.id));
+        dependentOperations.push(oper);
 
-        // Разделяю все наши операции по статусам и датам
-        // все что ready, performed,defected - ничего не делаю  -  это уже пароизошло
+        // все зависимые операции
+        const allDependentOperationsIds = dependentOperations
+          .map(oper => oper.id as number)
 
-        // меняем в базе статус стертых операций на prepared
-        const resSetOperStatus = await setOperStatus(dependentOperationsIds, StatusEnum.prepared, tCardOperationsRepository);
+        // выделяю все запланированные операции и меняю на подготовленные, готовые не меняем - их уже не изменить       
+        const dependentPlanedOperationsIds = dependentOperations
+          .filter(op => op.status === StatusEnum.planed)
+          .map(oper => oper.id as number)
 
-        if (!resSetOperStatus.success) {
-          res.status(200).json({ success: false, message: "Не удалось  поменять статус операций" });
+
+        const resOpers = await updateStatusOperationsByOperIds(userId, locale, tCardOperationsRepository, dependentPlanedOperationsIds, StatusEnum.prepared)
+        if (!resOpers.success) {
+          res.status(200).json({
+            success: false,
+            message: `${t('mes.opersStatusesNotSaved')}  ${resOpers.message}`
+          });
+          break;
         }
 
-        // меняем в базе статус карты на Prepared если необходимо
-        const resSetTCardStatus = await setTCardStatus(tCard.id, StatusEnum.prepared, tCardRepository);
+        // Получаю все операции карты после смены статуса
+        const tCardOperations = await getTCardOperationsByCardId(userId, locale, tCard.id, tCardOperationsRepository)
+
+        // рассчитываем статус карты после отмены
+        const statusRes = await calculateTCardStatusByOperations(userId, locale, tCard.status, tCardOperations,);
+        if (!statusRes.success) {
+          res.status(200).json({
+            success: false,
+            message: t('mes.tCardStatusNotCalculated'),
+          });
+          break;
+        }
+
+        // обновляю статус карты по меньшему статусу операции
+        const resSetTCardStatus = await updateStatusTCard(userId, locale, tCardRepository, tCard.id, StatusEnum.prepared);
 
         if (!resSetTCardStatus.success) {
-          res.status(200).json({ success: false, message: "Не удалось  поменять статус карты" });
+          res.status(200).json({
+            success: false,
+            message: resSetTCardStatus.message,
+          });
+          break;
         }
 
+        // Лоады
         // если стираемый лоад в статусе prepared - удаляю вообще без условий они даже не записаны
         tCardLoadsUpdated = tCardLoadsUpdated.filter(lo => {
-          return !(dependentOperationsIds.includes(lo.id_oper) && lo.status === StatusEnum.prepared)
+          return !(allDependentOperationsIds.includes(lo.id_oper) && lo.status === StatusEnum.prepared)
         })
 
         // если стираемый лоад в статусе planed и он раньще текущей даты (в исторической части шкалы)
-        //  - можем просто отменить
+        //  - отменить
         const tCardLoadsToCancel = tCardLoadsUpdated.filter(lo => {
-          return (dependentOperationsIds.includes(lo.id_oper)
+          return (allDependentOperationsIds.includes(lo.id_oper)
             && lo.date < todayStr && lo.status === StatusEnum.planed)
         })
 
         // если стираемый лоад в статусе planed и он позже или равен текущей даты (в плановой части шкалы)
-        //   - можем просто стереть (удалить) из базы
+        //   -  стереть
         const tCardLoadsToDelete = tCardLoadsUpdated.filter(lo => {
-          return (dependentOperationsIds.includes(lo.id_oper)
+          return (allDependentOperationsIds.includes(lo.id_oper)
             && lo.date >= todayStr && lo.status === StatusEnum.planed)
         })
 
-        // // planed - вчерашние и раньше перевожу в canceled но не удаляю - это уже история          
-        // let dependentOperationsIdstoCancel = dependentOperationsIds.filter(oper_id => {
-        //   let op = tCard.tCardOperations?.find(op => op.id === oper_id)
-        //   let opLoads = tCardLoads.filter(lo => lo.id_oper === oper_id)
-        //   const earliestStart = getEarliestStart(opLoads);
-        //   if (!earliestStart) return false // операция не запланирована         
-        //   return (earliestStart.date < today && op?.status === StatusEnum.planed)
-        // })
+        //  только в статусе planed и только позже равно today - стираем
+        const resDelete = await deleteFutureLoads(userId, locale, tCardLoadsToDelete, todayStr, unitLoadRepository);
 
-        // // planed - сегодня и позже по дате  -  удаляю       
-        // let dependentOperationsIdstoDelete = dependentOperationsIds.filter(oper_id => {
-        //   let op = tCard.tCardOperations?.find(op => op.id === oper_id)
-        //   let opLoads = tCardLoads.filter(lo => lo.id_oper === oper_id)
-        //   const earliestStart = getEarliestStart(opLoads);
-        //   if (!earliestStart) return false // операция не запланирована         
-        //   return (earliestStart.date >= today && op?.status === StatusEnum.planed)
-        // })
-
-        //  только в статусе planed и только позже равно today
-        const resDelete = await deleteLoads(tCardLoadsToDelete, todayStr, unitLoadRepository);
-        // Удаление лоадов прошло успешно
         if (!resDelete.success) {
-          res.status(200).json({ success: false, message: "Не удалось удалить планирование операции и зависимых от нее" });
-          return
+          res.status(200).json({
+            success: false,
+            message: t('mes.dependentLoadsNotDeleted'),
+          });
+          break
         }
 
-        // удаляем из нашего пакета удаленные лоады
-        // tCardLoadsUpdated = tCardLoadsUpdated.filter(lo => !dependentOperationsIdstoDelete.includes(lo.id_oper))
+        // удаляем из нашего пакета удаленные лоады        
         tCardLoadsUpdated = tCardLoadsUpdated.filter(load =>
           !tCardLoadsToDelete.some(delLoad => delLoad.id === load.id)
         );
 
         //  только в статусе planed и только раньше today
-        const resCancel = await cancelLoads(tCardLoadsToCancel, todayStr, unitLoadRepository);
-        // Отмена лоадов прошла успешно
+        const resCancel = await cancelHistoryLoads(userId, locale, tCardLoadsToCancel, todayStr, unitLoadRepository);
+
         if (!resCancel.success) {
-          res.status(200).json({ success: false, message: "Не удалось отменить историческое планирование операции и зависимых от нее" });
-          return
+          res.status(200).json({
+            success: false,
+            message: t('mes.dependentLoadsNotCanceled'),
+          });
+          break
         }
 
-        // меняем статус из нашего пакета отмененные  лоады
-        // tCardLoadsUpdated = tCardLoadsUpdated.map(lo => {
-        //   return dependentOperationsIdstoCancel.includes(lo.id_oper) ? { ...lo, status: StatusEnum.cancelled } : lo;
-        // })        
-
+        // меняем статус у отмененные  лоады            
         tCardLoadsUpdated = tCardLoadsUpdated.map(load =>
           tCardLoadsToCancel.some(cancelLoad => cancelLoad.id === load.id)
             ? { ...load, status: StatusEnum.cancelled }
@@ -194,7 +209,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         );
 
         // Получим карту в ее новом состоянии и тоже передадим      
-
         const _tCard = await getTCardFull(
           Number(userId),
           locale,
@@ -208,8 +222,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           actionRepository
         )
         if (!tCard) {
-          res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });
-          return
+          res.status(200).json({
+            success: false,
+            message: t('mes.tCardNotFound')
+          });
+          break
         }
 
         res.status(200).json({
@@ -222,180 +239,182 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       default:
     }
-    res.status(405).end(); // Метод не поддерживается
+    res.status(405).json({ error: 'Method not supported.' });
 
-  } catch (error: unknown) {
-    let errorMessage = "Неизвестная ошибка";
-
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      console.error("Ошибка подключения или выполнения запроса (eraze-load-plan-api):", error);
-    } else {
-      console.error("Неизвестная ошибка подключения (eraze-load-plan-api):", error);
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
     }
-
-    res.status(500).json({ error: "Не удалось обработать запрос: " + errorMessage });
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/plan/eraze-load-plan-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
-
 }
 
-const cancelLoads = async (
-  cancellLoads: UnitLoadItem[],
-  today: string, // формат "YYYY-MM-DD"
-  unitLoadRepository: Repository<UnitLoadTable>
-): Promise<{ success: boolean; message: string }> => {
+// const cancelLoads = async (
+//   cancellLoads: UnitLoadItem[],
+//   today: string, // формат "YYYY-MM-DD"
+//   unitLoadRepository: Repository<UnitLoadTable>
+// ): Promise<{ success: boolean; message: string }> => {
 
-  const loadIds = cancellLoads
-    .map(load => load.id)
-    .filter((id): id is number => id !== undefined);
+//   const loadIds = cancellLoads
+//     .map(load => load.id)
+//     .filter((id): id is number => id !== undefined);
 
-  if (loadIds.length === 0) {
-    return { success: true, message: 'Нет загрузок для отмены.' };
-  }
+//   if (loadIds.length === 0) {
+//     return { success: true, message: 'Нет загрузок для отмены.' };
+//   }
 
-  try {
-    const result = await unitLoadRepository.update(
-      {
-        id: In(loadIds),
-        status: StatusEnum.planed,
-        date: Raw(dateField => `${dateField} < :today`, { today })
-      },
-      { status: StatusEnum.cancelled }
-    );
+//   try {
+//     const result = await unitLoadRepository.update(
+//       {
+//         id: In(loadIds),
+//         status: StatusEnum.planed,
+//         date: Raw(dateField => `${dateField} < :today`, { today })
+//       },
+//       { status: StatusEnum.cancelled }
+//     );
 
-    if (result.affected && result.affected > 0) {
-      return {
-        success: true,
-        message: `Обновлено ${result.affected} загрузок.`,
-      };
-    } else {
-      return {
-        success: false,
-        message: 'Нет загрузок для отмены.',
-      };
-    }
+//     if (result.affected && result.affected > 0) {
+//       return {
+//         success: true,
+//         message: `Обновлено ${result.affected} загрузок.`,
+//       };
+//     } else {
+//       return {
+//         success: false,
+//         message: 'Нет загрузок для отмены.',
+//       };
+//     }
 
-  } catch (error: unknown) {
-    let message = 'Ошибка при отмене загрузок.';
-    if (error instanceof Error) {
-      message = error.message;
-      console.error('Ошибка при отмене загрузок:', error);
-    } else {
-      console.error('Неизвестная ошибка при отмене загрузок:', error);
-    }
-    return { success: false, message };
-  }
-};
+//   } catch (error: unknown) {
+//     let message = 'Ошибка при отмене загрузок.';
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error('Ошибка при отмене загрузок:', error);
+//     } else {
+//       console.error('Неизвестная ошибка при отмене загрузок:', error);
+//     }
+//     return { success: false, message };
+//   }
+// };
 
-const deleteLoads = async (
-  delLoads: UnitLoadItem[],
-  today: string, // формат "YYYY-MM-DD"
-  unitLoadRepository: Repository<UnitLoadTable>
-): Promise<{ success: boolean; message: string }> => {
+// const deleteLoads = async (
+//   delLoads: UnitLoadItem[],
+//   today: string, // формат "YYYY-MM-DD"
+//   unitLoadRepository: Repository<UnitLoadTable>
+// ): Promise<{ success: boolean; message: string }> => {
 
-  const loadIds = delLoads.map(load => load.id).filter((id): id is number => id !== undefined);
+//   const loadIds = delLoads.map(load => load.id).filter((id): id is number => id !== undefined);
 
-  if (loadIds.length === 0) {
-    return { success: true, message: 'Нет загрузок для удаления.' };
-  }
+//   if (loadIds.length === 0) {
+//     return { success: true, message: 'Нет загрузок для удаления.' };
+//   }
 
-  try {
-    const result = await unitLoadRepository.delete({
-      id: In(loadIds),
-      status: StatusEnum.planed,
-      date: Raw(dateField => `${dateField} >= :today`, { today })
-    });
+//   try {
+//     const result = await unitLoadRepository.delete({
+//       id: In(loadIds),
+//       status: StatusEnum.planed,
+//       date: Raw(dateField => `${dateField} >= :today`, { today })
+//     });
 
-    if (result.affected && result.affected > 0) {
-      return { success: true, message: `Удалено ${result.affected} загрузок.` };
-    } else {
-      return { success: false, message: 'Нет загрузок для удаления.' };
-    }
+//     if (result.affected && result.affected > 0) {
+//       return { success: true, message: `Удалено ${result.affected} загрузок.` };
+//     } else {
+//       return { success: false, message: 'Нет загрузок для удаления.' };
+//     }
 
-  } catch (error: unknown) {
-    let message = 'Ошибка при удалении загрузок.';
-    if (error instanceof Error) {
-      message = error.message;
-      console.error('Ошибка при удалении загрузок:', error);
-    } else {
-      console.error('Неизвестная ошибка при удалении загрузок:', error);
-    }
-    return { success: false, message };
-  }
-};
-
-
-
-const setOperStatus = async (
-  operationIds: number[],
-  newStatus: StatusEnum,
-  tCardOperationsRepository: Repository<TCardOperationTable>
-): Promise<{ success: boolean; message: string }> => {
-  try {
-    const result = await tCardOperationsRepository.update(
-      { id: In(operationIds) },
-      { status: newStatus }
-    );
-
-    if (result.affected && result.affected > 0) {
-      return {
-        success: true,
-        message: `Обновлено ${result.affected} операций.`,
-      };
-    } else {
-      return {
-        success: false,
-        message: 'Ни одна операция не обновлена.',
-      };
-    }
-
-  } catch (error: unknown) {
-    let message = 'Ошибка обновления статуса операций.';
-    if (error instanceof Error) {
-      message = error.message;
-      console.error('Ошибка обновления операций:', error);
-    } else {
-      console.error('Неизвестная ошибка обновления операций:', error);
-    }
-    return { success: false, message };
-  }
-};
+//   } catch (error: unknown) {
+//     let message = 'Ошибка при удалении загрузок.';
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error('Ошибка при удалении загрузок:', error);
+//     } else {
+//       console.error('Неизвестная ошибка при удалении загрузок:', error);
+//     }
+//     return { success: false, message };
+//   }
+// };
 
 
-const setTCardStatus = async (
-  tCardId: number,
-  newStatus: StatusEnum,
-  tCardRepository: Repository<TCardTable>
-): Promise<{ success: boolean; message: string }> => {
-  try {
-    const result = await tCardRepository.update(
-      { id: tCardId },
-      { status: newStatus }
-    );
 
-    if (result.affected && result.affected > 0) {
-      return {
-        success: true,
-        message: `Обновлена карта с id: ${tCardId}`,
-      };
-    } else {
-      return {
-        success: false,
-        message: 'Карта не обновлена.',
-      };
-    }
+// const setOperStatus = async (
+//   operationIds: number[],
+//   newStatus: StatusEnum,
+//   tCardOperationsRepository: Repository<TCardOperationTable>
+// ): Promise<{ success: boolean; message: string }> => {
+//   try {
+//     const result = await tCardOperationsRepository.update(
+//       { id: In(operationIds) },
+//       { status: newStatus }
+//     );
 
-  } catch (error: unknown) {
-    let message = 'Ошибка обновления статуса карты.';
-    if (error instanceof Error) {
-      message = error.message;
-      console.error('Ошибка обновления карты:', error);
-    } else {
-      console.error('Неизвестная ошибка обновления карты:', error);
-    }
-    return { success: false, message };
-  }
-};
+//     if (result.affected && result.affected > 0) {
+//       return {
+//         success: true,
+//         message: `Обновлено ${result.affected} операций.`,
+//       };
+//     } else {
+//       return {
+//         success: false,
+//         message: 'Ни одна операция не обновлена.',
+//       };
+//     }
+
+//   } catch (error: unknown) {
+//     let message = 'Ошибка обновления статуса операций.';
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error('Ошибка обновления операций:', error);
+//     } else {
+//       console.error('Неизвестная ошибка обновления операций:', error);
+//     }
+//     return { success: false, message };
+//   }
+// };
+
+
+// const setTCardStatus = async (
+//   tCardId: number,
+//   newStatus: StatusEnum,
+//   tCardRepository: Repository<TCardTable>
+// ): Promise<{ success: boolean; message: string }> => {
+//   try {
+//     const result = await tCardRepository.update(
+//       { id: tCardId },
+//       { status: newStatus }
+//     );
+
+//     if (result.affected && result.affected > 0) {
+//       return {
+//         success: true,
+//         message: `Обновлена карта с id: ${tCardId}`,
+//       };
+//     } else {
+//       return {
+//         success: false,
+//         message: 'Карта не обновлена.',
+//       };
+//     }
+
+//   } catch (error: unknown) {
+//     let message = 'Ошибка обновления статуса карты.';
+//     if (error instanceof Error) {
+//       message = error.message;
+//       console.error('Ошибка обновления карты:', error);
+//     } else {
+//       console.error('Неизвестная ошибка обновления карты:', error);
+//     }
+//     return { success: false, message };
+//   }
+// };
 
 
 export default withAuth(handler)

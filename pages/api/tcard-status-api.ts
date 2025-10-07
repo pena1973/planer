@@ -19,6 +19,7 @@ import { TCardOperationTable } from './../../db/models/data/t_card_operations'
 import { TCardOperationItem, StatusEnum } from './../../types/types';
 import { updateStatusTCard } from './../../handlers/handlers-update';
 import { getTCard, getTCardOperationsByCardId } from './../../handlers/handlers-get';
+import { calculateTCardStatusByOperations } from './../../handlers/handlers-erase';
 
 import { getStatusPriority } from "./../../lib/common/utils"
 
@@ -54,23 +55,37 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           break;
         }
 
-        // Рекурсивное определение "фактического" статуса операции
-        const resolveFinalStatus = (op: TCardOperationItem): StatusEnum => {
-          if (op.status === StatusEnum.defective) {
-            const fixOp = tCardOperations.find(o => o.fixOperIdc === op.idc);
-            if (fixOp) return resolveFinalStatus(fixOp);
-          }
-          return op.status;
-        };
+        const statusRes = await calculateTCardStatusByOperations(userId, locale, tCard.status, tCardOperations,);
+        if (!statusRes.success) {
+          res.status(200).json({
+            success: false,
+            message: t('mes.tCardStatusNotCalculated'),
+          });
+          break;
+        }
 
-        // Находим статус с минимальным приоритетом среди всех операций
-        const operationStatuses = tCardOperations.map(resolveFinalStatus);
+        const finalCardStatus = statusRes.status;
 
-        const finalCardStatus = operationStatuses.reduce((minStatus, currentStatus) => {
-          return getStatusPriority(currentStatus) < getStatusPriority(minStatus)
-            ? currentStatus
-            : minStatus;
-        }, StatusEnum.ready); // Начинаем с наивысшего статуса
+        // // Рекурсивное определение "фактического" статуса операции
+        // const resolveFinalStatus = (op: TCardOperationItem): StatusEnum => {
+        //   if (op.status === StatusEnum.defective) {
+        //     const fixOp = tCardOperations.find(o => o.fixOperIdc === op.idc);
+        //     if (fixOp) return resolveFinalStatus(fixOp);
+        //   }
+        //   return op.status;
+        // };
+
+        // // Находим статус с минимальным приоритетом среди всех операций
+        // const operationStatuses = tCardOperations.map(resolveFinalStatus);
+
+        // const finalCardStatus = operationStatuses.reduce((minStatus, currentStatus) => {
+        //   return getStatusPriority(currentStatus) < getStatusPriority(minStatus)
+        //     ? currentStatus
+        //     : minStatus;
+        // }, StatusEnum.ready); // Начинаем с наивысшего статуса
+
+
+
 
         // / Обновим статус карты если он изменился
         if (tCard.status !== finalCardStatus) {

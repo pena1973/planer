@@ -161,30 +161,115 @@ export const getAllPreparedOperationsIds = (
   return preparedOps.map(op => op.id!).filter(id => id !== undefined);
 };
 
+// //! Получение зависимых prepared операций
+// export const getDependentPreparedOperationsIds = (  
+//   tCard: TCardItem,
+//   oper: TCardOperationItem
+// ): number[] => {
+//   if (!tCard.tCardOperations) return [];
 
-export const getDependentOperationsIds = (
-  userId: number,
-  locale: string,
+//   // Собираем все code выходных продуктов нашей операции
+//   const outCode = new Set(oper.out.map(prod => prod.code));
+
+//   // Фильтруем операции карты (исключая саму oper)
+//   // и выбираем те, у которых хотя бы один входной продукт (inn)
+//   // имеет code, присутствующий в outCode
+//   const dependentOps = tCard.tCardOperations.filter(op => {
+//     if (op.id === oper.id) return false;
+//     return op.inn.some(inp => outCode.has(inp.code));
+//   });
+
+//   const preparedOps = dependentOps.filter(op => op.status === StatusEnum.prepared);
+
+//   // Возвращаем массив id (предполагается, что op.id всегда определён)
+//   return preparedOps.map(op => op.id!).filter(id => id !== undefined);
+// };
+
+// //! Получение всех зависимых planed операций
+// export const getDependentPlanedOperationsIds = (  
+//   tCard: TCardItem,
+//   oper: TCardOperationItem
+// ): number[] => {
+//   if (!tCard.tCardOperations) return [];
+
+//   // Собираем все code выходных продуктов нашей операции
+//   const outCode = new Set(oper.out.map(prod => prod.code));
+
+//   // Фильтруем операции карты (исключая саму oper)
+//   // и выбираем те, у которых хотя бы один входной продукт (inn)
+//   // имеет code, присутствующий в outCode
+//   const dependentOps = tCard.tCardOperations.filter(op => {
+//     if (op.id === oper.id) return false;
+//     return op.inn.some(inp => outCode.has(inp.code));
+//   });
+
+//   const preparedOps = dependentOps.filter(op => op.status === StatusEnum.prepared);
+
+//   // Возвращаем массив id (предполагается, что op.id всегда определён)
+//   return preparedOps.map(op => op.id!).filter(id => id !== undefined);
+// };
+
+
+// ! Все зависимые операции по цепочке (все статусы) — возвращаем объекты операций
+export const getDependentOperations = (
   tCard: TCardItem,
   oper: TCardOperationItem
-): number[] => {
-  if (!tCard.tCardOperations) return [];
+): TCardOperationItem[] => {
+  const ops = tCard.tCardOperations ?? [];
+  if (ops.length === 0) return [];
 
-  // Собираем все code выходных продуктов нашей операции
-  const outCode = new Set(oper.out.map(prod => prod.code));
+  // Индекс: входной code -> список операций (кроме исходной)
+  const index = new Map<string, TCardOperationItem[]>();
+  for (const op of ops) {
+    if (op.id === oper.id) continue;
+    const inn = op.inn ?? [];
+    for (const inp of inn) {
+      const c = inp?.code;
+      if (c == null) continue;
+      const key = String(c);
+      const bucket = index.get(key);
+      if (bucket) bucket.push(op);
+      else index.set(key, [op]);
+    }
+  }
 
-  // Фильтруем операции карты (исключая саму oper)
-  // и выбираем те, у которых хотя бы один входной продукт (inn)
-  // имеет code, присутствующий в outCode
-  const dependentOps = tCard.tCardOperations.filter(op => {
-    if (op.id === oper.id) return false;
-    return op.inn.some(inp => outCode.has(inp.code));
-  });
+  // Стартовые коды — все выходные коды исходной операции
+  const startCodes = (oper.out ?? [])
+    .map(p => p?.code)    
 
-  const preparedOps = dependentOps.filter(op => op.status === StatusEnum.prepared);
+  if (startCodes.length === 0) return [];
 
-  // Возвращаем массив id (предполагается, что op.id всегда определён)
-  return preparedOps.map(op => op.id!).filter(id => id !== undefined);
+  // BFS по кодам продуктов
+  const queue: string[] = Array.from(new Set(startCodes));
+  const seenCodes = new Set(queue);
+  const seenOpIds = new Set<number>();
+  const result: TCardOperationItem[] = [];
+
+  while (queue.length) {
+    const code = queue.shift()!;
+    const dependents = index.get(code) ?? [];
+    for (const dep of dependents) {
+      const id = dep.id;
+      if (id == null || seenOpIds.has(id)) continue;
+
+      seenOpIds.add(id);
+      result.push(dep); // возвращаем объекты операций
+
+      // расширяем фронт их выходами
+      const outs = dep.out ?? [];
+      for (const out of outs) {
+        const oc = out?.code;
+        if (oc == null) continue;
+        const next = String(oc);
+        if (!seenCodes.has(next)) {
+          seenCodes.add(next);
+          queue.push(next);
+        }
+      }
+    }
+  }
+
+  return result;
 };
 
 

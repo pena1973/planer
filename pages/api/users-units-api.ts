@@ -1,3 +1,11 @@
+
+//pages/api/users-units-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -19,25 +27,24 @@ interface RequestBody {
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
-  const db = await connectDb();
-  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);  
-  const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
-
   try {
-  
+    const db = await connectDb();
+    const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+    const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
+
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
 
       case 'GET':
 
-        // userId, teamId в любом случае
         const { userId: userIdget, teamId: teamIdget, withoutAdmin } = req.query;
 
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
         const resUserUnits_ = await getUsersUnits(
-          Number(userIdget), 
-          locale, 
+          Number(userIdget),
+          locale,
           Number(teamIdget),
           Boolean(withoutAdmin),
           usersRepository,
@@ -49,6 +56,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             success: false,
             message: resUserUnits_.message,
           });
+          break
           ;
         }
         res.status(200).json({
@@ -57,42 +65,54 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           message: resUserUnits_.message,
         });
 
-
         break;
 
       case 'POST':
         const { users_units, userId, teamId } = req.body as RequestBody;
 
-        // const users_units_ = users_units.filter(u => (u.unit))
-        // СПИСОК СООТВЕТСТВИЙ 
         const resUserUnits = await updateUsersUnits(
-          Number(userId), 
+          Number(userId),
           locale,
           usersUnitsRepository,
           users_units,
           teamId
         );
+
         if (!resUserUnits.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUserUnits.message });
-          return;
+          res.status(200).json({
+            success: false,
+            message: resUserUnits.message
+          });
+          break;
         }
 
-        const remainingUsers_ = resUserUnits.savedUsersUnits as UserUnitItem[];
+        const remainingUsersPost = resUserUnits.savedUsersUnits as UserUnitItem[];
 
         // отправляем ответ
         res.status(200).json({
           success: true,
-          users_units: remainingUsers_,
-          message: "",  // Сообщение об удалении
+          users_units: remainingUsersPost,
+          message: "",
         });
         break;
 
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (users-unit-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/users-units-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

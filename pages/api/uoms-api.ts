@@ -1,3 +1,10 @@
+//pages/api/uoms-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -16,52 +23,50 @@ interface RequestBody {
   uoms: UOMItem[];
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
-
   try {
 
+    const db = await connectDb();
+    const uomsRepository = getTypedRepository(db, 'UOMsTable', UOMsTable);
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+
     switch (req.method) {
       case 'GET':
-        const { teamId: teamIdget, userId:userIdget } = req.query;
-        const uoms__ = await getUOMs(Number(userIdget), locale, Number(teamIdget), uomsRepository)
+        const { teamId: teamIdget, userId: userIdget } = req.query;
+        const uomsGet = await getUOMs(Number(userIdget), locale, Number(teamIdget), uomsRepository)
 
-        uoms__.sort((a, b) => {
-          // Проверяем, что id определено
+        uomsGet.sort((a, b) => {
           if (a.id === undefined || b.id === undefined) {
-            return 0; // Если id не определено, оставляем элементы на своих местах
+            return 0;
           }
           return a.id - b.id; // Сортировка по id
         });
 
-        // отправляем ответ
         res.status(200).json({
           success: true,
-          uoms: uoms__,
+          uoms: uomsGet,
         });
 
         break;
       case 'POST':
-        // Извлекаем данные из тела запроса
         const { uoms, userId, teamId } = req.body as RequestBody;
 
-        // СПИСОК ДЕЙСТВИЙ 
         const resUOMS = await updateUOMS(
-          Number(userId), locale, 
+          Number(userId), locale,
           uomsRepository,
           uoms,
           Number(teamId)
         )
         if (!resUOMS.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUOMS.message });
-          return;
+          res.status(200).json({
+            success: true,
+            message: resUOMS.message,
+          });
         }
 
         const savedUOMs = resUOMS.savedUOMS as UOMsTable[];
 
-        const uoms_ = savedUOMs
+        const uomsPost = savedUOMs
           .map(uom => {
             return {
               id: uom.id,
@@ -70,18 +75,29 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             };
           });
 
-        // отправляем ответ
+
         res.status(200).json({
           success: true,
-          uoms: uoms_,
+          uoms: uomsPost,
         });
         break;
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (uoms-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/uoms-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

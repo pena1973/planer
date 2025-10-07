@@ -1,0 +1,318 @@
+
+import { ulogger } from "./../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+import { Repository, In, Not, Raw } from 'typeorm';
+// tables
+import { UnitTable } from './../db/models/catalogs/units'
+import { UnitActionTable } from './../db/models/catalogs/unit_actions'
+import { UnitLoadTable } from './../db/models/plan/unit_loads';
+import { TCardTable } from './../db/models/data/t_cards'
+import { TCardStageTable } from './../db/models/data/t_card_stages'
+import { TemplateTable } from './../db/models/catalogs/templates'
+
+import { ProductTable } from './../db/models/data/products'
+import { TCardProductTable } from './../db/models/data/t_card_products'
+import { TCardOperationTable } from './../db/models/data/t_card_operations'
+import { TypeEnum } from './../types/types';
+import { ActionTable } from './../db/models/catalogs/actions';
+import { UOMsTable } from './../db/models/catalogs/uoms';
+import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
+import { SettingsTable } from './../db/models/plan/settings';
+import { TeamTable } from './../db/models/catalogs/teams';
+import { TeamScheduleTable } from './../db/models/plan/team_schedule'
+import { UserTable } from './../db/models/catalogs/users';
+import { UserUnitTable } from './../db/models/catalogs/user_unit';
+import { MailTable } from './../db/models/support/mails';
+
+import { ClientTable } from './../db/models/billing/clients';
+import { ActiveTimeTable } from "./../db/models/billing/active_time";
+
+import { BalanceTable } from "./../db/models/billing/balance";
+import { JobSettingsTable } from "./../db/models/job/job-settings";
+
+import { BanerTable } from './../db/models/support/baners';
+
+// types
+import {
+  UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem,
+  SupportMailItem, TCardItem, TCardOperationItem, TCardProductItem,
+  ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
+  SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum,
+  ScheduleItem, TeamItem
+} from './../types/types';
+
+import { ClientItem, JobSettingItem, BanerItem } from './../types/service-types';
+
+
+import { YYYYMMDD } from "@/lib/common/utils"
+import { getCurrentDateInString, } from "../lib/common/timezone"
+
+import { getStatusPriority } from "./../lib/common/utils"
+
+// отменяет запланированные лоады по id операции (история)
+export const cancelHistoryLoadsByOperIds = async (
+  userId: number,
+  locale: string,
+  cancellOperIds: number[],
+  today: string, // "YYYY-MM-DD"
+  unitLoadRepository: Repository<UnitLoadTable>
+): Promise<{ success: boolean, message: string }> => {
+  const t = getServerT(locale, 'translation');
+  try {
+
+    if (cancellOperIds.length === 0)
+      return {
+        success: true,
+        message: t('mes.NoOpersToCancel')
+      }
+
+    const result = await unitLoadRepository.createQueryBuilder()
+      .update(UnitLoadTable)
+      .set({ status: StatusEnum.cancelled })
+      .where("id_oper IN (:...cancellOperIds)", { cancellOperIds })
+      .andWhere("status = :planed", { planed: StatusEnum.planed })
+      .andWhere("date < :today", { today })
+      .execute();
+
+    return {
+      success: true,
+      message: `${t('mes.loadsUpdated')}`
+    };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/cancelHistoryLoads",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "cancelHistoryLoads",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
+};
+
+// Удаляет запланированные лоады по id операции (будущее)
+export const deleteFutureLoadsByOperIds = async (
+  userId: number,
+  locale: string,
+  delOperIds: number[],
+  today: string, // "YYYY-MM-DD"
+  unitLoadRepository: Repository<UnitLoadTable>
+): Promise<{ success: boolean, message: string }> => {
+  const t = getServerT(locale, 'translation');
+  try {
+    if (delOperIds.length === 0) return { success: true, message: `Нет операций для удаления.` };
+
+    const result = await unitLoadRepository
+      .createQueryBuilder()
+      .delete()
+      .where("id_oper IN (:...delOperIds)", { delOperIds })
+      .andWhere("status = :status", { status: StatusEnum.planed })
+      .andWhere("date >= :today", { today })
+      .execute();
+
+    return {
+      success: true,
+      message: `${t('mes.loadsDeleted')}`
+    };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/cancelHistoryLoads",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "cancelHistoryLoads",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
+};
+
+
+
+// export const setOperStatus = async (
+//   userId: number,
+//   locale: string,
+//   operationIds: number[],
+//   newStatus: StatusEnum,
+//   tCardOperationsRepository: Repository<TCardOperationTable>
+// ): Promise<{ success: boolean; message: string }> => {
+//   if (operationIds.length === 0) {
+//     return { success: true, message: "Нет операций для изменения." };
+//   }
+
+//   try {
+//     const result = await tCardOperationsRepository.update(
+//       { id: In(operationIds) },   // WHERE id IN (...)
+//       { status: newStatus }       // SET status = :newStatus
+//     );
+
+//     return result.affected && result.affected > 0
+//       ? { success: true, message: `Обновлено ${result.affected} операций.` }
+//       : { success: false, message: "Ни одна операция не обновлена." };
+//   } catch (error) {
+//     console.error("Ошибка обновления операций:", error);
+//     return { success: false, message: "Ошибка обновления статуса операций." };
+//   }
+// };
+
+// Вычисляет статус Т-карты по статусам её операций (учитывая связи дефект→исправление)
+export async function calculateTCardStatusByOperations(
+  userId: number,
+  locale: string,
+  currentStatus: StatusEnum,
+  tCardOperations: TCardOperationItem[],
+): Promise<{ success: boolean; status: StatusEnum; message: string }> {
+
+  const t = getServerT(locale, 'translation');
+
+  try {
+    if (!Array.isArray(tCardOperations) || tCardOperations.length === 0) {
+      // нет операций — считаем карту готовой (или поменяй на нужный базовый статус)
+      return { success: true, status: currentStatus, message: '' };
+    }
+
+
+    // индекс исправляющих операций по fixOperIdc
+    const fixByTargetIdc = new Map<number, TCardOperationItem>();
+    for (const op of tCardOperations) {
+      if (op.fixOperIdc != null) fixByTargetIdc.set(op.fixOperIdc, op);
+    }
+
+    // рекурсивная функция: второй аргумент — именно Set, НО мы её не передаём в map напрямую
+    const resolveFinalStatus = (op: TCardOperationItem, seen: Set<number>): StatusEnum => {
+      if (op.status !== StatusEnum.defective) return op.status;
+
+      const idc = op.idc;
+      if (idc == null || seen.has(idc)) return StatusEnum.defective;
+
+      seen.add(idc);
+      const fixOp = fixByTargetIdc.get(idc);
+      return fixOp ? resolveFinalStatus(fixOp, seen) : StatusEnum.defective;
+    };
+
+    // ✅ обёртка для map — теперь сигнатура (op) => StatusEnum
+    const operationStatuses: StatusEnum[] =
+      tCardOperations.map(op => resolveFinalStatus(op, new Set<number>()));
+
+
+    // Минимальный по приоритету статус — статус карты
+    const finalCardStatus = operationStatuses.reduce(
+      (best, cur) => (getStatusPriority(cur) < getStatusPriority(best) ? cur : best),
+      StatusEnum.ready, // стартуем с "наивысшего" статуса
+    );
+
+    return { success: true, status: finalCardStatus, message: '' };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: 'handlers/handlers-update/calculateTCardStatusByOperations',
+      event: 'db_error',
+      message: `catch: ${msg}`,
+      context: 'calculateTCardStatusByOperations',
+    }).catch(() => { console.error('logger error'); });
+
+    return { success: false, status: currentStatus, message: 'db_error: ' + msg };
+  }
+}
+
+
+// отмена лоадов
+export const cancelHistoryLoads = async (
+  userId: number,
+  locale: string,
+  cancellLoads: UnitLoadItem[],
+  today: string, // формат "YYYY-MM-DD"
+  unitLoadRepository: Repository<UnitLoadTable>
+): Promise<{ success: boolean; message: string }> => {
+  const t = getServerT(locale, 'translation');
+
+  try {
+    const loadIds = cancellLoads
+      .map(load => load.id)
+      .filter((id): id is number => id !== undefined);
+
+    if (loadIds.length === 0) {
+      return { success: true, message: 'Нет загрузок для отмены.' };
+    }
+
+    const result = await unitLoadRepository.update(
+      {
+        id: In(loadIds),
+        status: StatusEnum.planed,
+        date: Raw(dateField => `${dateField} < :today`, { today })
+      },
+      { status: StatusEnum.cancelled }
+    );
+
+    return {
+      success: true,
+      message: `${t('mes.loadsUpdated')}`
+    };
+
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-erase/cancelLoads",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "cancelLoads",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
+};
+// удаление лоадов
+export const deleteFutureLoads = async (
+  userId: number,
+  locale: string,
+  delLoads: UnitLoadItem[],
+  today: string, // формат "YYYY-MM-DD"
+  unitLoadRepository: Repository<UnitLoadTable>
+): Promise<{ success: boolean; message: string }> => {
+  const t = getServerT(locale, 'translation');
+  try {
+    const loadIds = delLoads.map(load => load.id).filter((id): id is number => id !== undefined);
+
+    if (loadIds.length === 0) {
+      return { success: true, message: 'Нет загрузок для удаления.' };
+    }
+
+    const result = await unitLoadRepository.delete({
+      id: In(loadIds),
+      status: StatusEnum.planed,
+      date: Raw(dateField => `${dateField} >= :today`, { today })
+    });
+
+    return {
+      success: true,
+      message: `${t('mes.loadsDeleted')}`
+    };
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-erase/deleteLoads",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "deleteLoads",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
+};
+

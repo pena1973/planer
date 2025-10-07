@@ -64,7 +64,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(200).json({
             success: false,
             // error: 'Не удалось обработать запрос. ' + resOpers.message 
-            message: `${t('mes.operStatusesNotSaved')}  + ${resLoads.message}`
+            message: `${t('mes.operStatusesNotSaved')}  + ${resOpers.message}`
           });
           break;
         }

@@ -433,7 +433,7 @@ export async function updateClient(
   }
 }
 
-// ЕДИНИЦЫ ИЗМЕРЕНИЯ
+//! ЕДИНИЦЫ ИЗМЕРЕНИЯ
 export async function updateUOMS(
   userId: number,
   locale: string,
@@ -441,89 +441,70 @@ export async function updateUOMS(
   uoms: UOMItem[],
   teamId: number
 ) {
+  const t = getServerT(locale, 'translation');
 
-  //  в базе
-  const existingUOMS = await uomsRepository.find({ where: { team_id: teamId } });
+  try {
+    const existingUOMS = await uomsRepository.find({ where: { team_id: teamId } });
 
-  // 1. Найдём удалённые единицы измерения
-  const uomsToDelete = existingUOMS.filter(uom =>
-    !uoms.some(newUOM => newUOM.id === uom.id) // Сравниваем id существующих стадий с переданными
-  );
+    // 1. Найдём удалённые единицы измерения
+    const uomsToDelete = existingUOMS.filter(uom =>
+      !uoms.some(newUOM => newUOM.id === uom.id) // Сравниваем id существующих стадий с переданными
+    );
 
-  // 2. Найдём новые единицы измерения, которых нет в базе
-  const uomsToAdd = uoms.filter(uom =>
-    !existingUOMS.some(existingUOMS => existingUOMS.id === uom.id) // Сравниваем id переданных стадий с существующими
-  );
+    // 2. Найдём новые единицы измерения, которых нет в базе
+    const uomsToAdd = uoms.filter(uom =>
+      !existingUOMS.some(existingUOMS => existingUOMS.id === uom.id) // Сравниваем id переданных стадий с существующими
+    );
 
-  // 3. Найдём существующие единицы измерения для обновления
-  const uomsToUpdate = uoms.filter(uom =>
-    existingUOMS.some(existingUOMS => existingUOMS.id === uom.id) // Сравниваем id для существующих стадий
-  );
+    // 3. Найдём существующие единицы измерения для обновления
+    const uomsToUpdate = uoms.filter(uom =>
+      existingUOMS.some(existingUOMS => existingUOMS.id === uom.id) // Сравниваем id для существующих стадий
+    );
 
-  // Удаляем старые единицы измерения
-  if (uomsToDelete.length > 0) {
-    await uomsRepository.remove(uomsToDelete);
-  }
-
-  // Добавляем новые единицы измерения
-  const newUOMS = uomsToAdd.map(uom => {
-    return uomsRepository.create({
-      code: uom.code,
-      title: uom.title,
-      team_id: teamId,
-    });
-  });
-  let savedNewUOMS = [] as UOMsTable[]
-  if (newUOMS.length > 0) savedNewUOMS = await uomsRepository.save(newUOMS);
-  if (!savedNewUOMS) return { success: false, message: "Не удалось сохранить действие" }
-
-
-  // Обновляем существующие единицы измерения
-  const updatedUOMS = uomsToUpdate.map(uom => {
-    const existingUOM = existingUOMS.find(existingUOM => existingUOM.id === uom.id);
-    if (existingUOM) {
-      existingUOM.title = uom.title;
-      existingUOM.code = uom.code;
-      return uomsRepository.create(existingUOM);
+    // Удаляем старые единицы измерения
+    if (uomsToDelete.length > 0) {
+      await uomsRepository.remove(uomsToDelete);
     }
-    return null;
-  }).filter(unitAction => unitAction !== null);
 
-  let savedUpdatedUOMS = [] as UOMsTable[]
-  if (updatedUOMS.length > 0) savedUpdatedUOMS = await uomsRepository.save(updatedUOMS);
-  if (!savedUpdatedUOMS) return { success: false, message: "Не удалось сохранить единицы измерения " }
-
-  // Все единицы измерения сохранены, проверка
-  let error = ""
-  const savedUOMS = [...savedNewUOMS, ...savedUpdatedUOMS] as UOMsTable[]
-
-  // вход и выход массив единицы измерения не совпадает количество записей - чтото не сохранилось
-  if (savedUOMS.length > 0 && uoms.length !== savedUOMS.length) {
-    error = `Не удалось сохранить единицы измерения`;
-    console.log(error);
-    return { success: false, message: error }
-  }
-
-  // Проверка, что массив не пуст и все объекты имеют сгенерированный id
-  if (savedUOMS.length > 0 && uoms.length > 0) {
-    if (savedUOMS.length > 0) {
-
-      savedUOMS.forEach((uom, index) => {
-        if (uom.id) {
-          console.log(`Единица измерения успешно сохранена с id: ${uom.id}`);
-        } else {
-          error = `Ошибка при сохранении единицы измерения ${index + 1}`;
-          console.log(error);
-          return { success: false, message: error }
-        }
+    // Добавляем новые единицы измерения
+    const newUOMS = uomsToAdd.map(uom => {
+      return uomsRepository.create({
+        code: uom.code,
+        title: uom.title,
+        team_id: teamId,
       });
-    } else {
-      error = `Не удалось сохранить единицы измерени`;
-      console.log(error);
-      return { success: false, message: error }
-    }
+    });
+
+    const savedNewUOMS = await uomsRepository.save(newUOMS);
+
+    // Обновляем существующие единицы измерения
+    const updatedUOMS = uomsToUpdate.map(uom => {
+      const existingUOM = existingUOMS.find(existingUOM => existingUOM.id === uom.id);
+      if (existingUOM) {
+        existingUOM.title = uom.title;
+        existingUOM.code = uom.code;
+        return existingUOM;
+      }
+      return null;
+    }).filter(unitAction => unitAction !== null);
+
+    const savedUpdatedUOMS = await uomsRepository.save(updatedUOMS);
+    const savedUOMS = [...savedNewUOMS, ...savedUpdatedUOMS] as UOMsTable[]
+
+    return { success: true, savedUOMS: savedUOMS }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-update/updateUOMS",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateUOMS",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
   }
-  return { success: true, savedUOMS: savedUOMS }
 }
 
 //! ДЕЙСТВИЯ
@@ -925,7 +906,7 @@ export async function updateExceptions(
   unitExceptions: UnitExceptionItem[],
   teamId: number
 ): Promise<{ success: boolean; message?: string; savedUnitExceptions?: UnitExceptionItem[] }> {
-  
+
   const t = getServerT(locale, 'translation');
   try {
     // СПИСОК ЮНИТОВ в базе
