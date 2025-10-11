@@ -1,3 +1,10 @@
+//pages/api/auth/register-api.ts
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
@@ -20,10 +27,7 @@ import { getCurrentDateInString } from "./../../../lib/common/timezone"
 import { TeamItem, UserItem, TimeZoneEnum } from './../../../types/types';
 
 import { sign } from 'jsonwebtoken';
-import {
-  createNewTeam, createNewUser, getTeam,
-  isUserExist, getLastAgreement
-} from './../../../handlers/handlers-auth';
+import { createNewTeam, createNewUser, getTeam, isUserExist, getLastAgreement} from './../../../handlers/handlers-auth';
 
 import { updateBalance } from './../../../handlers/handlers-update';
 
@@ -39,22 +43,20 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
-  const db = await connectDb();
-
-  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
-  const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
-  const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
-  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-  const active_timeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
-  const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
-
-
   try {
+    const db = await connectDb();
+
+    const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+    const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
+    const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
+    const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
+    const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+    const active_timeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
+    const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'POST':
@@ -67,7 +69,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // юзер существует второй раз нельзя зарегистрировать
           res.status(200).json({
             success: false,
-            message: " Ошибка, пользователь с таким логином уже существует, если забыли пароль, воспользуйтесь функцией восстановления пароля",
+            // message: " Ошибка, пользователь с таким логином уже существует, если забыли пароль, воспользуйтесь функцией восстановления пароля",
+            message: `${'mes.userAlreadyExists'}`,
           });
           return;
         }
@@ -88,25 +91,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             (basedOnTeam) ? basedTeamNumber : null,);
 
           if (!resTeam.success) {
-            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });
+            res.status(200).json({
+              success: false,
+              message: resTeam.message,
+            });
             return;
           }
-
           team = resTeam.team;
-
-
         } else {
           //  иначе ищем команду по номеру
           const teamId = extractIdFromTeamNumber(teamNumber);
 
-          const resTeam1 = await getTeam(null, locale,teamId, teamsRepository)
+          const resTeam1 = await getTeam(null, locale, teamId, teamsRepository)
 
           if (!resTeam1.success || !resTeam1.team) {
-            res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam1.message });
+            res.status(200).json({
+              success: false,
+              message: resTeam1.message,
+            });
             return;
           }
           team = resTeam1.team;
-
         }
 
         // Юзер
@@ -121,7 +126,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           usersRepository);
 
         if (!resNewUser.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resNewUser.message });
+          res.status(200).json({
+            success: false,
+            message: resNewUser.message,
+          });
           return;
         }
 
@@ -131,7 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const token = sign({ data: login }, String(process.env.JWTSECRET), { expiresIn: '24h' });
 
         //  юзер получен проверяю актуальное соглашение
-        const resAgreement = await getLastAgreement(savedUser.id,locale, userAgreeRepository, agreementRepository)
+        const resAgreement = await getLastAgreement(savedUser.id, locale, userAgreeRepository, agreementRepository)
         //  { text: string, signed: boolean, dateSigned?: string, message?: string }> 
 
         const agreementText = resAgreement.agreementText;
@@ -142,16 +150,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!basedOnTeam) {
           const balanceRes = await updateBalance(
             savedUser.id,
-            locale, 
+            locale,
             balanceRepository,
             team.id,
             "",
-            100,            
+            100,
             todayStr,
-            true,            
+            true,
             'trial - ' + todayStr, "+", "")
+
           if (!balanceRes.success) {
             console.log("баланс не пополнен  trial, teamId:" + team.id);
+            //  logger
+            void ulogger.error({
+              userId: null,
+              location: "pages/api/auth/register-api",
+              event: "error",
+              message: "баланс не пополнен  trial, teamId:" + team.id,
+              context: " const balanceRes = await updateBalance(",
+            }).catch(() => { console.error("logger error") });
           }
         }
         // отправляем ответ
@@ -166,11 +183,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         break;
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (register-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/auth/confirm-email-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

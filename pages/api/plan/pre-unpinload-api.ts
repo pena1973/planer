@@ -14,13 +14,12 @@ import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getUnitExceptions, getUnitActions } from './../../../handlers/handlers-get';  // 
-import { planTCardFromOperINC, getDependentOperationsIds } from './../../../handlers/handlers-plan';  // 
+import { planTCardFromOperINC, getDependentOperations } from './../../../handlers/handlers-plan';  // 
 
 import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
 import { UnitExceptionTable } from './../../../db/models/plan/unit_exceptions';
 import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
 import { TCardTable } from './../../../db/models/data/t_cards'
-import { TeamTable } from './../../../db/models/catalogs/teams'
 import { UnitTable } from './../../../db/models/catalogs/units'
 
 import { UnitActionTable } from './../../../db/models/catalogs/unit_actions'
@@ -29,7 +28,7 @@ import { ProductTable } from './../../../db/models/data/products'
 import { TCardProductTable } from './../../../db/models/data/t_card_products'
 import { TCardStageTable } from './../../../db/models/data/t_card_stages'
 import { ActionTable } from './../../../db/models/catalogs/actions'
-import { UnitLoadItem, } from "./../../../types/types";
+import { UnitLoadItem, StatusEnum } from "./../../../types/types";
 
 interface RequestBody {
   userId: number,
@@ -40,24 +39,21 @@ interface RequestBody {
   today: string // дата раздела 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
- try {
+  try {
     const db = await connectDb();
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
-  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
-  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
-  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
-  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
-  const tCardOperationRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
-  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
-  const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+    const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+    const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+    const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+    const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+    const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+    const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+    const tCardOperationRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+    const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+    const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+    const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+    const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
 
- 
-
-   const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
     const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
@@ -74,8 +70,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // Если нет загрузок, можно вернуть пустой результат или обработать ошибку
           res.status(200).json({
             success: false,
-            tCardLoads: tCardLoads,
-            message: "Ошибка, не передано загрузок по карте",
+            // tCardLoads: tCardLoads,
+            // message: "Ошибка, не передано загрузок по карте",
+            message: t('mes.noCardLoads'),
           });
           return;
         }
@@ -96,36 +93,62 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!tCard) {
           res.status(200).json({
             success: false,
-            tCardLoads: tCardLoads,
-            message: "Карта не найдена",
+            message: t('mes.tCardNotFound')
           });
-          return
+          break
         }
 
         // находим нашу операцию в карте 
         const oper = tCard.tCardOperations?.find(op => op.id === operId)
         if (!oper) {
+          //  logger
+          void ulogger.error({
+            userId: userId,
+            location: "pages/api/plan/pre-moveload-api",
+            event: "error",
+            message: `Операция не найдена operId: ${operId}, tCardId: ${tCard.id}`,
+            context: " const oper = tCard.tCardOperations?.find(op => op.id === operId)",
+          }).catch(() => { console.error("logger error") });
+
           res.status(200).json({
             success: false,
             tCardLoads: tCardLoads,
-            message: `Операция ${operId} по карте С-${tCard.idc} не найдена `,
+            message: `${t('mes.tCardOperNotFound')}:  ${operId}`,
           });
           return
         }
-        //  получаем список операций которые зависимы от нашей  -  их будем перепланировать
-        const dependentOperationsIds = getDependentOperationsIds(Number(userId), locale, tCard, oper);
 
-        // Формируем массив по карте без лоадов этой операции и зависимых от нее
+        //  получаем список операций которые зависимы от нашей  -  их будем перепланировать
+        const dependentOperations = getDependentOperations(tCard, oper);
+
+        // добавлю и нашу операцию тоже
+        dependentOperations.push(oper);
+
+        // все зависимые операции
+        const allDependentOperationsIds = dependentOperations
+          .map(oper => oper.id as number)
+
+
+        // Формируем массив лоадов по карте без лоадов этой операции и зависимых от нее (историю тоже не берем)
         const cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
-          !(load.id_oper === operId || dependentOperationsIds.includes(load.id_oper as number))
+          !(allDependentOperationsIds.includes(load.id_oper as number)
+            // && load.date >= today
+          )
         );
+
+        // также для сохранения истории мы по этой операции и зависимым операциям должны оставить все отмененные бракованные и готовые и отмененные
+        const cardLoadsOperEndDepHistory = tCardLoads.filter(load =>
+          // load.date < today
+          !(load.status === StatusEnum.prepared || load.status === StatusEnum.planed)
+          && (allDependentOperationsIds.includes(load.id_oper as number))
+        );
+
+        let planedCardLoads = [...cardLoadsWithoutOperEndDep, ...cardLoadsOperEndDepHistory];
 
         // сортируем по возрастанию
-        cardLoadsWithoutOperEndDep.sort((a, b) =>
+        planedCardLoads.sort((a, b) =>
           a.date.localeCompare(b.date) || a.timeStart - b.timeStart
         );
-
-        let planedCardLoads = [...cardLoadsWithoutOperEndDep];
 
         // запросим юниты
         const units_ = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
@@ -135,7 +158,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         // запросим расписание компании
         const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
-      
+
         if (!shedule) {
           res.status(200).json({
             success: false,
@@ -144,7 +167,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           });
           break;
         }
-        
+
         //  получим исключения рабочего времени юнитов         
         const exceptionItems = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
@@ -161,8 +184,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         unitLoadItemsFull = [...unitLoadItemsFull, ...cardLoadsWithoutOperEndDep];
 
         // планируем все операции  начиная (включая) с нашей  (исключая пришпиленные)
-
-        const operationsToPlanIds = [...dependentOperationsIds, Number(oper.id)]
+        const operationsToPlanIds = [...allDependentOperationsIds, Number(oper.id)]
 
         // Планируем карту начиная с нашей операции (есключая ее саму)
         const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, operationsToPlanIds, tCard, units_, unitActions_, shedule, unitLoadItemsFull, exceptionItems, today)
@@ -185,13 +207,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
         break;
 
-
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (pre-unpinload-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' + error });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/plan/pre-unpinload-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

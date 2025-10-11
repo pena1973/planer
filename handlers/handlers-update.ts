@@ -1797,32 +1797,20 @@ export async function updateProducts(
       where: { tcard_id: savedTCard.id },
     });
 
-    // // Продукты для CRUD операций
-    // const productsToDelete = existingTCardProducts.filter(ep =>
-    //   !tCardAllProducts.some(np => np.id === ep.id && np.code === ep.code && np.type === ep.type && np.qtu === ep.qtu)
-    // );
-
-    // const productsToAdd = tCardAllProducts.filter(np =>
-    //   !existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
-    // );
-
-    // const productsToUpdate = tCardAllProducts.filter(np =>
-    //   existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
-    // );
-
-    // Продукты для CRUD по id 
+    // Продукты для CRUD операций
     const productsToDelete = existingTCardProducts.filter(ep =>
-      !tCardAllProducts.some(np => np.id === ep.id)
+      !tCardAllProducts.some(np => np.id === ep.id && np.code === ep.code && np.type === ep.type && np.qtu === ep.qtu)
     );
 
     const productsToAdd = tCardAllProducts.filter(np =>
-      np.id == null || !existingTCardProducts.some(ep => ep.id === np.id)
+      !existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
     );
 
     const productsToUpdate = tCardAllProducts.filter(np =>
-      np.id != null && existingTCardProducts.some(ep => ep.id === np.id)
+      existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
     );
 
+    
     // Удаляем продукты
     if (productsToDelete.length > 0) await tCardProductRepository.remove(productsToDelete);
 
@@ -1848,7 +1836,7 @@ export async function updateProducts(
     // Обновляем существующие
     const updatedProducts = productsToUpdate.map(tp => {
       const existingProduct = existingTCardProducts.find(ep => ep.id === tp.id);
-      const product = products.find(p => p.idc === tp.product.idc);
+      const product = products.find(p => p.id === tp.product.id);
       if (!product || !existingProduct) return null;
 
       return {

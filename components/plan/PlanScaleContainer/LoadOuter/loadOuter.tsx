@@ -128,16 +128,17 @@ function LoadOuter({
         <>
             {/* Треугольник (стрелка) */}
 
-            {load.isOuterFinish && <div className={triangleLeftClass} style={{ left: `-5px` }} />}
-            {load.isOuterStart && <div className={triangleRightClass} style={{ right: `-5px` }} />}
+            {load.isOuterFinish && <div className={triangleLeftClass} />}
+            {load.isOuterStart && <div className={triangleRightClass} />}
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}
                 onMouseUp={e => handleMouseUpOper()}
                 draggable={true}
                 id={String(load.idc)}
                 style={{
-                    width: `${width}px`,
-                    left: `${left}px`,
+                    // width: `${width}px`,
+                    // left: `${left}px`,
+                    
                     cursor: (draggingLoad === load) ? "grabbing" : "grab"
                 }}
 

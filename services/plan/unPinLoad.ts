@@ -63,7 +63,7 @@ export const unPinLoad = async (
                 const updatedLoads = [...tCardLoadsWithout, ...tCardLoads_]
                 dispatch(setUnitLoads(updatedLoads));
                 // setMessage(" Успешно изменено предварительное планирование операции и все последующие зависимые планирования");
-                setMessage(t("mes.prePlanCganged"));
+                setMessage(t("mes.prePlanChanged"));
 
             } else {
                 setMessage(receivedData.message);

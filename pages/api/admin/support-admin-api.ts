@@ -1,3 +1,8 @@
+//pages/api/admin/support-api.ts
+// API для получения и обновления сообщений поддержки (support messages)
+// Используется для отправки сообщений в поддержку и просмотра ответов 
+import { ulogger } from "./../../../lib/common/universal-logger";
+
 import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -18,11 +23,9 @@ interface RequestBody {
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
-
   try {
-
+    const db = await connectDb();
+    const supportRepository = getTypedRepository(db, 'MailTable', MailTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
@@ -53,15 +56,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           supportRepository
         )
         if (!resSupport.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSupport.message });
-          return;
+          res.status(200).json({
+            success: false,
+            message: resSupport.message,
+          });
+          break;
         }
 
         const savedMessage = resSupport.savedMessage as MailTable;
 
         const supportMessage_ = {
           id: savedMessage.id,
-          // date: new Date(savedMessage.date).toLocaleDateString('en-CA'),
           date: savedMessage.date,
           title: savedMessage.title,
           body: savedMessage.body,
@@ -79,11 +84,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         break;
 
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (support-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/admin/support-admin-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

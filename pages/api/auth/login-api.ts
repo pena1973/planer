@@ -1,3 +1,10 @@
+//pages/api/template-api.ts
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';  // Импортируем функцию подключения
@@ -26,21 +33,20 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
-  const db = await connectDb();
-
-  const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
-  const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
-  const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
-  const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
-
-  console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
-
   try {
+    const db = await connectDb();
+
+    const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+    const userAgreeRepository = getTypedRepository(db, 'UserAgreeTable', UserAgreeTable);
+    const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
+    const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
+    const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
+
+    // console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'POST':
@@ -48,22 +54,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { login, pass } = req.body as RequestBody;
 
         // console.log('👀 userRepository:', usersRepository.target);
-        //&&&&&
+
         const resUser = await getUser(locale, login, pass, usersRepository)
         if (!resUser.success) {
           res.status(200).json({
             success: false,
             message: resUser.message,
           });
-          return;
+          break;
         }
         const user = resUser.user as UserItem;
 
-        // &&&&&
         const resTeam = await getTeam(user.id, locale, user.teamId, teamsRepository)
         if (!resTeam.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUser.message });
-          return;
+          res.status(200).json({
+            success: false,
+            message: resTeam.message,
+          });
+          break;
         }
         const team = resTeam.team;
 
@@ -72,14 +80,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //  юзер получен проверяю актуальное соглашение
         const resAgreement = await getLastAgreement(user.id, locale, userAgreeRepository, agreementRepository)
 
-
         if (!resAgreement.agreementId) {
           res.status(200).json({
             success: true,
             team: team,
             token: "",
             user: user,
-            agreementText: "Нет соглашения",
+            // agreementText: "Нет соглашения",
+            agreementText: t('mes.noAgreement'),
             agreementId: "",
             signed: false,
             dateSigned: "",
@@ -107,28 +115,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         //  получаю Юнит который занимает юзер
         //  получаем назначенные и получаем всех юзеров  и соединяем левым соединением
-        
-          const resUserUnits_ = await getUsersUnits(
-            user.id, // для ошибок
-            locale,
-            team.id,
-            false,
-            usersRepository,
-            usersUnitsRepository,
-            user.id // для получения своего юнита  может и не указыватся когда получаем за всех юнитов команды
-          )
 
-          if (!resUserUnits_.success) {
-            res.status(200).json({
-              success: false,
-              message: resUserUnits_.message,
-            });
-            ;
-          }
-        
+        const resUserUnits_ = await getUsersUnits(
+          user.id, // для ошибок
+          locale,
+          team.id,
+          false,
+          usersRepository,
+          usersUnitsRepository,
+          user.id // для получения своего юнита  может и не указыватся когда получаем за всех юнитов команды
+        )
+
+        if (!resUserUnits_.success) {
+          res.status(200).json({
+            success: false,
+            message: resUserUnits_.message,
+          });
+          ;
+        }
 
         const userunit = resUserUnits_.userUnits.find((uu) => { return uu.userId === user.id; })
-
         const unit = (userunit && userunit.active) ? userunit.unit : undefined;
 
         // отправляем ответ
@@ -146,11 +152,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         break;
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (login-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/auth/confirm-email-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

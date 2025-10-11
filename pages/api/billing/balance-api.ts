@@ -1,3 +1,10 @@
+//pages/api/units-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -19,7 +26,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
 
   try {
+
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+
 
     switch (req.method) {
       case 'GET':
@@ -27,13 +37,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { teamId, userId } = req.query;
 
         // запросим расписание компании чтобы взять timezone
-        const shedule_ = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
-        
-        if (!shedule_) { return res.status(200).json({ success: false, balance: 0, message: "Для получения баланса необходимо знать таймзону команды, она не указана" }); }
+        const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
 
-        const today = getCurrentDateInString(shedule_.timeZone);
-       
-        const balance_ = await getBalance(Number(userId),  today, Number(teamId), balanceRepository)
+        if (!shedule) { 
+          return res.status(200).json({ 
+            success: false, 
+            balance: 0, 
+            // message: "Для получения баланса необходимо знать таймзону команды, она не указана" 
+            message: `${t('mes.noTimezoneForBalance')}` 
+          }); }
+
+        const today = getCurrentDateInString(shedule.timeZone);
+
+        const balance_ = await getBalance(Number(userId), locale, today, Number(teamId), balanceRepository)
 
         // отправляем ответ
         res.status(200).json({
@@ -43,11 +59,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         break;
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (uoms-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/billing/balance-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

@@ -15,6 +15,7 @@ import { getTeamShedule } from './../../../handlers/handlers-get';  // расч�
 import { StatusEnum } from './../../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+ try {  
   const db = await connectDb();
   
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
@@ -23,7 +24,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
-  try {
+ 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {

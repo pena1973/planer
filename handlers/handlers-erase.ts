@@ -1,55 +1,58 @@
 
 import { ulogger } from "./../lib/common/universal-logger";
 import { getServerT } from '@/lib/server/i18n.server';
-import { Repository, In, Not, Raw } from 'typeorm';
-// tables
-import { UnitTable } from './../db/models/catalogs/units'
-import { UnitActionTable } from './../db/models/catalogs/unit_actions'
+import { Repository, In, Raw, LessThan } from 'typeorm';
+
 import { UnitLoadTable } from './../db/models/plan/unit_loads';
-import { TCardTable } from './../db/models/data/t_cards'
-import { TCardStageTable } from './../db/models/data/t_card_stages'
-import { TemplateTable } from './../db/models/catalogs/templates'
-
-import { ProductTable } from './../db/models/data/products'
-import { TCardProductTable } from './../db/models/data/t_card_products'
-import { TCardOperationTable } from './../db/models/data/t_card_operations'
-import { TypeEnum } from './../types/types';
-import { ActionTable } from './../db/models/catalogs/actions';
-import { UOMsTable } from './../db/models/catalogs/uoms';
-import { UnitExceptionTable } from './../db/models/plan/unit_exceptions';
-import { SettingsTable } from './../db/models/plan/settings';
-import { TeamTable } from './../db/models/catalogs/teams';
-import { TeamScheduleTable } from './../db/models/plan/team_schedule'
-import { UserTable } from './../db/models/catalogs/users';
-import { UserUnitTable } from './../db/models/catalogs/user_unit';
-import { MailTable } from './../db/models/support/mails';
-
-import { ClientTable } from './../db/models/billing/clients';
-import { ActiveTimeTable } from "./../db/models/billing/active_time";
-
-import { BalanceTable } from "./../db/models/billing/balance";
-import { JobSettingsTable } from "./../db/models/job/job-settings";
-
-import { BanerTable } from './../db/models/support/baners';
-
 // types
-import {
-  UnitItem, UserItem, UnitLoadItem, UnitActionItem, UnitExceptionItem,
-  SupportMailItem, TCardItem, TCardOperationItem, TCardProductItem,
-  ProductItem, UserUnitItem, TCardStageItem, ActionItem, UOMItem,
-  SettingsItem, TemplateItem, StatusEnum, UnitBelongEnum, UnitTypeEnum,
-  ScheduleItem, TeamItem
-} from './../types/types';
-
-import { ClientItem, JobSettingItem, BanerItem } from './../types/service-types';
-
-
+import { UnitLoadItem, TCardOperationItem, StatusEnum } from './../types/types';
 import { YYYYMMDD } from "@/lib/common/utils"
-import { getCurrentDateInString, } from "../lib/common/timezone"
-
 import { getStatusPriority } from "./../lib/common/utils"
 
 // отменяет запланированные лоады по id операции (история)
+// export const cancelHistoryLoadsByOperIds = async (
+//   userId: number,
+//   locale: string,
+//   cancellOperIds: number[],
+//   today: string, // "YYYY-MM-DD"
+//   unitLoadRepository: Repository<UnitLoadTable>
+// ): Promise<{ success: boolean, message: string }> => {
+//   const t = getServerT(locale, 'translation');
+//   try {
+
+//     if (cancellOperIds.length === 0)
+//       return {
+//         success: true,
+//         message: t('mes.NoOpersToCancel')
+//       }
+
+//     const result = await unitLoadRepository.createQueryBuilder()
+//       .update(UnitLoadTable)
+//       .set({ status: StatusEnum.cancelled })
+//       .where("id_oper IN (:...cancellOperIds)", { cancellOperIds })
+//       .andWhere("status = :planed", { planed: StatusEnum.planed })
+//       .andWhere("date < :today", { today })
+//       .execute();
+
+//     return {
+//       success: true,
+//       message: `${t('mes.loadsUpdated')}`
+//     };
+
+//   } catch (e: unknown) {
+//     const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+//     void ulogger.error({
+//       userId,
+//       location: "handlers/handlers-erase/cancelHistoryLoadsByOperIds",
+//       event: "db_error",
+//       message: `catch: ${msg}`,
+//       context: "cancelHistoryLoadsByOperIds",
+//     }).catch(() => { console.error("logger error"); });
+
+//     return { success: false, message: 'db_error: ' + msg };
+//   }
+// };
 export const cancelHistoryLoadsByOperIds = async (
   userId: number,
   locale: string,
@@ -59,40 +62,34 @@ export const cancelHistoryLoadsByOperIds = async (
 ): Promise<{ success: boolean, message: string }> => {
   const t = getServerT(locale, 'translation');
   try {
+    if (cancellOperIds.length === 0) {
+      return { success: true, message: t('mes.NoOpersToCancel') };
+    }
 
-    if (cancellOperIds.length === 0)
-      return {
-        success: true,
-        message: t('mes.NoOpersToCancel')
-      }
+    await unitLoadRepository.update(
+      {
+        id_oper: In(cancellOperIds),
+        status: StatusEnum.planed,
+        date: LessThan(today),
+      },
+      { status: StatusEnum.cancelled }
+    );
 
-    const result = await unitLoadRepository.createQueryBuilder()
-      .update(UnitLoadTable)
-      .set({ status: StatusEnum.cancelled })
-      .where("id_oper IN (:...cancellOperIds)", { cancellOperIds })
-      .andWhere("status = :planed", { planed: StatusEnum.planed })
-      .andWhere("date < :today", { today })
-      .execute();
-
-    return {
-      success: true,
-      message: `${t('mes.loadsUpdated')}`
-    };
-
+    return { success: true, message: t('mes.loadsUpdated') };
   } catch (e: unknown) {
     const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
-
     void ulogger.error({
       userId,
-      location: "handlers/handlers-update/cancelHistoryLoads",
+      location: "handlers/handlers-erase/cancelHistoryLoadsByOperIds",
       event: "db_error",
       message: `catch: ${msg}`,
-      context: "cancelHistoryLoads",
+      context: "cancelHistoryLoadsByOperIds",
     }).catch(() => { console.error("logger error"); });
 
     return { success: false, message: 'db_error: ' + msg };
   }
 };
+
 
 // Удаляет запланированные лоады по id операции (будущее)
 export const deleteFutureLoadsByOperIds = async (
@@ -103,8 +100,15 @@ export const deleteFutureLoadsByOperIds = async (
   unitLoadRepository: Repository<UnitLoadTable>
 ): Promise<{ success: boolean, message: string }> => {
   const t = getServerT(locale, 'translation');
+
   try {
-    if (delOperIds.length === 0) return { success: true, message: `Нет операций для удаления.` };
+
+    if (delOperIds.length === 0)
+      return {
+        success: true,
+        // message: `Нет операций для удаления.` 
+        message: t('mes.noOperForDelete')
+      };
 
     const result = await unitLoadRepository
       .createQueryBuilder()
@@ -124,10 +128,10 @@ export const deleteFutureLoadsByOperIds = async (
 
     void ulogger.error({
       userId,
-      location: "handlers/handlers-update/cancelHistoryLoads",
+      location: "handlers/handlers-erase/deleteFutureLoadsByOperIds",
       event: "db_error",
       message: `catch: ${msg}`,
-      context: "cancelHistoryLoads",
+      context: "deleteFutureLoadsByOperIds",
     }).catch(() => { console.error("logger error"); });
 
     return { success: false, message: 'db_error: ' + msg };

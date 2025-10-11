@@ -1,3 +1,11 @@
+//pages/api/template-api.ts
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
+
+
 import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -8,14 +16,13 @@ import { InvoiceTable } from '../../../db/models/billing/invoice';
 import { getInvoices } from '../../../handlers/handlers-get';
 
 
-
-
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const invoicesRepository = getTypedRepository(db, 'InvoiceTable', InvoiceTable);
-
   try {
+    const db = await connectDb();
+    const invoicesRepository = getTypedRepository(db, 'InvoiceTable', InvoiceTable);
+
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'GET':
@@ -43,12 +50,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // 
 
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (invoice-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
-  }
+  } catch (e: unknown) {
+      let error = "";
+      if (e instanceof Error) {
+        error = e.message;
+      }
+      //  logger
+      void ulogger.error({
+        userId: null,
+        location: "pages/api/billing/invoice-api",
+        event: "api_error",
+        message: `catch: ${error}`,
+        context: "",
+      }).catch(() => { console.error("logger error") });
+      res.status(500).json({ error: `${error}` });
+    }
 }
 
 export default withAuth(handler)

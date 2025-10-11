@@ -14,6 +14,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 30px; // ширина лоада
   }
   
   .cancelled {
@@ -59,28 +60,12 @@
   .lighted {  
     box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
   }
-  
-//   /* Треугольник сверху блока */
-// .triangleTop {
-//   position: absolute;
-//   top: 15px;
-//   /* высота треугольника */
-//   left: 3px;
-//   /* центрирование треугольника по горизонтали */
-//   width: 0;
-//   height: 0;
-//   border-left: 7.5px solid transparent;
-//   border-right: 7.5px solid transparent;
-//   border-bottom: 7.5px solid rgba(107, 170, 7, 0.753);
-//   /* цвет должен совпадать с фоном меню */
-//   z-index: 2;
-// }
 
 /* Треугольник слева (указывает влево) */
 .triangleLeft {
   position: absolute;
   top: 62%; /* можно скорректировать для вертикального центрирования */
-  // left: -30px;  /* отступ слева */
+  left: -5px;  /* отступ от тела */
   transform: translateY(-50%);
   width: 0;
   height: 0;
@@ -96,12 +81,12 @@
 .triangleRight {
   position: absolute;
   top: 62%; /* можно скорректировать для вертикального центрирования */
-  // left: 27px;  /* отступ справа */
+  left: 27px;  /* отступ от тела */
   transform: translateY(-50%);
   width: 0;
   height: 0;
   border-top: 7.5px solid transparent;
   border-bottom: 7.5px solid transparent;
   z-index: 2;
-   border-left: 7.5px solid $border-color;
+  border-left: 7.5px solid $border-color;
 }

@@ -1,4 +1,4 @@
-//pages/api/units-api
+//pages/api/plan/pre-fullcardplan-api
 // API для получения, создания, обновления и удаления 
 // Используется в 
 
@@ -35,20 +35,20 @@ import { UnitLoadItem } from "./../../../types/types";
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
-  const db = await connectDb();
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
-  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
-  const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
-  const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
-  const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
-  const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
-  const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
-  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-  const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
-  const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
-  const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
-  
+    const db = await connectDb();
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+    const unitRepository = getTypedRepository(db, 'UnitTable', UnitTable);
+    const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
+    const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
+    const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
+    const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
+    const productRepository = getTypedRepository(db, 'ProductTable', ProductTable);
+    const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
+    const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+    const unitExceptionsRepository = getTypedRepository(db, 'UnitExceptionTable', UnitExceptionTable);
+    const tCardStageRepository = getTypedRepository(db, 'TCardStageTable', TCardStageTable);
+    const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
+
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
     const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
@@ -72,30 +72,30 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           tCardStageRepository,
           productRepository,
           actionRepository)
+
+
         if (!tCard) {
           res.status(200).json({
             success: false,
-            tCardLoads: [] as UnitLoadItem[],
-            message: "Карта не найдена",
+            message: t('mes.tCardNotFound')
           });
-          return
+          break
         }
 
-        const allPreparedOperationsIds = getAllPreparedOperationsIds(Number(userId), locale, tCard);
+        const allPreparedOperationsIds = getAllPreparedOperationsIds(tCard);
 
         // запросим юниты
-        const units_ = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
+        const units = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
 
         // запросим действия юнитов
-        const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
+        const unitActions = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
 
         // запросим расписание компании
         const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
-        
+
         if (!shedule) {
           res.status(200).json({
             success: false,
-            // message: "Ошибка, не найдено расписание команды",
             message: t('mes.sheduleNotFound'),
           });
           break;
@@ -103,25 +103,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         //  получим исключения рабочего времени юнитов         
         const exceptionItems = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
+
         //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
         const unitLoadItemsBD = await getUnitLoads(
           Number(userId),
           locale,
           Number(teamId),
-          units_,
+          units,
           unitLoadRepository,
           unitActionsRepository
         )
 
-
-        //  уберем из нее лоады нашей карты 
-        //  const unitLoadItemsFull = unitLoadItemsBD.filter(lo => Number(tCardId) !== lo.id_tCard)
-        // в этих лоадах нет операций в статусе prepared
-
-
-        // Планируем карту все операции статуса prepared
-        // const resultPlaningNextOper = planTCardFromOperINC(allPreparedOperationsIds, tCard, units_, unitActions_, shedule_, unitLoadItemsFull, exceptionItems, String(today))
-        const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, allPreparedOperationsIds, tCard, units_, unitActions_, shedule, unitLoadItemsBD, exceptionItems, String(today))
+        // Планируем карту все операции статуса prepared        
+        const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, allPreparedOperationsIds, tCard, units, unitActions, shedule, unitLoadItemsBD, exceptionItems, String(today))
 
         //  Если не удалось запланировать
         if (!resultPlaningNextOper.success) {
@@ -143,22 +137,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
 
-  } catch (error: unknown) {
-    let errorMessage = "Не удалось обработать запрос.";
-
-    if (error instanceof Error) {
-      errorMessage += " " + error.message;
-      console.error("Ошибка подключения или выполнения запроса ((pre-fullcardplan-api)):", error);
-    } else {
-      console.error("Неизвестная ошибка ((pre-fullcardplan-api)):", error);
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
     }
-
-    res.status(500).json({ error: errorMessage });
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/plan/pre-fullcardplan-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
-
 }
 
 export default withAuth(handler)

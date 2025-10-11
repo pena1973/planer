@@ -29,14 +29,15 @@ interface RequestBody {
   teamIdToChange: number,
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-try {  
-  const db = await connectDb();
-  const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
-  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
 
-   const locale = getLocaleFromHeader(req.headers["x-lang"]);
+  try {
+    const db = await connectDb();
+    const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+    const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
+    const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
     const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
 
     switch (req.method) {
@@ -74,36 +75,42 @@ try {
         //  проверим прогноз баланс если запрос на активацию
         if (state) {
 
-          // Текущая дата с учетом часового пояса на сервере (надо увязать с пользовательским указанным в настройках)
-          // const now = new Date();
+          // Текущая дата с учетом часового пояса на сервере (надо увязать с пользовательским указанным в настройках)          
           const now = getCurrentDateInDate(shedule.timeZone);
 
           const balance = await getBalance(Number(userId), now.toLocaleDateString('en-CA'), YYYYMMDD(), Number(teamId), balanceRepository);
-         
+
           if (!balance) {
             res.status(200).json({
               success: false,
-              message: `Ошибка запроса к базе. 
-              Текущий баланс: неопределен`
+
+              message: `${'mes.balanse_error'}`
+              // message: `Ошибка запроса к базе. 
+              // Текущий баланс: неопределен`
             });
-            return;
+            break;
           }
 
           if (balance <= 0) {
             res.status(200).json({
               success: false,
-              message: `Недостаточно средств на балансе для активации команды. 
-              Текущий баланс: ${balance} ед`
+              message: `${'mes.notEhoughBalance'}: ${balance}`
+              // message: `Недостаточно средств на балансе для активации команды. 
+              // Текущий баланс: ${balance} ед`
             });
-            return;
+            break;
           }
         }
 
         // изменение состояния активности команды
         const resTeam = await changeStateTeambyId(Number(userId), locale, activeTimeRepository, Number(teamIdToChange), Boolean(state), shedule.timeZone)
         if (!resTeam.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });
-          return;
+          res.status(200).json({
+            success: false,
+            message: resTeam.message
+          });
+
+          break;
         }
 
         // отправляем ответ
@@ -111,12 +118,24 @@ try {
           success: true,
         });
         break;
+
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (uoms-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/billing/activity-teams-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 
