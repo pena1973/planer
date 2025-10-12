@@ -244,7 +244,7 @@ export async function deleteDataTeam(
     return {
       success: true,
       // message: `Удаление завершено. Всего затронуто записей: ${totalDeleted} `
-      message: `t('mes.deletedRecords') ${totalDeleted} `
+      message: `${t('mes.deletedRecords')}: ${totalDeleted} `
     };
   } catch (e: unknown) {
     const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');

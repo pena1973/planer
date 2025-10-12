@@ -605,7 +605,7 @@ export async function updateShedule(
 ) {
   const t = getServerT(locale, 'translation');
 
-  if (!schedule.teamId) return { success: false, message: t('mes.no_team') };
+  if (!schedule.teamId) return { success: false, message: t('mes.teamNotFound') };
 
   try {
     // Получаем существующее расписание для компании (предполагается, что только одно расписание для компании)

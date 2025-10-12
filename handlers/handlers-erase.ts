@@ -10,49 +10,7 @@ import { YYYYMMDD } from "@/lib/common/utils"
 import { getStatusPriority } from "./../lib/common/utils"
 
 // отменяет запланированные лоады по id операции (история)
-// export const cancelHistoryLoadsByOperIds = async (
-//   userId: number,
-//   locale: string,
-//   cancellOperIds: number[],
-//   today: string, // "YYYY-MM-DD"
-//   unitLoadRepository: Repository<UnitLoadTable>
-// ): Promise<{ success: boolean, message: string }> => {
-//   const t = getServerT(locale, 'translation');
-//   try {
 
-//     if (cancellOperIds.length === 0)
-//       return {
-//         success: true,
-//         message: t('mes.NoOpersToCancel')
-//       }
-
-//     const result = await unitLoadRepository.createQueryBuilder()
-//       .update(UnitLoadTable)
-//       .set({ status: StatusEnum.cancelled })
-//       .where("id_oper IN (:...cancellOperIds)", { cancellOperIds })
-//       .andWhere("status = :planed", { planed: StatusEnum.planed })
-//       .andWhere("date < :today", { today })
-//       .execute();
-
-//     return {
-//       success: true,
-//       message: `${t('mes.loadsUpdated')}`
-//     };
-
-//   } catch (e: unknown) {
-//     const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
-
-//     void ulogger.error({
-//       userId,
-//       location: "handlers/handlers-erase/cancelHistoryLoadsByOperIds",
-//       event: "db_error",
-//       message: `catch: ${msg}`,
-//       context: "cancelHistoryLoadsByOperIds",
-//     }).catch(() => { console.error("logger error"); });
-
-//     return { success: false, message: 'db_error: ' + msg };
-//   }
-// };
 export const cancelHistoryLoadsByOperIds = async (
   userId: number,
   locale: string,
@@ -138,34 +96,6 @@ export const deleteFutureLoadsByOperIds = async (
   }
 };
 
-
-
-// export const setOperStatus = async (
-//   userId: number,
-//   locale: string,
-//   operationIds: number[],
-//   newStatus: StatusEnum,
-//   tCardOperationsRepository: Repository<TCardOperationTable>
-// ): Promise<{ success: boolean; message: string }> => {
-//   if (operationIds.length === 0) {
-//     return { success: true, message: "Нет операций для изменения." };
-//   }
-
-//   try {
-//     const result = await tCardOperationsRepository.update(
-//       { id: In(operationIds) },   // WHERE id IN (...)
-//       { status: newStatus }       // SET status = :newStatus
-//     );
-
-//     return result.affected && result.affected > 0
-//       ? { success: true, message: `Обновлено ${result.affected} операций.` }
-//       : { success: false, message: "Ни одна операция не обновлена." };
-//   } catch (error) {
-//     console.error("Ошибка обновления операций:", error);
-//     return { success: false, message: "Ошибка обновления статуса операций." };
-//   }
-// };
-
 // Вычисляет статус Т-карты по статусам её операций (учитывая связи дефект→исправление)
 export async function calculateTCardStatusByOperations(
   userId: number,
@@ -219,7 +149,7 @@ export async function calculateTCardStatusByOperations(
 
     void ulogger.error({
       userId,
-      location: 'handlers/handlers-update/calculateTCardStatusByOperations',
+      location: 'handlers/handlers-erase/calculateTCardStatusByOperations',
       event: 'db_error',
       message: `catch: ${msg}`,
       context: 'calculateTCardStatusByOperations',

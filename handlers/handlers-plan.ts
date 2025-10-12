@@ -951,16 +951,26 @@ export const planTCardFromOperINC = (
           ? operation.inn.every(innProduct => {
             // Ищем продукт в tCardReady с таким же code и product
             const matchingReadyProduct = readyProducts.find(elem =>
-              elem.code === innProduct.code && elem.product.id === innProduct.product.id
+              elem.code === innProduct.code
+              // && elem.product.id === innProduct.product.id
             );
             // Если соответствующий продукт найден, проверяем количество
             if (matchingReadyProduct) {
+              // проверяем может продукт уже зарезервирован именно на эту операцию
+              const reservedProd = readyProducts.find(
+                rProd => operation.idc === rProd.reservedTo
+                  && rProd.code === innProduct.code
+                  && rProd.reserved >= innProduct.qtu)
+              if (reservedProd!== undefined) 
+                return true;
+
               // Если количество в tCardReady недостаточно для операции, пропускаем операцию
               if (matchingReadyProduct.qtu < innProduct.qtu) {
                 message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu - matchingReadyProduct.qtu} единиц.\n`);
                 return false;
               }
-              // Если количество в tCardReady больше, уменьшаем его на количество, использованное в операции
+
+              // Если количество незарезервировано в tCardReady больше , уменьшаем его на количество, использованное в операции
               matchingReadyProduct.qtu -= innProduct.qtu;
               // И заводим строку резервирования материала под операцию
               readyProducts.push(
@@ -989,7 +999,11 @@ export const planTCardFromOperINC = (
       });
 
       if (selectedOperations.length === 0)
-        return { success: false, planedCardLoads: planedCardLoads, message: `Не все операции готовы к планированию или карта несогласована\n${message}` };
+        return {
+          success: false,
+          planedCardLoads: planedCardLoads,
+          message: `Не все операции готовы к планированию или карта несогласована ${message}`
+        };
 
       // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
       //  и операции с пустыми резервами
@@ -1186,7 +1200,7 @@ export const planOperOnUnit = (
       return { success: false, operLoads: [], message: message };
     }
     const operLoads = resultPlaning.planedUnitLoads.filter(lo => lo.id_oper === operation.id)
-    
+
     return { success: true, operLoads: operLoads, message: "" };
 
   } catch (e: unknown) {
