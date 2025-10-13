@@ -1096,7 +1096,8 @@ export const planTCardFromOperINC = (
 
             // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
             const resultPlaning = findAvailableTimeForOperation(userId, locale, tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDateStr, shedule_, exceptionItems, isPinned);
-
+            console.log('resultPlaning.planedUnitLoads', resultPlaning.planedUnitLoads);
+            
             // если не удалось запланировать то прерываем расчет
             if (!resultPlaning.success) {
               message = `Действие - A${operation.idc}: ${resultPlaning.message}`;
