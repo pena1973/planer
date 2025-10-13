@@ -151,6 +151,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // получаем момент готовности входящих запчастей и не раньше сегодня  и не раньше входящего старта
         const readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperEndDep, date, timeStart, today)
 
+        console.log('readySourceMoment',readySourceMoment)
+
         if (!readySourceMoment) {
           //  logger
           void ulogger.error({
@@ -169,7 +171,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           });
           return
         }
-        
+
         // если цель перетаскивания это внешний юнит смотрим начальный или конечный лоад операции
         // операция на внешнем юните имеет только два лоада стартовый и финишный и не имеет ретула
         // продолжительность не зависит от duration а это чисто договоренность с исполнителем

@@ -1035,7 +1035,7 @@ export const planTCardFromOperINC = (
           //////////////////////////////////////////////////
           //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности 
           readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
-
+          console.log('readyProducts',readyProducts);
           //  Удаляем операцию из общего массива - обработали
           const index = tCardOperations.findIndex(oper => oper.id === operation.id);
           tCardOperations.splice(index, 1);
