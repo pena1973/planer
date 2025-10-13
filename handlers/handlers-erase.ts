@@ -8,7 +8,7 @@ import { UnitLoadTable } from './../db/models/plan/unit_loads';
 import { UnitLoadItem, TCardOperationItem, StatusEnum } from './../types/types';
 import { YYYYMMDD } from "@/lib/common/utils"
 import { getStatusPriority } from "./../lib/common/utils"
-
+ 
 // отменяет запланированные лоады по id операции (история)
 
 export const cancelHistoryLoadsByOperIds = async (
