@@ -71,7 +71,10 @@ export default function Team({
     // На сервере
     const saveTeamHandler = async () => {
         setMessage("");
-        await saveTeam(titleValue, comentValue, user, team, token, dispatch, t, setMessage, setModified);
+        await saveTeam(titleValue, comentValue, user, team, token, dispatch, t, i18n.language, setMessage)
+        .then(() => {
+            setModified(false);
+        });
     };
 
 

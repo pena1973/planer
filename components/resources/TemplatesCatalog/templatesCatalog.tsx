@@ -74,78 +74,10 @@ export default function TemplatesCatalog({
 
     // На сервере
     const saveTemplatesHandler = async () => {
-        await saveTemplates(templatesValue, user, team, token, dispatch, t, setMessage, setModified);
-        //         setMessage("");
-        //         let todoReturn = false;
-        //         let message = "";
-        //         templatesValue.forEach((elem, index) => {
-        //             if (!elem.name) {
-        //                 // {t('teamSchedule.additonalTime')}
-        //                 // message = message.concat(`Заполните название шаблона строка ${index + 1}! `);
-        //                 message = message.concat(`${t('templates.fillTitle')} ${index + 1}! `);
-        //                 todoReturn = true;
-        //             }
-        //             if (!elem.fileContent) {
-        //                 // message = message.concat(`Загрузите шаблон строка ${index + 1}!` );
-        //                 message = message.concat(`${t('templates.uploadTemplate')} ${index + 1}!`);
-        //                 todoReturn = true;
-        //             }
-        //         })
-
-        //         if (todoReturn) {
-        //             setMessage(message);
-        //             return;
-        //         }
-
-        //         // запрос на сохранение
-        //         try {
-        //             // запрос получение текста из БД вместе со словами     textId: number, userId:number
-        //             const res = await fetch(`api/templates-api`,
-        //                 {
-        //                     method: 'post',
-        //                     headers: new Headers({
-        //                         'Authorization': 'Basic ' + token,
-        //                         'Content-Type': 'application/json'
-        //                     }),
-        //                     body: JSON.stringify({
-        //                         userId: user.id,
-        //                         teamId: team.id,
-        //                         templates: templatesValue
-        //                     }),
-        //                 }
-        //             );
-        //             if (res.status !== 200) {
-        //                 const receivedData = await res.json();
-        //                 const error = receivedData.error;
-        //                 // setMessage(error);
-        //                 //  console.log(t('service.serverUnavailable') + res.status);
-        //                 setMessage(t('service.serverUnavailable') + error);
-        //             } else {
-        //                 const receivedData = await res.json();
-        //                 // console.log("receivedData", receivedData)
-
-        //                 if (receivedData.success) {
-        //                     // //   Обновим текущую карту
-        //                     const templates_ = receivedData.templates as TemplateItem[]
-        //                     dispatch(setTemplates(templates_));
-        //                     setModified(false);
-        //                     // setMessage("Обновлен список шаблонов карт");
-        //                     setMessage(t('templates.templatesUpdated'));
-
-        //                 } else setMessage(receivedData.error);
-        //             }
-
-        //         // } catch (e: any) {
-        //         //     setMessage(t('service.serverUnavailable') + e.message)
-        //         // }
-        //         } catch (e: unknown) {
-        //   let message = t('service.serverUnavailable');
-        //   if (e instanceof Error) {
-        //     message += e.message;
-        //   }
-        //   setMessage(message);
-        // }
-        //         setModified(false);
+        await saveTemplates(templatesValue, user, team, token, dispatch, t, i18n.language, setMessage)
+            .then(() => {
+                setModified(false);
+            });
     };
     // На клиенте
     const addTemplateHandler = () => {

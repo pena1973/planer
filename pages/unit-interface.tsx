@@ -11,13 +11,16 @@ import { UnitLoadItem, StatusEnum, UnitTypeEnum, TCardOperationItem } from '@/ty
 
 import { useRouter } from 'next/navigation';
 
+import { YYYYMMDD } from "@/lib/common/utils";
+import { ulogger } from "./../lib/common/universal-logger";
+
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
 import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/client/utils.client";
-import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
+import { setUnitLoads, setTCards } from '@/store/slices';
 
-import { getCurrentDateInDate, getTimeZoneDateFromDateString, addDaysInZone } from "@/lib/client/timezone.client";
+import { getCurrentDateInDate, addDaysInZone } from "@/lib/client/timezone.client";
 
 export default function UnitInterfase() {
 
@@ -26,9 +29,6 @@ export default function UnitInterfase() {
   const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
-  // const [resource, setResource] = useState(1); // 1 - загрузка юнитов, 2 - KPI, отчеты
-
-
 
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
@@ -65,8 +65,6 @@ export default function UnitInterfase() {
   })
 
   const [day, setDay] = useState(() => {
-    // const date = new Date();    
-    // date.setHours(0, 0, 0, 0);
     const date = getCurrentDateInDate(schedule.timeZone)
     return date;
   });
@@ -78,10 +76,8 @@ export default function UnitInterfase() {
     // продолжаем увеличивать дату.
     // const day_ = new Date(day);
     let day_ = addDaysInZone(day, 0, schedule.timeZone);
-    while ((isWeekend(day_.toLocaleDateString('en-CA'), schedule) || isHoliday(day_.toLocaleDateString('en-CA'), schedule)) 
-      && !isAdditionalTime(day_.toLocaleDateString('en-CA'), schedule)) {
-      // day_.setDate(day_.getDate() + 1);
-       day_ = addDaysInZone(day_, 1, schedule.timeZone);
+    while ((isWeekend(YYYYMMDD(day_), schedule) || isHoliday(YYYYMMDD(day_), schedule)) && !isAdditionalTime(YYYYMMDD(day_), schedule)) {
+      day_ = addDaysInZone(day_, 1, schedule.timeZone);
     }
     setDay(day_)
   }, []);
@@ -124,10 +120,8 @@ export default function UnitInterfase() {
 
 
     const updatedTCard = { ...tCards[cardIndex], status: tCardStatus, tCardOperations: tCardOperations }
-
     const _tCards = [...tCards]
     _tCards.splice(cardIndex, 1, updatedTCard);
-
     dispatch(setTCards(_tCards));
   }
 
@@ -140,10 +134,9 @@ export default function UnitInterfase() {
 
     const loads = unitLoads.filter((elem) =>
       elem.id_oper === load.id_oper
-      && elem.status === load.status //  потом можно будет убрать  связь будет по version
+      && elem.status === load.status 
       && !elem.isRetool
       && elem.version === load.version
-
     ) // все лоады операции
 
     if (loads.length === 0) return { start: { date: "", time: 0 }, finish: { date: "", time: 0 } };
@@ -236,12 +229,10 @@ export default function UnitInterfase() {
           <div className="catalog_title"> {t('monitor.unit1Loading')}</div>
           <div className="monitor_container_navigation">
             <BackwardButton onClick={() => {
-              // const newDate = new Date(day);               
-              // newDate.setDate(newDate.getDate() - 1);
               const newDate = addDaysInZone(day, -1, schedule.timeZone);
               // Пока новая дата является выходным или праздником и нет дополнительного времени,
               // продолжаем уменьшать дату.
-              while ((isWeekend(newDate.toLocaleDateString('en-CA'), schedule) || isHoliday(newDate.toLocaleDateString('en-CA'), schedule)) && !isAdditionalTime(newDate.toLocaleDateString('en-CA'), schedule)) {
+              while ((isWeekend(YYYYMMDD(newDate), schedule) || isHoliday(YYYYMMDD(newDate), schedule)) && !isAdditionalTime(YYYYMMDD(newDate), schedule)) {
                 newDate.setDate(newDate.getDate() - 1);
               }
               setDay(newDate);
@@ -250,12 +241,10 @@ export default function UnitInterfase() {
             <span className="current_day">{day.toLocaleDateString("en-CA")}</span>
 
             <ForwardButton onClick={() => {
-              // const newDate = new Date(day);              
-              // newDate.setDate(newDate.getDate() + 1);
               const newDate = addDaysInZone(day, 1, schedule.timeZone);
               // Пока новая дата является выходным или праздником и нет дополнительного времени,
               // продолжаем увеличивать дату.
-              while ((isWeekend(newDate.toLocaleDateString('en-CA'), schedule) || isHoliday(newDate.toLocaleDateString('en-CA'), schedule)) && !isAdditionalTime(newDate.toLocaleDateString('en-CA'), schedule)) {
+              while ((isWeekend(YYYYMMDD(newDate), schedule) || isHoliday(YYYYMMDD(newDate), schedule)) && !isAdditionalTime(YYYYMMDD(newDate), schedule)) {
                 newDate.setDate(newDate.getDate() + 1);
               }
               setDay(newDate);

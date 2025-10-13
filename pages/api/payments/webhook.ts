@@ -36,11 +36,23 @@ async function upsertInvoiceAndCredit(
     const total = num(invoice.total, 0);       // с НДС (gross)
     const tax = Math.max(0, total - subtotal);
 
-    // team_id из метаданных (передай его при создании Checkout Session в metadata.teamId)
+    // team_id из метаданных
     const teamIdMeta =
         (invoice.metadata?.teamId as string | undefined) ??
         (opts?.sessionMeta?.teamId as string | undefined);
+    // user_id из метаданных
+    const userIdMeta =
+        (invoice.metadata?.userId as string | undefined) ??
+        (opts?.sessionMeta?.userId as string | undefined);
+
+    // user_id из метаданных
+    const localeMeta =
+        (invoice.metadata?.locale as string | undefined) ??
+        (opts?.sessionMeta?.locale as string | undefined);
+
     const team_id = teamIdMeta ? Number(teamIdMeta) : 0;
+    const user_id = userIdMeta ? Number(userIdMeta) : 0;
+    const locale = localeMeta ? localeMeta : "en";
 
     // paid_at
     const paidAtSec = invoice.status_transitions?.paid_at;
@@ -109,6 +121,8 @@ async function upsertInvoiceAndCredit(
         const externalId = (opts?.paymentIntentId ?? invoice.id) as string;
 
         const balanceRes = await updateBalance(
+            user_id,
+            locale, 
             balanceRepo,
             team_id,
             externalId,
@@ -121,16 +135,15 @@ async function upsertInvoiceAndCredit(
         );
 
         if (!balanceRes.success) {
-            console.warn(`Баланс НЕ пополнен, team_id=${team_id}`);
+            // console.warn(`Баланс НЕ пополнен, team_id=${team_id}`);
             return false;
         }
-        console.log(`✅ Баланс пополнен: team_id=${team_id}, amount=${amountEUR}`);
+        // console.log(`✅ Баланс пополнен: team_id=${team_id}, amount=${amountEUR}`);
         return true;
     }
 
     return false;
 }
-
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');

@@ -35,7 +35,7 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
   // На сервере
   // Получаем сообщения
   const getSupportMessagesHandler = async () => {
-    await getSupportMails(teamId, token, t, setMessage, setSupportMailsValue);
+    await getSupportMails(userId,teamId, token, t, i18n.language,setMessage, setSupportMailsValue);
 
   };
 
@@ -94,7 +94,7 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
   const sendMailHandler = async (supportMessage: SupportMailItem) => {
 
     await sendMail(supportMessage, supportMailsValue, setSupportMailsValue,
-      userId, token, t, setMessage, setExpand)
+      userId, token, t, i18n.language,setMessage, setExpand)
 
   }
 

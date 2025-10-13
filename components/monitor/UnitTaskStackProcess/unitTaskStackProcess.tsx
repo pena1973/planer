@@ -67,7 +67,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   userId,
   token
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // Определяем, что день начинается в 0 и заканчивается в 1440 минут (24 часа)
   // const [calendarView, setCalendarView] = useState(generateCalendarItem(day, schedule) as CalendarItem);
   const calendarView = useMemo(() => generateCalendarItem(day, schedule) as CalendarItem, [day, schedule]
@@ -114,7 +114,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // Открываем операцию по нажатию кнопки юнитом 
   const openOperHandler = async (load: UnitLoadItem, id_oper: number, id_tCard: number) => {
     setOperView(true);
-    await openOperation(load, id_oper, id_tCard, userId, teamId, token, t, setMessage,
+    await openOperation(load, id_oper, id_tCard, userId, teamId, token, t, i18n.language,  setMessage,
       setCurrentTCard, setCurrentOper, setCurrentLoad);
   }
 
@@ -131,7 +131,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // На сервере
   // Меняем статус операции по нажатию кнопки юнитом 
   const setOperStatusHandler = async (status: StatusEnum, operId: number, tCardId: number) => {
-    await setOperationStatus(status, operId, tCardId, currentLoad.version, teamId, userId, token, t,
+    await setOperationStatus(status, operId, tCardId, currentLoad.version, teamId, userId, token, t, i18n.language, 
       setMessage, setStatusLoadsHandler);
 
     setCurrentOper({} as TCardOperationItem);

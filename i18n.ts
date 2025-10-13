@@ -11,7 +11,7 @@ i18n
   .init({
     debug: false,
     fallbackLng: "en",
-    ns: ["translation", "help", "cookies", "ui"],
+    ns: ["translation", "help", "cookies", "ui","client.messages","server.messages"],
     defaultNS: "translation",
     interpolation: {
       escapeValue: false,

@@ -59,7 +59,7 @@ export const Profile: React.FC<ProfileProps> = ({
       return setMessage(t('profile.loginError')) 
     }
 
-    const res = await deleteProfile(user.isAdmin, user.id, team.id, token, t, setMessage);
+    const res = await deleteProfile(user.isAdmin, user.id, team.id, token, t, i18n.language, setMessage);
     if (res) {
       logout('/')
     }
@@ -72,7 +72,7 @@ export const Profile: React.FC<ProfileProps> = ({
     setLoaderButtonPass(true)
     if (newPass1Value !== newPass2Value) return
 
-    const res = await changePassword(passValue, newPass1Value, user.id, team.id, token, t, dispatch, setMessage);
+    const res = await changePassword(passValue, newPass1Value, user.id, team.id, token, t, i18n.language, dispatch, setMessage);
 
     if (res) {
       setPassValue("");
@@ -88,7 +88,7 @@ export const Profile: React.FC<ProfileProps> = ({
     setMessage("");
     setLoaderButtonName(true)
 
-    const res = await changeName(nameValue, user.id, team.id, token, t, dispatch, setMessage);
+    const res = await changeName(nameValue, user.id, team.id, token, t, i18n.language, dispatch, setMessage);
 
     if (res) setNameValue("");
 

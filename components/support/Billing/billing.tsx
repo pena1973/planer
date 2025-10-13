@@ -46,7 +46,7 @@ export const Billing: React.FC<BillingProps> = ({
   isMainTeam,
   timezone,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
   // const [billsValue, setBillsValue] = useState<BillItem[]>([]);
   const [invoicesValue, setInvoicesValue] = useState<InvoiceItem[]>([]);
@@ -74,7 +74,7 @@ export const Billing: React.FC<BillingProps> = ({
   //  меняем активность команды
   const onStateTeam = async (teamIdToChange: number, state: boolean) => {
     setLoaderButtonActivate(teamIdToChange);
-    await changeStateTeam(user.id, team.id, teamIdToChange, state, teamActivity, token, t, setMessage, setTeamActivity, dispatch)
+    await changeStateTeam(user.id, team.id, teamIdToChange, state, teamActivity, token, t, i18n.language, setMessage, setTeamActivity, dispatch)
     setLoaderButtonActivate(NaN);
   };
 
@@ -85,26 +85,26 @@ export const Billing: React.FC<BillingProps> = ({
       return
     }
     setLoaderButtonSaveClient(true);
-    await saveClient(user.id, team.id, clientForm, token, t, setMessage, setClientForm)
+    await saveClient(user.id, team.id, clientForm, token, t, i18n.language, setMessage, setClientForm)
     setLoaderButtonSaveClient(false);
   };
 
   const getClientHandler = async () => {
-    await getClient(user.id, team.id, token, t, setMessage, setClientForm);
+    await getClient(user.id, team.id, token, t, i18n.language, setMessage, setClientForm);
   };
 
   const getinvoicesHandler = async () => {
-    await getInvoices(user.id, team.id, token, t, setMessage, setInvoicesValue);
+    await getInvoices(user.id, team.id, token, t, i18n.language, setMessage, setInvoicesValue);
   };
   const getAttachedTeamsHandler = async () => {
-    await getAttachedTeams(user.id, mainTeam, token, t, setMessage, setAttachedTeams);
+    await getAttachedTeams(user.id, mainTeam, token, t, i18n.language, setMessage, setAttachedTeams);
   };
   // возвращает информацию в каком состоянии команда активна или заморожена
   const getTeamActivityHandler = async () => {
-    await getTeamActivity(user.id, mainTeam, token, t, setMessage, setTeamActivity);
+    await getTeamActivity(user.id, mainTeam, token, t, i18n.language, setMessage, setTeamActivity);
   }
   const getBalanceHandler = async () => {
-    await getBalance(user.id, team.id, token, t, setMessage, setBalance);
+    await getBalance(user.id, team.id, token, t, i18n.language, setMessage, setBalance);
   };
 
   useEffect(() => {

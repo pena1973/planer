@@ -1,4 +1,5 @@
 import { StatusEnum, UnitLoadItem } from "./../../types/types";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const setOperStatus = async (
     currentLoad: UnitLoadItem,
@@ -8,6 +9,7 @@ export const setOperStatus = async (
     userId: number,
     token: string,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
     setStatusLoadsHandler: (
         tCardStatus: StatusEnum,
@@ -28,22 +30,32 @@ export const setOperStatus = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
-                    tCardId:currentLoad.id_tCard,
+                    tCardId: currentLoad.id_tCard,
                     operId: currentLoad.id_oper,
-                    version:currentLoad.version,
+                    version: currentLoad.version,
                     loadsIds: operloadsIds,
                     status: status,
                     teamId: teamId,
-                    userId: userId                     
+                    userId: userId
                 }),
             }
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/monitor/setOperStatus",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const setOperStatus = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             setMessage(receivedData.message);
@@ -54,14 +66,33 @@ export const setOperStatus = async (
                 //   Обновим статус лоадов
                 setStatusLoadsHandler(tCardStatus, status, operloadsIds, currentLoad.id_oper, currentLoad.id_tCard);
                 setMessage(receivedData.message);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/monitor/setOperStatus",
+                    event: "error",
+                    message: `success=false запрос api/tcard-oper-status-api`,
+                    context: "export const setOperStatus = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/monitor/setOperStatus",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const setOperStatus = async (",
+        }).catch(() => { console.error("logger error") });
     }
 
 }

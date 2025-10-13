@@ -1,13 +1,23 @@
+//pages/api/units-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from '../../../db/utilites'
 
-import { updateClient } from '../../../handlers/handlers-update';  // расчеты
+import { updateClient } from '../../../handlers/handlers-update';
+import { getClient } from '../../../handlers/handlers-get';
+
 import { ClientTable } from '../../../db/models/billing/clients';
 import { ClientItem } from '../../../types/service-types';
-import { getClient } from '../../../handlers/handlers-get';  // расчеты
+
 import { updateStripeCustomerFromClient } from "./../payments/customer-update";
 
 interface RequestBody {
@@ -16,22 +26,30 @@ interface RequestBody {
   client: ClientItem;
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
-
   try {
+    const db = await connectDb();
+    const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
 
-    const { teamId: getTeamId } = req.query;
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+
     switch (req.method) {
       case 'GET':
-        const client__ = await 
-        
-        getClient(Number(getTeamId), clientRepository)
+        const { teamId: getTeamId, userId: userIdget } = req.query;
 
+        const clientGet = await getClient(Number(userIdget), locale, Number(getTeamId), clientRepository)
+        if (!clientGet) {
+          // отправляем ответ
+          res.status(200).json({
+            success: false,            
+            message: `${t('mes.clientDataNotFound')}`,
+          });
+        }
         // отправляем ответ
         res.status(200).json({
           success: true,
-          client: client__,
+          client: clientGet,
         });
 
         break;
@@ -43,13 +61,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const customerId = await updateStripeCustomerFromClient(client);
 
         const resClient = await updateClient(
+          Number(userId),
+          locale,
           clientRepository,
           { ...client, customerId: customerId ?? "" },
           Number(teamId)
         )
         if (!resClient.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resClient.message });
-          return;
+
+          res.status(200).json({
+            success: false,
+            message: resClient.message,
+          });
+          break;
         }
 
         const savedClient = resClient.savedClient as ClientTable;
@@ -63,7 +87,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           city: savedClient.city,
           postal_code: savedClient.postal_code,
           email: savedClient.email,
-          phone: savedClient.phone,          
+          phone: savedClient.phone,
           country: savedClient.country,
           customerId: savedClient.customer_id,
         };
@@ -75,11 +99,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
         break;
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (client-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/billing/client-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

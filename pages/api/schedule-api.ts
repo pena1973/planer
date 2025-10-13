@@ -1,20 +1,20 @@
-import { withAuth } from './../../lib/server/withAuth'
-import { toYMD } from './../../lib/common/utils'
+//pages/api/schedule-api.ts
+// API для получения и обновления расписания команды (schedule)
+// Используется в настройках команды (TeamSettings) для изменения рабочего времени, выходных и праздников
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
 
+import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
-
-import { getTeamShedule } from './../../handlers/handlers-get';  // расчеты
-import { updateShedule } from './../../handlers/handlers-update';  // расчеты
-
-import { Repository } from 'typeorm';
-import { TeamTable } from './../../db/models/catalogs/teams'
+import { getTeamShedule } from './../../handlers/handlers-get';
+import { updateShedule } from './../../handlers/handlers-update';
 import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
 
-
-import { ScheduleItem, DaysOfWeek, TimeZoneEnum } from './../../types/types';
+import { ScheduleItem, TimeZoneEnum } from './../../types/types';
 
 interface RequestBody {
   schedule: ScheduleItem,
@@ -23,52 +23,67 @@ interface RequestBody {
 
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   try {
+
+    const db = await connectDb();
+    const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+
+
     switch (req.method) {
+      // получение расписания команды
       case 'GET':
         const { userId: userIdget, teamId: teamIdget } = req.query;
-        const shedule_ = await getTeamShedule(Number(teamIdget), teamScheduleRepository, teamsRepository)
 
+        const shedule = await getTeamShedule(Number(userIdget), locale, Number(teamIdget), teamScheduleRepository)
+
+        if (!shedule) {
+          res.status(200).json({
+            success: false,
+            // message: "Ошибка, не найдено расписание команды",
+            message: t('mes.sheduleNotFound'),
+          });
+          break;
+        }
         // отправляем ответ
         res.status(200).json({
           success: true,
-          schedule: shedule_,
+          schedule: shedule,
         });
 
         break;
+      // обновление расписания команды
       case 'POST':
-        // Извлекаем данные из тела запроса
+
         const { schedule, userId, teamId } = req.body as RequestBody;
 
         const resSchedule = await updateShedule(
+          Number(userId), locale,
           teamScheduleRepository,
           schedule,
           Number(teamId)
         )
         if (!resSchedule.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resSchedule.message });
-          return;
+          res.status(200).json({
+            success: false,
+            message: `${t('mes.sheduleNotSaved')}  + ${resSchedule.message}`
+          });
+          break;
         }
 
         const savedSchedule = resSchedule.savedSchedule as TeamScheduleTable;
-        //  переводим в ScheduleItem
 
-        // // Если team уже есть в сторе — подставь реальный объект:
-        // const team = teams.find(t => t.id === savedSchedule.team_id)!; // поменяй на свой источник
-
+        //  переводим в ScheduleItem        
         const schedule_: ScheduleItem = {
           teamId: savedSchedule.team_id,
           timeStartWork: savedSchedule.timeStartWork,
           timeFinishWork: savedSchedule.timeFinishWork,
-          // breaks: Array.isArray(savedSchedule.breaks) ? savedSchedule.breaks : [],
           breaks: savedSchedule.breaks ?? [],
-          // holidays: (savedSchedule.holidays ?? []).map(toYMD),
           holidays: (savedSchedule.holidays ?? []),
           weekends: savedSchedule.weekends ?? [],
-          workdays: savedSchedule.workdays ?? [],         
+          workdays: savedSchedule.workdays ?? [],
           timeZone: savedSchedule.timeZone as TimeZoneEnum,
         };
 
@@ -81,15 +96,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         break;
 
       default:
-        res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
 
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (schedule-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/schedule-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
-
-
 
 export default withAuth(handler)

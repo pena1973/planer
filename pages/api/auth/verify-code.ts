@@ -1,12 +1,19 @@
+//pages/api/template-api.ts
 // pages/api/auth/verify-code.ts
 // /api/auth/verify-code 
 // — проверяет код, помечает как used, 
 // выдаёт короткий verifyToken (JWT, 15 мин) 
 // для следующего шага.
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { success, z } from 'zod';
+import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import connectDb from '@/db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+
 import { getTypedRepository } from './../../../db/utilites';
 import { VerificationCodeTable } from './../../../db/models/auth/verification_code';
 import { UserTable } from './../../../db/models/catalogs/users';
@@ -21,41 +28,55 @@ const bodySchema = z.object({
 const VERIFY_TOKEN_TTL_SEC = 15 * 60;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') return res.status(405).end();
+
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not supported.' });
+
     const parsed = bodySchema.safeParse(req.body);
     if (!parsed.success) return res.status(200).json({ success: false, reason: 'invalid_or_expired' });
 
-    const { email, purpose, code } = parsed.data;
-    const db = await connectDb();
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    try {
+        const { email, purpose, code } = parsed.data;
+        const db = await connectDb();
 
-    const verificationCodeRepository = getTypedRepository(db, 'VerificationCodeTable', VerificationCodeTable);
-    const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
+        const verificationCodeRepository = getTypedRepository(db, 'VerificationCodeTable', VerificationCodeTable);
+        const usersRepository = getTypedRepository(db, 'UserTable', UserTable);
 
-    const resCode = await verifyCode(email, code, purpose, verificationCodeRepository)
-    
-    if (!resCode.success) {
-        return res.status(200).json({ success: false, reason: resCode.reason });
+        const resCode = await verifyCode(locale, email, code, purpose, verificationCodeRepository)
+
+        if (!resCode.success) {
+            return res.status(200).json({ success: false, reason: resCode.reason });
+        }
+
+        const resUser = await confirmUserEmail(locale, email, usersRepository)
+        if (!resUser.success) {
+            res.status(200).json({
+                success: false,
+                message: resUser.message,
+            });
+            return;
+        }
+
+        // токен нужен для восстановления пароля или подтверждения email
+        const token = jwt.sign(
+            { sub: email, purpose, type: 'verify' },
+            process.env.JWTSECRET!, { expiresIn: VERIFY_TOKEN_TTL_SEC }
+        );
+
+        return res.status(200).json({ success: true, verifyToken: token, expiresIn: VERIFY_TOKEN_TTL_SEC });
+    } catch (e: unknown) {
+        let error = "";
+        if (e instanceof Error) {
+            error = e.message;
+        }
+        //  logger
+        void ulogger.error({
+            userId: null,
+            location: "pages/api/auth/verify-code",
+            event: "api_error",
+            message: `catch: ${error}`,
+            context: "",
+        }).catch(() => { console.error("logger error") });
+        res.status(500).json({ error: `${error}` });
     }
-
-    const resUser = await confirmUserEmail(email, usersRepository)
-    if (!resUser.success) {
-        res.status(200).json({
-            success: false,
-            message: resUser.message,
-        });
-        return;
-    }
-
-    if (!resUser.success) {
-        res.status(500).json({ error: 'Не удалось обработать запрос. ' + resUser.message });
-        return;
-    }
-
-    // токен нужен для восстановления пароля или подтверждения email
-    const token = jwt.sign(
-        { sub: email, purpose, type: 'verify' },
-        process.env.JWTSECRET!, { expiresIn: VERIFY_TOKEN_TTL_SEC }
-    );
-
-    return res.status(200).json({ success: true, verifyToken: token, expiresIn: VERIFY_TOKEN_TTL_SEC });
 }

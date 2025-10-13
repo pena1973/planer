@@ -1,21 +1,35 @@
+//pages/api/units-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from '../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from '../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { generateTeamNumber } from '@/lib/common/utils'
 import { TeamTable } from '../../../db/models/catalogs/teams';
 import { getTeamsByMainteamNumber } from '../../../handlers/handlers-get';  // расчеты
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
   try {
+    const db = await connectDb();
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
-    const { mainTeam: mainTeam } = req.query;
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+
+
     switch (req.method) {
       case 'GET':
-        const attachedTeams = await getTeamsByMainteamNumber(String(mainTeam), teamsRepository)
+        const { mainTeam: mainTeam, userId: userIdget } = req.query;
+
+        const attachedTeams = await getTeamsByMainteamNumber(Number(userIdget), locale, String(mainTeam), teamsRepository)
 
         const attachedTeams_ = attachedTeams
           .filter(team => generateTeamNumber(team.prefix, team.id) !== team.main_team)
@@ -27,13 +41,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
 
         break;
-     
+
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (uoms-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/billing/attached-teams-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

@@ -1,10 +1,13 @@
 import { BanerItem } from '@/types/service-types'
 
+import { ulogger } from "./../../lib/common/universal-logger";
+
 export const setBaner = async (
     token: string,
     userId: number,
     baner: BanerItem,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 ) => {
 
@@ -14,7 +17,8 @@ export const setBaner = async (
                 method: 'POST',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     baner: baner,
@@ -24,20 +28,47 @@ export const setBaner = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/admin/changeStateTeam",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const setBaner = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
                 setMessage("Успешно установлен банер");
-            } else setMessage(receivedData.error);
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/admin/changeStateTeam",
+                    event: "error",
+                    message: `success=false запрос api/admin/baner-api`,
+                    context: "export const setBaner = async (",
+                }).catch(() => { console.error("logger error") });
+            }
         }
 
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/admin/changeStateTeam",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const setBaner = async (",
+        }).catch(() => { console.error("logger error") });
     }
 
 

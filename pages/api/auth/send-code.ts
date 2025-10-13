@@ -1,13 +1,18 @@
+//pages/api/auth/send-code.ts
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
 
 
-// pages/api/auth/send-code.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 
 import connectDb from './../../../db/database';
 import { getTypedRepository } from './../../../db/utilites';
 import { VerificationCodeTable } from './../../../db/models/auth/verification_code';
-import {genCode, hashCode, addMinutes } from './../../../lib/server/code';
+import { genCode, hashCode, addMinutes } from './../../../lib/server/code';
 
 const APP_BASE_URL =
     process.env.APP_BASE_URL ||
@@ -90,17 +95,21 @@ function buildHtml(locale: string | undefined, purpose: string, code: string, li
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') return res.status(405).end();
+
+    if (req.method !== 'POST')
+        return res.status(405).json({ error: 'Method not supported.' });
+
 
     const parsed = Body.safeParse(req.body);
     if (!parsed.success) return res.status(200).json({ success: true });
 
     const { email, purpose, locale } = parsed.data;
 
+    const t = getServerT((locale) ? locale : 'en', 'sermes'); // locale = 'ru' | 'en'
+
     try {
-       
         // 1) Сгенерировать код
-        const code = await genCode(6);
+        const code = genCode(6);
 
         // 2) Сохранить хэш в БД
         const db = await connectDb();
@@ -149,19 +158,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         return res.status(200).json({ success: true });
-    } catch (e: unknown) {
-        let message = "Ошибка при отправке кода.";
+    } catch (e: unknown) {        
+        let error = t('mes.errorSendCode');
 
-        if (e instanceof Error) {
-            message = `Ошибка при отправке кода: ${e.message}`;
+        if (e instanceof Error) {            
+            error = `${t('mes.errorSendCode')}: ${e.message}`;
         } else if (typeof e === "object" && e !== null && "response" in e) {
             const errObj = e as { response?: { body?: unknown } };
-            message = `Ошибка при отправке кода: ${JSON.stringify(errObj.response?.body)}`;
+            error = `${t('mes.errorSendCode')}: ${JSON.stringify(errObj.response?.body)}`;
         } else {
-            message = `Неизвестная ошибка: ${String(e)}`;
+            error = `${t('mes.errorSendCode')}: ${String(e)}`;
         }
 
-        console.error(message);
-        return res.status(200).json({ success: true });
-    }
+        //  logger
+        void ulogger.error({
+            userId: null,
+            location: "pages/api/auth/send-code",
+            event: "api_error",
+            message: `catch: ${error}`,
+            context: "",
+        }).catch(() => { console.error("logger error") });
+
+        res.status(500).json({ error: `${error}` });
+    }   
 }

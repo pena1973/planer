@@ -41,13 +41,14 @@ export default function Settings({
 
     useEffect(() => {
         setIsQualControlValue(settings.isQualControl);
-    }, []);
-
-    
+    }, []);   
 
     // На сервере
     const saveSettingsHandler = async () => {
-        await saveSystemSettings(settings, isQualControlValue, user, team, token, dispatch, t, setMessage, setModified);
+        await saveSystemSettings(settings, isQualControlValue, user, team, token, dispatch, t, i18n.language, setMessage)
+         .then(() => {
+            setModified(false);
+        });
        
     };
 
@@ -55,7 +56,6 @@ export default function Settings({
     const cancelScheduleHandler = () => {
         setModified(false)
     };
-
 
     return (
         <div className={styles.container}>
@@ -94,7 +94,5 @@ export default function Settings({
 
             </div>
         </div>
-
-
     )
 }

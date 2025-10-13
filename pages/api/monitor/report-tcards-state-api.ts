@@ -2,6 +2,7 @@ import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { getTCardsTerms } from './../../../handlers/handlers-get';  // 
@@ -14,25 +15,30 @@ import { getTeamShedule } from './../../../handlers/handlers-get';  // расч�
 import { StatusEnum } from './../../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+ try {  
   const db = await connectDb();
-  const teamRepository = getTypedRepository(db, 'TeamTable', TeamTable);
+  
   const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
   const unitLoadRepository = getTypedRepository(db, 'UnitLoadTable', UnitLoadTable);
   const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
   const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
   const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
-  try {
-    const { userId, teamId, tCardNumber, tCardDateFrom, tCardDateTo, tCardStatus, showClosed } = req.query;
-    const shedule_ = await getTeamShedule(Number(teamId), teamScheduleRepository, teamsRepository)
-    // Проверяем, что tCardStatus является допустимым значением для StatusEnum
-    const status = Object.values(StatusEnum).includes(tCardStatus as StatusEnum) ? tCardStatus as StatusEnum : undefined;
+ 
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
       case 'GET':
 
+        const { userId, teamId, tCardNumber, tCardDateFrom, tCardDateTo, tCardStatus, showClosed } = req.query;
+        
+        // Проверяем, что tCardStatus является допустимым значением для StatusEnum
+        const status = Object.values(StatusEnum).includes(tCardStatus as StatusEnum) ? tCardStatus as StatusEnum : undefined;
+
         // получаем карты с операциями
         const { tCardsTerms, loads } = await getTCardsTerms(
+          Number(userId), 
+          locale, 
           Number(teamId),
           Number(tCardNumber),
           tCardDateFrom as string,
@@ -40,9 +46,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           status,
           tCardRepository,
           tCardOperationsRepository,
-          unitLoadRepository,
-          shedule_.timeZone,
-          Boolean(showClosed==='true')
+          unitLoadRepository,          
+          Boolean(showClosed === 'true')
         )
         if (!tCardsTerms) {
           res.status(200).json({ success: false, message: "Карта с таким номером не найдена" });

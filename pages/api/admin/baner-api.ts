@@ -1,7 +1,13 @@
+//pages/api/support-api.ts
+// API для получения и обновления сообщений поддержки (support messages)
+// Используется для отправки сообщений в поддержку и просмотра ответов 
+import { ulogger } from "./../../../lib/common/universal-logger";
+
 import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from './../../../db/utilites'
 
 import { BanerTable } from './../../../db/models/support/baners';
@@ -11,48 +17,66 @@ import { BanerItem } from '@/types/service-types'
 
 interface RequestBody {
   baner: BanerItem,
+  userId: number
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const banerRepository = getTypedRepository(db, 'BanerTable', BanerTable);
-
   try {
+    const db = await connectDb();
+    const banerRepository = getTypedRepository(db, 'BanerTable', BanerTable);
 
-    const { teamId, userId } = req.query;
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    
 
     switch (req.method) {
       case 'GET':
-        const baner__ = await getBaner(
-          teamId ? Number(teamId) : undefined,
+
+        const { teamId, userId: userIdget } = req.query;
+
+        const banerGet = await getBaner(
+          Number(userIdget),
+          locale,
+          (teamId) ? Number(teamId) : undefined, // банер может быть безадресный
           banerRepository)
 
         // отправляем ответ
         res.status(200).json({
           success: true,
-          baner: baner__,
+          baner: banerGet,
           message: ""
         });
 
         break;
       case 'POST':
-        const { baner } = req.body as RequestBody;
-        const baner_ = await setBaner(baner, banerRepository)
+        const { baner, userId } = req.body as RequestBody;
+        const banerPost = await setBaner(Number(userId), locale, baner, banerRepository)
 
         // отправляем ответ
         res.status(200).json({
           success: true,
-          baner: baner_,
+          baner: banerPost,
           message: ""
         });
 
         break;
       default:
-        res.status(405).end(); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (baner-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/admin/baner-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

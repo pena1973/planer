@@ -49,7 +49,7 @@
 // import { config as loadEnv } from 'dotenv';
 // import path from 'path';
 
-// // подхватываем .env и .env.local из корня проекта
+// // // подхватываем .env и .env.local из корня проекта
 // loadEnv({ path: path.resolve(process.cwd(), '.env') });
 // loadEnv({ path: path.resolve(process.cwd(), '.env.local'), override: true });
 

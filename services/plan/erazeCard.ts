@@ -1,7 +1,7 @@
 import { Dispatch } from "redux";
 import { UnitLoadItem, TCardItem, StatusEnum } from "./../../types/types";
 import { setUnitLoads, setTCardPrepared, setTCardLighted, setTCards } from "./../../store/slices";
-import { TCardOperationTable } from "@/db/models/data/t_card_operations";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const erazeCard = async (
     tCardId: number,
@@ -16,12 +16,13 @@ export const erazeCard = async (
     setMessage: (msg: string) => void,
 
 ) => {
- 
+
     setMessage("");
     const tCardLoads = unitLoads.filter(load => load.id_tCard === tCardId)
 
     if (tCardLoads.length === 0) {
-        setMessage("Нет лоадов для отмены");
+        // setMessage("Нет лоадов для отмены");
+        setMessage(t("mes.noLoadsToCancel"));
         return
     }
 
@@ -45,7 +46,16 @@ export const erazeCard = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: userId,
+                location: "services/plan/erazeCard",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const erazeCard = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -57,7 +67,6 @@ export const erazeCard = async (
                 dispatch(setUnitLoads(updatedLoads));
 
                 //  поменять статусы операций карты
-
                 const canceledOperIds = receivedData.canceledOperIds as number[];
                 const preparedOperIds = receivedData.preparedOperIds as number[];
                 //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
@@ -76,9 +85,7 @@ export const erazeCard = async (
                     if (canceledOperIds.includes(oper.id) && oper.status !== StatusEnum.cancelled) {
                         return { ...oper, status: StatusEnum.cancelled }
                     }
-
                     return oper;
-
                 })
 
                 //  поменяем статус карты если он изменился и после этого она перерисуется в запланированные
@@ -89,17 +96,38 @@ export const erazeCard = async (
                     dispatch(setTCardPrepared(updatedTCard))
                     dispatch(setTCardLighted({} as TCardItem));
                     dispatch(setTCards(_tCards));
-                } else {
-                    setMessage("Карта уже выполнена и нет операций где статус меняется");
+
+                    // } else {
+                    //     // setMessage("Карта уже выполнена и нет операций где статус меняется");
+                    //     setMessage(t("mes.cardPerformed"));
                 }
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: userId,
+                    location: "services/plan/erazeCard",
+                    event: "error",
+                    message: `success=false запрос /api/plan/eraze-card-plan-api`,
+                    context: "export const erazeCard = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: userId,
+            location: "services/plan/erazeCard",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const erazeCard = async (",
+        }).catch(() => { console.error("logger error") });
     }
 
 

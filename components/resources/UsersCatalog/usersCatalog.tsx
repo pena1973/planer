@@ -52,7 +52,7 @@ export default function UsersCatalog({
     // На сервере
     const getUsersUnitsHandler = async () => {
         setShowLoader(true);
-        await getUsersUnits(user, team, token, t,
+        await getUsersUnits(user, team, token, t, i18n.language,
             setMessage, setUsersUnits, users_units_old,);
 
         setShowLoader(false);
@@ -65,8 +65,11 @@ export default function UsersCatalog({
     // На сервере
     const saveUsersUnitsHandler = async () => {
         setButtonLoader(true);
-        await saveUsersUnits(users_units, user, team, token, t,
-            setMessage, setUsersUnits, users_units_old, setModified);
+        await saveUsersUnits(users_units, user, team, token, t, i18n.language,
+            setMessage, setUsersUnits, users_units_old)
+            .then(() => {
+               setModified(false);
+            });
 
         setButtonLoader(false);
     };
@@ -160,7 +163,7 @@ export default function UsersCatalog({
     return (
         <div className={styles.container}>
 
-            {!showLoader && <div> &nbsp; </div>}
+            {/* {!showLoader && <div>  </div>} */}
 
             {!showLoader && <div className={styles.table_container}>
                 <Image className={styles.icon_cancel}

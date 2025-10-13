@@ -2,6 +2,8 @@ import { Dispatch } from "redux";
 import { SettingsItem, TeamItem, UserItem } from "./../../types/types";
 import { setSettings } from "./../../store/slices";
 
+import { ulogger } from "./../../lib/common/universal-logger";
+
 export const saveSettings = async (
     timeStartWorkValue: number,
     timeFinishWorkValue: number,
@@ -12,8 +14,8 @@ export const saveSettings = async (
     token: string,
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
-    setModified: (val: boolean) => void,
     setTimeStartWorkValue: (val: number) => void,
     setTimeFinishWorkValue: (val: number) => void,
     setShowWeekendValue: (val: boolean) => void,
@@ -29,13 +31,14 @@ export const saveSettings = async (
         showHoliday: showHolidayValue,
     }
 
-    try {        
+    try {
         const res = await fetch(`api/settings-api`,
             {
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     userId: user.id,
@@ -45,8 +48,17 @@ export const saveSettings = async (
             }
         );
         if (res.status !== 200) {
-            const receivedData = await res.json();            
-             setMessage(receivedData.error);                        
+            const receivedData = await res.json();
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: user.id,
+                location: "services/resources/saveSettings",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const saveSettings = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             // console.log("receivedData", receivedData)
@@ -58,20 +70,36 @@ export const saveSettings = async (
                 setTimeStartWorkValue(settings.timeStartWork);
                 setTimeFinishWorkValue(settings.timeFinishWork);
                 setShowWeekendValue(settings.showWeekend);
-                setShowHolidayValue(settings.showHoliday);
-                setModified(false);
-                setMessage(t('settings.settingUpdated'));
-            } else setMessage(receivedData.error);
+                setShowHolidayValue(settings.showHoliday);                
+                setMessage(t('settings.settingUpdated'));                
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: user.id,
+                    location: "services/resources/saveSettings",
+                    event: "error",
+                    message: `success=false запрос api/settings-api`,
+                    context: "export const saveSettings = async (",
+                }).catch(() => { console.error("logger error") });
+            }
+
         }
-        
+
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: user.id,
+            location: "services/resources/saveSettings",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const saveSettings = async (",
+        }).catch(() => { console.error("logger error") });
     }
-
-
-    setModified(false);
 };

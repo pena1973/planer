@@ -10,9 +10,11 @@ import Team from "@/components/resources/Team/team";
 import UsersCatalog from "@/components/resources/UsersCatalog/usersCatalog";
 
 import UnitsCatalog from "@/components/resources/UnitsCatalog/unitsCatalog";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from 'react-i18next';
 
+import { YYYYMMDD } from "@/lib/common/utils";
+import { ulogger } from "./../lib/common/universal-logger";
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
@@ -22,7 +24,7 @@ import { setResourcePoint } from '@/store/slices';
 
 export default function Resources() {
   const { t } = useTranslation();
-const { push } = useRouter();
+  const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
@@ -44,11 +46,7 @@ const { push } = useRouter();
     return state.viewSlice.activeTeam;
   })
   if (!activeTeam) push('/support')
-  // Начальный загруз
-  useEffect(() => {
-
-  }, []);
-
+  
   return (
     <Layout>
       <div className="container_global" >
@@ -61,8 +59,6 @@ const { push } = useRouter();
             <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(5))}>{t('resources.units')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(6))}>{t('resources.setting')}</div>
             <div className="resources_container_catalog" onClick={() => dispatch(setResourcePoint(7))}>{t('resources.templates')}</div>
-
-
           </div>
           <div className="container_cards_title">{t('resources.notes')}</div>
           <div className="container_global_message">{message}</div>

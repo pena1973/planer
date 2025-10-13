@@ -1,39 +1,51 @@
+//pages/api/team-api.ts
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
-import { Repository} from 'typeorm';
 import { TeamTable } from './../../db/models/catalogs/teams'
+import { updateTeam } from './../../handlers/handlers-update';
 
 import { TeamItem } from './../../types/types';
 
 interface RequestBody {
-  teamId:number,
+  teamId: number,
   title: string,
   coment: string,
+  userId: number
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-
   try {
+    const db = await connectDb();
+    const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
 
-    // userId, teamId в любом случае
-    const { userId, teamId } = req.query;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
 
       case 'POST':
         // Извлекаем данные из тела запроса
-        const {teamId, title, coment } = req.body as RequestBody;
+        const { teamId, title, coment, userId } = req.body as RequestBody;
 
-        const resTeam = await updateTeam(teamId, title, coment, teamsRepository);
+        const resTeam = await updateTeam(userId, locale, teamId, title, coment, teamsRepository);
 
         if (!resTeam.success) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + resTeam.message });
-          return;
+          // отправляем ответ
+          res.status(200).json({
+            success: false,
+            message: resTeam.message,
+          });
+          break;
         }
 
         const team = resTeam.savedTeam as TeamItem;  //  можно сразу привести типы простые
@@ -46,54 +58,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         break;
 
       default:
-        res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
 
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (team-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/team-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 
-
-async function updateTeam(
-  teamId: number,
-  title: string,
-  coment: string,
-  teamsRepository: Repository<TeamTable>,
-): Promise<{ success: boolean, savedTeam: TeamItem, message: string }> {
-  
-
-    // Находим команду по id
-    const team = await teamsRepository.findOne({ where: { id: teamId } });
-
-    // Если команда не найдена
-    if (!team) {
-      return {
-        success: false,
-        savedTeam: {} as TeamItem,
-        message: 'Команда не найдена.',
-      };
-    }
-
-    // Обновляем поля команды
-    team.title = title;
-    team.coment = coment;
-
-    // Сохраняем обновленную команду в базе данных
-    const savedTeam = await teamsRepository.save(team);
-
-    return {
-      success: true,
-      savedTeam: {
-        id: savedTeam.id,
-        title: savedTeam.title,
-        coment: savedTeam.coment,
-        prefix: savedTeam.prefix,
-        main_team: savedTeam.main_team,
-      },
-      message: 'Команда успешно обновлена.',
-    };
-  
-}
 export default withAuth(handler)

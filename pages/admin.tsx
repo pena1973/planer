@@ -1,15 +1,10 @@
 import Layout from "@/components/Layout/layout";
-import { useEffect, useState, useRef, use } from "react";
+import { useState,  } from "react";
 
 import ScheduleEditor from "@/components/admin/ScheduleEditor/scheduleEditor";
 import { SupportMailsAdmin } from "@/components/admin/SupportMailsAdmin/supportMailsAdmin";
 
 import { JobSettingItem, BanerItem } from '@/types/service-types'
-
-
-import { store } from '@/store' // путь к твоему Redux store
-
-import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import { useTranslation } from 'react-i18next';
 
@@ -20,7 +15,6 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
-// import { createBills } from '@/services/admin/createBills';
 import { deactivateTeams } from '@/services/admin/deactivateTeams';
 import { setJobSetting } from '@/services/admin/setJobSetting';
 import { setBaner } from '@/services/admin/setBaner';
@@ -70,7 +64,7 @@ export default function Admin() {
       dateTo: periodTo,
       locale: banerLocale,
     } as BanerItem
-    await setBaner(token, user.id, baner, t, setMessage);
+    await setBaner(token, user.id, baner, t, i18n.language, setMessage);
 
   }
 
@@ -82,11 +76,11 @@ export default function Admin() {
     const [yStr, mStr] = periodDeactTeam.split('-');
     const year = Number(yStr);
     const month = Number(mStr); // 1..12
-    await deactivateTeams(token, t, setMessage);
+    await deactivateTeams(user.id,token, t, i18n.language, setMessage);
   };
 
   const setJobSettinghandler = async (jobSetting: JobSettingItem) => {
-    await setJobSetting(token, user.id, jobSetting, t, setMessage);
+    await setJobSetting(user.id, jobSetting, token,  t,  i18n.language, setMessage);
   };
 
   return (

@@ -38,10 +38,10 @@ export const jobs: Record<string, JobHandler> = {
         const mainRepository = getTypedRepository(db, 'MainTable', MainTable);
         const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
         // собираем все главные команды и проверяем начисление расхода за пред день
-        const teams: TeamItem[] = await getTeams(teamsRepository);
-        const teamActivity: { teamId: number, active: boolean }[] = await getTeamActivity(teams, activeTimeRepository)
+        const teams: TeamItem[] = await getTeams(null, "ru", teamsRepository);
+        const teamActivity: { teamId: number, active: boolean }[] = await getTeamActivity(null, "ru", teams, activeTimeRepository)
         // собираем все таймзоны команд
-        const teamsShedules: ScheduleItem[] = await getTeamsShedule(teams, teamScheduleRepository);
+        const teamsShedules: ScheduleItem[] = await getTeamsShedule(null, "ru", teams, teamScheduleRepository);
 
         for (let index = 0; index < teams.length; index++) {
             const team = teams[index];
@@ -54,20 +54,24 @@ export const jobs: Record<string, JobHandler> = {
             if (teamNumber !== team.main_team)
                 continue;
             //  расчет стоимости дня для основной команды + подчиненные
-            const dayCost = await getCostForDay(team.id, prevDay, teamsRepository, activeTimeRepository, mainRepository)
-
-            // console.log(team.id, dayCost / 100);
+            const dayCost = await getCostForDay(null, "ru", team.id, prevDay, teamsRepository, activeTimeRepository, mainRepository)
 
             //  списание баланса
-            if (!dayCost) continue
+            if (dayCost===undefined) {
+                console.log(`Стоимость дня не получена, дата: ${prevDay} teamId: ${team.main_team}`);
+                console.log(`Команды не деактивированы teamId: ${team.main_team}`);
+                return;
+            }
 
             const balanceRes = await updateBalance(
+                null,
+                "ru",
                 balanceRepository,
                 team.id,
                 "charge-" + prevDay,
                 dayCost / 100,
                 prevDay,
-                true,
+                false,
                 'dayly charge-' + prevDay, "-", "")
 
             if (!balanceRes.success) {
@@ -75,7 +79,12 @@ export const jobs: Record<string, JobHandler> = {
             }
 
             // ДЕАКТИВАЦИЯ за неуплату  только если сейчас активный
-            const balance = await getBalance(prevDay, team.id, balanceRepository);
+            const balance = await getBalance(null, "ru", prevDay, team.id, balanceRepository);
+            if (!balance) {
+                console.log(`Баланс не получен, дата: ${prevDay} teamId: ${team.main_team}`);
+                 console.log(`Команды не деактивированы teamId: ${team.main_team}`);
+                return
+            }
             if (balance <= 0) {
                 // деактивируем Группу (только активных)
                 const grope_teams = teams.filter(team => {
@@ -85,7 +94,7 @@ export const jobs: Record<string, JobHandler> = {
                 ).map(team => team.id);
 
                 if (grope_teams.length > 0) {
-                    const resAct = await changeStateTeamsByIds(activeTimeRepository, grope_teams, false, prevDay);
+                    const resAct = await changeStateTeamsByIds(null, "ru", activeTimeRepository, grope_teams, false, prevDay);
                     if (!resAct.success) {
                         console.log(`Команды не деактивированы teamIds: ${grope_teams}`);
                         return;
@@ -104,6 +113,7 @@ export const jobs: Record<string, JobHandler> = {
         const tCardsRepository = getTypedRepository(db, 'TCardTable', TCardTable);
         // ежедневная очистка карт и интервалов которые старше 90 дней
         deleteDataOlder90(
+            null, "ru",
             unitLoadsRepository,
             tCardOperationsRepository,
             tCardStagesRepository,

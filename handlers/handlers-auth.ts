@@ -1,4 +1,6 @@
-
+//handlers/handlers-auth
+import { ulogger } from "./../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
 import { Repository } from 'typeorm';
 // tables
 import { UserTable } from './../db/models/catalogs/users'
@@ -14,14 +16,7 @@ import { TeamScheduleTable } from './../db/models/plan/team_schedule'
 import { UserItem, TeamItem, SettingsItem, TimeZoneEnum, DaysOfWeek, ScheduleItem, } from './../types/types';
 import { generateTeamNumber } from '@/lib/common/utils';
 import { checkCode } from './../lib/server/code';
-// // хеш функция 
-// export const hashFoo = async (data: string) => {
-//   const { createHmac } = await import('node:crypto')
-//   const hash = createHmac('sha256', data)
-//     .digest('hex');
-//   return hash
-// }
-// handlers/handlers-auth.ts
+
 
 // хеш функция — без import('crypto')
 export const hashFoo = async (data: string) => {
@@ -35,11 +30,71 @@ export const hashFoo = async (data: string) => {
   return hash;
 };
 
-
 import { getCurrentDateInString, } from "@/lib/common/timezone"
-// import { time } from 'node:console';
+
+
+//! получение пользователя по ID
+export async function getUserById(
+  userId: number, // кто запрашивает
+  userFindId: number, // кого запрашивает
+  locale: string,
+  usersRepository: Repository<UserTable>,
+): Promise< UserItem|undefined> {
+
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  try {
+    // Шаг 1: Получаем всех пользователей команды
+    const usertab = await usersRepository.findOne({ where: { id: userFindId } });
+
+    if (!usertab) {
+      //  logger
+      void ulogger.error({
+        userId: userId,
+        location: "handlers/handlers-get/getUsers",
+        event: "error",
+        message: `При запросе юзера - он не найдены 'id: ${userFindId}`,
+        context: "export async function getUser(",
+      }).catch(() => { console.error("logger error") });
+    }
+
+    // Если пользователь не найден
+    if (!usertab) {
+      return undefined;
+    }
+
+    const user = {
+      id: usertab.id,
+      login: "",
+      pass: "",
+      name: usertab.name,
+      locale: usertab.locale,
+      isAdmin: usertab.isAdmin,
+      active: usertab.active,
+    } as UserItem;
+
+    return user;
+
+  } catch (e: unknown) {
+    let message = t('mes.error');
+    if (e instanceof Error) {
+      message = `${t('mes.error')} ${e.message}`;
+    }
+    //  logger
+    void ulogger.error({
+      userId: userId,
+      location: "services/cards/getUsers",
+      event: "basa_error",
+      message: `catch: ${message}`,
+      context: "export async function getUsers(",
+    }).catch(() => { console.error("logger error") });
+    return undefined;
+  }
+}
+
 
 export async function createNewTeam(
+  userId: number | null, // может быть null когда создается команда а юзер еще не создан
+  locale: string,
   teamsRepository: Repository<TeamTable>,
   activeTimeRepository: Repository<ActiveTimeTable>,
   settingsRepository: Repository<SettingsTable>,
@@ -48,7 +103,7 @@ export async function createNewTeam(
   main_team: string | null
 ): Promise<{
   success: boolean,
-  team: TeamItem,  
+  team: TeamItem,
   message?: string
 }> {
 
@@ -107,7 +162,7 @@ export async function createNewTeam(
     });
     const savedNewSettings = await settingsRepository.save(newSettings);
 
-    
+
     return {
       success: true,
       team: {
@@ -129,7 +184,7 @@ export async function createNewTeam(
     }
     return {
       success: false,
-      team: {} as TeamItem,     
+      team: {} as TeamItem,
       message,
     };
   }
@@ -137,6 +192,7 @@ export async function createNewTeam(
 }
 
 export async function createNewUser(
+  locale: string,
   login: string,
   pass: string,
   teamId: number,
@@ -179,6 +235,7 @@ export async function createNewUser(
 }
 // &&&&& проверяет код при подтверждении мейла либо восстаенволении пароля
 export async function verifyCode(
+  locale: string,
   email: string,
   code: string,
   purpose: string,
@@ -218,6 +275,7 @@ export async function verifyCode(
   return { success: true }
 }
 export async function confirmUserEmail(
+  locale: string,
   email: string,
   usersRepository: Repository<UserTable>,
 ): Promise<{ success: boolean, message?: string }> {
@@ -259,6 +317,7 @@ export async function confirmUserEmail(
 }
 
 export async function resetUserPass(
+  locale: string,
   login: string,
   pass: string,
   usersRepository: Repository<UserTable>,
@@ -319,26 +378,27 @@ export async function resetUserPass(
   }
 
 }
-
-
+//!  Обновление пользователя
 export async function updateUser(
   userId: number,
+  locale: string,
   oldpass: string | undefined,
   newpass: string | undefined,
   name: string | undefined,
   usersRepository: Repository<UserTable>,
-): Promise<{ success: boolean, savedUser: UserItem, message?: string }> {
-
+): Promise<{ success: boolean, savedUser?: UserItem, message?: string }> {
+  
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  
   try {
     // Ищем пользователя по ID
-    const user = await usersRepository.findOne({ where: { id: userId } });
-
+    // const user = await usersRepository.findOne({ where: { id: userId } });
+    const user = await getUserById(userId, userId, locale, usersRepository);
     // Если пользователь не найден
     if (!user) {
       return {
         success: false,
-        savedUser: {} as UserItem,
-        message: 'Пользователь не найден.',
+        message: t('mes.noUser'),
       };
     }
 
@@ -353,9 +413,9 @@ export async function updateUser(
 
       if (hashOld !== user.pass)
         return {
-          success: false,
-          savedUser: {} as UserItem,
-          message: 'Не совпадает старый пароль',
+          success: false,          
+          // message: 'Не совпадает старый пароль',
+          message: t('mes.passNotTheSame'),
         }
       const hashNew = await hashFoo(newpass)
       user.pass = hashNew; // Обновляем пароль
@@ -378,25 +438,28 @@ export async function updateUser(
         confirmed: Boolean(savedUser.confirmed),
         isSystem: Boolean(savedUser.isSystem),
       },
-      message: 'Пользователь успешно обновлен.',
+      // message: 'Пользователь успешно обновлен.',
+      message: t('mes.userUpdated'),
     };
-  } catch (e: unknown) {
-    let message = "Ошибка при обновлении пользователя.";
-    if (e instanceof Error) {
-      message = `Ошибка при обновлении пользователя: ${e.message}`;
-    }
-    return {
-      success: false,
-      savedUser: {} as UserItem,
-      message,
-    };
+   } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+    
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-auth/updateUser",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "updateUser",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: '+ msg };
   }
 
 }
 
-
 // &&&&&
 export async function getUser(
+  locale: string,
   login: string,
   pass: string,
   usersRepository: Repository<UserTable>
@@ -439,7 +502,6 @@ export async function getUser(
   return { success: true, user, message: '' };
 }
 
-
 export async function isUserExist(
   login: string,
   usersRepository: Repository<UserTable>
@@ -457,6 +519,8 @@ export async function isUserExist(
 
 //&&&&&&
 export async function getTeam(
+  userId: number | null,
+  locale: string,
   teamId: number,
   teamsRepository: Repository<TeamTable>
 ): Promise<{ success: boolean, team: TeamItem, message?: string }> {
@@ -485,9 +549,11 @@ export async function getTeam(
   };
 
 }
+
 // &&&&&
 export async function getLastAgreement(
   userId: number,
+  locale: string,
   userAgreeRepository: Repository<UserAgreeTable>,
   agreementRepository: Repository<AgreementTable>
 ): Promise<{ agreementText: string, agreementId: number | null, signed: boolean, dateSigned?: string, message?: string }> {
@@ -538,52 +604,59 @@ export async function getLastAgreement(
   };
 }
 
+
+//! Подпимсание соглашения
 export async function signAgreement(
   userId: number,
+  locale: string,
   signedAgreement: boolean,
   agreementId: number,
   userAgreeRepository: Repository<UserAgreeTable>
-): Promise<{ success: boolean, signed: boolean, message?: string }> {
+): Promise<{ success: boolean; signed: boolean; message?: string }> {
+  const t = getServerT(locale, 'sermes');
 
+  try {
+    const userAgree = await userAgreeRepository.findOne({
+      where: { user_id: userId, agreement_id: agreementId },
+    });
 
-  // Проверяем, существует ли уже запись о подписании соглашения
-  const userAgree = await userAgreeRepository.findOne({
-    where: { user_id: userId, agreement_id: agreementId },
-  });
+    // Ничего не меняем — ничего не пишем
+    if (userAgree && userAgree.signed === signedAgreement) {
+      return { success: true, signed: userAgree.signed, message: t('mes.agreementNotChanged') };
+    }
 
-  // Если запись существует, обновляем её
-  if (userAgree) {
-    userAgree.signed = signedAgreement;  // Обновляем статус подписания
-    userAgree.date = signedAgreement ? new Date() : null; // Если подписано, обновляем дату
+    if (userAgree && signedAgreement) {
+      userAgree.signed = signedAgreement;
+      userAgree.date = signedAgreement ? new Date() : null;
+      await userAgreeRepository.save(userAgree, { reload: false });
+      return { success: true, signed: signedAgreement, message: t('mes.agreementUpdated') };
+    }
 
-    // Сохраняем обновлённую запись
-    await userAgreeRepository.save(userAgree);
-    return {
-      success: true,
-      signed: signedAgreement,
-      message: 'Соглашение успешно обновлено.',
-    };
-  } else if (signedAgreement) {
+    // новый
+    if (!userAgree && signedAgreement) {
+      const newUserAgree = userAgreeRepository.create({
+        user_id: userId,
+        agreement_id: agreementId,
+        signed: true,
+        date: new Date(),
+      });
+      await userAgreeRepository.save(newUserAgree, { reload: false });
+      return { success: true, signed: true, message: t('mes.agreementUpdated') };
+    }
 
-    // Создаём новую запись о подписании соглашения
-    const newUserAgree = new UserAgreeTable();
-    newUserAgree.user_id = userId;
-    newUserAgree.agreement_id = agreementId;
-    newUserAgree.signed = signedAgreement;
-    newUserAgree.date = signedAgreement ? new Date() : null;  // Устанавливаем дату подписания, если подписано
+    // Нет записи и приходит false — логично просто вернуть "ничего не меняли"
+    return { success: true, signed: false, message: t('mes.agreementNotChanged') };
 
-    // Сохраняем новую запись
-    await userAgreeRepository.save(newUserAgree);
-    return {
-      success: true,
-      signed: signedAgreement,
-      message: 'Соглашение успешно подписано.',
-    };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+    void ulogger.error({
+      userId,
+      location: "handlers/handlers-auth/signAgreement",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "signAgreement",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, signed: signedAgreement, message: 'db_error: ' + msg };
   }
-
-  return {
-    success: false,
-    signed: signedAgreement,
-    message: 'Соглашение не менялось.',
-  };
 }

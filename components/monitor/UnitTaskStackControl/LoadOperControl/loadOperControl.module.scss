@@ -25,7 +25,12 @@
 .oper_content{
  font-size: 10px;  
  width: 100%;
- height: calc(100% + 100px);
+//  height: calc(100% + 100px);
+//  height: auto;
+  height: -webkit-fill-available;
+//  min-height: calc(100% + 180px);
+ min-height: max-content;
+// background-color: antiquewhite;
 }
 
 .button_container{
@@ -51,7 +56,7 @@
   
 }
 .oper_coment{
-  font-size: 10px;  
+  font-size: $header4_font_size;  
   font-style: italic;
   width: 100%;
   height: 100%;

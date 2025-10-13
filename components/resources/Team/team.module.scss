@@ -15,7 +15,7 @@
     box-shadow: $box-shadow;
     transition: box-shadow 0.3s ease;
     position: relative;
-    padding: 5px;
+    padding: 25px 5px 5px 5px;
     position: relative;
     color: $second_text_color;
     font-size: $header4_font_size;
@@ -23,7 +23,7 @@
 
 .field_container {
     width: 100%;
-    padding: 10px 0 2px;
+    padding: 0 0 2px;
     border-bottom: 1px solid #ccc;
     justify-content: center;
 }

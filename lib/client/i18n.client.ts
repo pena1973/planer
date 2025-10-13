@@ -10,10 +10,13 @@ import ruUi from '../../public/locales/ru/ui.json';
 import ruHelp from '../../public/locales/ru/help.json';
 import ruCookies from '../../public/locales/ru/cookies.json';
 
+import ruSerMes from '../../public/locales/ru/server_messages.json';
+
 import enTranslation from '../../public/locales/en/translation.json';
 import enUi from '../../public/locales/en/ui.json';
 import enHelp from '../../public/locales/en/help.json';
 import enCookies from '../../public/locales/en/cookies.json';
+
 
 const NS = ['translation', 'ui', 'help', 'cookies'] as const;
 
@@ -22,13 +25,13 @@ const resources: Resource = {
     translation: ruTranslation,
     ui: ruUi,
     help: ruHelp,
-    cookies: ruCookies,
+    cookies: ruCookies,    
   },
   en: {
     translation: enTranslation,
     ui: enUi,
     help: enHelp,
-    cookies: enCookies,
+    cookies: enCookies,        
   },
 };
 

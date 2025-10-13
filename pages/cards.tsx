@@ -16,10 +16,9 @@ import { deleteTCardById } from '@/services/cards/deleteTCardById';
 import { saveTCardById } from '@/services/cards/saveTCardById';
 import { resetTCardById } from '@/services/cards/resetTCardById';
 import { selectTCardById } from '@/services/cards/selectTCardById';
-
 import { saveTemplate } from '@/services/templates/saveTemplate';
-
-
+import { YYYYMMDD } from "@/lib/common/utils";
+import { ulogger } from "./../lib/common/universal-logger";
 import Image from 'next/image';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -31,19 +30,8 @@ import { useTranslation } from 'react-i18next';
 
 import { } from '@/store/slices';
 import {
-  ProductContent,
-  OperationContent,
-  TCardContent,
-  TCardProductItem,
-  ActionItem,
-  TCardOperationItem,
-  TCardItem,
-  TCardStageItem,
-  StatusEnum,
-  TProductContent,
-  ProductItem,
-
-
+  ProductContent, OperationContent, TCardContent, TCardProductItem, ActionItem,
+  TCardOperationItem, TCardItem, TCardStageItem, StatusEnum, TProductContent, ProductItem,
 } from "@/types/types";
 import { checkReconcilation } from "@/lib/client/cardsHandlers";
 
@@ -109,10 +97,8 @@ export default function Cards() {
   //показывает текущее состояние активности команды
   const activeTeam = useAppSelector((state: RootState) => {
     return state.viewSlice.activeTeam;
-  })  
+  })
   if (!activeTeam) push('/support')
-
-  // Начальный загруз
 
   useEffect(() => {
     if (tCards?.length > 0) selectTCardHandler(tCards[tCardIndex]);
@@ -128,17 +114,10 @@ export default function Cards() {
   const planCancelLoadStatuses = [StatusEnum.cancelled, StatusEnum.planed]
 
   const updateIdc = (currentId: number) => {
-    // setTCardCurrentValue({ ...tCardCurrentValue, maxIdc: currentId }); // обновляем состояние карты
-    // обновляем состояние карты в redux
-
-    // const cardIndex = tCards.findIndex(card => card.id === tCardCurrentValue.id);
-    // if (cardIndex >= 0) {
     const updatedCards = [...tCards];
     updatedCards[tCardIndex] = { ...updatedCards[tCardIndex], maxIdc: currentId };
     // диспатчим экшен, который заменит массив tCards в Redux
     dispatch(setTCards(updatedCards));
-    // }
-    // dispatch(setTCardCurrentMaxIdc(currentId))
     return currentId;  // Возвращаем новый уникальный ID    
   };
 
@@ -180,7 +159,6 @@ export default function Cards() {
       }
     }
 
-
     if (code.includes("A")) {
       const regex = /^([A])(\d+)([IO])(\d+)/; // Регулярное выражение для извлечения компонентов
       const match = code.match(regex);
@@ -211,7 +189,6 @@ export default function Cards() {
       const indexProduct = (match) ? parseInt(match[2], 10) : NaN;
       idcProduct = tCards[tCardIndex].products[indexProduct].idc;
     }
-
     setLightProduct(idcProduct);
   }
 
@@ -235,7 +212,6 @@ export default function Cards() {
     if (readonlyCardStatuses.includes(tCards[tCardIndex].status))
       return; // если у карты нередактируемый статус ничего не делаем
 
-
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
     const tCardProducts = tCards[tCardIndex].tCardProducts ? tCards[tCardIndex].tCardProducts : [] as TCardProductItem[];
     const tCardWastes = tCards[tCardIndex].tCardWastes ? tCards[tCardIndex].tCardWastes : [] as TCardProductItem[];
@@ -256,9 +232,7 @@ export default function Cards() {
 
       if (operIndex < 0 || !stageTarget) return
       updatedOperations.splice(operIndex, 1, { ...updatedOperations[operIndex], stage: stageTarget })
-
       newStatus = tCards[tCardIndex].status;
-
     }
 
     // Это перетаскитвание операции в стадию перед определенной картой
@@ -392,7 +366,6 @@ export default function Cards() {
           const outUpdated = [...oper.out, productToUpdate]
           return { ...oper, out: outUpdated };
         }
-
         return oper; // Если id не совпадает, оставляем элемент без изменений
       })
     }
@@ -471,10 +444,8 @@ export default function Cards() {
           const innUpdated = [...oper.inn, productToUpdate]
           return { ...oper, inn: innUpdated };
         }
-
         return oper; // Если id не совпадает, оставляем элемент без изменений
       })
-
     }
 
     // из выхода на вход
@@ -500,19 +471,17 @@ export default function Cards() {
 
       // // обновляем операции
       updatedOperations = tCardOperations.map((oper) => {
-      // пресекаем обновление если операция уже в состоянии планирована и выше
+        // пресекаем обновление если операция уже в состоянии планирована и выше
         if (![StatusEnum.prepared, StatusEnum.draft].includes(oper.status)) return oper
-        
+
         // вход
         if (oper.idc === idcOperTo) {
           // добавим предмет на входе
           const innUpdated = [...oper.inn, productToUpdate]
           return { ...oper, inn: innUpdated };
         }
-
         return oper; // Если id не совпадает, оставляем элемент без изменений
       })
-
     }
 
     // если просто копируем источники из одной операции в другую
@@ -556,7 +525,6 @@ export default function Cards() {
       })
     }
 
-
     // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
     const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(updatedProducts, updatedOperations);
 
@@ -571,14 +539,9 @@ export default function Cards() {
       status: newStatus,
     }
 
-    // setTCardCurrentValue(tCard);
-
-    // const indexCurrentCard = tCards.findIndex(card => card.id === tCard.id);
     const updatedTCards = [...tCards];
     updatedTCards.splice(tCardIndex, 1, tCard)
-
     dispatch(setTCards(updatedTCards));
-
 
   };
 
@@ -610,6 +573,7 @@ export default function Cards() {
   // СТАДИИ
   // На клиенте
   const addStage = async (afterStageCode: number) => {
+
     // проверка на возможность редактирования    
     if (readonlyCardStatuses.includes(tCards[tCardIndex].status))
       return; // если у карты нередактируемый статус ничего не делаем
@@ -625,7 +589,6 @@ export default function Cards() {
 
     // Ищем индекс элемента с указанным кодом
     const afterIndex = tCardStages.findIndex(stage => stage.code === afterStageCode);
-
 
     // Если такой элемент найден или это добавление первого элемента, добавляем новый после него и сдвигаем последующие коды
     if (afterIndex !== -1 || afterStageCode === 0) {
@@ -667,9 +630,8 @@ export default function Cards() {
         modified: true,
         tCardStages: updatedStages1,  // Обновляем массивы
         tCardOperations: updatedOperations,
-        // status: StatusEnum.draft, //  стадия не влияет на статус
       }
-      // setTCardCurrentValue(tCard);
+
       // Обновляем состояние карты в redux
       const indexCurrentCard = tCards.findIndex(card => card.id === tCard.id);
       const updatedTCards = [...tCards];
@@ -678,9 +640,17 @@ export default function Cards() {
       dispatch(setTCards(updatedTCards));
 
     } else {
-      console.error(`Stage with code ${afterStageCode} not found.`);
+      //  logger
+      void ulogger.warn({
+        userId: user.id,
+        location: "pages/cards/delStage",
+        event: "error",
+        message: `Stage with code ${afterStageCode} not found.`,
+        context: "if (stageIndex !== -1) {",
+      }).catch(() => { console.error("logger error") });
     }
   };
+
   // На клиенте
   const delStage = async (stage: TCardStageItem) => {
     // проверка на возможность редактирования    
@@ -695,7 +665,7 @@ export default function Cards() {
     const tCardCurrentOperationsDeleted = tCardOperations.filter((tOper) => tOper.stage.idc === stage.idc);
     // если есть операции в стадии ничего не делаем, сначала пользователь должен удалить операции из стадии
     if (tCardCurrentOperationsDeleted.length > 0) {
-      setMessage("Невозможно удалить стадию, в ней есть операции. Сначала удалите операции из стадии.");
+      setMessage(t('mes.impossibleToDelStage'));
       return;
     }
 
@@ -739,17 +709,22 @@ export default function Cards() {
         tCardOperations: updatedOperations,
         // status: StatusEnum.draft,//  стадия не влияет на статус
       }
-      // setTCardCurrentValue(tCard);
-      // Обновляем состояние карты в redux
-      // const indexCurrentCard = tCards.findIndex(card => card.id === tCard.id);
+
+      // Обновляем состояние карты в redux      
       const updatedTCards = [...tCards];
       updatedTCards.splice(tCardIndex, 1, tCard)
-
       dispatch(setTCards(updatedTCards));
 
-
     } else {
-      console.error(`Stage with code ${stage.code} not found.`);
+      //  logger
+      void ulogger.warn({
+        userId: user.id,
+        location: "pages/cards/delStage",
+        event: "error",
+        message: `Stage with code ${stage.code} not found.`,
+        context: "if (stageIndex !== -1) {",
+      }).catch(() => { console.error("logger error") });
+
     }
   };
 
@@ -768,8 +743,7 @@ export default function Cards() {
       return
     }
 
-    await deleteTCardById(idToRemove, token, team, tCards, unitLoads, dispatch, t, setMessage)
-
+    await deleteTCardById(user.id, idToRemove, token, team, tCards, unitLoads, dispatch, t, i18n.language, setMessage)
     setRemoveLoaderCard(NaN);
 
   };
@@ -777,13 +751,12 @@ export default function Cards() {
   // На сервере
   const saveCardHandler = async (idToSave: number) => {
     setSaveLoaderCard(idToSave);
-    await saveTCardById(idToSave, tCards, token, team, user, dispatch, t, setMessage);
+    await saveTCardById(idToSave, tCards, token, team, user, dispatch, t, i18n.language, setMessage);
     setSaveLoaderCard(NaN);
   };
 
   // На клиенте
   const addTCardHandler = async () => {
-    // setModified(true);
     setMessage("");
     const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
     const tempId = generateUniqueIdc();
@@ -811,9 +784,10 @@ export default function Cards() {
   // Он сбрасывает карту в начальное состояние с сервера, если она была модифицирована.
   const resetCardHandler = async (idToReset: number) => {
     setResetLoaderCard(idToReset);
-    await resetTCardById(idToReset, tCards, token, team, dispatch, t, setMessage)
+    await resetTCardById(user.id, idToReset, tCards, token, team, dispatch, t, i18n.language, setMessage)
     setResetLoaderCard(NaN);
   };
+
   // На сервере
   // Он подгружает карту с сервера если она не была подгружена ранее.
   const selectTCardHandler = async (selectedTCard: TCardItem) => {
@@ -830,9 +804,8 @@ export default function Cards() {
     }
     // если карта не была ранее подгружена, то вытаскиваем из базы
     setResetLoaderCard(selectedTCard.id)
-    await selectTCardById(selectedTCard.id, indexCurrentCard, tCards, token, team, dispatch, t, setMessage);
+    await selectTCardById(user.id, selectedTCard.id, indexCurrentCard, tCards, token, team, dispatch, t, i18n.language, setMessage);
     setResetLoaderCard(NaN)
-
   };
 
   // На клиенте
@@ -850,7 +823,6 @@ export default function Cards() {
       coment: coment
     }
     // Обновляем состояние карты в redux
-
     const updatedTCards = [...tCards];
     updatedTCards.splice(tCardIndex, 1, tCard)
     dispatch(setTCards(updatedTCards));
@@ -859,11 +831,9 @@ export default function Cards() {
   // Устанавливает maxIdc для текущей карты в списке
   const setMaxIdc = (maxIdc: number) => {
     const updatedTCards = [...tCards];
-
     updatedTCards.splice(tCardIndex, 1, { ...updatedTCards[tCardIndex], maxIdc: maxIdc, modified: true })
     dispatch(setTCards(updatedTCards));
-    // updatedTCards[tCardIndex] = { ...updatedTCards[tCardIndex], maxIdc: maxIdc, };
-    // dispatch(setTCards(updatedTCards));
+
   }
 
   // На клиенте
@@ -880,8 +850,8 @@ export default function Cards() {
     updatedTCards.splice(tCardIndex, 1, { ...tCard, tCardOperations: tCardCurrentOperations_, status: StatusEnum.prepared, modified: true })
 
     dispatch(setTCards(updatedTCards));
-
   }
+
   // На клиенте
   const setCardClose = async () => {
     const tCard = tCards[tCardIndex]
@@ -889,9 +859,7 @@ export default function Cards() {
     // нужно обновить в списке карт     
     const updatedTCards = [...tCards];
     updatedTCards.splice(tCardIndex, 1, { ...tCard, status: StatusEnum.closed, modified: true })
-
     dispatch(setTCards(updatedTCards));
-
   }
 
   ///////////////ЗАГРУЗКА КАРТЫ ИЗ ФАЙЛА
@@ -913,16 +881,14 @@ export default function Cards() {
       tCardMaterials: tCardMaterialsUpdated,  // Обновляем массивы
       status: StatusEnum.draft,
     }
-
     dispatch(setTCards([...tCards, tCard_]));
-
   }
+
   ///////////////ВЫГРУЗКА КАРТЫ В ФАЙЛ
   // На клиенте
   const upLoadtCard = (tCard: TCardItem) => {
     const fileName = `${tCard.idc.toString().padStart(4, '0')}-${tCard.date}.json`; // Formatting the filename
 
-    // Prepare data to export
     const exportData = {
       date: tCard.date,
       idc: tCard.idc,
@@ -990,22 +956,22 @@ export default function Cards() {
     link.download = fileName;
     link.click();
   };
+
   ///////////////Шаблоны
   // На сервере
   const saveTemplateHandler = async () => {
     setSaveTemplateLoaderCard(true);
-    await saveTemplate(tCards, tCardIndex, templates, team, user, token, dispatch, t, setMessage,);
+    await saveTemplate(tCards, tCardIndex, templates, team, user, token, dispatch, t, i18n.language, setMessage,);
     setSaveTemplateLoaderCard(false);
   };
 
-
   // На клиенте
-  const applyTemplate = (fileContent: string) => {
+  const applyTemplate = async (fileContent: string) => {
     // Очистка сообщения
     setMessage("");
 
     // Получаем текущую дату
-    const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
+    const currentDate = YYYYMMDD();
 
     // Генерация временного ID
     const tempId = generateUniqueIdc();
@@ -1035,7 +1001,6 @@ export default function Cards() {
       // Заполнение полей newTCard из template
       newTCard.coment = template.coment;
 
-
       // Заполняем products
       if (template.products) {
         newTCard.products = template.products.map((product: ProductContent) => {
@@ -1047,7 +1012,6 @@ export default function Cards() {
         });
       }
 
-      // const tProducts = (newTCard.tCardProducts) ? newTCard.tCardProducts : [] as TProductContent[];
       if (template.tCardProducts) {
         newTCard.tCardProducts = template.tCardProducts.map((tProduct: TProductContent) => {
 
@@ -1099,10 +1063,8 @@ export default function Cards() {
         }));
       }
 
-
       // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
       const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(newTCard.tCardProducts as TCardProductItem[], newTCard.tCardOperations as TCardOperationItem[]);
-
 
       newTCard.modified = true;
       newTCard.tCardProducts = tCardProductsUpdated;
@@ -1110,16 +1072,28 @@ export default function Cards() {
       newTCard.tCardWastes = tCardWastesUpdated;
       newTCard.tCardMaterials = tCardMaterialsUpdated;
       newTCard.status = StatusEnum.draft;
-      // newTCard.products = newTCard.products;
       newTCard.maxIdc = calculateMaxIdc(template as TCardContent); //  MaxIdc  после полного заполнения
 
       // Добавляем новую карту в состояние
       dispatch(setTCards([...tCards, newTCard]));
       dispatch(setTCardIndex(tCards.length)); // Устанавливаем индекс новой карты
 
-    } catch (err) {
-      console.error("Ошибка при обработке шаблона:", err);
-      alert("Не удалось загрузить и обработать шаблон.");
+
+    } catch (e: unknown) {
+      // console.error("Ошибка при обработке шаблона:", e);
+      let error = "";
+      if (e instanceof Error) {
+        error = e.message;
+      }
+      setMessage(`${t('mes.impossibleToDownloasTemplate')} ${error}`);
+      //  logger
+      void ulogger.error({
+        userId: user.id,
+        location: "pages/cards/applyTemplate",
+        event: "endpoint_error",
+        message: `catch: ${error}`,
+        context: " const applyTemplate = async (fileContent: string) =>  {",
+      }).catch(() => { console.error("logger error") });
     }
   };
 
@@ -1128,17 +1102,14 @@ export default function Cards() {
 
   // На клиенте
   const saveTCardProductsHandler = (tProductsValue: TCardProductItem[]) => {
-    // editedProduct.code = existingProduct.code.replace(/P(\d+)/, `P${newIdc}`);
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
 
     // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
     const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(tProductsValue, tCardOperations);
-
     const tCard =
     {
       ...tCards[tCardIndex],
       modified: true,
-      // maxIdc: newIdc,
       tCardProducts: tCardProductsUpdated,  // Обновляем массивы
       tCardOperations: tCardOperationsUpdated,  // Обновляем массивы
       tCardWastes: tCardWastesUpdated,  // Обновляем массивы
@@ -1154,8 +1125,7 @@ export default function Cards() {
   };
 
   ////////////////// КАТАЛОГ продуктс
-  // На клиенте (ДОПИСАТЬ ПРОВЕРКУ ПРИ УДАДЕНИИ ПРЕДМЕТА КАТАЛОГА ЧТОБЫ ОН НЕ БЫЛ ЗАДЕЙСТВОВАН В ОПЕР КАРТЫ)
-
+  // На клиенте (ПРОВЕРКА ПРИ УДАДЕНИИ ПРЕДМЕТА КАТАЛОГА ЧТОБЫ ОН НЕ БЫЛ ЗАДЕЙСТВОВАН В ОПЕР КАРТЫ)
   const isPossibleToDelete = (indexToRemove: number): boolean => {
     const tCard = tCards[tCardIndex];
     const productToRemove = tCard.products?.[indexToRemove];
@@ -1179,10 +1149,8 @@ export default function Cards() {
     return !isUsed; // если не используется — можно удалить (true)
   };
 
-
   const saveProductsHandler = (productsValue: ProductItem[]) => {
     //  проверить чтобы не был удален предмет задействованный в операциях карты
-
     const tCard = {
       ...tCards[tCardIndex],
       modified: true,
@@ -1191,9 +1159,7 @@ export default function Cards() {
     }
     const updatedTCards = [...tCards];
     updatedTCards.splice(tCardIndex, 1, tCard)
-
     dispatch(setTCards(updatedTCards));
-
   };
 
   //////////////////ОПЕРАЦИИ
@@ -1229,17 +1195,20 @@ export default function Cards() {
     const hasReadyLoads = operLoads.some((lo) => readyLoadStatuses.includes(lo.status));
 
     if (hasReadyLoads) {
-      setMessage("Невозможно удалить операцию, т.к. есть выполнение операции с результатом или браком.");
+      // setMessage("Невозможно удалить операцию, т.к. есть выполнение операции с результатом или браком.");
+      setMessage(t('mes.impossibleToDelOperReady'));
       return;
     }
 
-    // Исторические запланированные/отмененные — их надо отменить/удалить
+    // Исторические запланированные — их надо сначала отменить/удалить
     const hasPlannedLoads = operLoads.some(
-      (lo) => planCancelLoadStatuses.includes(lo.status)
+      (lo) => lo.status === StatusEnum.planed
     );
 
+    // !!!! ЗДЕСЬ НАДО ПРОВЕРИТЬ  если активных лоадов нет операцию канцелить
     if (hasPlannedLoads) {
-      setMessage("Невозможно удалить операцию, т.к. есть запланированное или отмененное время выполнения. Операацию можно перевести в статус отменить");
+      // setMessage("Невозможно удалить операцию, т.к. есть запланированное или отмененное время выполнения. Операацию можно перевести в статус отменить");
+      setMessage(t('mes.impossibleToDelOperHistory'));
       return;
     }
 
@@ -1254,21 +1223,17 @@ export default function Cards() {
       status: hasUnfixedDefect ? StatusEnum.defective : StatusEnum.draft,
     }
 
-    // setTCardCurrentValue(tCard);
-
     const indexCurrentCard = tCards.findIndex(card => card.id === tCard.id);
     const updatedTCards = [...tCards];
     updatedTCards.splice(indexCurrentCard, 1, tCard)
 
     dispatch(setTCards(updatedTCards));
 
-
   };
 
   // На клиенте
   const cancelOperHandler = (idToCancel: number) => {
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
-    // setModified(false);
     const tOperToUpdate = tCardOperations.find(tOper => tOper.idc === idToCancel);
     if (tOperToUpdate) {
       const updatedOper = { ...tOperToUpdate, mode: false }
@@ -1321,6 +1286,7 @@ export default function Cards() {
     // Возвращаем обновленную карту
     return correctedCard;
   };
+
   // На клиенте
   const saveOperHandler = (
     idcTosave: number,
@@ -1378,13 +1344,13 @@ export default function Cards() {
       dispatch(setTCards(updatedTCards));
     };
   };
+
   // На клиенте
   const setOperStatus = (idc: number, status: StatusEnum) => {
     const operIndex = tCards[tCardIndex].tCardOperations?.findIndex(card => card.idc === idc);
     if (operIndex === undefined || operIndex < 0) return
 
     const tCard = tCards[tCardIndex]
-
     const tCardOperations_ = tCard.tCardOperations?.map(tOper => {
       if (tOper.idc === idc) {
         return { ...tOper, status: status };
@@ -1402,16 +1368,15 @@ export default function Cards() {
 
     dispatch(setTCards(updatedTCards));
   };
+
   // На клиенте
   const editOperHandler = (idc: number) => {
     // проверка на возможность редактирования    
     if (readonlyCardStatuses.includes(tCards[tCardIndex].status))
       return; // если у карты нередактируемый статус ничего не делаем
 
-
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
 
-    // setModified(true);
     const tCardOperationsUpdated = tCardOperations.map(tOper => {
       if (tOper.idc === idc) {
         return { ...tOper, mode: !tOper.mode };
@@ -1432,9 +1397,8 @@ export default function Cards() {
     updatedTCards.splice(tCardIndex, 1, tCard)
 
     dispatch(setTCards(updatedTCards));
-
-
   };
+
   // На клиенте
   const addOperHandler = (tStage: TCardStageItem) => {
     // проверка на возможность редактирования    
@@ -1442,8 +1406,7 @@ export default function Cards() {
       return; // если у карты нередактируемый статус ничего не делаем
 
     const tCardOperations = tCards[tCardIndex].tCardOperations ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
-    // setModified(true);
-    // console.log(tStage);    
+
     const newid = tCards[tCardIndex].maxIdc + 1;
     const newOper = {
       idc: newid,
@@ -1455,9 +1418,7 @@ export default function Cards() {
       status: StatusEnum.draft,
     } as TCardOperationItem;
 
-    // dispatch(setTCardCurrentOperations([...tCardCurrentOperationsValue, newOper]))
     const updatedOperations = [...tCardOperations, newOper];
-
     // Обновляем карту в стейте и в redux
     const tCard =
     {
@@ -1468,13 +1429,13 @@ export default function Cards() {
       maxIdc: newid,
     }
 
-    // Обновляем состояние карты в redux
-    // const indexCurrentCard = tCards.findIndex(card => card.id === tCard.id);
+    // Обновляем состояние карты в redux    
     const updatedTCards = [...tCards];
     updatedTCards.splice(tCardIndex, 1, tCard)
     dispatch(setTCards(updatedTCards));
 
   };
+
   // На клиенте
   // создает операцию на основе той которая с дефектом - копирует заменяя код операции
   const fixDefect = (idc: number) => {
@@ -1488,9 +1449,8 @@ export default function Cards() {
     const inn = oper.inn.map(prod => {
       const code = `M${prod.product.idc}`;
       return { ...prod, code: code } as TCardProductItem
+    })
 
-    }
-    )
     // поменяем операцию в кодах и сформируем выход и выход;
     const out = oper.out.map(prod => {
       const code = `A${newid}O${prod.product.idc}`;
@@ -1519,7 +1479,6 @@ export default function Cards() {
     // проверяем карту на согласованность  материальных обьектов и корректируем вход выход
     const { tCardWastesUpdated, tCardMaterialsUpdated, tCardProductsUpdated, tCardOperationsUpdated } = checkReconcilation(tCardProducts, tCardOperationsUpdated1);
 
-
     // проверка если есть брак и нет исправления то у карты статус брак  (если она приходит со статусом брак, планирован, подготовлен и драфт)
     const opDefective = tCards[tCardIndex].tCardOperations?.filter(op => op.status === StatusEnum.defective);
 
@@ -1543,16 +1502,13 @@ export default function Cards() {
     }
     const updatedTCards = [...tCards];
     updatedTCards.splice(tCardIndex, 1, tCard)
-
     dispatch(setTCards(updatedTCards));
-
   };
 
   // ЛОАДЫ
   const cancelLoadHandler = async (load_idc: number) => {
     if (!load_idc) return;
     await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
-
   }
 
   //  реакт узлы
@@ -1566,7 +1522,8 @@ export default function Cards() {
   // Стадии
   const tCardStagesReactNodes = tCardStages.map((tStage, index2) => {
     //  получили операции стадии
-    const operations = tCardOperations.filter(tOper => (tOper.stage.idc === tStage.idc))
+    const operations = tCardOperations
+      .filter(tOper => (tOper.stage.idc === tStage.idc))
       .sort((a, b) => a.order - b.order);
 
     const operationsReactNodes = operations.map((tCardOperation, index1) => {
@@ -1606,21 +1563,19 @@ export default function Cards() {
           deleteOperHandler={deleteOperHandler}
           cancelOperHandler={cancelOperHandler}
           saveOperHandler={saveOperHandler}
-          // updateIdc={updateIdc}
-          // maxIdc={tCards[tCardIndex].maxIdc}
         />}
       </>)
-    }
-    )
+    })
 
     return (
-      <div key={'tStage' + tStage.idc}
+      <div key={'tStage' + tStage.id}
         className="container_stage"
         onDragOver={(e) => dragOverHandler(e)}
         onDrop={(e) => { handleDrop(e, `S${tStage.idc}`) }}
       >
         <div className="container_stage_title">
-          {t('cards.stage')} {tStage.code}
+          &nbsp;
+          {/* {t('cards.stage')} {tStage.code} */}
           <Image className="icon_del_stage"
             src={delL} alt="del" width={20} height={20}
             onClick={() => delStage(tStage)}
@@ -1642,8 +1597,7 @@ export default function Cards() {
   const tCardsReactNodes = tCards.map((elem, index4) => {
     let date = "";
     if (elem.date)
-      // date = formatDate(new Date(elem.date));
-       date = elem.date;
+      date = elem.date;
     return (
       <div key={"card" + elem.date + elem.id} className="container_card">
         <div className="container_icon_edit_save">
@@ -1697,9 +1651,7 @@ export default function Cards() {
         }}>
         {elem.name}
       </button>
-
     )
-
   })
   const coment = (tCards[tCardIndex]?.coment) ? tCards[tCardIndex].coment : "";
 
@@ -1769,15 +1721,13 @@ export default function Cards() {
             <div className="container_products">
 
               <div className="container_stage_title">
-               {t('cards.card')} &nbsp; {padNumberToFourDigits(tCards[tCardIndex].idc)} - {tCards[tCardIndex].date}
+                {t('cards.card')} &nbsp; {padNumberToFourDigits(tCards[tCardIndex].idc)} - {tCards[tCardIndex].date}
                 <Image className="icon_add_stage"
                   src={add} alt="del" width={20} height={20}
                   onClick={() => addStage(0)}
                 />
               </div>
-
               <div className="container_stage_title">
-                {/* <div></div> */}
                 {t('cards.products')}
 
               </div>

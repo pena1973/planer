@@ -3,6 +3,7 @@ import { Dispatch } from "redux";
 import { TCardItem, TeamItem, UserItem } from "./../../types/types";
 import { setTCards } from "./../../store/slices";
 import { StatusEnum } from "./../../types/types";
+import { ulogger } from "./../../lib/common/universal-logger";
 
 export const saveTCardById = async (
     idToSave: number,
@@ -12,6 +13,7 @@ export const saveTCardById = async (
     user: UserItem,
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 
 ) => {
@@ -27,7 +29,8 @@ export const saveTCardById = async (
                 method: 'post',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "X-Lang": locale,
                 }),
                 body: JSON.stringify({
                     teamId: team.id,
@@ -38,7 +41,16 @@ export const saveTCardById = async (
         );
         if (res.status !== 200) {
             const receivedData = await res.json();
-            setMessage(receivedData.error);
+            const error = receivedData.error;
+            setMessage(`${t('service.serverUnavailable')} ${error}`);
+            //  logger
+            void ulogger.error({
+                userId: user.id,
+                location: "services/cards/saveTCardById",
+                event: "endpoint_error",
+                message: `res.status=${res.status} error=${error}`,
+                context: "export const saveTCardById = async (",
+            }).catch(() => { console.error("logger error") });
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
@@ -51,14 +63,33 @@ export const saveTCardById = async (
                     updatedTCards.splice(indexCardToSave, 1, tCard1)
                 }
                 dispatch(setTCards(updatedTCards));
-                setMessage("Карта успешно записана");
+                setMessage(t("mes.tCardRecorded"));
+            } else {
+                setMessage(receivedData.message);
+                //  logger
+                void ulogger.error({
+                    userId: user.id,
+                    location: "services/cards/saveTCardById",
+                    event: "error",
+                    message: `success=false запрос api/tcard-api`,
+                    context: "export const saveTCardById = async (",
+                }).catch(() => { console.error("logger error") });
             }
         }
     } catch (e: unknown) {
-        let message = t('service.serverUnavailable');
+        let error = "";
         if (e instanceof Error) {
-            message += e.message;
+            error = e.message;
         }
-        setMessage(message);
+        setMessage(`${t('service.serverUnavailable')} ${error}`);
+
+        //  logger
+        void ulogger.error({
+            userId: user.id,
+            location: "services/cards/saveTCardById",
+            event: "endpoint_error",
+            message: `catch: ${error}`,
+            context: "export const saveTCardById = async (",
+        }).catch(() => { console.error("logger error") });
     }
 };

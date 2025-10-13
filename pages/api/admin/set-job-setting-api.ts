@@ -1,8 +1,11 @@
 /// проверяет баланс у команд и деактивирует если баланса недостаточно  - запускается раз в день
+import { ulogger } from "./../../../lib/common/universal-logger";
+
 import type { NextApiRequest, NextApiResponse } from "next";
 import { withAuth } from "@/lib/server/withAuth";
 
 import connectDb from '../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { JobSettingsTable } from './../../../db/models/job/job-settings';
 import { updateJobSetting } from './../../../handlers/handlers-update';
@@ -17,18 +20,23 @@ interface RequestBody {
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const jobSettingsRepository = getTypedRepository(db, 'JobSettingsTable', JobSettingsTable);
-
   try {
+    const db = await connectDb();
+    const jobSettingsRepository = getTypedRepository(db, 'JobSettingsTable', JobSettingsTable);
+
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
       case 'POST': {
         const { jobSetting, userId } = req.body as RequestBody;
 
         // 1) Сохраняем/обновляем настройки
-        const resJobSetting = await updateJobSetting(jobSettingsRepository, jobSetting);
+        const resJobSetting = await updateJobSetting(Number(userId), locale, jobSettingsRepository, jobSetting);
         if (!resJobSetting.success || !resJobSetting.savedJobSetting) {
-          res.status(500).json({ error: 'Не удалось обработать запрос. ' + (resJobSetting.message ?? '') });
+          res.status(200).json({
+            success: false,
+            message: resJobSetting.message ?? '',
+          });
           return;
         }
 
@@ -68,11 +76,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       default:
-        res.status(405).end();
+        res.status(405).json({ error: 'Method not supported.' });
     }
-  } catch (error) {
-    console.error('Ошибка в create-bills (job-settings save):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/admin/set-job-setting-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 

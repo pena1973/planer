@@ -54,8 +54,11 @@ export default function Settings({
     // На сервере
     const saveSettingsHandler = async () => {
         await saveSettings(timeStartWorkValue, timeFinishWorkValue, showWeekendValue, showHolidayValue,
-            user, team, token, dispatch, t, setMessage, setModified,
-            setTimeStartWorkValue, setTimeFinishWorkValue, setShowWeekendValue, setShowHolidayValue);
+            user, team, token, dispatch, t, i18n.language, setMessage,
+            setTimeStartWorkValue, setTimeFinishWorkValue, setShowWeekendValue, setShowHolidayValue)
+            .then(() => {
+                setModified(false);
+            });
     };
     // На клиенте
     const cancelScheduleHandler = () => {
@@ -85,8 +88,6 @@ export default function Settings({
         setModified(true);
         setMessage("");
     };
-
-
 
     return (
         <div className={styles.container}>

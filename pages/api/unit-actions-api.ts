@@ -1,51 +1,59 @@
+//pages/api/unit-actions-api
+// API для получения, создания, обновления и удаления 
+// Используется в 
+
+import { ulogger } from "./../../lib/common/universal-logger";
+import { getServerT } from '@/lib/server/i18n.server';
+
 import { withAuth } from './../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import connectDb from './../../db/database';
+import { getLocaleFromHeader } from './../../lib/server/locale';
 import { getTypedRepository } from './../../db/utilites'
 
 import { getUnitActions } from './../../handlers/handlers-get';  // расчеты
-import { TeamTable } from './../../db/models/catalogs/teams'
 import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
 
-import { UnitExceptionItem } from './../../types/types';
-
-interface RequestBody {
-  exceptions: UnitExceptionItem
-}
-
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const db = await connectDb();
-  const teamRepository = getTypedRepository(db, 'TeamTable', TeamTable);
-  const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
-
   try {
-    const { userId, teamId, unitId } = req.query;
+    const db = await connectDb();
+    const unitActionsRepository = getTypedRepository(db, 'UnitActionTable', UnitActionTable);
 
-    const unitIdNumber = Array.isArray(unitId)
-      ? Number(unitId[0])
-      : unitId !== undefined
-        ? Number(unitId)
-        : undefined;
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'GET':
-        const actions_ = await getUnitActions(Number(teamId), unitActionsRepository, unitIdNumber)
-        // отправляем ответ
+        const { userId, teamId, unitId } = req.query;
+
+        const actionsGet = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository, Number(unitId))
+
         res.status(200).json({
           success: true,
-          actions: actions_,
+          actions: actionsGet,
         });
 
         break;
 
       default:
-        res.status(405).json({ error: 'Метод не поддерживается' }); // Метод не поддерживается
+        res.status(405).json({ error: 'Method not supported.' });
     }
 
-  } catch (error) {
-    console.error('Ошибка подключения или выполнения запроса (unit-actions-api):', error);
-    res.status(500).json({ error: 'Не удалось обработать запрос' });
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/unit-actions-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
   }
 }
 
