@@ -246,7 +246,7 @@ export async function updateSettings(
   settings: SettingsItem,
   teamId: number
 ) {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     // Получаем существующее настройки для компании (предполагается, что только одни настройки для компании)
@@ -299,7 +299,7 @@ export async function updateTemplates(
   templates: TemplateItem[],
   teamId: number
 ) {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     // // СПИСОК ДЕЙСТВИЙ в базе
@@ -441,7 +441,7 @@ export async function updateUOMS(
   uoms: UOMItem[],
   teamId: number
 ) {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     const existingUOMS = await uomsRepository.find({ where: { team_id: teamId } });
@@ -515,7 +515,7 @@ export async function updateActions(
   actions: ActionItem[],
   teamId: number,
 ) {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     // Что есть в БД по команде
@@ -603,7 +603,7 @@ export async function updateShedule(
   schedule: ScheduleItem,
   teamId: number
 ) {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   if (!schedule.teamId) return { success: false, message: t('mes.teamNotFound') };
 
@@ -674,7 +674,7 @@ export async function updateTeam(
   coment: string,
   teamsRepository: Repository<TeamTable>,
 ): Promise<{ success: boolean, savedTeam?: TeamItem, message?: string }> {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
 
     const team = await teamsRepository.findOne({ where: { id: teamId } });
@@ -728,7 +728,7 @@ export async function updateUnits(
   units: UnitItem[],
   teamId: number
 ): Promise<{ success: boolean, savedUnits?: UnitItem[], message?: string }> {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
 
     // Получаем все существующие юниты в базе
@@ -828,7 +828,7 @@ export async function updateUnitActions(
   teamId: number
 ): Promise<{ success: boolean; message?: string; savedUnitActions?: UnitActionItem[] }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     const existing = await unitActionsRepository.find({ where: { team_id: teamId } });
@@ -907,7 +907,7 @@ export async function updateExceptions(
   teamId: number
 ): Promise<{ success: boolean; message?: string; savedUnitExceptions?: UnitExceptionItem[] }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     // СПИСОК ЮНИТОВ в базе
     const existingUnitExceptions = await unitExceptionsRepository.find({ where: { team_id: teamId } });
@@ -1197,7 +1197,7 @@ export async function updateTCardLoads(
   unitLoadRepository: Repository<UnitLoadTable>
 ): Promise<{ success: boolean, loads?: UnitLoadTable[], message: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
 
@@ -1287,7 +1287,7 @@ export async function saveNewLoads(
   teamId: number
 ): Promise<{ success: boolean, savedUnitLoads?: UnitLoadItem[], message?: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     // Нет новых загрузок
@@ -1402,7 +1402,7 @@ export async function updateCard(
   teamId: number
 ): Promise<{ success: boolean; savedTCard?: TCardItem; message?: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     let savedTCard: TCardTable | null = null;
@@ -1498,7 +1498,7 @@ export async function updateStages(
 
 ): Promise<{ success: boolean, savedTCardStages?: TCardStageItem[], message?: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     // Получаем текущие стадии из БД
@@ -1610,7 +1610,7 @@ export async function updateOperations(
   savedTCardOperations?: TCardOperationItem[];
 }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     // Получаем существующие операции для данного tCard
@@ -1757,7 +1757,7 @@ export async function updateProducts(
     productIdc: number;
   }
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     // Карта операций (idc -> id)
@@ -1887,7 +1887,7 @@ export async function updateCatalogProducts(
   teamId: number,
 ): Promise<{ success: boolean; savedProducts?: ProductItem[], message?: string }> {
 
-  const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
   try {
 
 
@@ -2049,7 +2049,7 @@ export async function updateStatusOperationByOperIds(
   status: StatusEnum
 ): Promise<{ success: boolean, message?: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
 
     if (!operIds?.length) {
@@ -2081,7 +2081,7 @@ export async function updateStatusOperationByOperId(
   operId: number,
   status: StatusEnum
 ): Promise<{ success: boolean, message?: string }> {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     await tCardOperationsRepository.update(operId, { status });
     return { success: true };
@@ -2111,7 +2111,7 @@ export async function updateStatusOperationsByOperIds(
   status: StatusEnum
 ): Promise<{ success: boolean, message?: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     if (!opersIds?.length) return { success: true, message: 'No ids' };
 
@@ -2158,7 +2158,7 @@ export async function updateStatusLoads(
   status: StatusEnum
 ): Promise<{ success: boolean; message: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     if (loadsIds.length === 0) {
       return {
@@ -2211,21 +2211,19 @@ export async function updateStatusTCard(
   tCardId: number,
   status: StatusEnum
 ): Promise<{ success: boolean; message?: string }> {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     const result = await tCardRepository.update(tCardId, { status });
 
     if (result.affected && result.affected > 0) {
       return {
-        success: true,
-        // message: `Обновлен статус карты с id: ${tCardId}` 
+        success: true,        
         message: `${t('mes.tCardStatusUpdated')} id: ${tCardId}`
 
       };
     } else {
       return {
-        success: false,
-        // message: `Не удалось обновить статус карты с id: ${tCardId}` 
+        success: false,        
         message: `${t('mes.tCardStatusNotUpdated')} id: ${tCardId}`
       };
     }
@@ -2254,7 +2252,7 @@ export async function updateSupportMessage(
   supportMessage: SupportMailItem,
   supportRepository: Repository<MailTable>
 ): Promise<{ success: boolean, savedMessage?: MailTable, message?: string }> {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     // Создание нового сообщения для базы данных
     const newSupportMessage = supportRepository.create({
@@ -2300,12 +2298,11 @@ export async function cnangeStatusMail(
   status: StatusEnum,
   supportRepository: Repository<MailTable>
 ): Promise<{ success: boolean; message: string }> {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     if (!Number.isFinite(id)) {
       return {
-        success: false,
-        // message: 'Некорректный идентификатор сообщения.' 
+        success: false,        
         message: t('mes.uncorrectMailId')
       };
     }
@@ -2315,15 +2312,13 @@ export async function cnangeStatusMail(
 
     if ((result.affected ?? 0) === 0) {
       return {
-        success: false,
-        // message: 'Сообщение не найдено.' 
+        success: false,        
         message: t('mes.mailNotFound')
       };
     }
 
     return {
-      success: true,
-      // message: 'Сообщение помечено как обработанное.' 
+      success: true,      
       message: t('mes.mailProcessed')
 
     };
@@ -2363,9 +2358,7 @@ export async function setBaner(
 
   const baner__ = {
     message: savedBaner.message,
-    locale: savedBaner.locale,
-    // dateFrom: new Date(savedBaner.date_from).toLocaleDateString("en-CA"),
-    // dateTo: new Date(savedBaner.date_to).toLocaleDateString("en-CA"),
+    locale: savedBaner.locale,    
     dateFrom: savedBaner.date_from,
     dateTo: savedBaner.date_to,
   };

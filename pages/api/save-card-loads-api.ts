@@ -35,7 +35,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       // ЗАПИСЬ ЗАПЛАНИРОВАННОЙ КАРТЫ
@@ -48,9 +48,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const resLoads = await saveNewLoads(Number(userId), locale, unitLoadRepository, tCardLoads, Number(teamId))
         if (!resLoads.success) {
           res.status(200).json({
-            success: false,
-            // error: 'Не удалось обработать запрос. ' + resLoads.message });
-            message: `${t('mes.loadsNotSaved')}  + ${resLoads.message}`
+            success: false,            
+            message: `${t('mes.loadsNotSaved')}:  ${resLoads.message}`
           });
           break;
         }
@@ -62,8 +61,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const resOpers = await updateStatusOperationsByOperIds(Number(userId), locale, tCardOperationsRepository, savedOpersIds, StatusEnum.planed)
         if (!resOpers.success) {
           res.status(200).json({
-            success: false,
-            // error: 'Не удалось обработать запрос. ' + resOpers.message 
+            success: false,            
             message: `${t('mes.operStatusesNotSaved')}  + ${resOpers.message}`
           });
           break;
@@ -104,8 +102,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!resCard.success) {
           res.status(200).json({
             success: false,
-            message: `${t('mes.cardStatusNotUpdated')}  + ${resCard.message}`
-            // error: 'Не удалось обработать запрос. ' + resCard.message 
+            message: `${t('mes.cardStatusNotUpdated')}  + ${resCard.message}`            
           });
           return;
         }

@@ -60,7 +60,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       // получаем полную карту со всеми входящими и исходящими
@@ -81,8 +81,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
         if (!tCardGet) {
           res.status(200).json({
-            success: false,
-            // message: "Карта с таким номером не найдена" });
+            success: false,            
             message: `${t('mes.tCardNotFound')}`
           })
           break;

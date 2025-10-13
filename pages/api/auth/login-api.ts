@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // console.log('🧠 DataSource from login:', db.options.database, '| hash:', db.entityMetadatas.map(m => m.name).join(','));
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'server.messages'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'POST':
@@ -85,8 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             success: true,
             team: team,
             token: "",
-            user: user,
-            // agreementText: "Нет соглашения",
+            user: user,            
             agreementText: t('mes.noAgreement'),
             agreementId: "",
             signed: false,

@@ -105,7 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { email, purpose, locale } = parsed.data;
 
-    const t = getServerT((locale) ? locale : 'en', 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT((locale) ? locale : 'en', 'sermes'); // locale = 'ru' | 'en'
 
     try {
         // 1) Сгенерировать код
@@ -158,12 +158,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         return res.status(200).json({ success: true });
-    } catch (e: unknown) {
-        // let message = "Ошибка при отправке кода.";
+    } catch (e: unknown) {        
         let error = t('mes.errorSendCode');
 
-        if (e instanceof Error) {
-            // message = `Ошибка при отправке кода: ${e.message}`;
+        if (e instanceof Error) {            
             error = `${t('mes.errorSendCode')}: ${e.message}`;
         } else if (typeof e === "object" && e !== null && "response" in e) {
             const errObj = e as { response?: { body?: unknown } };

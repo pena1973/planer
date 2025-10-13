@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'POST':

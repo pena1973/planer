@@ -1,6 +1,6 @@
 import { PropsWithChildren, useState, useMemo, useRef } from "react";
 
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 import styles from "./layout.module.scss";
 import { logout } from '@/lib/client/logout'
@@ -12,6 +12,7 @@ import home from "@/public/home1.png";
 import Head from "next/head";
 import Image from 'next/image';
 import Link from 'next/link';
+
 
 // import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';

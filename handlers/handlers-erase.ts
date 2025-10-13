@@ -18,7 +18,7 @@ export const cancelHistoryLoadsByOperIds = async (
   today: string, // "YYYY-MM-DD"
   unitLoadRepository: Repository<UnitLoadTable>
 ): Promise<{ success: boolean, message: string }> => {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     if (cancellOperIds.length === 0) {
       return { success: true, message: t('mes.NoOpersToCancel') };
@@ -57,7 +57,7 @@ export const deleteFutureLoadsByOperIds = async (
   today: string, // "YYYY-MM-DD"
   unitLoadRepository: Repository<UnitLoadTable>
 ): Promise<{ success: boolean, message: string }> => {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
 
@@ -104,7 +104,7 @@ export async function calculateTCardStatusByOperations(
   tCardOperations: TCardOperationItem[],
 ): Promise<{ success: boolean; status: StatusEnum; message: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     if (!Array.isArray(tCardOperations) || tCardOperations.length === 0) {
@@ -168,7 +168,7 @@ export const cancelHistoryLoads = async (
   today: string, // формат "YYYY-MM-DD"
   unitLoadRepository: Repository<UnitLoadTable>
 ): Promise<{ success: boolean; message: string }> => {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     const loadIds = cancellLoads
@@ -216,7 +216,7 @@ export const deleteFutureLoads = async (
   today: string, // формат "YYYY-MM-DD"
   unitLoadRepository: Repository<UnitLoadTable>
 ): Promise<{ success: boolean; message: string }> => {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
   try {
     const loadIds = delLoads.map(load => load.id).filter((id): id is number => id !== undefined);
 

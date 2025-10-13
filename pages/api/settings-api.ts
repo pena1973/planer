@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
     switch (req.method) {
       // получение настроек команды
       case 'GET':
@@ -38,8 +38,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         if (!settingsGet) {
           res.status(200).json({
-            success: false,
-            // message: 'Не удалось получить настройки.',
+            success: false,            
             message: t('mes.settingsNotFound'),
           });
           break;

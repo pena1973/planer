@@ -57,7 +57,7 @@ export const jobs: Record<string, JobHandler> = {
             const dayCost = await getCostForDay(null, "ru", team.id, prevDay, teamsRepository, activeTimeRepository, mainRepository)
 
             //  списание баланса
-            if (!dayCost) {
+            if (dayCost===undefined) {
                 console.log(`Стоимость дня не получена, дата: ${prevDay} teamId: ${team.main_team}`);
                 console.log(`Команды не деактивированы teamId: ${team.main_team}`);
                 return;
@@ -71,7 +71,7 @@ export const jobs: Record<string, JobHandler> = {
                 "charge-" + prevDay,
                 dayCost / 100,
                 prevDay,
-                true,
+                false,
                 'dayly charge-' + prevDay, "-", "")
 
             if (!balanceRes.success) {

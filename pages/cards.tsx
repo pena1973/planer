@@ -665,7 +665,6 @@ export default function Cards() {
     const tCardCurrentOperationsDeleted = tCardOperations.filter((tOper) => tOper.stage.idc === stage.idc);
     // если есть операции в стадии ничего не делаем, сначала пользователь должен удалить операции из стадии
     if (tCardCurrentOperationsDeleted.length > 0) {
-      // setMessage("Невозможно удалить стадию, в ней есть операции. Сначала удалите операции из стадии.");
       setMessage(t('mes.impossibleToDelStage'));
       return;
     }
@@ -1201,11 +1200,12 @@ export default function Cards() {
       return;
     }
 
-    // Исторические запланированные/отмененные — их надо отменить/удалить
+    // Исторические запланированные — их надо сначала отменить/удалить
     const hasPlannedLoads = operLoads.some(
-      (lo) => planCancelLoadStatuses.includes(lo.status)
+      (lo) => lo.status === StatusEnum.planed
     );
 
+    // !!!! ЗДЕСЬ НАДО ПРОВЕРИТЬ  если активных лоадов нет операцию канцелить
     if (hasPlannedLoads) {
       // setMessage("Невозможно удалить операцию, т.к. есть запланированное или отмененное время выполнения. Операацию можно перевести в статус отменить");
       setMessage(t('mes.impossibleToDelOperHistory'));
@@ -1568,7 +1568,7 @@ export default function Cards() {
     })
 
     return (
-      <div key={'tStage' + tStage.idc}
+      <div key={'tStage' + tStage.id}
         className="container_stage"
         onDragOver={(e) => dragOverHandler(e)}
         onDrop={(e) => { handleDrop(e, `S${tStage.idc}`) }}

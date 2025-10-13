@@ -135,10 +135,10 @@ async function upsertInvoiceAndCredit(
         );
 
         if (!balanceRes.success) {
-            console.warn(`Баланс НЕ пополнен, team_id=${team_id}`);
+            // console.warn(`Баланс НЕ пополнен, team_id=${team_id}`);
             return false;
         }
-        console.log(`✅ Баланс пополнен: team_id=${team_id}, amount=${amountEUR}`);
+        // console.log(`✅ Баланс пополнен: team_id=${team_id}, amount=${amountEUR}`);
         return true;
     }
 

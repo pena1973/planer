@@ -54,7 +54,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const actionRepository = getTypedRepository(db, 'ActionTable', ActionTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
 
@@ -69,8 +69,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // должно быть хотябы один лоад при перемешении
           // Если нет загрузок, можно вернуть пустой результат или обработать ошибку
           res.status(200).json({
-            success: false,
-            // tCardLoads: tCardLoads,
+            success: false,          
             // message: "Ошибка, не передано загрузок по карте",
             message: t('mes.noCardLoads'),
           });

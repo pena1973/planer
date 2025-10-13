@@ -71,7 +71,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     const { teamId, userId, oldpass, newpass, name, isAdmin } = req.body as RequestBody;
 
@@ -103,8 +103,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // удаляем пользователя
       case 'DELETE':
 
-        if (typeof userId !== 'number' || Number.isNaN(userId)) {
-          // res.status(400).json({ error: 'userId обязателен и должен быть числом' });
+        if (typeof userId !== 'number' || Number.isNaN(userId)) {          
           res.status(400).json({ error: t('mes.mandatoryUserId') });
           break;
         }
@@ -112,8 +111,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // если админ — сначала чистим данные команды
         if (isAdmin) {
           if (typeof teamId !== 'number' || Number.isNaN(teamId)) {
-            res.status(400).json({ error: t('mes.mandatoryTeamId') });
-            // res.status(400).json({ error: 'teamId обязателен для админа и должен быть числом' });
+            res.status(400).json({ error: t('mes.mandatoryTeamId') });            
             break;
           }
 
@@ -122,8 +120,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
           if (!shedule) {
             res.status(200).json({
-              success: false,
-              // message: "Ошибка, не найдено расписание команды",
+              success: false,              
               message: t('mes.sheduleNotFound'),
             });
             break;
@@ -161,7 +158,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               success: false,
               // error: 'Не удалось удалить данные команды: ' + resTeam.message });
               // message: 'Не удалось удалить данные команды: ' + resTeam.message });
-              message: `${t('mes.teamNotDeleted')} ${resTeam.message}`
+              message: `${t('mes.teamNotDeleted')}: ${resTeam.message}`
             });
             break;
           }
@@ -172,8 +169,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!resUser.success) {
           res.status(200).json({
             success: false,
-            message: `${t('mes.userNotDeleted')} ${resUser.message}`
-            // error: 'Не удалось удалить пользователя: ' + resUser.message 
+            message: `${t('mes.userNotDeleted')}: ${resUser.message}`            
           });
           return;
         }

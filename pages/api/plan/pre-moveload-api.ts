@@ -59,7 +59,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       // ПЕРЕПЛАНИРОВАНИЕ по перемещению лоада
@@ -141,7 +141,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           && (allDependentOperationsIds.includes(load.id_oper as number))
         );
 
-        let planedCardLoads = [...cardLoadsWithoutOperEndDep, ...cardLoadsOperEndDepHistory];
+        const planedCardLoads = [...cardLoadsWithoutOperEndDep, ...cardLoadsOperEndDepHistory];
 
         // сортируем по возрастанию
         planedCardLoads.sort((a, b) =>
@@ -164,7 +164,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(200).json({
             success: false,
             tCardLoads: tCardLoads,
-            // message: " На момент выполнения операции не готовы входящие источники С-" + tCard.idc,
+            
             message: ` ${t('mes.operInnNotReady')}:  ${tCard.idc}`,
           });
           return
@@ -236,7 +236,7 @@ async function moveToOuterUnit(
 
 ): Promise<{ success: boolean, tCardLoads?: UnitLoadItem[], message: string, }> {
 
-  const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
   // если перетаскиваем на внешний
   // то старт и финиш операции не меняем  и считываем как был из старых лоадов со статусом препаред
@@ -343,31 +343,18 @@ async function moveToOuterUnit(
     // проверяем чтобы начало не было позже хваста операции
     const finishLoad = tCardLoads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterFinish);
     if (!finishLoad) {
-      // res.status(200).json({
-      //   success: false,
-      //   // tCardLoads: tCardLoads,
-      //   // message: "Не найден лоад окончания операции С-" + tCard.idc,
-      //   message: `${t('mes.operFinishLoadNotFound')}: C-${tCard.idc}`,
-      // });
+     
       return {
         success: false,
-        // tCardLoads: tCardLoads,
-        // message: "Не найден лоад окончания операции С-" + tCard.idc,
-        message: `${t('mes.operFinishLoadNotFound')}: C-${tCard.idc}`,
+        message: `${t('mes.operFinishLoadNotFound')}: ${tCard.idc}`,
       }
     }
 
     if (finishLoad.date < date || finishLoad.date === date && finishLoad.timeFinish < timeStart) {
-      // res.status(200).json({
-      //   success: false,
-      //   tCardLoads: tCardLoads,
-      //   // message: "Нельзя начало операции сделать позже окончания операции С-" + tCard.idc,
-      //   message: `${t('mes.impossibleOperFinishEarlierOperStart')}: C-${tCard.idc}`,
-      // });
+      
       return {
         success: false,
-        tCardLoads: tCardLoads,
-        // message: "Нельзя начало операции сделать позже окончания операции С-" + tCard.idc,
+        tCardLoads: tCardLoads,        
         message: `${t('mes.impossibleOperFinishEarlierOperStart')}: C-${tCard.idc}`,
       }
     }
@@ -505,7 +492,7 @@ async function moveToInnerUnit(
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<{ success: boolean, tCardLoads?: UnitLoadItem[], message: string, }> {
 
-  const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
   // запросим действия юнитов
   const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
@@ -515,9 +502,8 @@ async function moveToInnerUnit(
   const foundAction = actions.find(ac => ac.action.id === oper.action.id)
   if (!foundAction) {
     return {
-      success: false,
-      // message: `Выбранный юнит ${unit.title} не сможет выполнить эту операцию ${oper.action.title}`,
-      message: `${t('mes.theUnitcantPerformOperation')} unit: ${unit.title} operation: ${oper.action.title}`,
+      success: false,      
+      message: `${t('mes.theUnitcantPerformOperation')} unit: ${unit.title} action: ${oper.action.title}`,
     }
   }
 
@@ -570,8 +556,7 @@ async function moveToInnerUnit(
   let message = "";
   if (readySourceMoment.date > needDate || (readySourceMoment.date === needDate && readySourceMoment.time > needTime))
     // message = "Невозможно начать операцию в указанное время, не готовы входящие источники, интервал сдвинут"
-    message = t('mes.load shifted');
-
+    message = t('mes.loadShifted');
 
   return {
     success: true,

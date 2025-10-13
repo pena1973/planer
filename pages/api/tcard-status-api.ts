@@ -35,7 +35,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     switch (req.method) {
       case 'POST':
@@ -65,27 +65,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
 
         const finalCardStatus = statusRes.status;
-
-        // // Рекурсивное определение "фактического" статуса операции
-        // const resolveFinalStatus = (op: TCardOperationItem): StatusEnum => {
-        //   if (op.status === StatusEnum.defective) {
-        //     const fixOp = tCardOperations.find(o => o.fixOperIdc === op.idc);
-        //     if (fixOp) return resolveFinalStatus(fixOp);
-        //   }
-        //   return op.status;
-        // };
-
-        // // Находим статус с минимальным приоритетом среди всех операций
-        // const operationStatuses = tCardOperations.map(resolveFinalStatus);
-
-        // const finalCardStatus = operationStatuses.reduce((minStatus, currentStatus) => {
-        //   return getStatusPriority(currentStatus) < getStatusPriority(minStatus)
-        //     ? currentStatus
-        //     : minStatus;
-        // }, StatusEnum.ready); // Начинаем с наивысшего статуса
-
-
-
 
         // / Обновим статус карты если он изменился
         if (tCard.status !== finalCardStatus) {

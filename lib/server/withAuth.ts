@@ -30,7 +30,7 @@ export function withAuth(
     const reqWithUser = req as AuthenticatedRequest;
     reqWithUser.user = payload;
 
-    console.log(`[AUTH] ✅ ${payload.login} → ${req.method} ${req.url}`);
+    // console.log(`[AUTH] ✅ ${payload.login} → ${req.method} ${req.url}`);
     
     return handler(reqWithUser, res);
   };

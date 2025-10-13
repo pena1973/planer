@@ -24,7 +24,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
-    const t = getServerT(locale, 'translation');
+    const t = getServerT(locale, 'sermes');
 
     switch (req.method) {
       case 'GET':

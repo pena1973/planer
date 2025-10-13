@@ -884,7 +884,7 @@ export const planTCardFromOperINC = (
   // вернем то что запланировали
 ): { success: boolean, planedCardLoads: UnitLoadItem[], message: string } => {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
 
@@ -1162,7 +1162,7 @@ export const planOperOnUnit = (
   //  возвращаем лоады по операции
 ): { success: boolean, operLoads: UnitLoadItem[], message: string } => {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
     let updatedUnitLoads = [...unitLoads];

@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'translation'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
 
     switch (req.method) {
@@ -42,8 +42,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!shedule) { 
           return res.status(200).json({ 
             success: false, 
-            balance: 0, 
-            // message: "Для получения баланса необходимо знать таймзону команды, она не указана" 
+            balance: 0,             
             message: `${t('mes.noTimezoneForBalance')}` 
           }); }
 

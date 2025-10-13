@@ -67,7 +67,7 @@ export async function deleteUser(
   usersRepository: Repository<UserTable>
 ): Promise<{ success: boolean; message: string }> {
 
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   if (!Number.isFinite(userId)) {
     return {
@@ -171,7 +171,7 @@ export async function deleteDataTeam(
     teamSchedule: Repository<TeamScheduleTable>
   }
 ): Promise<{ success: boolean; message: string }> {
-  const t = getServerT(locale, 'translation');
+  const t = getServerT(locale, 'sermes');
 
   try {
 
