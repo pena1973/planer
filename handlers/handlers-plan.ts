@@ -961,7 +961,7 @@ export const planTCardFromOperINC = (
                 rProd => operation.idc === rProd.reservedTo
                   && rProd.code === innProduct.code
                   && rProd.reserved >= innProduct.qtu)
-              if (reservedProd!== undefined) 
+              if (reservedProd !== undefined)
                 return true;
 
               // Если количество в tCardReady недостаточно для операции, пропускаем операцию
@@ -1035,7 +1035,7 @@ export const planTCardFromOperINC = (
           //////////////////////////////////////////////////
           //   операцию распределили  добавляем продукты произведенные операцией со сроком готовности 
           readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
-          console.log('readyProducts',readyProducts);
+          // console.log('readyProducts',readyProducts);
           //  Удаляем операцию из общего массива - обработали
           const index = tCardOperations.findIndex(oper => oper.id === operation.id);
           tCardOperations.splice(index, 1);
@@ -1086,12 +1086,13 @@ export const planTCardFromOperINC = (
             let { maxDateSource, maxTimeSource } = (sourcesProducts.length > 0)
               ? getMaxDate(sourcesProducts, operation.inn) : { maxDateSource: today_, maxTimeSource: 0 };
 
+            console.log('{ maxDateSource, maxTimeSource }', { maxDateSource, maxTimeSource })
 
             if (new Date(maxDateSource).getTime() < today.getTime() || operation.inn.length === 0) {
               maxDateSource = today_;
               maxTimeSource = 0
             }
-
+            console.log('{ maxDateSource = today_; maxTimeSource = 0}', { maxDateSource, maxTimeSource })
 
             // Возвращаем юнит с добавленной операцией,  если юнит не нашелся возвращаем  undefined
             const resultPlaning = findAvailableTimeForOperation(userId, locale, tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDateStr, shedule_, exceptionItems, isPinned);
