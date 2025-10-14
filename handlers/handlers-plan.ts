@@ -354,21 +354,53 @@ function findAvailableTimeForOperation_old(
       interruptible,
       totalRequired,
       isRetoolSegmentDefined)
-
-    // если успешно нашли записываем как кандидата на выполнение  
+    
+      /// возможно надо не выкидывать а сдвигать
     if (resultOpSegments.success) {
-      const candidate: Candidate = {
-        unit,
-        opSegments: resultOpSegments.opSegments,
-        duration: totalRequired,
-      };
-      possibleCandidates.push(candidate);
+      const segs = [...resultOpSegments.opSegments];
+
+      // FIX: выкидываем всё ДО стартовой даты
+      const filtered = segs.filter(s => s.date >= startDateStr);
+
+      // FIX: первый сегмент в день старта не раньше moment
+      if (filtered.length && filtered[0].date === startDateStr && filtered[0].start < moment) {
+        console.warn('[GUARD] shift first segment to moment', {
+          beforeStart: filtered[0].start, moment
+        });
+        filtered[0] = { ...filtered[0], start: moment };
+        if (filtered[0].finish <= filtered[0].start) {
+          // если окно стало пустым — удаляем сегмент
+          filtered.shift();
+        }
+      }
+
+      // Если в результате всё ещё есть сегменты — берём как кандидата
+      if (filtered.length) {
+        possibleCandidates.push({
+          unit,
+          opSegments: filtered,
+          duration: totalRequired,
+        });
+      } else {
+        console.warn('[GUARD] dropped unit due to pre-moment segments', { unitId: unit.id });
+      }
     }
-    console.log('candidate',unit,resultOpSegments.opSegments)
+
+    // // если успешно нашли записываем как кандидата на выполнение  
+    // if (resultOpSegments.success) {
+    //   const candidate: Candidate = {
+    //     unit,
+    //     opSegments: resultOpSegments.opSegments,
+    //     duration: totalRequired,
+    //   };
+    //   possibleCandidates.push(candidate);
+    // }
+    console.log('candidate', unit, resultOpSegments.opSegments)
   }
 
-  console.log('possibleCandidates',possibleCandidates)
-  
+
+  console.log('possibleCandidates', possibleCandidates)
+
   // Если найдены кандидаты, выбираем того, который завершит операцию раньше.
   if (possibleCandidates.length > 0) {
     possibleCandidates.sort((a, b) => {
@@ -385,8 +417,8 @@ function findAvailableTimeForOperation_old(
 
       return aFinish - bFinish;
     });
- 
-    console.log('possibleCandidates  sorted',possibleCandidates)
+
+    console.log('possibleCandidates  sorted', possibleCandidates)
 
     const bestCandidate = possibleCandidates[0];
 
@@ -471,7 +503,7 @@ function findAvailableTimeForOperation(
   const version = generateUniqueIdc();
 
   const targetDate = getTimeZoneDateFromDateString(startDateStr, schedule.timeZone);
-  const stopDate   = getTimeZoneDateFromDateString(stopDateStr,   schedule.timeZone);
+  const stopDate = getTimeZoneDateFromDateString(stopDateStr, schedule.timeZone);
 
   console.log('[FIND] inputs', {
     userId, locale,
@@ -581,10 +613,10 @@ function findAvailableTimeForOperation(
       unitId: c.unit.id,
       last: c.opSegments.at(-1)
         ? {
-            date: c.opSegments.at(-1)!.date,
-            finish: c.opSegments.at(-1)!.finish,
-            finishTs: finishTs(c.opSegments.at(-1)!)
-          }
+          date: c.opSegments.at(-1)!.date,
+          finish: c.opSegments.at(-1)!.finish,
+          finishTs: finishTs(c.opSegments.at(-1)!)
+        }
         : null
     })));
 
@@ -666,21 +698,37 @@ function findAvailableTimeForOperation(
 }
 
 
+// // Вспомогалки: формируем YYYY-MM-DD строго в нужной таймзоне
+// // FIX: форматируем без UTC-сдвига
+// function formatYMDinTZ(date: Date, timeZone: string): string {
+//   const parts = new Intl.DateTimeFormat("ru-RU", {
+//     timeZone,
+//     year: "numeric", month: "2-digit", day: "2-digit",
+//   }).formatToParts(date);
+//   const y = parts.find(p => p.type === "year")!.value;
+//   const m = parts.find(p => p.type === "month")!.value;
+//   const d = parts.find(p => p.type === "day")!.value;
+//   return `${y}-${m}-${d}`;
+// }
 
-// Рекурсия для разбивки операции на промежутки по шкале времени определенного юнита на определенный день
-// на выходе имеем сегменты разбивки
+// // FIX: единый способ получения YYYY-MM-DD
+// function YMD(date: Date, schedule: ScheduleItem): string {
+//   return formatYMDinTZ(date, schedule.timeZone);
+// }
+
+// Рекурсия для разбивки операции на промежутки...
 function findAvailableSegmentsDay(
   userId: number,
-  locale: string,  
-  targetDateStr: string,
-  moment: number,  // момент в который можно стартовать  -  готовы все входящие материалы
+  locale: string,
+  targetDateStr: string,  // YYYY-MM-DD в TZ schedule.timeZone
+  moment: number,         // (минуты) earliest start ТОЛЬКО для targetDateStr; на след.дни = 0
   stopDateStr: string,
   opSegments_: { date: string, start: number, finish: number, isRetool: boolean }[],
   unit: UnitItem,
   retoolTime: number,
-  opRequired: number, // требуемое время  операции
-  onPlaned_: number, // уже запланировано
-  unitLoadItems: UnitLoadItem[], // массив загрузок юнитов  
+  opRequired: number,
+  onPlaned_: number,
+  unitLoadItems: UnitLoadItem[],
   schedule: ScheduleItem,
   exceptionItems: UnitExceptionItem[],
   interruptible: boolean,
@@ -691,236 +739,162 @@ function findAvailableSegmentsDay(
   opSegments: { date: string, start: number, finish: number, isRetool: boolean }[],
   message: string
 } {
-  
-  console.log( "момент в который можно стартовать  -  готовы все входящие материалы",targetDateStr,moment)
 
-  const targetDate = getTimeZoneDateFromDateString(targetDateStr, schedule.timeZone)
-  
-  if (targetDateStr> stopDateStr) {
-    return {
-      success: false,
-      opSegments: [] as { date: string, start: number, finish: number, isRetool: boolean }[],
-      message: `достигнута стоп дата и нет свободных ресурсов до ${stopDateStr}`
-    };
+  console.log("[SPLIT] start", { targetDateStr, moment, stopDateStr, tz: schedule.timeZone, unitId: unit.id });
+
+  // Быстрая проверка: строки в формате YYYY-MM-DD сравнимы лексикографически
+  if (targetDateStr > stopDateStr) {
+    console.warn("[SPLIT] stop reached", { targetDateStr, stopDateStr });
+    return { success: false, opSegments: [], message: `достигнута стоп дата и нет свободных ресурсов до ${stopDateStr}` };
   }
 
-  const workDay = generateCalendarItemOnServer(targetDateStr, schedule);
-  // Определяем рабочие рамки для данного юнита (по расписанию компании)
-  let workStart = workDay.timeStartWork;
-  let workEnd = workDay.timeFinishWork;
+  // FIX: работаем с датой в TZ, но для всех сравнений используем targetDateStr, не пересобираем её из Date
+  const targetDate = getTimeZoneDateFromDateString(targetDateStr, schedule.timeZone);
 
-  // Массив занятых интервалов (будем заполнять его интервалами, когда юнит занят)
+  const workDay = generateCalendarItemOnServer(targetDateStr, schedule);
+  let workStart = workDay.timeStartWork;
+  let workEnd   = workDay.timeFinishWork;
+
   const busyPeriods: { type: TimeTypeEnum; start: number; end: number }[] = [];
 
-  // Проверяем исключения (например, изменённые рамки рабочего дня или дополнительные перерывы)
-  const exceptionsWorkDayNext = exceptionItems.filter(elem =>    
-    elem.unitId === unit.id && elem.date === YYYYMMDD(targetDate)
-  );
+  // FIX: сравниваем даты как строки YYYY-MM-DD в той же TZ
+  const exceptionsWorkDay = exceptionItems.filter(ex => ex.unitId === unit.id && ex.date === targetDateStr);
 
-  if (exceptionsWorkDayNext.length > 0) {
-    exceptionsWorkDayNext.forEach(ex => {
+  if (exceptionsWorkDay.length > 0) {
+    exceptionsWorkDay.forEach(ex => {
       if (ex.type === TimeTypeEnum.work) {
         workStart = ex.timeStart;
-        workEnd = ex.timeFinish;
+        workEnd   = ex.timeFinish;
       } else {
         busyPeriods.push({ type: ex.type, start: ex.timeStart, end: ex.timeFinish });
       }
     });
   }
 
+  let onPlaned = onPlaned_;
+  let opSegments = [...opSegments_];
+  let isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_;
 
-  let onPlaned = onPlaned_; // сколько минут операции запланировано c ретулом
-
-  // в этом  массиве что на вход уже запланирована часть операции
-  let opSegments: { date: string, start: number; finish: number, isRetool: boolean }[] = [...opSegments_];
-
-  let isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул определен в интервал
-
-
-  // Если рабочее время отсутствует – пропускаем день
-  // перепрыгиваем на следующий день
+  // Нерабочий день → сразу к следующему (moment на следующие дни = 0)
   if (workEnd === workStart) {
-
-    const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
+    const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
     const nextDateStr = YYYYMMDD(nextDate);
-    // const nextDate = new Date(targetDate)
-    // nextDate.setDate(nextDate.getDate() + 1);
-    // const nextDateStr = nextDate.toLocaleDateString("en-CA");
-
     return findAvailableSegmentsDay(
-      userId,
-      locale,
-      nextDateStr,
-      0,
-      stopDateStr,
-      opSegments,
-      unit,
-      retoolTime,
-      opRequired,
-      onPlaned,
-      unitLoadItems,
-      schedule,
-      exceptionItems,
-      interruptible,
-      totalRequired,
-      isRetoolSegmentDefined
-    )
+      userId, locale, nextDateStr, 0, stopDateStr, opSegments, unit,
+      retoolTime, opRequired, onPlaned, unitLoadItems, schedule,
+      exceptionItems, interruptible, totalRequired, isRetoolSegmentDefined
+    );
+  }
 
-  };;
+  // Уже запланированные загрузки на ЭТУ дату
+  const loads = unitLoadItems.filter(load => load.unit.id === unit.id && load.date === targetDateStr);
+  loads.forEach(load => busyPeriods.push({ type: TimeTypeEnum.busy, start: load.timeStart, end: load.timeFinish }));
 
-  // Получаем уже запланированные операции для данного юнита на targetDate  
-  const loads = unitLoadItems.filter(load => load.unit.id === unit.id && load.date === YYYYMMDD(targetDate));
-
-  loads.forEach(load => {
-    busyPeriods.push({ type: TimeTypeEnum.busy, start: load.timeStart, end: load.timeFinish });
-  });
-  // Добавляем перерывы из календаря  если нет исключений
-  if (exceptionsWorkDayNext.length === 0) {
-    workDay.breaks.forEach(b => {
-      busyPeriods.push({ type: TimeTypeEnum.breack, start: b.timeStart, end: b.timeFinish });
-    });
+  // Перерывы из календаря, если нет work-исключения
+  if (exceptionsWorkDay.length === 0) {
+    workDay.breaks.forEach(b => busyPeriods.push({ type: TimeTypeEnum.breack, start: b.timeStart, end: b.timeFinish }));
   }
 
   busyPeriods.sort((a, b) => a.start - b.start);
 
+  // FIX: первый день — не раньше moment (на последующих вызовах moment = 0)
   let availableStart = Math.max(workStart, moment);
-    
-  console.log('availableStart',availableStart)
 
-  // если начало выпадает на занятый интервал  сдвигаем начало на окончание занятого интервала
-  const currentbusyPeriod = busyPeriods.find(p => p.start <= availableStart && p.end > availableStart)
-  if (currentbusyPeriod)
-    availableStart = Math.max(availableStart, currentbusyPeriod.end);
+  console.log("[SPLIT] day window", { targetDateStr, workStart, workEnd, moment, availableStart, busyCount: busyPeriods.length });
 
-  // Итерируем по свободным интервалам, учитывая busyPeriods, чтобы накопить totalRequired минут.
+  // Если попали внутрь занятости — прыгаем на её конец
+  const hit = busyPeriods.find(p => p.start <= availableStart && p.end > availableStart);
+  if (hit) availableStart = Math.max(availableStart, hit.end);
 
+  // ───────────────────────────────
+  // НЕПРЕРЫВАЕМАЯ ОПЕРАЦИЯ
+  // ───────────────────────────────
   if (!interruptible) {
-
-    let found = false; // запланировалось
-    // Непрерываемая операция: нужно найти один непрерывный свободный интервал для всей операции но можно отделить ретул перерывом
+    let found = false;
 
     while (availableStart < workEnd && !found) {
       const nextPeriod = busyPeriods.find(p => p.start >= availableStart);
       const freeEnd = nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd;
       let freeInterval = freeEnd - availableStart;
 
-      //1. убедимся что в найденный интервал влазит ретул
-      // если есть и влазит - планируем
-      if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {        
-        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
-        availableStart = availableStart + retoolTime;
-        freeInterval = freeInterval - retoolTime
+      // 1) Ретул (если ещё не поставили)
+      if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
+        // FIX: дата сегмента — строго targetDateStr (а не из Date)
+        opSegments.push({ date: targetDateStr, start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+        availableStart += retoolTime;
+        freeInterval   -= retoolTime;
         isRetoolSegmentDefined = true;
       }
-      //1. убедимся что в оставшийся интервал влазит операция
-      // если есть и влазит - планируем
-      if (freeInterval >= opRequired && isRetoolSegmentDefined) {        
-        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+
+      // 2) Основная операция целиком
+      if (freeInterval >= opRequired && isRetoolSegmentDefined) {
+        opSegments.push({ date: targetDateStr, start: availableStart, finish: availableStart + opRequired, isRetool: false });
         availableStart += opRequired;
         found = true;
       } else {
-
-        // если не влазит проверяем следующий интервал
-        // если  ретул разрывается с самой операцией другой операцией  -  стираем и начинаем заново
+        // если не влезла — если дальше именно чужая загрузка, то сбрасываем “ретул-до”
         if (nextPeriod?.type === TimeTypeEnum.busy) {
-          isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул возвращаем
-          opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
-        };
+          isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_;
+          opSegments = [];
+        }
       }
 
       if (nextPeriod) {
         availableStart = Math.max(availableStart, nextPeriod.end);
-      } else {
-        break;
-      }
+      } else break;
     }
 
-
-    // проверим еще интервал от возможного старта до конца рабочего дня    
-    let freeInterval = workEnd - availableStart;
-    //1. убедимся что в найденный интервал влазит ретул  и он не
-    // если есть и влазит - планируем
-    if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
-      console.log('opSegment',{ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true })
-      opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
-      availableStart = availableStart + retoolTime;
-      freeInterval = freeInterval - retoolTime
-      isRetoolSegmentDefined = true;
-    }
+    // последняя попытка в хвосте дня
     if (!found) {
-      //1. убедимся что в оставшийся интервал влазит операция
-      // если есть и влазит - планируем
+      let freeInterval = workEnd - availableStart;
+
+      if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
+        opSegments.push({ date: targetDateStr, start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+        availableStart += retoolTime;
+        freeInterval   -= retoolTime;
+        isRetoolSegmentDefined = true;
+      }
+
       if (freeInterval >= opRequired && isRetoolSegmentDefined) {
-        console.log('opSegment && isRetoolSegmentDefined',{ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true })
-        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+        opSegments.push({ date: targetDateStr, start: availableStart, finish: availableStart + opRequired, isRetool: false });
         availableStart += opRequired;
         found = true;
       }
     }
 
-    // если в этот день интервалов не нашлось идем на след день
+    // Если не нашли — следующий день (moment = 0)
     if (!found) {
-      // const nextDate = new Date(targetDate)      
-      // nextDate.setDate(nextDate.getDate() + 1);
-      // const nextDateStr = nextDate.toLocaleDateString("en-CA");
-
-      const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
+      const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
       const nextDateStr = YYYYMMDD(nextDate);
-
       return findAvailableSegmentsDay(
-        userId,
-        locale,
-        nextDateStr,
-        0,
-        stopDateStr,
-        opSegments,
-        unit,
-        retoolTime,
-        opRequired,
-        onPlaned,
-        unitLoadItems,
-        schedule,
-        exceptionItems,
-        interruptible,
-        totalRequired,
-        isRetoolSegmentDefined
-      )
+        userId, locale, nextDateStr, 0, stopDateStr, opSegments, unit,
+        retoolTime, opRequired, onPlaned, unitLoadItems, schedule,
+        exceptionItems, interruptible, totalRequired, isRetoolSegmentDefined
+      );
     }
 
-
+    // Подправка ретула на перерыв (как у тебя было) оставляю,
+    // но с датами только targetDateStr / YMD(...)
     if (opSegments.length >= 2) {
       const retoolSeg = opSegments[0];
       const opSeg = opSegments[1];
-      const opStart = opSeg.start; // начало выполнения операции
+      const opStart = opSeg.start;
 
-      // Ищем период breack между началом ретула и началом операции.
-      let breackStartCandidate: number | undefined = undefined;
+      let breakStart: number | undefined;
       busyPeriods.forEach(period => {
         if (period.type === TimeTypeEnum.breack && period.start >= retoolSeg.start && period.start < opStart) {
-          if (breackStartCandidate === undefined || period.start < breackStartCandidate) {
-            breackStartCandidate = period.start;
-          }
+          if (breakStart === undefined || period.start < breakStart) breakStart = period.start;
         }
       });
 
-      // Если найден breack – ретул заканчивается в его начале, иначе – в начале операции.
-      const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
+      const desiredRetoolFinish = breakStart ?? opStart;
 
-      // Определяем, к какому дню относится ретул-сегмент.      
-      const currentDay = YYYYMMDD(targetDate);
-
-      if (retoolSeg.date === currentDay) {
-        // Если ретул в текущем дне – сдвигаем так, чтобы длина ретула была равна retoolTime,
-        // но не раньше рабочего времени.
+      if (retoolSeg.date === targetDateStr) {
         const newRetoolStart = Math.max(workStart, desiredRetoolFinish - retoolTime);
         retoolSeg.start = newRetoolStart;
         retoolSeg.finish = desiredRetoolFinish;
       } else {
-        // Если ретул запланирован не на текущий день (например, в конце дня, а операция – на следующий),
-        // сдвигаем ретул так, чтобы он заканчивался ровно в конце рабочего дня для того дня,
-        // к которому он относится.
-        // const retoolDate = new Date(retoolSeg.date);
-        // const workDayRetool = generateCalendarItemOnServer(retoolDate, schedule);
+        // ретул «вчера» не допускаем — жёстко привязываем к своему дню в TZ
         const workDayRetool = generateCalendarItemOnServer(retoolSeg.date, schedule);
         const workEndRetool = workDayRetool.timeFinishWork;
         const newRetoolStart = workEndRetool - retoolTime;
@@ -929,131 +903,521 @@ function findAvailableSegmentsDay(
       }
     }
 
+    // ── ОХРАНА ПЕРВОГО ДНЯ ───────────────────────────────────────
+    // FIX: на targetDateStr сегменты не раньше moment
+    opSegments = opSegments.map(s => {
+      if (s.date === targetDateStr && s.start < moment) {
+        const dur = s.finish - s.start;
+        const newStart = Math.max(s.start, moment);
+        const newFinish = Math.max(newStart, newStart + dur);
+        console.warn("[GUARD] raise to moment", { targetDateStr, was: s, now: { ...s, start: newStart, finish: newFinish } });
+        return { ...s, start: newStart, finish: newFinish };
+      }
+      return s;
+    }).filter(s => s.finish > s.start);
+    // ─────────────────────────────────────────────────────────────
 
-    return {
-      success: true,
-      opSegments: opSegments,
-      message: ""
+    // ASSERTы, чтобы сразу видеть нарушения
+    for (const s of opSegments) {
+      if (s.date < targetDateStr) {
+        console.error("[ASSERT] segment before targetDate", { unitId: unit.id, s, targetDateStr });
+      }
+      if (s.date === targetDateStr && s.start < moment) {
+        console.error("[ASSERT] segment before moment on first day", { unitId: unit.id, s, moment });
+      }
     }
 
-  } else {
+    return { success: true, opSegments, message: "" };
+  }
 
-    // Итерируем по свободным интервалам, учитывая busyPeriods, чтобы накопить totalRequired минут.
-    while (availableStart < workEnd && onPlaned < opRequired) {
+  // ───────────────────────────────
+  // ПРЕРЫВАЕМАЯ ОПЕРАЦИЯ
+  // ───────────────────────────────
 
-      // Ищем следующий занятый интервал, начинающийся после availableStart.
-      const nextPeriod = busyPeriods.find(p => p.start >= availableStart);
-      const freeEnd = nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd;
-      let freeInterval = freeEnd - availableStart;
-      // если между ретулом и операцией другая операция то двигаем дальше
+  while (availableStart < workEnd && onPlaned < opRequired) {
+    const nextPeriod = busyPeriods.find(p => p.start >= availableStart);
+    const freeEnd = nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd;
+    let freeInterval = freeEnd - availableStart;
 
-      // Сначала ретул если есть  и его не прерываем
-      if (freeInterval > 0 && !isRetoolSegmentDefined) {
+    // 1) Ретул (не прерываем)
+    if (freeInterval > 0 && !isRetoolSegmentDefined) {
+      const timeToUse = Math.min(freeInterval, retoolTime);
+      opSegments.push({ date: targetDateStr, start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+      availableStart += timeToUse;
+      freeInterval   -= timeToUse;
+      isRetoolSegmentDefined = (timeToUse === retoolTime) || isRetoolSegmentDefined_;
+      if (freeInterval === 0 && nextPeriod?.type === TimeTypeEnum.busy) {
+        isRetoolSegmentDefined = isRetoolSegmentDefined_;
+        onPlaned = 0;
+        opSegments = [];
+      }
+    }
 
-        const timeToUse = Math.min(freeInterval, retoolTime);
-        // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
-        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
-        availableStart = availableStart + timeToUse;
-        freeInterval = freeInterval - timeToUse
-        isRetoolSegmentDefined = (timeToUse === retoolTime) || isRetoolSegmentDefined_;
+    // 2) Основная работа (можно дробить)
+    if (freeInterval > 0 && isRetoolSegmentDefined) {
+      const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
+      if (timeToUse > 0) {
+        opSegments.push({ date: targetDateStr, start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+        onPlaned += timeToUse;
+        availableStart += timeToUse;
 
-        // если между ретулом и операцией вклинивается другая операция  сброс и ищем дальше
-        if (freeInterval === 0 && nextPeriod?.type === TimeTypeEnum.busy) {
-          isRetoolSegmentDefined = isRetoolSegmentDefined_;
+        if (onPlaned < opRequired && nextPeriod?.type === TimeTypeEnum.busy) {
+          // между частями вклинилась другая работа — сбрасываем и ищем позже
           onPlaned = 0;
-          opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
-        };
-
-      }
-
-      if (freeInterval > 0 && isRetoolSegmentDefined) {
-        const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
-        if (timeToUse > 0) {
-          // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
-          opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
-          onPlaned += timeToUse;
-          availableStart += timeToUse;
-          if (onPlaned === opRequired) break;
-
-          // если вклинивается другая операция то сброс и ищем дальше
-          if (nextPeriod?.type === TimeTypeEnum.busy) {
-            onPlaned = 0;
-            opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
-            isRetoolSegmentDefined = false;
-          };
+          opSegments = [];
+          isRetoolSegmentDefined = false;
         }
       }
-
-      if (nextPeriod) {
-        availableStart = Math.max(availableStart, nextPeriod.end);
-      } else {
-        break;
-      }
     }
 
-    // Здесь проверка оставшегося времени до конца рабочего дня
-    if (onPlaned < opRequired) {
-      // проверим еще интервал от возможного старта до конца рабочего дня    
-      let freeInterval = workEnd - availableStart;
-      //1. убедимся что в найденный интервал влазит ретул
-      // если есть и влазит - планируем
-      if (freeInterval > 0 && !isRetoolSegmentDefined) {
-        const timeToUse = Math.min(freeInterval, retoolTime);
-        
-        opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
-        availableStart = availableStart + timeToUse;
-        freeInterval = freeInterval - timeToUse
-        isRetoolSegmentDefined = (timeToUse === retoolTime);
-      }
+    if (nextPeriod) availableStart = Math.max(availableStart, nextPeriod.end);
+    else break;
+  }
 
+  // Хвост дня, если что-то осталось
+  if (onPlaned < opRequired) {
+    let freeInterval = workEnd - availableStart;
 
-      if (freeInterval > 0 && isRetoolSegmentDefined) {
-        const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
-        if (timeToUse > 0) {
-          
-          opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
-          onPlaned += timeToUse;
-          availableStart += timeToUse;
-        }
-      }
-
+    if (freeInterval > 0 && !isRetoolSegmentDefined) {
+      const timeToUse = Math.min(freeInterval, retoolTime);
+      opSegments.push({ date: targetDateStr, start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+      availableStart += timeToUse;
+      freeInterval   -= timeToUse;
+      isRetoolSegmentDefined = (timeToUse === retoolTime);
     }
 
-    if (onPlaned < opRequired) {
-      // const nextDate = new Date(targetDate)
-      // nextDate.setDate(nextDate.getDate() + 1);
-      // const nextDateStr = nextDate.toLocaleDateString("en-CA");
-
-      const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
-      const nextDateStr = YYYYMMDD(nextDate);
-
-      return findAvailableSegmentsDay(
-        userId,
-        locale,
-        nextDateStr,
-        0,
-        stopDateStr,
-        opSegments,
-        unit,
-        retoolTime,
-        opRequired,
-        onPlaned,
-        unitLoadItems,
-        schedule,
-        exceptionItems,
-        interruptible,
-        totalRequired,
-        isRetoolSegmentDefined
-      )
-    }
-
-    return {
-      success: true,
-      opSegments: opSegments,
-      message: ""
+    if (freeInterval > 0 && isRetoolSegmentDefined) {
+      const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
+      if (timeToUse > 0) {
+        opSegments.push({ date: targetDateStr, start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+        onPlaned += timeToUse;
+        availableStart += timeToUse;
+      }
     }
   }
+
+  if (onPlaned < opRequired) {
+    const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
+    const nextDateStr = YYYYMMDD(nextDate);
+    return findAvailableSegmentsDay(
+      userId, locale, nextDateStr, 0, stopDateStr, opSegments, unit,
+      retoolTime, opRequired, onPlaned, unitLoadItems, schedule,
+      exceptionItems, interruptible, totalRequired, isRetoolSegmentDefined
+    );
+  }
+
+  // ── ОХРАНА ПЕРВОГО ДНЯ ───────────────────────────────────────
+  opSegments = opSegments.map(s => {
+    if (s.date === targetDateStr && s.start < moment) {
+      const dur = s.finish - s.start;
+      const newStart = Math.max(s.start, moment);
+      const newFinish = Math.max(newStart, newStart + dur);
+      console.warn("[GUARD] raise to moment", { targetDateStr, was: s, now: { ...s, start: newStart, finish: newFinish } });
+      return { ...s, start: newStart, finish: newFinish };
+    }
+    return s;
+  }).filter(s => s.finish > s.start);
+
+  for (const s of opSegments) {
+    if (s.date < targetDateStr) {
+      console.error("[ASSERT] segment before targetDate", { unitId: unit.id, s, targetDateStr });
+    }
+    if (s.date === targetDateStr && s.start < moment) {
+      console.error("[ASSERT] segment before moment on first day", { unitId: unit.id, s, moment });
+    }
+  }
+  // ─────────────────────────────────────────────────────────────
+
+  return { success: true, opSegments, message: "" };
 }
+
+// // Рекурсия для разбивки операции на промежутки по шкале времени определенного юнита на определенный день
+// // на выходе имеем сегменты разбивки
+// function findAvailableSegmentsDay(
+//   userId: number,
+//   locale: string,
+//   targetDateStr: string,
+//   moment: number,  // момент в который можно стартовать  -  готовы все входящие материалы
+//   stopDateStr: string,
+//   opSegments_: { date: string, start: number, finish: number, isRetool: boolean }[],
+//   unit: UnitItem,
+//   retoolTime: number,
+//   opRequired: number, // требуемое время  операции
+//   onPlaned_: number, // уже запланировано
+//   unitLoadItems: UnitLoadItem[], // массив загрузок юнитов  
+//   schedule: ScheduleItem,
+//   exceptionItems: UnitExceptionItem[],
+//   interruptible: boolean,
+//   totalRequired: number,
+//   isRetoolSegmentDefined_: boolean
+// ): {
+//   success: boolean,
+//   opSegments: { date: string, start: number, finish: number, isRetool: boolean }[],
+//   message: string
+// } {
+
+//   console.log("момент в который можно стартовать  -  готовы все входящие материалы", targetDateStr, moment)
+
+//   const targetDate = getTimeZoneDateFromDateString(targetDateStr, schedule.timeZone)
+
+//   if (targetDateStr > stopDateStr) {
+//     return {
+//       success: false,
+//       opSegments: [] as { date: string, start: number, finish: number, isRetool: boolean }[],
+//       message: `достигнута стоп дата и нет свободных ресурсов до ${stopDateStr}`
+//     };
+//   }
+
+//   const workDay = generateCalendarItemOnServer(targetDateStr, schedule);
+//   // Определяем рабочие рамки для данного юнита (по расписанию компании)
+//   let workStart = workDay.timeStartWork;
+//   let workEnd = workDay.timeFinishWork;
+
+//   // Массив занятых интервалов (будем заполнять его интервалами, когда юнит занят)
+//   const busyPeriods: { type: TimeTypeEnum; start: number; end: number }[] = [];
+
+//   // Проверяем исключения (например, изменённые рамки рабочего дня или дополнительные перерывы)
+//   const exceptionsWorkDayNext = exceptionItems.filter(elem =>
+//     elem.unitId === unit.id && elem.date === YYYYMMDD(targetDate)
+//   );
+
+//   if (exceptionsWorkDayNext.length > 0) {
+//     exceptionsWorkDayNext.forEach(ex => {
+//       if (ex.type === TimeTypeEnum.work) {
+//         workStart = ex.timeStart;
+//         workEnd = ex.timeFinish;
+//       } else {
+//         busyPeriods.push({ type: ex.type, start: ex.timeStart, end: ex.timeFinish });
+//       }
+//     });
+//   }
+
+
+//   let onPlaned = onPlaned_; // сколько минут операции запланировано c ретулом
+
+//   // в этом  массиве что на вход уже запланирована часть операции
+//   let opSegments: { date: string, start: number; finish: number, isRetool: boolean }[] = [...opSegments_];
+
+//   let isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул определен в интервал
+
+
+//   // Если рабочее время отсутствует – пропускаем день
+//   // перепрыгиваем на следующий день
+//   if (workEnd === workStart) {
+
+//     const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
+//     const nextDateStr = YYYYMMDD(nextDate);
+//     // const nextDate = new Date(targetDate)
+//     // nextDate.setDate(nextDate.getDate() + 1);
+//     // const nextDateStr = nextDate.toLocaleDateString("en-CA");
+
+//     return findAvailableSegmentsDay(
+//       userId,
+//       locale,
+//       nextDateStr,
+//       0,
+//       stopDateStr,
+//       opSegments,
+//       unit,
+//       retoolTime,
+//       opRequired,
+//       onPlaned,
+//       unitLoadItems,
+//       schedule,
+//       exceptionItems,
+//       interruptible,
+//       totalRequired,
+//       isRetoolSegmentDefined
+//     )
+
+//   };;
+
+//   // Получаем уже запланированные операции для данного юнита на targetDate  
+//   const loads = unitLoadItems.filter(load => load.unit.id === unit.id && load.date === YYYYMMDD(targetDate));
+
+//   loads.forEach(load => {
+//     busyPeriods.push({ type: TimeTypeEnum.busy, start: load.timeStart, end: load.timeFinish });
+//   });
+//   // Добавляем перерывы из календаря  если нет исключений
+//   if (exceptionsWorkDayNext.length === 0) {
+//     workDay.breaks.forEach(b => {
+//       busyPeriods.push({ type: TimeTypeEnum.breack, start: b.timeStart, end: b.timeFinish });
+//     });
+//   }
+
+//   busyPeriods.sort((a, b) => a.start - b.start);
+
+//   let availableStart = Math.max(workStart, moment);
+
+//   console.log('availableStart', availableStart)
+
+//   // если начало выпадает на занятый интервал  сдвигаем начало на окончание занятого интервала
+//   const currentbusyPeriod = busyPeriods.find(p => p.start <= availableStart && p.end > availableStart)
+//   if (currentbusyPeriod)
+//     availableStart = Math.max(availableStart, currentbusyPeriod.end);
+
+//   // Итерируем по свободным интервалам, учитывая busyPeriods, чтобы накопить totalRequired минут.
+
+//   if (!interruptible) {
+
+//     let found = false; // запланировалось
+//     // Непрерываемая операция: нужно найти один непрерывный свободный интервал для всей операции но можно отделить ретул перерывом
+
+//     while (availableStart < workEnd && !found) {
+//       const nextPeriod = busyPeriods.find(p => p.start >= availableStart);
+//       const freeEnd = nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd;
+//       let freeInterval = freeEnd - availableStart;
+
+//       //1. убедимся что в найденный интервал влазит ретул
+//       // если есть и влазит - планируем
+//       if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
+//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+//         availableStart = availableStart + retoolTime;
+//         freeInterval = freeInterval - retoolTime
+//         isRetoolSegmentDefined = true;
+//       }
+//       //1. убедимся что в оставшийся интервал влазит операция
+//       // если есть и влазит - планируем
+//       if (freeInterval >= opRequired && isRetoolSegmentDefined) {
+//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+//         availableStart += opRequired;
+//         found = true;
+//       } else {
+
+//         // если не влазит проверяем следующий интервал
+//         // если  ретул разрывается с самой операцией другой операцией  -  стираем и начинаем заново
+//         if (nextPeriod?.type === TimeTypeEnum.busy) {
+//           isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул возвращаем
+//           opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
+//         };
+//       }
+
+//       if (nextPeriod) {
+//         availableStart = Math.max(availableStart, nextPeriod.end);
+//       } else {
+//         break;
+//       }
+//     }
+
+
+//     // проверим еще интервал от возможного старта до конца рабочего дня    
+//     let freeInterval = workEnd - availableStart;
+//     //1. убедимся что в найденный интервал влазит ретул  и он не
+//     // если есть и влазит - планируем
+//     if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
+//       console.log('opSegment', { date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true })
+//       opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
+//       availableStart = availableStart + retoolTime;
+//       freeInterval = freeInterval - retoolTime
+//       isRetoolSegmentDefined = true;
+//     }
+//     if (!found) {
+//       //1. убедимся что в оставшийся интервал влазит операция
+//       // если есть и влазит - планируем
+//       if (freeInterval >= opRequired && isRetoolSegmentDefined) {
+//         console.log('opSegment && isRetoolSegmentDefined', { date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true })
+//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + opRequired, isRetool: false });
+//         availableStart += opRequired;
+//         found = true;
+//       }
+//     }
+
+//     // если в этот день интервалов не нашлось идем на след день
+//     if (!found) {
+//       // const nextDate = new Date(targetDate)      
+//       // nextDate.setDate(nextDate.getDate() + 1);
+//       // const nextDateStr = nextDate.toLocaleDateString("en-CA");
+
+//       const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
+//       const nextDateStr = YYYYMMDD(nextDate);
+
+//       return findAvailableSegmentsDay(
+//         userId,
+//         locale,
+//         nextDateStr,
+//         0,
+//         stopDateStr,
+//         opSegments,
+//         unit,
+//         retoolTime,
+//         opRequired,
+//         onPlaned,
+//         unitLoadItems,
+//         schedule,
+//         exceptionItems,
+//         interruptible,
+//         totalRequired,
+//         isRetoolSegmentDefined
+//       )
+//     }
+
+
+//     if (opSegments.length >= 2) {
+//       const retoolSeg = opSegments[0];
+//       const opSeg = opSegments[1];
+//       const opStart = opSeg.start; // начало выполнения операции
+
+//       // Ищем период breack между началом ретула и началом операции.
+//       let breackStartCandidate: number | undefined = undefined;
+//       busyPeriods.forEach(period => {
+//         if (period.type === TimeTypeEnum.breack && period.start >= retoolSeg.start && period.start < opStart) {
+//           if (breackStartCandidate === undefined || period.start < breackStartCandidate) {
+//             breackStartCandidate = period.start;
+//           }
+//         }
+//       });
+
+//       // Если найден breack – ретул заканчивается в его начале, иначе – в начале операции.
+//       const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
+
+//       // Определяем, к какому дню относится ретул-сегмент.      
+//       const currentDay = YYYYMMDD(targetDate);
+
+//       if (retoolSeg.date === currentDay) {
+//         // Если ретул в текущем дне – сдвигаем так, чтобы длина ретула была равна retoolTime,
+//         // но не раньше рабочего времени.
+//         const newRetoolStart = Math.max(workStart, desiredRetoolFinish - retoolTime);
+//         retoolSeg.start = newRetoolStart;
+//         retoolSeg.finish = desiredRetoolFinish;
+//       } else {
+//         // Если ретул запланирован не на текущий день (например, в конце дня, а операция – на следующий),
+//         // сдвигаем ретул так, чтобы он заканчивался ровно в конце рабочего дня для того дня,
+//         // к которому он относится.
+//         // const retoolDate = new Date(retoolSeg.date);
+//         // const workDayRetool = generateCalendarItemOnServer(retoolDate, schedule);
+//         const workDayRetool = generateCalendarItemOnServer(retoolSeg.date, schedule);
+//         const workEndRetool = workDayRetool.timeFinishWork;
+//         const newRetoolStart = workEndRetool - retoolTime;
+//         retoolSeg.start = newRetoolStart;
+//         retoolSeg.finish = workEndRetool;
+//       }
+//     }
+
+
+//     return {
+//       success: true,
+//       opSegments: opSegments,
+//       message: ""
+//     }
+
+//   } else {
+
+//     // Итерируем по свободным интервалам, учитывая busyPeriods, чтобы накопить totalRequired минут.
+//     while (availableStart < workEnd && onPlaned < opRequired) {
+
+//       // Ищем следующий занятый интервал, начинающийся после availableStart.
+//       const nextPeriod = busyPeriods.find(p => p.start >= availableStart);
+//       const freeEnd = nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd;
+//       let freeInterval = freeEnd - availableStart;
+//       // если между ретулом и операцией другая операция то двигаем дальше
+
+//       // Сначала ретул если есть  и его не прерываем
+//       if (freeInterval > 0 && !isRetoolSegmentDefined) {
+
+//         const timeToUse = Math.min(freeInterval, retoolTime);
+//         // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+//         availableStart = availableStart + timeToUse;
+//         freeInterval = freeInterval - timeToUse
+//         isRetoolSegmentDefined = (timeToUse === retoolTime) || isRetoolSegmentDefined_;
+
+//         // если между ретулом и операцией вклинивается другая операция  сброс и ищем дальше
+//         if (freeInterval === 0 && nextPeriod?.type === TimeTypeEnum.busy) {
+//           isRetoolSegmentDefined = isRetoolSegmentDefined_;
+//           onPlaned = 0;
+//           opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
+//         };
+
+//       }
+
+//       if (freeInterval > 0 && isRetoolSegmentDefined) {
+//         const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
+//         if (timeToUse > 0) {
+//           // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+//           opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+//           onPlaned += timeToUse;
+//           availableStart += timeToUse;
+//           if (onPlaned === opRequired) break;
+
+//           // если вклинивается другая операция то сброс и ищем дальше
+//           if (nextPeriod?.type === TimeTypeEnum.busy) {
+//             onPlaned = 0;
+//             opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
+//             isRetoolSegmentDefined = false;
+//           };
+//         }
+//       }
+
+//       if (nextPeriod) {
+//         availableStart = Math.max(availableStart, nextPeriod.end);
+//       } else {
+//         break;
+//       }
+//     }
+
+//     // Здесь проверка оставшегося времени до конца рабочего дня
+//     if (onPlaned < opRequired) {
+//       // проверим еще интервал от возможного старта до конца рабочего дня    
+//       let freeInterval = workEnd - availableStart;
+//       //1. убедимся что в найденный интервал влазит ретул
+//       // если есть и влазит - планируем
+//       if (freeInterval > 0 && !isRetoolSegmentDefined) {
+//         const timeToUse = Math.min(freeInterval, retoolTime);
+
+//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
+//         availableStart = availableStart + timeToUse;
+//         freeInterval = freeInterval - timeToUse
+//         isRetoolSegmentDefined = (timeToUse === retoolTime);
+//       }
+
+
+//       if (freeInterval > 0 && isRetoolSegmentDefined) {
+//         const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
+//         if (timeToUse > 0) {
+
+//           opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
+//           onPlaned += timeToUse;
+//           availableStart += timeToUse;
+//         }
+//       }
+
+//     }
+
+//     if (onPlaned < opRequired) {
+//       // const nextDate = new Date(targetDate)
+//       // nextDate.setDate(nextDate.getDate() + 1);
+//       // const nextDateStr = nextDate.toLocaleDateString("en-CA");
+
+//       const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
+//       const nextDateStr = YYYYMMDD(nextDate);
+
+//       return findAvailableSegmentsDay(
+//         userId,
+//         locale,
+//         nextDateStr,
+//         0,
+//         stopDateStr,
+//         opSegments,
+//         unit,
+//         retoolTime,
+//         opRequired,
+//         onPlaned,
+//         unitLoadItems,
+//         schedule,
+//         exceptionItems,
+//         interruptible,
+//         totalRequired,
+//         isRetoolSegmentDefined
+//       )
+//     }
+
+//     return {
+//       success: true,
+//       opSegments: opSegments,
+//       message: ""
+//     }
+//   }
+// }
 
 const doLoopProductsOper = (
   readyProducts: ReadyProduct[],
