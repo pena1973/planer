@@ -54,6 +54,22 @@ export function getCurrentDateInDate(timeZoneValue: string): Date {
   // Создаём Date → это UTC-время, эквивалентное полуночи в указанной TZ
   return new Date(iso);
 }
+
+// FIX: безопасное форматирование Date → "YYYY-MM-DD" в нужной TZ
+export  function formatYMDinTZ(date: Date, timeZoneValue: string): string {
+  
+  const timeZone = getEnumKeyByValue(TimeZoneEnum, timeZoneValue);
+
+  const parts = new Intl.DateTimeFormat("ru-RU", {
+    timeZone,
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(date);
+  const y = parts.find(p => p.type === "year")!.value;
+  const m = parts.find(p => p.type === "month")!.value;
+  const d = parts.find(p => p.type === "day")!.value;
+  return `${y}-${m}-${d}`;
+}
+
 // // получение даты  из строки в нужном часовом поясе  на выходе дата Date на начало дня переданной даты
 // export function getTimeZoneDateFromDateString(dateStr: string, timeZoneValue: string): Date {
 //   const timeZone = getEnumKeyByValue(TimeZoneEnum, timeZoneValue);
@@ -87,6 +103,7 @@ export function getCurrentDateInDate(timeZoneValue: string): Date {
 //   return new Date(`${y}-${m}-${d}T${h}:${min}:${s}Z`);
 // }
 // Возвращает Date = момент в UTC, соответствующий 00:00 в заданной TZ для yyyy-mm-dd
+
 export function getTimeZoneDateFromDateString(dateStr: string, timeZoneValue: string): Date {
  
   const timeZone = getEnumKeyByValue(TimeZoneEnum, timeZoneValue);
