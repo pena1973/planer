@@ -24,7 +24,7 @@ export const saveTCardById = async (
     const tCard = tCards[indexCardToSave]
 
     try {
-        const res = await fetch(`api/tcard-api`,
+        const res = await fetch(`api/tCard/tcard-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -71,7 +71,7 @@ export const saveTCardById = async (
                     userId: user.id,
                     location: "services/cards/saveTCardById",
                     event: "error",
-                    message: `success=false запрос api/tcard-api`,
+                    message: `success=false запрос api/tCard/tcard-api`,
                     context: "export const saveTCardById = async (",
                 }).catch(() => { console.error("logger error") });
             }

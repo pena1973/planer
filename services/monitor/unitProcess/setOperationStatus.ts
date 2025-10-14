@@ -24,7 +24,7 @@ export const setOperationStatus = async (
 
 
     try {
-        const res = await fetch(`api/tcard-oper-status-api`,
+        const res = await fetch(`api/tCard/tcard-oper-status-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -71,7 +71,7 @@ export const setOperationStatus = async (
                     userId: userId,
                     location: "services/monitor/unitProcess/setOperationStatus",
                     event: "error",
-                    message: `success=false запрос api/tcard-oper-status-api`,
+                    message: `success=false запрос api/tCard/tcard-oper-status-api`,
                     context: "export const setOperStatus = async (",
                 }).catch(() => { console.error("logger error") });
             }

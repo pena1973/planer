@@ -1,40 +1,37 @@
-//pages/api/tcard-api.ts
+//pages/api/tCard/tcard-api.ts
 // API для получения, создания, обновления и удаления карт (TCard)
 // Используется в создании/редактировании карт (TCardForm)
-import { ulogger } from "./../../lib/common/universal-logger";
+import { ulogger } from "./../../../lib/common/universal-logger";
 import { getServerT } from '@/lib/server/i18n.server';
 
 // Это вариант АПИ по обработке карты оптимизированный того что без 1 в имени, потом надо остальное переделать
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getTypedRepository } from './../../db/utilites'
-import { getLocaleFromHeader } from './../../lib/server/locale';
+import connectDb from './../../../db/database';
+import { getTypedRepository } from './../../../db/utilites'
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 
-import { TCardTable } from './../../db/models/data/t_cards'
-import { TCardStageTable } from './../../db/models/data/t_card_stages'
-import { TCardOperationTable } from './../../db/models/data/t_card_operations'
-import { TCardProductTable } from './../../db/models/data/t_card_products'
-import { TeamScheduleTable } from './../../db/models/plan/team_schedule';
-import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
-import { UnitLoadTable } from './../../db/models/plan/unit_loads'
-import { ProductTable } from './../../db/models/data/products'
+import { TCardTable } from './../../../db/models/data/t_cards'
+import { TCardStageTable } from './../../../db/models/data/t_card_stages'
+import { TCardOperationTable } from './../../../db/models/data/t_card_operations'
+import { TCardProductTable } from './../../../db/models/data/t_card_products'
+import { TeamScheduleTable } from './../../../db/models/plan/team_schedule';
+import { UnitActionTable } from './../../../db/models/catalogs/unit_actions'
+import { UnitLoadTable } from './../../../db/models/plan/unit_loads'
+import { ProductTable } from './../../../db/models/data/products'
 
-import { UnitTable } from './../../db/models/catalogs/units'
-import { ActionTable } from './../../db/models/catalogs/actions'
-import { getCurrentDateInString } from "./../../lib/common/timezone"
+import { UnitTable } from './../../../db/models/catalogs/units'
+import { ActionTable } from './../../../db/models/catalogs/actions'
+import { getCurrentDateInString } from "./../../../lib/common/timezone"
 
-import {
-  TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, StatusEnum,
-  UnitItem, UnitLoadItem, UnitTypeEnum, UnitBelongEnum, ProductItem
-} from './../../types/types';
+import {  TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, StatusEnum,
+  UnitItem, UnitLoadItem, UnitTypeEnum, UnitBelongEnum, ProductItem} from './../../../types/types';
 
-import { getTeamShedule, getTCardFull, getTCardLoadsToCheckforDelete, getUnitActions, getUnits } from './../../handlers/handlers-get';  // 
-import {
-  updateCard, updateStages, updateOperations, updateCatalogProducts, updateProducts,
-  updateTCardLoads, updateStatusTCard, updateStatusOperationByOperIds
-} from './../../handlers/handlers-update';  // 
+import { getTeamShedule, getTCardFull, getTCardLoadsToCheckforDelete, getUnitActions, getUnits } from './../../../handlers/handlers-get';  // 
+
+import {  updateCard, updateStages, updateOperations, updateCatalogProducts, updateProducts,
+  updateTCardLoads, updateStatusTCard, updateStatusOperationByOperIds} from './../../../handlers/handlers-update';  // 
 
 import { YYYYMMDD } from "@/lib/common/utils"
 
@@ -428,7 +425,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/tcard-api",
+      location: "pages/api/tCard/tcard-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

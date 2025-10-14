@@ -10,8 +10,8 @@ import {
 } from "./../types/types";
 
 import { YYYYMMDD } from "@/lib/common/utils"
+import { getCurrentDateInDate, getTimeZoneDateFromDateString, addDaysInZone, YYYYMMDDTZ } from "./../lib/common/timezone"
 
-import { getCurrentDateInDate, getTimeZoneDateFromDateString, addDaysInZone, formatYMDinTZ } from "./../lib/common/timezone"
 // функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
 const getLoadIdc = (
   tCard: TCardItem,
@@ -160,6 +160,46 @@ export const getAllPreparedOperationsIds = (
   return preparedOps.map(op => op.id!).filter(id => id !== undefined);
 };
 
+// // ! Получить ID всех зависимых операций со статусом prepared (одно "плечо", без рекурсии)
+// export const getDependentPreparedOperationsIds = (
+//   tCard: TCardItem,
+//   oper: TCardOperationItem
+// ): number[] => {
+//   const ops = tCard.tCardOperations ?? [];
+//   if (ops.length === 0) return [];
+
+//   const outCodes = new Set((oper.out ?? []).map(p => `${p?.code ?? ""}`).filter(Boolean));
+
+//   const dependentOps = ops.filter(op =>
+//     op.id !== oper.id &&
+//     (op.inn ?? []).some(inp => outCodes.has(`${inp?.code ?? ""}`))
+//   );
+
+//   const preparedOps = dependentOps.filter(op => op.status === StatusEnum.prepared);
+//   return preparedOps.map(op => op.id!).filter((id): id is number => id != null);
+// };
+
+// ! Получить ID всех зависимых операций со статусом planed (одно "плечо", без рекурсии)
+// FIX: тут раньше ошибочно стоял фильтр prepared
+export const getDependentPlanedOperationsIds = (
+  tCard: TCardItem,
+  oper: TCardOperationItem
+): number[] => {
+  const ops = tCard.tCardOperations ?? [];
+  if (ops.length === 0) return [];
+
+  const outCodes = new Set((oper.out ?? []).map(p => `${p?.code ?? ""}`).filter(Boolean));
+
+  const dependentOps = ops.filter(op =>
+    op.id !== oper.id &&
+    (op.inn ?? []).some(inp => outCodes.has(`${inp?.code ?? ""}`))
+  );
+
+  const planedOps = dependentOps.filter(op => op.status === StatusEnum.planed);
+  return planedOps.map(op => op.id!).filter((id): id is number => id != null);
+};
+
+
 // //! Получение зависимых prepared операций
 // export const getDependentPreparedOperationsIds = (  
 //   tCard: TCardItem,
@@ -210,7 +250,7 @@ export const getAllPreparedOperationsIds = (
 
 
 // ! Все зависимые операции по цепочке (все статусы) — возвращаем объекты операций
-export const getDependentOperations = (
+export const getDependentOperations_old = (
   tCard: TCardItem,
   oper: TCardOperationItem
 ): TCardOperationItem[] => {
@@ -263,6 +303,77 @@ export const getDependentOperations = (
         if (!seenCodes.has(next)) {
           seenCodes.add(next);
           queue.push(next);
+        }
+      }
+    }
+  }
+
+  return result;
+};
+
+// ! Все зависимые операции по цепочке (все статусы) — возвращаем объекты операций
+export const getDependentOperations = (
+  tCard: TCardItem,
+  oper: TCardOperationItem
+): TCardOperationItem[] => {
+  const ops = tCard.tCardOperations ?? [];
+  if (ops.length === 0) return [];
+
+  // FIX: нормализуем коды к строке и отбрасываем пустые
+  const norm = (code: unknown) => `${code ?? ""}`.trim();
+  const notEmpty = (s: string) => s.length > 0;
+
+  // Индекс: входной code -> список операций (кроме исходной)
+  // FIX: используем Map<string, TCardOperationItem[]>; защита от дублей на уровне seenOpIds
+  const index = new Map<string, TCardOperationItem[]>();
+  for (const op of ops) {
+    if (op.id === oper.id) continue;
+    const inn = op.inn ?? [];
+    for (const inp of inn) {
+      const key = norm(inp?.code);
+      if (!notEmpty(key)) continue;
+      const bucket = index.get(key);
+      if (bucket) bucket.push(op);
+      else index.set(key, [op]);
+    }
+  }
+
+  // Стартовые коды — все выходные коды исходной операции
+  const startCodes = (oper.out ?? [])
+    .map(p => norm(p?.code))
+    .filter(notEmpty);
+
+  if (startCodes.length === 0) return [];
+
+  // BFS по кодам продуктов:
+  //  - queue по кодам,
+  //  - seenCodes чтобы не ходить по кругу при циклах по коду,
+  //  - seenOpIds чтобы не добавлять одну и ту же операцию много раз.
+  const queue: string[] = Array.from(new Set(startCodes));
+  const seenCodes = new Set(queue);
+  const seenOpIds = new Set<number>();
+  const result: TCardOperationItem[] = [];
+
+  while (queue.length) {
+    const code = queue.shift()!;
+
+    const dependents = index.get(code) ?? [];
+    for (const dep of dependents) {
+      const id = dep.id;
+      if (id == null || seenOpIds.has(id)) continue; // уже добавляли
+
+      // Добавляем операцию как следующую в цепочке
+      seenOpIds.add(id);
+      result.push(dep);
+
+      // FIX: расширяем фронт поиска по всем её out-кодам
+      const outs = dep.out ?? [];
+      for (const out of outs) {
+        const nextCode = norm(out?.code);
+        if (!notEmpty(nextCode)) continue;
+        if (!seenCodes.has(nextCode)) {
+          seenCodes.add(nextCode);
+          queue.push(nextCode);
         }
       }
     }
@@ -756,7 +867,7 @@ function findAvailableSegmentsDay(
   // Нерабочий день → сразу к следующему (moment на следующие дни = 0)
   if (workEnd === workStart) {
     const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
-    const nextDateStr = formatYMDinTZ(nextDate, schedule.timeZone); // FIX: TZ-безопасно
+    const nextDateStr = YYYYMMDDTZ(nextDate, schedule.timeZone); // FIX: TZ-безопасно
     return findAvailableSegmentsDay(
       userId, locale, nextDateStr, 0, stopDateStr, opSegments, unit,
       retoolTime, opRequired, onPlaned, unitLoadItems, schedule,
@@ -865,7 +976,7 @@ function findAvailableSegmentsDay(
     // Если не нашли — следующий день (moment = 0)
     if (!found) {
       const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
-      const nextDateStr = formatYMDinTZ(nextDate, schedule.timeZone); // FIX: TZ-безопасно
+      const nextDateStr = YYYYMMDDTZ(nextDate, schedule.timeZone); // FIX: TZ-безопасно
       return findAvailableSegmentsDay(
         userId, locale, nextDateStr, 0, stopDateStr, opSegments, unit,
         retoolTime, opRequired, onPlaned, unitLoadItems, schedule,
@@ -1012,7 +1123,7 @@ function findAvailableSegmentsDay(
 
   if (onPlaned < opRequired) {
     const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
-    const nextDateStr = formatYMDinTZ(nextDate, schedule.timeZone); // FIX: TZ-безопасно
+    const nextDateStr = YYYYMMDDTZ(nextDate, schedule.timeZone); // FIX: TZ-безопасно
     return findAvailableSegmentsDay(
       userId, locale, nextDateStr, 0, stopDateStr, opSegments, unit,
       retoolTime, opRequired, onPlaned, unitLoadItems, schedule,
@@ -1489,10 +1600,9 @@ export const planTCardFromOperINC = (
     let planedCardLoads: UnitLoadItem[] = [];
 
     const today = getTimeZoneDateFromDateString(today_, shedule_.timeZone)
-
     const stopDate_ = getCurrentDateInDate(shedule_.timeZone)
     stopDate_.setDate(stopDate_.getDate() + 90);
-    const stopDateStr = YYYYMMDD(stopDate_);
+    const stopDateStr = YYYYMMDDTZ(stopDate_,shedule_.timeZone);
 
     // массив готовых продуктов и дата время готовности каждого продукта
     // стартуем с продуктов которые  берутся со склада  

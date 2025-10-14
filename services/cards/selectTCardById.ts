@@ -17,7 +17,7 @@ export const selectTCardById = async (
 ) => {
 
     try {
-        const res = await fetch(`api/tcard-api?tCardId=${selectedTCardId}&teamId=${team.id}&userId=${userId}`,
+        const res = await fetch(`api/tCard/tcard-api?tCardId=${selectedTCardId}&teamId=${team.id}&userId=${userId}`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -55,7 +55,7 @@ export const selectTCardById = async (
                     userId: userId,
                     location: "services/cards/selectTCardById",
                     event: "error",
-                    message: `success=false запрос api/tcard-api?tCardId=${selectedTCardId}&teamId=${team.id}&userId=${userId}`,
+                    message: `success=false запрос api/tCard/tcard-api?tCardId=${selectedTCardId}&teamId=${team.id}&userId=${userId}`,
                     context: "export const selectTCardById = async (",
                 }).catch(() => { console.error("logger error") });
             }

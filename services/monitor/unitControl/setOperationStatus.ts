@@ -28,7 +28,7 @@ export const setOperationStatus = async (
     .map(load => load.id as number); //  все лоады операции
 
   try {
-    const res = await fetch(`api/tcard-oper-status-api`,
+    const res = await fetch(`api/tCard/tcard-oper-status-api`,
       {
         method: 'post',
         headers: new Headers({
@@ -74,7 +74,7 @@ export const setOperationStatus = async (
           userId: userId,
           location: "services/monitor/unitControl/setOperationStatus",
           event: "error",
-          message: `success=false запрос api/tcard-oper-status-api`,
+          message: `success=false запрос api/tCard/tcard-oper-status-api`,
           context: "export const setOperationStatus = async (",
         }).catch(() => { console.error("logger error") });
       }

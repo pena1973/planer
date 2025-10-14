@@ -1,19 +1,19 @@
-//pages/api/tcards-api.ts
+//pages/api/tCard/tcards-api.ts
 // API для получения, создания, обновления и удаления карт (TCard)
 // Используется 
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { TCardTable } from './../../db/models/data/t_cards';
-import { getTCards } from './../../handlers/handlers-get';   
-import { StatusEnum } from './../../types/types';
+import { TCardTable } from './../../../db/models/data/t_cards';
+import { getTCards } from './../../../handlers/handlers-get';   
+import { StatusEnum } from './../../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -53,7 +53,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/tcards-api",
+      location: "pages/api/tCard/tcards-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

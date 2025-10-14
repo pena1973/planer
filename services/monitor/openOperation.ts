@@ -17,7 +17,7 @@ export const openOperation = async (
 ) => {
 
   try {
-    const res = await fetch(`api/tcard-api?userId=${userId}&teamId=${teamId}&tCardId=${id_tCard}`,
+    const res = await fetch(`api/tCard/tcard-api?userId=${userId}&teamId=${teamId}&tCardId=${id_tCard}`,
       {
         method: 'get',
         headers: new Headers({
@@ -57,7 +57,7 @@ export const openOperation = async (
           userId: userId,
           location: "services/monitor/openOperation",
           event: "error",
-          message: `success=false запрос api/tcard-api?userId=${userId}&teamId=${teamId}&tCardId=${id_tCard}`,
+          message: `success=false запрос api/tCard/tcard-api?userId=${userId}&teamId=${teamId}&tCardId=${id_tCard}`,
           context: "export const openOperation = async (",
         }).catch(() => { console.error("logger error") });
       }

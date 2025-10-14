@@ -128,7 +128,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const allDependentOperationsIds = dependentOperations.map(oper => oper.id as number)
 
         // Формируем массив лоадов по карте без лоадов этой операции и зависимых от нее (историю тоже не берем)
-        const cardLoadsWithoutOperEndDep = tCardLoads.filter(load =>
+        const cardLoadsWithoutOperAndDep = tCardLoads.filter(load =>
           !(allDependentOperationsIds.includes(load.id_oper as number)
             // && load.date >= today
           )
@@ -141,7 +141,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           && (allDependentOperationsIds.includes(load.id_oper as number))
         );
 
-        const planedCardLoads = [...cardLoadsWithoutOperEndDep, ...cardLoadsOperEndDepHistory];
+        const planedCardLoads = [...cardLoadsWithoutOperAndDep, ...cardLoadsOperEndDepHistory];
 
         // сортируем по возрастанию
         planedCardLoads.sort((a, b) =>
@@ -149,9 +149,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         );
 
         // получаем момент готовности входящих запчастей и не раньше сегодня  и не раньше входящего старта
-        const readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperEndDep, date, timeStart, today)
+        const readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperAndDep, date, timeStart, today)
 
-        console.log('readySourceMoment',readySourceMoment)
+        // console.log('readySourceMoment',readySourceMoment)
 
         if (!readySourceMoment) {
           //  logger
@@ -159,7 +159,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             userId: userId,
             location: "pages/api/plan/pre-moveload-api",
             event: "error",
-            message: `На момент выполнения операции не готовы входящие источники -  oper:${oper}, tCard:${tCard}, cardLoadsWithoutOperEndDep:${cardLoadsWithoutOperEndDep.length}, date:${date}, timeStart:${timeStart}, today: ${today}`,
+            message: `На момент выполнения операции не готовы входящие источники -  oper:${oper}, tCard:${tCard}, cardLoadsWithoutOperEndDep:${cardLoadsWithoutOperAndDep.length}, date:${date}, timeStart:${timeStart}, today: ${today}`,
             context: "const readySourceMoment: { date: string; time: number } | undefined = getOperationReadyMoment(oper, tCard, cardLoadsWithoutOperEndDep, date, timeStart, today)",
           }).catch(() => { console.error("logger error") });
 
@@ -547,7 +547,8 @@ async function moveToInnerUnit(
   // планируем все последующие операции  исключая пришпиленные
 
   // Планируем карту начиная с нашей операции (есключая ее саму)
-  const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, allDependentOperationsIds, tCard, units_, unitActions_, shedule, unitLoadItemsFull, exceptionItems, today)
+  const  dependentOperationsIds = allDependentOperationsIds.filter(o=>o!==oper.id);
+    const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, dependentOperationsIds, tCard, units_, unitActions_, shedule, unitLoadItemsFull, exceptionItems, today)
   //  Если не удалось запланировать
   if (!resultPlaningNextOper.success) {
 

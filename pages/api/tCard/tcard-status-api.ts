@@ -1,27 +1,27 @@
-//pages/api/tcard-oper-status-api
+//pages/api/tCard/tcard-oper-status-api
 // API для изменения статуса карты
 // Корректировка текущего статуса карты по ее состоянию в БД 
 
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { TCardTable } from './../../db/models/data/t_cards'
-import { TCardOperationTable } from './../../db/models/data/t_card_operations'
+import { TCardTable } from './../../../db/models/data/t_cards'
+import { TCardOperationTable } from './../../../db/models/data/t_card_operations'
 
-import { TCardOperationItem, StatusEnum } from './../../types/types';
-import { updateStatusTCard } from './../../handlers/handlers-update';
-import { getTCard, getTCardOperationsByCardId } from './../../handlers/handlers-get';
-import { calculateTCardStatusByOperations } from './../../handlers/handlers-erase';
 
-import { getStatusPriority } from "./../../lib/common/utils"
+import { updateStatusTCard } from './../../../handlers/handlers-update';
+import { getTCard, getTCardOperationsByCardId } from './../../../handlers/handlers-get';
+import { calculateTCardStatusByOperations } from './../../../handlers/handlers-erase';
+
+
 
 interface RequestBody {
   tCardId: number,
@@ -98,7 +98,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/tcard-oper-status-api",
+      location: "pages/api/tCard/tcard-oper-status-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

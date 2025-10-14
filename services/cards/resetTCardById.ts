@@ -23,7 +23,7 @@ export const resetTCardById = async (
     const tCard = tCards[indexCardToSave]
 
     try {
-        const res = await fetch(`api/tcard-api?tCardId=${tCard.id}&teamId=${team.id}&userId=${userId}`,
+        const res = await fetch(`api/tCard/tcard-api?tCardId=${tCard.id}&teamId=${team.id}&userId=${userId}`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -61,7 +61,7 @@ export const resetTCardById = async (
                     userId: userId,
                     location: "services/cards/resetTCardById",
                     event: "error",
-                    message: `success=false запрос api/tcard-api?tCardId=${tCard.id}&teamId=${team.id}&userId=${userId}`,
+                    message: `success=false запрос api/tCard/tcard-api?tCardId=${tCard.id}&teamId=${team.id}&userId=${userId}`,
                     context: "export const resetTCardById = async (",
                 }).catch(() => { console.error("logger error") });
             }

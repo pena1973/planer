@@ -14,7 +14,7 @@ export const downloadTCards = async (
     dispatch: Dispatch,
 ) => {
     try {
-        const res = await fetch(`/api/tcards-api?userId=${userId}&teamId=${teamId}`,
+        const res = await fetch(`/api/tCard/tcards-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -52,7 +52,7 @@ export const downloadTCards = async (
                     userId: userId,
                     location: "services/initial/downloadTCards",
                     event: "error",
-                    message: `success=false запрос /api/tcards-api?userId=${userId}&teamId=${teamId}`,
+                    message: `success=false запрос /api/tCard/tcards-api?userId=${userId}&teamId=${teamId}`,
                     context: "export const downloadTCards = async (",
                 }).catch(() => { console.error("logger error") });
             }

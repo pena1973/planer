@@ -28,7 +28,7 @@ export const saveCard = async (
     // если ничего не запланировалось а карта prepared, надо утановить правильный статус карты по текущему состоянию
     if (tCardLoadsPrepared.length === 0) {
         try {
-            const res = await fetch(`api/tcard-status-api`,
+            const res = await fetch(`api/tCard/tcard-status-api`,
                 {
                     method: 'post',
                     headers: new Headers({
@@ -75,7 +75,7 @@ export const saveCard = async (
                         userId: userId,
                         location: "services/plan/saveCard",
                         event: "error",
-                        message: `success=false запрос api/tcard-status-api`,
+                        message: `success=false запрос api/tCard/tcard-status-api`,
                         context: "(tCardLoadsPrepared.length === 0)",
                     }).catch(() => { console.error("logger error") });
                 }
@@ -169,7 +169,7 @@ export const saveCard = async (
                         userId: userId,
                         location: "services/plan/saveCard",
                         event: "error",
-                        message: `success=false запрос api/tcard-status-api`,
+                        message: `success=false запрос api/tCard/tcard-status-api`,
                         context: " (tCardLoadsPrepared.length > 0) ",
                     }).catch(() => { console.error("logger error") });
                 }

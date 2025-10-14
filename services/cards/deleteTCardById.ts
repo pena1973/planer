@@ -20,8 +20,8 @@ export const deleteTCardById = async (
 
     try {
         // запрос получение текста из БД вместе со словами     textId: number, userId:number      
-        // const res = await fetch(`api/tcard-api?tCardId=${idToRemove}&teamId=${team.id}`,
-        const res = await fetch(`api/tcard-api`,
+        // const res = await fetch(`api/tCard/tcard-api?tCardId=${idToRemove}&teamId=${team.id}`,
+        const res = await fetch(`api/tCard/tcard-api`,
             {
                 method: 'delete',
                 headers: new Headers({
@@ -71,7 +71,7 @@ export const deleteTCardById = async (
                     userId: userId,
                     location: "services/cards/deleteTCardById",
                     event: "error",
-                    message: `success=false запрос api/tcard-api`,
+                    message: `success=false запрос api/tCard/tcard-api`,
                     context: "export const deleteTCardById = async (",
                 }).catch(() => { console.error("logger error") });
             }

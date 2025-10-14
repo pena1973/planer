@@ -56,7 +56,7 @@ export function getCurrentDateInDate(timeZoneValue: string): Date {
 }
 
 // FIX: безопасное форматирование Date → "YYYY-MM-DD" в нужной TZ
-export  function formatYMDinTZ(date: Date, timeZoneValue: string): string {
+export  function YYYYMMDDTZ(date: Date, timeZoneValue: string): string {
   
   const timeZone = getEnumKeyByValue(TimeZoneEnum, timeZoneValue);
 

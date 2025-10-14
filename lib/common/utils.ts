@@ -258,21 +258,37 @@ export const idDay = (date: Date): string => {
 //   return calendarItem;  // Возвращаем один элемент календаря
 // };
 
-// Функция для получения числового приоритета статуса
+// // Функция для получения числового приоритета статуса
+// export const getStatusPriority = (status: StatusEnum): number => {
+//   switch (status) {
+//     case StatusEnum.draft: return 100;
+//     case StatusEnum.prepared: return 2;
+//     case StatusEnum.planed: return 4;
+//     case StatusEnum.defective: return 3;
+//     case StatusEnum.performed: return 5;
+//     case StatusEnum.ready: return 5;
+//     case StatusEnum.cancelled: return 100;
+//     case StatusEnum.closed: return 100;
+//     default: return 100;
+//   }
+// };
+
 export const getStatusPriority = (status: StatusEnum): number => {
   switch (status) {
-    case StatusEnum.draft: return 100;
-    case StatusEnum.prepared: return 2;
-    case StatusEnum.planed: return 4;
-    case StatusEnum.defective: return 3;
-    case StatusEnum.performed: return 5;
-    case StatusEnum.ready: return 5;
-    case StatusEnum.cancelled: return 100;
-    case StatusEnum.closed: return 100;
-    default: return 100;
+    case StatusEnum.draft:     return 0;
+    case StatusEnum.prepared:  return 1;
+    case StatusEnum.planed:    return 2;
+    // "defective" считаем минимальным, если нет исправления
+    case StatusEnum.defective: return 0;
+    case StatusEnum.performed: return 3;
+    case StatusEnum.ready:     return 4;
+    case StatusEnum.closed:    return 5;
+    // "cancelled" обычно исключают из расчёта,
+    // но если хочешь — можешь приравнять к draft (0) или игнорировать.
+    case StatusEnum.cancelled: return 0;
+    default:                   return 0;
   }
 };
-
 
 //  ЧТЕНИЕ КАРТЫ ИЗ ФАЙЛА
 export const calculateMaxIdc = (content: TCardContent): number => {
