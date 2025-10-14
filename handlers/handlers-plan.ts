@@ -275,7 +275,7 @@ export const getDependentOperations = (
 // поиск  юнита и времени выполнения операции
 // выбираем возможного юнита и самый быстрый вариант выполнения
 // с учетом временного коэфициента юнита
-function findAvailableTimeForOperation(
+function findAvailableTimeForOperation_old(
   userId: number,
   locale: string,
   tCard: TCardItem,
@@ -368,6 +368,7 @@ function findAvailableTimeForOperation(
   }
 
   console.log('possibleCandidates',possibleCandidates)
+  
   // Если найдены кандидаты, выбираем того, который завершит операцию раньше.
   if (possibleCandidates.length > 0) {
     possibleCandidates.sort((a, b) => {
@@ -395,7 +396,7 @@ function findAvailableTimeForOperation(
     let isFirst = true;
     bestCandidate.opSegments.forEach(seg => {
       const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id)
-      const action = actions_.find(act => act.id = operation.action.id);
+      const action = actions_.find(act => act.id === operation.action.id);
       const koef = (action) ? action.koef : 1;
 
       updatedUnitLoads.push({
@@ -432,7 +433,6 @@ function findAvailableTimeForOperation(
     }
 
     const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
-
     return {
       success: true,
       planedUnitLoads: updatedUnitLoads,
@@ -451,6 +451,221 @@ function findAvailableTimeForOperation(
     учитывая время и непрерывность операции, а также коэфициент времени юнитов`
   };
 }
+
+function findAvailableTimeForOperation(
+  userId: number,
+  locale: string,
+  tCard: TCardItem,
+  compatibleuUnits: UnitItem[],
+  unitActions: UnitActionItem[],
+  unitLoadItems: UnitLoadItem[],
+  operation: TCardOperationItem,
+  startDateStr: string,   // "YYYY-MM-DD"
+  moment: number,         // минутный «момент» старта внутри дня, когда готовы материалы
+  stopDateStr: string,    // "YYYY-MM-DD"
+  schedule: ScheduleItem,
+  exceptionItems: UnitExceptionItem[],
+  isPinned: boolean,
+): { success: boolean, planedUnitLoads: UnitLoadItem[], dateReady: string, timeReady: number, message: string } {
+
+  const version = generateUniqueIdc();
+
+  const targetDate = getTimeZoneDateFromDateString(startDateStr, schedule.timeZone);
+  const stopDate   = getTimeZoneDateFromDateString(stopDateStr,   schedule.timeZone);
+
+  console.log('[FIND] inputs', {
+    userId, locale,
+    tCardId: tCard?.id, operId: operation?.id, operActionId: operation?.action?.id,
+    startDateStr, stopDateStr, timeZone: schedule?.timeZone,
+    // момент — в минутах с начала дня по вашей логике (уточняю в логе)
+    momentMinutesFromDayStart: moment,
+    compatibleUnits: compatibleuUnits?.map(u => ({ id: u.id, title: u.title })),
+    unitActionsCount: unitActions?.length ?? 0,
+    unitLoadsCount: unitLoadItems?.length ?? 0,
+    exceptionCount: exceptionItems?.length ?? 0,
+  });
+
+  if (targetDate.getTime() > stopDate.getTime()) {
+    console.warn('[FIND] abort: targetDate > stopDate', { targetDate, stopDate });
+    return {
+      success: false,
+      planedUnitLoads: unitLoadItems,
+      dateReady: "",
+      timeReady: 0,
+      message: `Планирование не удалось: нет свободных ресурсов до ${stopDateStr}`
+    };
+  }
+
+  const operationDuration = Math.ceil(operation.duration / (1000 * 60));
+  const interruptible = operation.action.interruptible;
+
+  interface Candidate {
+    unit: UnitItem;
+    opSegments: { date: string, start: number; finish: number, isRetool: boolean }[];
+    duration: number;
+  }
+
+  const possibleCandidates: Candidate[] = [];
+
+  for (const unit of compatibleuUnits) {
+    const actions = unitActions.filter(ac => ac.unitId === unit.id);
+    const retoolTime = unit.retool;
+    const action = actions.find(a => a.action.id === operation.action.id);
+    const koef = action ? action.koef : 1;
+    const opRequired = operationDuration * koef;
+    const onPlaned = 0;
+    const totalRequired = retoolTime + opRequired;
+    const opSegments: { date: string, start: number; finish: number, isRetool: boolean }[] = [];
+    const isRetoolSegmentDefined = (retoolTime === 0);
+
+    console.log('[FIND] try unit', {
+      unitId: unit.id, unitTitle: unit.title,
+      retoolTime, opRequired, koef, totalRequired,
+      actionsForUnit: actions.map(a => ({ id: a.id, actionId: a.action?.id, koef: a.koef })),
+    });
+
+    // КРИТИЧЕСКОЕ место: сюда передаём moment, именно тут он должен учитываться
+    const resultOpSegments = findAvailableSegmentsDay(
+      userId,
+      locale,
+      startDateStr,
+      moment,
+      stopDateStr,
+      opSegments,
+      unit,
+      retoolTime,
+      opRequired,
+      onPlaned,
+      unitLoadItems,
+      schedule,
+      exceptionItems,
+      interruptible,
+      totalRequired,
+      isRetoolSegmentDefined
+    );
+
+    console.log('[FIND] unit result', {
+      unitId: unit.id,
+      success: resultOpSegments?.success,
+      segments: resultOpSegments?.opSegments?.map(s => ({
+        date: s.date, start: s.start, finish: s.finish, isRetool: s.isRetool
+      }))
+    });
+
+    if (resultOpSegments.success) {
+      possibleCandidates.push({
+        unit,
+        opSegments: resultOpSegments.opSegments,
+        duration: totalRequired,
+      });
+    }
+  }
+
+  console.log('[FIND] possibleCandidates count', possibleCandidates.length);
+
+  if (possibleCandidates.length > 0) {
+    // FIX: сортируем по финишу в той же таймзоне, что и расчёты
+    const finishTs = (seg: { date: string, finish: number }) =>
+      getTimeZoneDateFromDateString(seg.date, schedule.timeZone).getTime() + seg.finish * 60000; // finish — минуты
+
+    possibleCandidates.sort((a, b) => {
+      const aLast = a.opSegments.at(-1) ?? null;
+      const bLast = b.opSegments.at(-1) ?? null;
+      if (!aLast && !bLast) return 0;
+      if (!aLast) return -1;
+      if (!bLast) return 1;
+      return finishTs(aLast) - finishTs(bLast);
+    });
+
+    console.log('[FIND] candidates sorted', possibleCandidates.map(c => ({
+      unitId: c.unit.id,
+      last: c.opSegments.at(-1)
+        ? {
+            date: c.opSegments.at(-1)!.date,
+            finish: c.opSegments.at(-1)!.finish,
+            finishTs: finishTs(c.opSegments.at(-1)!)
+          }
+        : null
+    })));
+
+    const bestCandidate = possibleCandidates[0];
+
+    const updatedUnitLoads: UnitLoadItem[] = [];
+    let isFirst = true;
+
+    bestCandidate.opSegments.forEach(seg => {
+      const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id);
+      // FIX: правильное сравнение, не присваивание
+      const action_ = actions_.find(act => act.action?.id === operation.action.id); // FIX
+      const koef_ = (action_) ? action_.koef : 1;
+
+      updatedUnitLoads.push({
+        idc_oper: operation.idc,
+        unit: bestCandidate.unit,
+        date: seg.date,
+        id_tCard: tCard.id,
+        timeStart: seg.start,
+        timeFinish: seg.finish,
+        status: StatusEnum.prepared,
+        id_oper: Number(operation.id),
+        idc: getLoadIdc(tCard, operation, seg),
+        isActive: true,
+        isRetool: seg.isRetool,
+        loadInfo: {
+          tCardIdc: tCard.idc,
+          tCardDate: tCard.date,
+          title: operation.action.title,
+          duration: Math.round(operation.duration / 60000),
+          interruptible: operation.action.interruptible,
+          koef: koef_
+        },
+        isPinned: isPinned,
+        isOuterStart: false,
+        isOuterFinish: false,
+        version: version,
+        isFirst: seg.isRetool ? false : isFirst
+      });
+
+      isFirst = seg.isRetool ? isFirst : false;
+    });
+
+    console.log('[FIND] updatedUnitLoads', updatedUnitLoads.map(l => ({
+      unitId: l.unit.id, date: l.date, start: l.timeStart, finish: l.timeFinish, isRetool: l.isRetool
+    })));
+
+    if (updatedUnitLoads.length === 0) {
+      console.warn('[FIND] no updatedUnitLoads created');
+      return {
+        success: false,
+        planedUnitLoads: updatedUnitLoads,
+        dateReady: "",
+        timeReady: 0,
+        message: "Не удалось построить загрузки по выбранному юниту."
+      };
+    }
+
+    const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
+    // FIX: корректное success-сообщение
+    return {
+      success: true,
+      planedUnitLoads: updatedUnitLoads,
+      dateReady: finalLoad.date,
+      timeReady: finalLoad.timeFinish,
+      message: "Планирование успешно."
+    };
+  }
+
+  console.warn('[FIND] no candidates found until stopDate', { stopDateStr, timeZone: schedule?.timeZone });
+  return {
+    success: false,
+    planedUnitLoads: unitLoadItems,
+    dateReady: "",
+    timeReady: 0,
+    message: `Не найдено свободных слотов до ${stopDateStr} с учётом момента старта, непрерывности и коэффициентов.`
+  };
+}
+
+
 
 // Рекурсия для разбивки операции на промежутки по шкале времени определенного юнита на определенный день
 // на выходе имеем сегменты разбивки
