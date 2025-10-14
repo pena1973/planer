@@ -1,15 +1,25 @@
 
 import {TCardContent, StatusEnum, ScheduleItem, DaysOfWeek } from "@/types/types";
 
-// Переревод даты в строку yyyy-mm-dd
+// // Переревод даты в строку yyyy-mm-dd
+// export const YYYYMMDD = (d: Date | string = new Date()): string => {
+//   const date = typeof d === "string" ? new Date(d) : d;
+//   const y = date.getFullYear();
+//   const m = String(date.getMonth() + 1).padStart(2, "0");
+//   const day = String(date.getDate()).padStart(2, "0");
+//   return `${y}-${m}-${day}`;
+// };
+
+// Перевод в "YYYY-MM-DD":
+// - если пришла строка — возвращаем как есть (не ломаем TZ/UTC)
+// - если пришёл Date — форматируем из самого объекта (предполагая, что он уже в нужной TZ)
 export const YYYYMMDD = (d: Date | string = new Date()): string => {
-  const date = typeof d === "string" ? new Date(d) : d;
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  if (typeof d === "string") return d;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 };
-
 
 export const ISOStringToLocalDateTime = (isoDate: string) => {
   const date = new Date(isoDate);
