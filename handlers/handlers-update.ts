@@ -1486,50 +1486,75 @@ export async function updateCard(
   }
 }
 
+
 //! СТАДИИ
 export async function updateStages(
   userId: number,
   locale: string,
   tCardStagesRepository: Repository<TCardStageTable>,
-  tCardOperationsRepository: Repository<TCardOperationTable>,
   tCardStages: TCardStageItem[],
+  tCardOperations: TCardOperationItem[],
   savedTCard: TCardItem,
   teamId: number,
-
 ): Promise<{ success: boolean, savedTCardStages?: TCardStageItem[], message?: string }> {
 
   const t = getServerT(locale, 'sermes');
 
   try {
-    // Получаем текущие стадии из БД
+    // Текущие стадии в БД
     const existingTCardStages = await tCardStagesRepository.find({
       where: { tcard_id: savedTCard.id },
     });
 
-    // 1. Удаляем удалённые стадии и связанные данные
+    // Какие стадии считаем удаляемыми (по id из БД)
     const stagesToDelete = existingTCardStages.filter(stage =>
       !tCardStages.some(newStage => newStage.id === stage.id)
     );
 
-    // FIX: ранняя проверка — если у каких-либо удаляемых стадий есть операции, прекращаем всю операцию.
+    // === ВАЖНО: проверка по ПЕРЕДАННЫМ операциям и по stage_idc ===
     if (stagesToDelete.length > 0) {
-      const stageIds = stagesToDelete.map(s => s.id);
-      const opsCount = await tCardOperationsRepository.count({ where: { stage_id: In(stageIds) } });
-      if (opsCount > 0) {
-        // логируем и выходим без каких-либо изменений
+      // idc удаляемых стадий
+      const stageIdcsToDelete = stagesToDelete
+        .map(s => s.idc)
+        .filter((v): v is number => typeof v === 'number');
+
+      // хелпер: вытащить stage_idc из операции, учитываем возможные варианты имен
+      const getOpStageIdc = (op: TCardOperationItem): number | null => {
+        const anyOp = op as any;
+        return (
+          (typeof anyOp.stage_idc === 'number' && anyOp.stage_idc) ??
+          (typeof anyOp.stageIdc === 'number' && anyOp.stageIdc) ??
+          (anyOp.stage && typeof anyOp.stage.idc === 'number' && anyOp.stage.idc) ??
+          null
+        );
+      };
+
+      // операции из "нового состава", которые всё ещё ссылаются на удаляемые стадии (по idc)
+      const blockingOps = tCardOperations.filter(op => {
+        const sidc = getOpStageIdc(op);
+        return sidc !== null && stageIdcsToDelete.includes(sidc);
+      });
+
+      if (blockingOps.length > 0) {
+        // логируем и выходим
         void ulogger.error({
           userId,
           location: "handlers-update/updateStages",
           event: "refuse_delete_stage_with_ops",
-          message: `Попытка удалить стадии с операциями: tCardId=${savedTCard.id}, tCardIdc=${savedTCard.idc}`,
-          context: { stageIds, opsCount },
-        }).catch(() => { console.error("logger error") });
+          message: `Попытка удалить стадии, на которые указывают переданные операции (по idc): tCardId=${savedTCard.id}, tCardIdc=${savedTCard.idc}`,
+          context: {
+            stageIdcsToDelete,
+            blockingOpsIdcs: blockingOps.map(o => (o as any).idc ?? null).filter(Boolean),
+          },
+        }).catch(() => { console.error("logger error"); });
 
-        return { success: false, message: t('mes.impossibleToDelStage') /* "Невозможно удалить стадию, в ней есть операции. Сначала удалите операции из стадии." */ };
+        /* "Невозможно удалить стадию, в ней есть операции. Сначала удалите операции из стадии." */
+        return { success: false, message: t('mes.impossibleToDelStage') };
       }
     }
+    // === КОНЕЦ правки проверки ===
 
-    // 1b. Удаляем стадии (операций на них уже нет по проверке выше)
+    // 1b. Удаляем стадии (операций на них нет согласно проверке выше)
     if (stagesToDelete.length > 0) {
       await tCardStagesRepository.remove(stagesToDelete);
     }
@@ -1546,7 +1571,7 @@ export async function updateStages(
 
     const savedNewStages = newStages.length > 0 ? await tCardStagesRepository.save(newStages) : [];
 
-    // 3. Обновляем существующие стадии  если отказатся от визуализации столбца то вообще не нужен, но пока осталю
+    // 3. Обновляем существующие стадии (если нужно)
     const updatedStages = tCardStages
       .filter(stage => existingTCardStages.some(existingStage => existingStage.id === stage.id))
       .map(stage => {
@@ -1559,7 +1584,7 @@ export async function updateStages(
 
     const savedUpdatedStages = updatedStages.length > 0 ? await tCardStagesRepository.save(updatedStages) : [];
 
-    // 4. Объединяем результат
+    // 4. Результат
     const savedTCardStages = [...savedNewStages, ...savedUpdatedStages]
       .sort((a, b) => a.code - b.code)
       .map(stage => ({
@@ -1641,13 +1666,14 @@ export async function updateOperations(
     // Добавляем новые операции
     const newOperations = operationsToAdd.map(op => {
       const savedStage = savedTCardStages.find(stage => stage.idc === op.stage.idc);
-      if (!savedStage || !op.action.id) return null;
+      // if (!savedStage || !op.action.id) return null;
+      if (!savedStage) return null;
 
       return tCardOperationsRepository.create({
         idc: op.idc,
         stage_id: savedStage.id,
         order: op.order,
-        action_id: op.action.id,
+        action_id: op.action.id ?? null,
         duration: op.duration,
         tcard_id: savedTCard.id,
         status: op.status,

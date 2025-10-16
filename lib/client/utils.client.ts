@@ -127,127 +127,118 @@ export function generateUniqueIdc(): number {
 
 ///////////// PLANING /////////////
 
-//  функция определяемт входит ли  дата в список выходных расписания
-export const isWeekend = (dateStr: string, schedule: ScheduleItem): boolean => {
-  const date = getTimeZoneDateFromDateString(dateStr, schedule.timeZone);
-  const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
+// //  функция определяемт входит ли  дата в список выходных расписания
+// export const isWeekend = (dateStr: string, schedule: ScheduleItem): boolean => {
+//   const date = getTimeZoneDateFromDateString(dateStr, schedule.timeZone);
+//   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
 
-  let dayString = DaysOfWeek.SUNDAY;
+//   let dayString = DaysOfWeek.SUNDAY;
 
-  switch (dayOfWeek) {
-    case 1:
-      dayString = DaysOfWeek.MONDAY;
-      break;
-    case 2:
-      dayString = DaysOfWeek.TUESDAY;
-      break;
-    case 3:
-      dayString = DaysOfWeek.WEDNESDAY;
-      break;
-    case 4:
-      dayString = DaysOfWeek.THURSDAY;
-      break;
-    case 5:
-      dayString = DaysOfWeek.FRIDAY;
-      break;
-    case 6:
-      dayString = DaysOfWeek.SATURDAY;
-      break;
-    default:
-      dayString = DaysOfWeek.SUNDAY;
-      break;
-  }
+//   switch (dayOfWeek) {
+//     case 1:
+//       dayString = DaysOfWeek.MONDAY;
+//       break;
+//     case 2:
+//       dayString = DaysOfWeek.TUESDAY;
+//       break;
+//     case 3:
+//       dayString = DaysOfWeek.WEDNESDAY;
+//       break;
+//     case 4:
+//       dayString = DaysOfWeek.THURSDAY;
+//       break;
+//     case 5:
+//       dayString = DaysOfWeek.FRIDAY;
+//       break;
+//     case 6:
+//       dayString = DaysOfWeek.SATURDAY;
+//       break;
+//     default:
+//       dayString = DaysOfWeek.SUNDAY;
+//       break;
+//   }
 
-  // Проверяем, является ли день выходным
-  if (schedule.teamId) return schedule.weekends.includes(dayString);
-  else return false
-}
-//  функция определяемт входит ли  дата в список праздниклв расписания
-export const isHoliday = (dateString: string, schedule: ScheduleItem): boolean => {
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   // Проверяем, является ли день выходным
+//   if (schedule.teamId) return schedule.weekends.includes(dayString);
+//   else return false
+// }
+// //  функция определяемт входит ли  дата в список праздниклв расписания
+// export const isHoliday = (dateString: string, schedule: ScheduleItem): boolean => {
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.teamId)
-    return schedule.holidays.some(holiday =>
-      new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-    );
-  else return false
-}
-//  функция определяемт входит ли  дата в список дат дополнительного времени работы
-export const isAdditionalTime = (dateString: string, schedule: ScheduleItem): boolean => {
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.teamId)
+//     return schedule.holidays.some(holiday =>
+//       new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+//     );
+//   else return false
+// }
+// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
+// export const isAdditionalTime = (dateString: string, schedule: ScheduleItem): boolean => {
 
-  // // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   // // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.teamId)
-    return schedule.workdays.some(workday =>
-      new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-    ); else return false
-}
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.teamId)
+//     return schedule.workdays.some(workday =>
+//       new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+//     ); else return false
+// }
 
-// генерация привычной нам даты - ее использую как id дня
-export const idDay = (date: Date): string => {
-  return date.toLocaleDateString('en-CA');  // Возвращаем строку в формате "день.месяц.год"
-};
+// // генерация привычной нам даты - ее использую как id дня
+// export const idDay = (date: Date): string => {
+//   return date.toLocaleDateString('en-CA');  // Возвращаем строку в формате "день.месяц.год"
+// };
 
-// генерация одного дня на шкале
-// export const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
-export const generateCalendarItem = (dayStr: string, schedule: ScheduleItem): CalendarItem => {
+// // генерация одного дня на шкале
+// // export const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
+// export const generateCalendarItem = (dayStr: string, schedule: ScheduleItem): CalendarItem => {
 
-  // const currentDate = (typeof day === 'string')
-  //   ? getTimeZoneDateFromDateString(day, schedule.timeZone)
-  //   : day
-  const currentDate = getTimeZoneDateFromDateString(dayStr, schedule.timeZone)
-  // const currentDate = day;
+ 
+//   const currentDate = getTimeZoneDateFromDateString(dayStr, schedule.timeZone)
+ 
 
-  // const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-  // currentDate.setHours(0, 0, 0, 0);
+//   const _isWeekend = isWeekend(dayStr, schedule);  // День недели для учета выходных
+//   const _isHoliday = isHoliday(dayStr, schedule);  // День недели для учета Праздников
+//   const _isAdditionalTime = isAdditionalTime(dayStr, schedule);  // 
 
-  // const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
-  // const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
-  // const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // 
+//   let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
+//   let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
+//   let breaks = _isWeekend || _isHoliday || (!schedule.teamId) ? [] : [...schedule.breaks];
 
-  const _isWeekend = isWeekend(dayStr, schedule);  // День недели для учета выходных
-  const _isHoliday = isHoliday(dayStr, schedule);  // День недели для учета Праздников
-  const _isAdditionalTime = isAdditionalTime(dayStr, schedule);  // 
+//   if (_isAdditionalTime) {
+//     const workday = schedule.workdays.find(
+//       // workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
+//       workday => workday.date === dayStr);
+//     // если дата есть, то нужно просто взять дополнительное время из workday  
+//     if (workday) {
+//       if (_isWeekend || _isHoliday) {
+//         timeStartWork = workday.timeStart;
+//         timeFinishWork = workday.timeFinish;
+//       } else {
+//         timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
+//         timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
+//       }
+//       //  проверим перерывы и если попадают в рабочий период вставим
+//       breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
+//     }
+//   }
 
-  let timeStartWork = _isWeekend || _isHoliday ? 0 : schedule.timeStartWork;
-  let timeFinishWork = _isWeekend || _isHoliday ? 0 : schedule.timeFinishWork;
-  let breaks = _isWeekend || _isHoliday || (!schedule.teamId) ? [] : [...schedule.breaks];
-
-  if (_isAdditionalTime) {
-    const workday = schedule.workdays.find(
-      // workday => workday.date === currentDate.toLocaleDateString("en-CA").split(',')[0]);
-      workday => workday.date === dayStr);
-    // если дата есть, то нужно просто взять дополнительное время из workday  
-    if (workday) {
-      if (_isWeekend || _isHoliday) {
-        timeStartWork = workday.timeStart;
-        timeFinishWork = workday.timeFinish;
-      } else {
-        timeStartWork = Math.min(schedule.timeStartWork, workday.timeStart)
-        timeFinishWork = Math.max(schedule.timeFinishWork, workday.timeFinish);
-      }
-      //  проверим перерывы и если попадают в рабочий период вставим
-      breaks = schedule.breaks.filter(breack => breack.timeStart > timeStartWork && breack.timeFinish < timeFinishWork)
-    }
-  }
-
-  // Создаем объект CalendarItem
-  const calendarItem: CalendarItem = {
-    idDay: idDay(currentDate),
-    // date: new Date(currentDate),  // Текущая дата
-    date: dayStr,  // Текущая дата
-    mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
-    day: true,  // Указываем, что это день
-    timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
-    timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
-    breaks: breaks,
-  };
-  return calendarItem;  // Возвращаем один элемент календаря
-};
+//   // Создаем объект CalendarItem
+//   const calendarItem: CalendarItem = {
+//     idDay: idDay(currentDate),
+//     // date: new Date(currentDate),  // Текущая дата
+//     date: dayStr,  // Текущая дата
+//     mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+//     day: true,  // Указываем, что это день
+//     timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
+//     timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
+//     breaks: breaks,
+//   };
+//   return calendarItem;  // Возвращаем один элемент календаря
+// };
 
 // Функция для получения числового приоритета статуса
 export const getStatusPriority = (status: StatusEnum): number => {

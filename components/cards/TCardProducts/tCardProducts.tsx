@@ -12,7 +12,33 @@ import edit from "@/public/edit-rem.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
+// ==== вверху файла (если ещё не добавляла) ====
+const __prodLocalKeys = new WeakMap<object, string>();
+let __prodSeq = 1;
+
+const localKeyForProd = (o: object) => {
+    let k = __prodLocalKeys.get(o);
+    if (!k) { k = `pi${__prodSeq++}`; __prodLocalKeys.set(o, k); }
+    return k;
+};
+
+// устойчивый ключ для элемента продукта
+const mkProdKey = (
+    cardKey: string,
+    prefix: string,
+    item: { product?: { id?: number | string; idc?: number | string } | null; code?: string | number | null } & object,
+    i: number
+) => {
+    const pid =
+        item?.product?.id ??
+        item?.product?.idc ??
+        (item?.code != null && item.code !== '' ? String(item.code) : undefined) ??
+        localKeyForProd(item);
+    return `k-${cardKey}-${prefix}-${pid}-${i}`;
+};
+
 export interface TCardProductsProps {
+    tCardKey: string; // FIX
     products: ProductItem[],
     tCardProducts: TCardProductItem[],
     tCardOperations?: TCardOperationItem[], // для прорисовки статусов
@@ -28,11 +54,12 @@ export interface TCardProductsProps {
     positionY: number,
     handleDrop: (e: React.DragEvent<HTMLDivElement>, target: string) => void,
     possibleEdit: boolean,
-    prefix: string,    
+    prefix: string,
     lightProduct: number,  // idc  продукта который нужно выделить цветом  
 }
 
 export default function TCardProducts({
+    tCardKey,
     products,
     tCardProducts,
     tCardOperations,
@@ -48,11 +75,11 @@ export default function TCardProducts({
     positionY,
     handleDrop,
     possibleEdit,
-    prefix,   
+    prefix,
     lightProduct,
 }: TCardProductsProps) {
 
-    const [edited, setEdited] = useState(false);    
+    const [edited, setEdited] = useState(false);
 
     const [tProductsValue, setTProductsValue] = useState<(Omit<TCardProductItem, 'product'> & { product: ProductItem | null })[]>([]);
     const [message, setMessage] = useState("");
@@ -105,10 +132,10 @@ export default function TCardProducts({
         }
     };
 
-    const addProductHandler = () => {        
-        const newProduct = {         
+    const addProductHandler = () => {
+        const newProduct = {
             code: "",
-            qtu: 0,         
+            qtu: 0,
             mode: true,
             product: {} as ProductItem
         } as TCardProductItem;
@@ -116,16 +143,16 @@ export default function TCardProducts({
     };
 
     const tCardProductsReactNodes = tProductsValue.map((elem, index) => {
-
-        const regex = /^([A-Z])(\d+)([IO])(\d+)/; // Регулярное выражение для извлечения компонентов
+        const regex = /^([A-Z])(\d+)([IO])(\d+)/;
         const match = elem.code.match(regex);
-        const idc = (match) ? parseInt(match[2], 10) : NaN;  // idc операции (цифры)
+        const idc = match ? parseInt(match[2], 10) : NaN;
         const status = tCardOperations?.find(op => op.idc === idc)?.status;
+        const key = mkProdKey(tCardKey, prefix, elem, index);
 
-        return (<>
-            {edited &&
+        if (edited) {
+            return (
                 <TCardProductNew
-                    key={'products' + index}
+                    key={key}
                     product={elem.product}
                     products={products}
                     code={elem.code}
@@ -133,35 +160,39 @@ export default function TCardProducts({
                     changeProductHandler={changeProductHandler}
                     deleteProductHandler={deleteProductHandler}
                     index={index}
-                />}
-            {!edited && elem.product !== null && (elem.product) &&
-                <TCardProduct
-                    key={'products' + index}
-                    product={elem.product}
-                    code={elem.code}
-                    qtu={elem.qtu}
-                    dragOverHandler={dragOverHandler}
-                    dropHandler={dropHandler}
-                    setCurrentDraggingElement={setCurrentDraggingElement}
-                    handleMouseDown={handleMouseDown}
-                    handleMouseUp={handleMouseUp}
-                    isDragging={isDragging}
-                    currentDraggingElement={currentDraggingElement}
-                    positionX={positionX}
-                    positionY={positionY}
-                    handleDrop={handleDrop}
-                    prefix={prefix}
-                    index={index}
-                    lightProduct={lightProduct}
-                    status={status}
-                />}
-        </>
+                />
+            );
+        }
+
+        if (!elem.product) return null;
+
+        return (
+            <TCardProduct
+                key={key}
+                product={elem.product}
+                code={elem.code}
+                qtu={elem.qtu}
+                dragOverHandler={dragOverHandler}
+                dropHandler={dropHandler}
+                setCurrentDraggingElement={setCurrentDraggingElement}
+                handleMouseDown={handleMouseDown}
+                handleMouseUp={handleMouseUp}
+                isDragging={isDragging}
+                currentDraggingElement={currentDraggingElement}
+                positionX={positionX}
+                positionY={positionY}
+                handleDrop={handleDrop}
+                prefix={prefix}
+                index={index}
+                lightProduct={lightProduct}
+                status={status}
+            />
         );
-    })
+    });
 
     return (
 
-        <div 
+        <div
             className={styles.container}
             onDragOver={(e) => dragOverHandler(e)}
             onDrop={(e) => {

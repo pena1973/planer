@@ -42,6 +42,27 @@ import delD from "@/public/del2-rem.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add222-rem.png";
 import reset from "@/public/cancel.png";
+import { YYYYMMDDTZ, getCurrentDateInString } from "@/lib/common/timezone";
+
+// ==== helpers ====
+const __localObjKeys = new WeakMap<object, string>();   // для объектов
+const __localPrimKeys = new Map<string, string>();      // для примитивов
+let __seq = 1;
+
+function localKeyFor(o: unknown) {
+  // объект или функция — можно в WeakMap
+  if (o !== null && (typeof o === 'object' || typeof o === 'function')) {
+    const obj = o as object;
+    let k = __localObjKeys.get(obj);
+    if (!k) { k = `tmp${__seq++}`; __localObjKeys.set(obj, k); }
+    return k;
+  }
+  // примитив (number/string/boolean/undefined/symbol) — в обычный Map
+  const sig = `${typeof o}:${String(o)}`;
+  let k = __localPrimKeys.get(sig);
+  if (!k) { k = `tmp${__seq++}`; __localPrimKeys.set(sig, k); }
+  return k;
+}
 
 
 export default function Cards() {
@@ -66,25 +87,21 @@ export default function Cards() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
-
   const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
   const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
-
   const tCards = useAppSelector((state: RootState) => {
     return state.dataSlice.tCards;
   })
-
   const uoms = useAppSelector((state: RootState) => {
     return state.catalogSlice.uoms;
   })
   const actions = useAppSelector((state: RootState) => {
     return state.catalogSlice.actions;
   })
-
   const templates = useAppSelector((state: RootState) => {
     return state.dataSlice.templates;
   })
@@ -568,8 +585,6 @@ export default function Cards() {
     e.preventDefault();
   }
 
-
-
   // СТАДИИ
   // На клиенте
   const addStage = async (afterStageCode: number) => {
@@ -758,7 +773,7 @@ export default function Cards() {
   // На клиенте
   const addTCardHandler = async () => {
     setMessage("");
-    const currentDate = new Date().toLocaleDateString("en-CA"); // формат YYYY-MM-DD
+    const currentDate = getCurrentDateInString(schedule.timeZone); // формат YYYY-MM-DD
     const tempId = generateUniqueIdc();
     const newTCard = {
       id: -tempId,
@@ -790,22 +805,61 @@ export default function Cards() {
 
   // На сервере
   // Он подгружает карту с сервера если она не была подгружена ранее.
+  // const selectTCardHandler = async (selectedTCard: TCardItem) => {
+
+  //   if (!selectedTCard) return // если не выбрана карта ничего не делаем
+
+  //   // ищем индекс выбранной карты в списке
+  //   const indexCurrentCard = tCards.findIndex(card => card.idc === selectedTCard.idc && card.date === selectedTCard.date);
+  //   dispatch(setTCardIndex(indexCurrentCard)); // устанавливаем индекс новой карты    
+
+  //   // если карта не сохраненная вытаскиваем из нашего списка и возвращаем  
+  //   if (selectedTCard.modified || selectedTCard.tCardProducts !== undefined) {
+  //     return
+  //   }
+  //   // если карта не была ранее подгружена, то вытаскиваем из базы
+  //   setResetLoaderCard(selectedTCard.id)
+  //   await selectTCardById(user.id, selectedTCard.id, indexCurrentCard, tCards, token, team, dispatch, t, i18n.language, setMessage);
+  //   setResetLoaderCard(NaN)
+  // };
+
+  // На клиенте/сервере — где объявлена функция
   const selectTCardHandler = async (selectedTCard: TCardItem) => {
+    if (!selectedTCard) return;
 
-    if (!selectedTCard) return // если не выбрана карта ничего не делаем
+    // FIX: сравниваем карты по устойчивому ключу (id → idc → localKeyFor)
+    const cardKeyOf = (c: TCardItem) =>
+      c?.id != null
+        ? `id-${c.id}`
+        : c?.idc != null && c.idc !== 0
+          ? `idc-${c.idc}`
+          : localKeyFor(c as object);
 
-    // ищем индекс выбранной карты в списке
-    const indexCurrentCard = tCards.findIndex(card => card.idc === selectedTCard.idc && card.date === selectedTCard.date);
-    dispatch(setTCardIndex(indexCurrentCard)); // устанавливаем индекс новой карты    
+    const targetKey = cardKeyOf(selectedTCard);                    // FIX
+    const indexCurrentCard = tCards.findIndex(c => cardKeyOf(c) === targetKey); // FIX
+    if (indexCurrentCard < 0) return;                              // FIX (на всякий)
 
-    // если карта не сохраненная вытаскиваем из нашего списка и возвращаем  
+    dispatch(setTCardIndex(indexCurrentCard)); // устанавливаем индекс новой карты
+
+    // если карта несохранённая или уже загружена — ничего не тянем с сервера
     if (selectedTCard.modified || selectedTCard.tCardProducts !== undefined) {
-      return
+      return;
     }
-    // если карта не была ранее подгружена, то вытаскиваем из базы
-    setResetLoaderCard(selectedTCard.id)
-    await selectTCardById(user.id, selectedTCard.id, indexCurrentCard, tCards, token, team, dispatch, t, i18n.language, setMessage);
-    setResetLoaderCard(NaN)
+
+    setResetLoaderCard(selectedTCard.id);
+    await selectTCardById(
+      user.id,
+      selectedTCard.id,
+      indexCurrentCard,
+      tCards,
+      token,
+      team,
+      dispatch,
+      t,
+      i18n.language,
+      setMessage
+    );
+    setResetLoaderCard(NaN);
   };
 
   // На клиенте
@@ -838,7 +892,30 @@ export default function Cards() {
 
   // На клиенте
   const setCardPrepared = async () => {
+    setMessage("");
     const tCard = tCards[tCardIndex]
+    // проверяем на согласованность
+
+    let message = "";
+    for (const oper of tCard.tCardOperations ?? []) {
+      if (!oper.action.id) message = message.concat(`Не заполнено действие операции  A${oper.idc}, `)
+      if (oper.inn.length === 0) message = message.concat(`Не заполнены продукты на вход операции  A${oper.idc}, `)
+      if (oper.out.length === 0) message = message.concat(`Не заполнен результат операции A${oper.idc}, `)
+      for (const innp of oper.inn ?? []) {
+        if (innp.qtu <= 0) message = message.concat(`Не заполнен продукт A${oper.idc}, источник код ${innp.code} `)
+        if (innp.qtu <= 0) message = message.concat(`Не заполнено или отрицательно количество A${oper.idc}, источник код ${innp.code} `)
+      }
+      for (const outp of oper.out ?? []) {
+        if (outp.qtu <= 0) message = message.concat(`Не заполнен продукт A${oper.idc}, результат код ${outp.code} `)
+        if (outp.qtu <= 0) message = message.concat(`Не заполнено или отрицательно количество A${oper.idc}, результат код ${outp.code} `)
+      }
+    }
+    if (message.length > 0) {
+      setMessage(message);
+      return;
+    }
+
+
     const tCardCurrentOperations_ = tCard.tCardOperations?.map(oper => {
       if (oper.status === StatusEnum.draft)
         return { ...oper, status: StatusEnum.prepared }
@@ -1126,13 +1203,8 @@ export default function Cards() {
 
   ////////////////// КАТАЛОГ продуктс
   // На клиенте (ПРОВЕРКА ПРИ УДАДЕНИИ ПРЕДМЕТА КАТАЛОГА ЧТОБЫ ОН НЕ БЫЛ ЗАДЕЙСТВОВАН В ОПЕР КАРТЫ)
-  const isPossibleToDelete = (indexToRemove: number): boolean => {
+  const isPossibleToDelete = (idcToRemove: number): boolean => {
     const tCard = tCards[tCardIndex];
-    const productToRemove = tCard.products?.[indexToRemove];
-
-    if (!productToRemove) return true; // если продукта нет — можно "удалить"
-
-    const idcToRemove = productToRemove.idc;
 
     // Проверка в products уровня карты
     const usedInProducts = tCard.tCardProducts?.some(p => p.product.idc === idcToRemove);
@@ -1252,7 +1324,6 @@ export default function Cards() {
     };
 
   };
-
 
   ////////////////////////////////////////////
   // На клиенте
@@ -1511,6 +1582,7 @@ export default function Cards() {
     await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
   }
 
+
   //  реакт узлы
   const tCardStages = (tCards[tCardIndex] && tCards[tCardIndex].tCardStages) ? tCards[tCardIndex].tCardStages : [] as TCardStageItem[];
   const tCardOperations = (tCards[tCardIndex] && tCards[tCardIndex].tCardOperations) ? tCards[tCardIndex].tCardOperations : [] as TCardOperationItem[];
@@ -1519,87 +1591,115 @@ export default function Cards() {
   const tCardMaterials = (tCards[tCardIndex] && tCards[tCardIndex].tCardMaterials) ? tCards[tCardIndex].tCardMaterials : [] as TCardProductItem[];
   const products = (tCards[tCardIndex] && tCards[tCardIndex].products) ? tCards[tCardIndex].products : [] as ProductItem[];
 
-  // Стадии
-  const tCardStagesReactNodes = tCardStages.map((tStage, index2) => {
-    //  получили операции стадии
+
+  // ---- Стадии/карта
+  const card = tCards[tCardIndex];
+  const tCardKey =
+    card?.id != null ? `id-${card.id}` :
+      card?.idc != null && card.idc !== 0 ? `idc-${card.idc}` :
+        localKeyFor(card as object); // FIX: устойчивый локальный ключ даже при пустых id/idc
+
+  const mkStageKey = (s: TCardStageItem, i: number) =>
+    `c${tCardKey}-s-${s.id ?? (s.idc ?? `i${i}`)}`;
+
+  const mkOperKey = (op: TCardOperationItem, i: number) =>
+    `c${tCardKey}-o-${op.id ?? (op.idc ?? `i${i}`)}`;
+
+
+
+  // ---- Стадии
+  const tCardStagesReactNodes = tCardStages.map((tStage, idxStage) => {
+
     const operations = tCardOperations
-      .filter(tOper => (tOper.stage.idc === tStage.idc))
+      .filter(tOper => tOper.stage?.idc === tStage.idc)
       .sort((a, b) => a.order - b.order);
 
-    const operationsReactNodes = operations.map((tCardOperation, index1) => {
-      const fixed = (operations.find(op => op.fixOperIdc === tCardOperation.idc) !== undefined);
-      const operLoads = unitLoads.filter(lo => lo.idc_oper === tCardOperation.idc && lo.id_tCard === tCards[tCardIndex].id)
-      return (<>
-        {!(tCardOperation.mode) &&
-          <TCardOper
-            key={'op' + tCardOperation.idc}
-            index={index1}
-            tCardOperation={tCardOperation}
-            dragOverHandler={dragOverHandler}
-            dropHandler={dropHandler}
-            setCurrentDraggingElement={setCurrentDraggingElement}
-            handleMouseDown={handleMouseDown}
-            handleMouseUp={handleMouseUp}
-            isDragging={isDragging}
-            currentDraggingElement={currentDraggingElement}
-            positionX={position.x}
-            positionY={position.y}
-            handleDrop={handleDrop}
-            deleteOperHandler={deleteOperHandler}
-            editOperHandler={editOperHandler}
-            setOperStatus={setOperStatus}
-            fixDefect={fixDefect}
-            lightProduct={lightProduct}
-            fixed={fixed}
-            operLoads={operLoads}
-            cancelLoadHandler={cancelLoadHandler}
-            timezone={schedule.timeZone}
-          />}
+    const operationsReactNodes = operations.map((tCardOperation, idxOper) => {
+      const opKey = mkOperKey(tCardOperation, idxOper);
+      const fixed = operations.some(op => op.fixOperIdc === tCardOperation.idc);
+      const operLoads = unitLoads.filter(
+        lo => lo.idc_oper === tCardOperation.idc && lo.id_tCard === card.id
+      );
 
-        {tCardOperation.mode && <TCardOperNew
+      // возвращаем ОДИН корневой элемент — сам компонент операции — с корректным key
+      return !tCardOperation.mode ? (
+        <TCardOper
+          key={opKey}
+          index={idxOper}
+          tCardOperation={tCardOperation}
+          dragOverHandler={dragOverHandler}
+          dropHandler={dropHandler}
+          setCurrentDraggingElement={setCurrentDraggingElement}
+          handleMouseDown={handleMouseDown}
+          handleMouseUp={handleMouseUp}
+          isDragging={isDragging}
+          currentDraggingElement={currentDraggingElement}
+          positionX={position.x}
+          positionY={position.y}
+          handleDrop={handleDrop}
+          deleteOperHandler={deleteOperHandler}
+          editOperHandler={editOperHandler}
+          setOperStatus={setOperStatus}
+          fixDefect={fixDefect}
+          lightProduct={lightProduct}
+          fixed={fixed}
+          operLoads={operLoads}
+          cancelLoadHandler={cancelLoadHandler}
+          timezone={schedule.timeZone}
+        />
+      ) : (
+        <TCardOperNew
+          key={opKey}
           products={products}
-          key={'op' + tCardOperation.idc}
           tCardOperation={tCardOperation}
           deleteOperHandler={deleteOperHandler}
           cancelOperHandler={cancelOperHandler}
           saveOperHandler={saveOperHandler}
-        />}
-      </>)
-    })
+        />
+      );
+    });
 
     return (
-      <div key={'tStage' + tStage.id}
+      <div
+        key={mkStageKey(tStage, idxStage)}
         className="container_stage"
-        onDragOver={(e) => dragOverHandler(e)}
-        onDrop={(e) => { handleDrop(e, `S${tStage.idc}`) }}
+        onDragOver={dragOverHandler}
+        onDrop={(e) => { handleDrop(e, `S${tStage.idc}`); }}
       >
         <div className="container_stage_title">
           &nbsp;
-          {/* {t('cards.stage')} {tStage.code} */}
-          <Image className="icon_del_stage"
-            src={delL} alt="del" width={20} height={20}
-            onClick={() => delStage(tStage)}
-          />
-
-          <Image className="icon_add_stage"
-            src={add} alt="add" width={20} height={20}
-            onClick={() => addStage(tStage.code)}
-          />
+          <Image className="icon_del_stage" src={delL} alt="del" width={20} height={20}
+            onClick={() => delStage(tStage)} />
+          <Image className="icon_add_stage" src={add} alt="add" width={20} height={20}
+            onClick={() => addStage(tStage.code)} />
         </div>
-        {operationsReactNodes}
-        <button className="button1" onClick={() => addOperHandler(tStage)}> {t('cards.addOper')}</button>
-      </div>
 
+        {operationsReactNodes}
+
+        <button className="button1" onClick={() => addOperHandler(tStage)}>
+          {t('cards.addOper')}
+        </button>
+      </div>
     );
-  })
+  });
 
   // Карты
   const tCardsReactNodes = tCards.map((elem, index4) => {
-    let date = "";
-    if (elem.date)
-      date = elem.date;
+    // let date = "";
+    // if (elem.date)
+    //   date = elem.date;
+
+    const elemKey =
+      elem.id != null ? `id-${elem.id}` :
+        (elem.idc != null && elem.idc !== 0) ? `idc-${elem.idc}` :
+          localKeyFor(elem as object); // FIX
+
+    const date = elem.date ?? "";
+
+
     return (
-      <div key={"card" + elem.date + elem.id} className="container_card">
+      // <div key={"card" + elem.date + elem.id} className="container_card">
+      <div key={`card-${elemKey}`} className="container_card"> {/* FIX */}
         <div className="container_icon_edit_save">
           {resetLoaderCard === elem.id && <ButtonLoader />}
           {resetLoaderCard !== elem.id &&
@@ -1733,6 +1833,7 @@ export default function Cards() {
               </div>
 
               <TCardProducts
+                tCardKey={tCardKey}
                 products={products}
                 tCardProducts={tCardProducts}
                 tCardOperations={tCardOperations}
@@ -1757,6 +1858,7 @@ export default function Cards() {
                 {t('cards.wastes')}
               </div>
               <TCardProducts
+                tCardKey={tCardKey}
                 products={products}
                 tCardProducts={tCardWastes}
                 tCardOperations={tCardOperations}
@@ -1816,6 +1918,7 @@ export default function Cards() {
                   {t('cards.materials')}
                 </div>
                 <TCardProducts
+                  tCardKey={tCardKey}
                   products={products}
                   tCardProducts={tCardMaterials}
                   saveTCardProductsHandler={saveTCardProductsHandler}

@@ -36,8 +36,8 @@
 .container_index_right {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    height: calc(100vh - 400px);
+    // justify-content: center;
+    // height: calc(100vh - 400px);
     width: 40%;
     // background-color: rgb(190, 190, 100);    
     align-items: center;
@@ -110,6 +110,7 @@
 // LOGIN
 .login_container {
     margin: 30px;
+    margin-top: 80px;
     padding: 15px;
     max-width: 242px;
     border-radius: $border_radius;
@@ -167,7 +168,6 @@
     font-style: italic;
     // margin-left: 10px;
     // text-align: center;
-
 }
 
 .login_message {
@@ -183,15 +183,13 @@
 
 .register_container {
     margin: 30px;
-    padding: 15px;
-    // margin: 50px 30px 10px;
-    // padding: 15px;
+    margin-top: 80px;
+    padding: 15px;    
     max-width: 242px;
     min-width: 242px;
     border-radius: $border_radius;
     background-color: $main_container_background_color;
-    border: $border;
-    // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: $border;    
     color: $second_text_color;
 }
 
@@ -287,7 +285,7 @@
 // начальная загрузка
 .loader_container {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     min-height: calc(100vh - 110px);
     flex-direction: column;
@@ -298,4 +296,5 @@
 .loader_title {
     font-size: $header1_font_size;
     margin: 10px;
+    
 }

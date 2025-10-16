@@ -1,13 +1,13 @@
 
 import styles from "./tCardProduct.module.scss";
-import { UOMItem, StatusEnum,ProductItem } from '@/types/types'
+import {  StatusEnum, ProductItem } from '@/types/types'
 
 import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 
-export interface TCardProductProps {    
-    product:ProductItem,    
-    code: string,    
-    qtu: number,    
+export interface TCardProductProps {
+    product: ProductItem,
+    code: string,
+    qtu: number,
     dragOverHandler: (e: React.DragEvent<HTMLElement>) => void,
     dropHandler: (e: React.DragEvent<HTMLElement>) => void,
     setCurrentDraggingElement: ({ }: string) => void,
@@ -25,8 +25,8 @@ export interface TCardProductProps {
 }
 
 export default function TCardProduct({
-    product,    
-    code,    
+    product,
+    code,
     qtu,
     dragOverHandler,
     dropHandler,
@@ -73,7 +73,7 @@ export default function TCardProduct({
             <div className={styles.tCardProduct_code} style={{ width: codeWidth }}>{code1}</div>
             <div className={styles.tCardProduct_product} >{`${product.title}(${product.uom.title})`}</div>
             <div className={styles.tCardProduct_qtu}>{qtu}</div>
-            
+
         </div>
 
     )

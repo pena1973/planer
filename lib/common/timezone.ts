@@ -55,57 +55,23 @@ export function getCurrentDateInDate(timeZoneValue: string): Date {
   return new Date(iso);
 }
 
-// FIX: безопасное форматирование Date → "YYYY-MM-DD" в нужной TZ
-export  function YYYYMMDDTZ(date: Date, timeZoneValue: string): string {
-  
+export function YYYYMMDDTZ(date: Date, timeZoneValue: string): string {
   const timeZone = getEnumKeyByValue(TimeZoneEnum, timeZoneValue);
-
-  const parts = new Intl.DateTimeFormat("ru-RU", {
+  const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric", month: "2-digit", day: "2-digit",
   }).formatToParts(date);
-  const y = parts.find(p => p.type === "year")!.value;
-  const m = parts.find(p => p.type === "month")!.value;
-  const d = parts.find(p => p.type === "day")!.value;
+
+  const y = parts.find(p => p.type === "year")?.value ?? "";
+  const m = parts.find(p => p.type === "month")?.value ?? "";
+  const d = parts.find(p => p.type === "day")?.value ?? "";
+
   return `${y}-${m}-${d}`;
 }
 
-// // получение даты  из строки в нужном часовом поясе  на выходе дата Date на начало дня переданной даты
-// export function getTimeZoneDateFromDateString(dateStr: string, timeZoneValue: string): Date {
-//   const timeZone = getEnumKeyByValue(TimeZoneEnum, timeZoneValue);
-//   // Разбираем yyyy-mm-dd вручную
-//   const [year, month, day] = dateStr.split('-').map(Number);
-
-//   // Получаем смещение таймзоны для этой даты
-//   const utcDate = new Date(Date.UTC(year, month - 1, day));
-
-//   // Берём время в этой TZ (00:00 по локали)
-//   const formatter = new Intl.DateTimeFormat('en-US', {
-//     timeZone,
-//     hour12: false,
-//     year: 'numeric',
-//     month: '2-digit',
-//     day: '2-digit',
-//     hour: '2-digit',
-//     minute: '2-digit',
-//     second: '2-digit',
-//   });
-
-//   const parts = formatter.formatToParts(utcDate);
-//   const y = parts.find(p => p.type === 'year')!.value;
-//   const m = parts.find(p => p.type === 'month')!.value;
-//   const d = parts.find(p => p.type === 'day')!.value;
-//   const h = parts.find(p => p.type === 'hour')!.value;
-//   const min = parts.find(p => p.type === 'minute')!.value;
-//   const s = parts.find(p => p.type === 'second')!.value;
-
-//   // Формируем ISO для UTC
-//   return new Date(`${y}-${m}-${d}T${h}:${min}:${s}Z`);
-// }
-// Возвращает Date = момент в UTC, соответствующий 00:00 в заданной TZ для yyyy-mm-dd
 
 export function getTimeZoneDateFromDateString(dateStr: string, timeZoneValue: string): Date {
- 
+
   const timeZone = getEnumKeyByValue(TimeZoneEnum, timeZoneValue);
   const [y, m, d] = dateStr.split('-').map(Number);
   const utcMidnight = Date.UTC(y, m - 1, d, 0, 0, 0); // 00:00 UTC этой даты
@@ -139,7 +105,6 @@ export const addDaysInZone = (date: Date, days: number, timeZoneValue: string): 
 
 
 // клиенские функции
-
 export function getUserTimeZoneEnum(): TimeZoneEnum {
   const now = new Date();
   const userIana = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -184,44 +149,3 @@ function getOffsetMinutes(tzIana: string, at: Date): number {
   return sign * (hh * 60 + mm);
 }
 
-
-// // пример
-// console.log(getTodayDateInTimeZone("Europe/Riga"));
-// console.log(getTodayDateInTimeZone("America/New_York"));
-
-// // пример:
-// console.log(getCurrentDate('Europe/Riga'));  // 2025-09-05
-// console.log(getCurrentDate('Asia/Tokyo'));   // 2025-09-06 (в зависимости от времени)
-
-// /** Локальная "сегодняшняя" дата команды как YYYY-MM-DD */
-// export function teamTodayISODate(teamTz: string): string {
-//   return DateTime.now().setZone(teamTz).toISODate(); // 'YYYY-MM-DD'
-// }
-
-// /** Превратить локальную дату команды в UTC-границы суток */
-// export function dayBoundsUtc(localYYYYMMDD: string, teamTz: string) {
-//   const startLocal = DateTime.fromISO(localYYYYMMDD, { zone: teamTz }).startOf('day');
-//   const endLocal = startLocal.plus({ days: 1 });
-//   return {
-//     startUtc: startLocal.toUTC().toJSDate(), // Date в UTC
-//     endUtc: endLocal.toUTC().toJSDate(),
-//   };
-// }
-
-// /** Сравнить: попадает ли UTC-момент в локальный день команды */
-// export function isUtcInTeamLocalDay(utcISO: string, localYYYYMMDD: string, teamTz: string): boolean {
-//   const { startUtc, endUtc } = dayBoundsUtc(localYYYYMMDD, teamTz);
-//   const t = DateTime.fromISO(utcISO, { zone: 'utc' }).toJSDate().getTime();
-//   return t >= startUtc.getTime() && t < endUtc.getTime();
-// }
-
-// /** Нормализованное "текущее время" сервера, но как локальная дата команды */
-// export function serverNowAsTeamLocalISODate(teamTz: string): string {
-//   return DateTime.now().setZone(teamTz).toISODate();
-// }
-
-// /** Перевод локального datetime команды -> UTC ISO (для записи моментных полей) */
-// export function localDateTimeToUtcISO(localISO: string, teamTz: string): string {
-//   // localISO: 'YYYY-MM-DDTHH:mm' (или с секундами)
-//   return DateTime.fromISO(localISO, { zone: teamTz }).toUTC().toISO();
-// }

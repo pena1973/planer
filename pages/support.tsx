@@ -65,7 +65,7 @@ export default function Support() {
         </div>
         <div className="container_global_right">
           {/* Сообщения тех поддержки */}
-          {suportPoint === 1 && <div className="contaitainer_catalog">
+          {suportPoint === 1 && (user.id) && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.messages1')}</div>
             <SupportMails
               setMessage={setMessage}
@@ -76,7 +76,7 @@ export default function Support() {
             />
           </div>}
           {/* Счета */}
-          {suportPoint === 2 && <div className="contaitainer_catalog">
+          {suportPoint === 2 && (user.id) && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.billing1')}</div>
             <Billing
               timezone={schedule.timeZone}
@@ -89,7 +89,7 @@ export default function Support() {
             />
           </div>}
           {/* Профиль */}
-          {suportPoint === 3 && <div className="contaitainer_catalog">
+          {suportPoint === 3 && (user.id) && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.profile1')}</div>
             <Profile
               team={team}
@@ -100,13 +100,13 @@ export default function Support() {
             />
           </div>}
           {/* Куки */}
-          {suportPoint === 4 && <div className="contaitainer_catalog">
+          {suportPoint === 4 && (user.id) && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.cookie')}</div>
             <CookiePolicyBlock />
 
           </div>}
           {/* Документация */}
-          {suportPoint === 5 && <div className="contaitainer_catalog">
+          {suportPoint === 5 && (user.id) && <div className="contaitainer_catalog">
             <div className="catalog_title">{t('support.docs')}</div>
             <Docs />
 

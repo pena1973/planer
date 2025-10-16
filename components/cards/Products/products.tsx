@@ -12,6 +12,18 @@ import edit from "@/public/edit-rem.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add-rem.png";
 
+// FIX: стабильный локальный ключ для элементов без id/idc
+const __prodLocalKeys = new WeakMap<object, string>();         // FIX
+let __prodSeq = 1;                                              // FIX
+const localKeyForProd = (o: object) => {                        // FIX
+    let k = __prodLocalKeys.get(o);
+    if (!k) { k = `prod-tmp-${__prodSeq++}`; __prodLocalKeys.set(o, k); }
+    return k;
+};
+// FIX: генератор ключа строки
+const rowKeyOf = (p: ProductItem, i: number) =>                 // FIX
+    `prod-${p.id ?? p.idc ?? p.sync ?? localKeyForProd(p as object)}-${i}`;
+
 export interface TCardProductsProps {
     products: ProductItem[],
     saveProductsHandler: (products: ProductItem[]) => void;
@@ -31,7 +43,7 @@ export interface TCardProductsProps {
     lightProduct: number,  // idc  продукта который нужно выделить цветом  
     maxIdc: number,
     setMaxIdc: (maxIdc: number) => void,
-    isPossibleToDelete: (indexToRemove: number) => boolean,
+    isPossibleToDelete: (idc: number) => boolean,
 }
 
 export default function TCardProducts({
@@ -65,9 +77,9 @@ export default function TCardProducts({
     }, [products]);
 
     // колбеки кнопки
-    const deleteProductHandler = (indexToRemove: number) => {
+    const deleteProductHandler = (indexToRemove: number, idc:number) => {
         //  проверка можно удалить или он уже задействован в расчетах
-        if (isPossibleToDelete(indexToRemove)) {
+        if (isPossibleToDelete(idc)) {
             const productsValueUpdated = [...productsValue]
             productsValueUpdated.splice(indexToRemove, 1)
             setProductsValue(productsValueUpdated)
@@ -124,13 +136,14 @@ export default function TCardProducts({
         setProductsValue([...productsValue, newProduct])
         setMaxIdc(idc);
     };
-
+   
     const productsReactNodes = productsValue.map((elem, index) => {
+        const rowKey = rowKeyOf(elem, index);
 
-        return (<>
-            {edited &&
+        if (edited) {
+            return (
                 <ProductNew
-                    key={'prod' + index}
+                    key={rowKey}
                     idc={elem.idc}
                     title={elem.title}
                     uom={elem.uom}
@@ -138,31 +151,33 @@ export default function TCardProducts({
                     changeProductHandler={changeProductHandler}
                     deleteProductHandler={deleteProductHandler}
                     index={index}
-                />}
-            {!edited &&
-                <Product
-                    key={'prod' + index}
-                    idc={elem.idc}
-                    title={elem.title}
-                    uom={elem.uom}
-                    sync={elem.sync}
-                    dragOverHandler={dragOverHandler}
-                    dropHandler={dropHandler}
-                    setCurrentDraggingElement={setCurrentDraggingElement}
-                    handleMouseDown={handleMouseDown}
-                    handleMouseUp={handleMouseUp}
-                    isDragging={isDragging}
-                    currentDraggingElement={currentDraggingElement}
-                    positionX={positionX}
-                    positionY={positionY}
-                    handleDrop={handleDrop}
-                    prefix={prefix}
-                    index={index}
-                    lightProduct={lightProduct}
-                />}
-        </>
+                />
+            );
+        }
+
+        return (
+            <Product
+                key={rowKey}
+                idc={elem.idc}
+                title={elem.title}
+                uom={elem.uom}
+                sync={elem.sync}
+                dragOverHandler={dragOverHandler}
+                dropHandler={dropHandler}
+                setCurrentDraggingElement={setCurrentDraggingElement}
+                handleMouseDown={handleMouseDown}
+                handleMouseUp={handleMouseUp}
+                isDragging={isDragging}
+                currentDraggingElement={currentDraggingElement}
+                positionX={positionX}
+                positionY={positionY}
+                handleDrop={handleDrop}
+                prefix={prefix}
+                index={index}
+                lightProduct={lightProduct}
+            />
         );
-    })
+    });
 
     return (
 

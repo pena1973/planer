@@ -16,7 +16,7 @@ export class TCardOperationTable {
   @Column('int',{ default: 0 })
   order!: number;  //  порядок визуализации операций на стадиях
 
-  @Column('int')
+  @Column('int', {nullable:true})
   action_id!: number;
 
   @Column('int')

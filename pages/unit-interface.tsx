@@ -17,7 +17,7 @@ import { ulogger } from "./../lib/common/universal-logger";
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
-import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/client/utils.client";
+import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/common/utils";
 import { setUnitLoads, setTCards } from '@/store/slices';
 
 import { getCurrentDateInDate, addDaysInZone } from "@/lib/client/timezone.client";
@@ -74,7 +74,7 @@ export default function UnitInterfase() {
   useEffect(() => {
     // Пока новая дата является выходным или праздником и нет дополнительного времени,
     // продолжаем увеличивать дату.
-    // const day_ = new Date(day);
+    
     let day_ = addDaysInZone(day, 0, schedule.timeZone);
     while ((isWeekend(YYYYMMDD(day_), schedule) || isHoliday(YYYYMMDD(day_), schedule)) && !isAdditionalTime(YYYYMMDD(day_), schedule)) {
       day_ = addDaysInZone(day_, 1, schedule.timeZone);

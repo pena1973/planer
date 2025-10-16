@@ -12,7 +12,8 @@ import {
 import LoadMonitorProcess from "./LoadMonitorProcess/loadMonitorProcess";
 import LoadOperProcess from "./LoadOperProcess/loadOperProcess";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import { generateCalendarItem, padNumberToFourDigits } from "@/lib/client/utils.client";
+import {padNumberToFourDigits } from "@/lib/client/utils.client";
+import { generateCalendarItem } from "@/lib/common/utils";
 
 import { useTranslation } from 'react-i18next';
 

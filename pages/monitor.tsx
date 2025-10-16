@@ -18,7 +18,8 @@ import { ulogger } from "./../lib/common/universal-logger";
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
-import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/client/utils.client";
+// import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/client/utils.client";
+import { isWeekend, isHoliday, isAdditionalTime } from "@/lib/common/utils";
 import { setUnitLoads, setMonitorPoint, setTCards } from '@/store/slices';
 import { getCurrentDateInDate, addDaysInZone } from "@/lib/client/timezone.client"
 export default function Monitor() {

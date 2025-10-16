@@ -9,7 +9,7 @@ import {
   UnitActionItem, ReadyProduct
 } from "./../types/types";
 
-import { YYYYMMDD } from "@/lib/common/utils"
+import { YYYYMMDD, isHoliday, idDay, isWeekend, isAdditionalTime } from "@/lib/common/utils"
 import { getCurrentDateInDate, getTimeZoneDateFromDateString, addDaysInZone, YYYYMMDDTZ } from "./../lib/common/timezone"
 
 // функция генерации loadIdc - уникальный идентификатор пока лоад не записан в базу
@@ -29,75 +29,75 @@ import { generateUniqueIdc } from './../lib/common/utils'
 // import TCardProduct from "@/components/cards/TCardProducts/TCardProduct/tCardProduct";
 // import Product from "@/components/cards/Products/Product/product";
 // генерация привычной нам даты - ее использую как id дня
-const idDay = (date: Date): string => {
-  const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-  const year = date.getFullYear();  // Год
+// const idDay = (date: Date): string => {
+//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
+//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
+//   const year = date.getFullYear();  // Год
 
-  return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-};
+//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
+// };
 
-//  функция определяемт входит ли  дата в список дат дополнительного времени работы
-const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
+// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
+// const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
 
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-  const dateString = YYYYMMDD(date);
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   const dateString = YYYYMMDD(date);
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.teamId)
-    return schedule.workdays.some(workday =>
-      YYYYMMDD(workday.date) === dateString
-      // new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-    ); else return false
-}
-//  функция определяемт входит ли  дата в список выходных расписания
-const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
-  const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.teamId)
+//     return schedule.workdays.some(workday =>
+//       YYYYMMDD(workday.date) === dateString
+//       // new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
+//     ); else return false
+// }
+// //  функция определяемт входит ли  дата в список выходных расписания
+// const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
+//   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
 
-  let dayString = DaysOfWeek.SUNDAY;
+//   let dayString = DaysOfWeek.SUNDAY;
 
-  switch (dayOfWeek) {
-    case 1:
-      dayString = DaysOfWeek.MONDAY;
-      break;
-    case 2:
-      dayString = DaysOfWeek.TUESDAY;
-      break;
-    case 3:
-      dayString = DaysOfWeek.WEDNESDAY;
-      break;
-    case 4:
-      dayString = DaysOfWeek.THURSDAY;
-      break;
-    case 5:
-      dayString = DaysOfWeek.FRIDAY;
-      break;
-    case 6:
-      dayString = DaysOfWeek.SATURDAY;
-      break;
-    default:
-      dayString = DaysOfWeek.SUNDAY;
-      break;
-  }
+//   switch (dayOfWeek) {
+//     case 1:
+//       dayString = DaysOfWeek.MONDAY;
+//       break;
+//     case 2:
+//       dayString = DaysOfWeek.TUESDAY;
+//       break;
+//     case 3:
+//       dayString = DaysOfWeek.WEDNESDAY;
+//       break;
+//     case 4:
+//       dayString = DaysOfWeek.THURSDAY;
+//       break;
+//     case 5:
+//       dayString = DaysOfWeek.FRIDAY;
+//       break;
+//     case 6:
+//       dayString = DaysOfWeek.SATURDAY;
+//       break;
+//     default:
+//       dayString = DaysOfWeek.SUNDAY;
+//       break;
+//   }
 
-  // Проверяем, является ли день выходным
-  if (schedule.teamId) return schedule.weekends.includes(dayString);
-  else return false
-}
-//  функция определяемт входит ли  дата в список праздников расписания
-const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-  const dateString = YYYYMMDD(date);
+//   // Проверяем, является ли день выходным
+//   if (schedule.teamId) return schedule.weekends.includes(dayString);
+//   else return false
+// }
+// //  функция определяемт входит ли  дата в список праздников расписания
+// const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   const dateString = YYYYMMDD(date);
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.teamId)
-    return schedule.holidays.some(holiday =>
-      YYYYMMDD(holiday) === dateString
-      // new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-    ); else return false
-}
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.teamId)
+//     return schedule.holidays.some(holiday =>
+//       YYYYMMDD(holiday) === dateString
+//       // new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
+//     ); else return false
+// }
 // генерация одного дня на шкале
 const generateCalendarItemOnServer = (day: string, schedule: ScheduleItem): CalendarItem => {
 
@@ -465,8 +465,8 @@ function findAvailableTimeForOperation_old(
       interruptible,
       totalRequired,
       isRetoolSegmentDefined)
-    
-      /// возможно надо не выкидывать а сдвигать
+
+    /// возможно надо не выкидывать а сдвигать
     if (resultOpSegments.success) {
       const segs = [...resultOpSegments.opSegments];
 
@@ -844,7 +844,7 @@ function findAvailableSegmentsDay(
 
   const workDay = generateCalendarItemOnServer(targetDateStr, schedule);
   let workStart = workDay.timeStartWork;
-  let workEnd   = workDay.timeFinishWork;
+  let workEnd = workDay.timeFinishWork;
 
   const busyPeriods: { type: TimeTypeEnum; start: number; end: number }[] = [];
 
@@ -853,7 +853,7 @@ function findAvailableSegmentsDay(
     exceptionsWorkDay.forEach(ex => {
       if (ex.type === TimeTypeEnum.work) {
         workStart = ex.timeStart;
-        workEnd   = ex.timeFinish;
+        workEnd = ex.timeFinish;
       } else {
         busyPeriods.push({ type: ex.type, start: ex.timeStart, end: ex.timeFinish });
       }
@@ -915,7 +915,7 @@ function findAvailableSegmentsDay(
         if (canPlaceRetool) {
           opSegments.push({ date: targetDateStr, start: retoolStart, finish: retoolStart + retoolTime, isRetool: true });
           availableStart = retoolStart + retoolTime;
-          freeInterval   = (nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd) - availableStart;
+          freeInterval = (nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd) - availableStart;
           isRetoolSegmentDefined = true;
         }
       }
@@ -956,7 +956,7 @@ function findAvailableSegmentsDay(
         if (canPlaceRetool) {
           opSegments.push({ date: targetDateStr, start: retoolStart, finish: retoolStart + retoolTime, isRetool: true });
           availableStart = retoolStart + retoolTime;
-          freeInterval   = workEnd - availableStart;
+          freeInterval = workEnd - availableStart;
           isRetoolSegmentDefined = true;
         }
       }
@@ -1056,7 +1056,7 @@ function findAvailableSegmentsDay(
       if (timeToUse > 0) {
         opSegments.push({ date: targetDateStr, start: retoolStart, finish: retoolStart + timeToUse, isRetool: true });
         availableStart = retoolStart + timeToUse;
-        freeInterval   = (nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd) - availableStart;
+        freeInterval = (nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd) - availableStart;
         isRetoolSegmentDefined = (timeToUse === retoolTime) || isRetoolSegmentDefined_;
         if (freeInterval === 0 && nextPeriod?.type === TimeTypeEnum.busy) {
           // между ретулом и операцией вклинилась другая операция — сброс текущего дня
@@ -1102,7 +1102,7 @@ function findAvailableSegmentsDay(
       if (timeToUse > 0) {
         opSegments.push({ date: targetDateStr, start: retoolStart, finish: retoolStart + timeToUse, isRetool: true });
         availableStart = retoolStart + timeToUse;
-        freeInterval   = workEnd - availableStart;
+        freeInterval = workEnd - availableStart;
         isRetoolSegmentDefined = (timeToUse === retoolTime);
       }
     }
@@ -1200,7 +1200,7 @@ function findAvailableSegmentsDay(
 //   // Проверяем исключения (например, изменённые рамки рабочего дня или дополнительные перерывы)
 //   const exceptionsWorkDayNext = exceptionItems.filter(elem =>
 //     elem.unitId === unit.id && elem.date === YYYYMMDD(targetDate)
-    
+
 //   );
 
 //   if (exceptionsWorkDayNext.length > 0) {
@@ -1602,7 +1602,7 @@ export const planTCardFromOperINC = (
     const today = getTimeZoneDateFromDateString(today_, shedule_.timeZone)
     const stopDate_ = getCurrentDateInDate(shedule_.timeZone)
     stopDate_.setDate(stopDate_.getDate() + 90);
-    const stopDateStr = YYYYMMDDTZ(stopDate_,shedule_.timeZone);
+    const stopDateStr = YYYYMMDDTZ(stopDate_, shedule_.timeZone);
 
     // массив готовых продуктов и дата время готовности каждого продукта
     // стартуем с продуктов которые  берутся со склада  

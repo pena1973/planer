@@ -102,7 +102,7 @@ export default function Index() {
   // status 0 - архив, 1 актив, 2 запрос 
   const loginClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonLogin(true)
-    if (loginValue.length < 0) {
+    if (loginValue.length === 0) {
       setMessageLogin(t('service.loginNotEntered'));
       setLoaderButtonLogin(false);
       return
@@ -475,7 +475,7 @@ export default function Index() {
             <div className="loader_container">
               <div className="loader_title">{t('index.wait')}...</div>
               <div className="loader_title">{message}</div>
-              <pre />
+              <pre /><pre /><pre />
               <ButtonLoader width={200} height={200} />
             </div>
           }

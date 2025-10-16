@@ -37,7 +37,7 @@
   },
   "service": {
     "loginNotEntered": "Логин не введен",
-    "passnNotEntered": "Пароль",
+    "passnNotEntered": "Пароль не введен",
     "serverUnavailable": "Сервер недоступен",
     "recoveryMailSent": "Письмо для восстановления пароля отправлено",
     "loginLengthMustBe": "Длина логина должна быть не менее 5 символов и содержать @  и . ",

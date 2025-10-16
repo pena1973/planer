@@ -5,8 +5,8 @@ import styles from "./planScaleContainer.module.scss";
 
 import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum, UnitActionItem } from "@/types/types";
 
-import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/client/utils.client";
-// import { generateCalendarItem, isWeekend, isHoliday, isAdditionalTime, } from "@/lib/client/utils.client";
+import { generateCalendarItem} from "@/lib/common/utils";
+import { isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/common/utils";
 
 import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
@@ -341,7 +341,6 @@ export default function PlanScaleContainer({
 
       // уменьшаем ширину на ширину дня
       _timelineWidth = _timelineWidth - dayWidth
-
 
 
       // обрабатываем только в том случае если день попадает в видимый диапазон       

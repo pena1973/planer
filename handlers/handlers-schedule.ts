@@ -5,88 +5,80 @@ import { getServerT } from '@/lib/server/i18n.server';
 import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "./../types/types";
 import { getTimeZoneDateFromDateString,addDaysInZone } from "./../lib/common/timezone"
 
-import { YYYYMMDD } from "@/lib/common/utils"
-//  функция определяемт входит ли  дата в список дат дополнительного времени работы
-const isAdditionalTime = (date: string, schedule: ScheduleItem): boolean => {
+import { YYYYMMDD, isHoliday, idDay, isWeekend, isAdditionalTime } from "@/lib/common/utils"
+// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
+// const isAdditionalTime = (date: string, schedule: ScheduleItem): boolean => {
 
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.teamId)
-    return schedule.workdays.some(workday =>
-      // new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === date
-      workday.date === date
-    ); else return false
-}
-//  функция определяемт входит ли  дата в список выходных расписания
-const isWeekend = (date: string, schedule: ScheduleItem): boolean => {
-  const d = new Date(date);        // преобразуем строку в Date  
-  const dayOfWeek = d.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.teamId)
+//     return schedule.workdays.some(workday =>
+//       // new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === date
+//       workday.date === date
+//     ); else return false
+// }
+// //  функция определяемт входит ли  дата в список выходных расписания
+// const isWeekend = (date: string, schedule: ScheduleItem): boolean => {
+//   const d = new Date(date);        // преобразуем строку в Date  
+//   const dayOfWeek = d.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
 
-  let dayString = DaysOfWeek.SUNDAY;
+//   let dayString = DaysOfWeek.SUNDAY;
 
-  switch (dayOfWeek) {
-    case 1:
-      dayString = DaysOfWeek.MONDAY;
-      break;
-    case 2:
-      dayString = DaysOfWeek.TUESDAY;
-      break;
-    case 3:
-      dayString = DaysOfWeek.WEDNESDAY;
-      break;
-    case 4:
-      dayString = DaysOfWeek.THURSDAY;
-      break;
-    case 5:
-      dayString = DaysOfWeek.FRIDAY;
-      break;
-    case 6:
-      dayString = DaysOfWeek.SATURDAY;
-      break;
-    default:
-      dayString = DaysOfWeek.SUNDAY;
-      break;
-  }
+//   switch (dayOfWeek) {
+//     case 1:
+//       dayString = DaysOfWeek.MONDAY;
+//       break;
+//     case 2:
+//       dayString = DaysOfWeek.TUESDAY;
+//       break;
+//     case 3:
+//       dayString = DaysOfWeek.WEDNESDAY;
+//       break;
+//     case 4:
+//       dayString = DaysOfWeek.THURSDAY;
+//       break;
+//     case 5:
+//       dayString = DaysOfWeek.FRIDAY;
+//       break;
+//     case 6:
+//       dayString = DaysOfWeek.SATURDAY;
+//       break;
+//     default:
+//       dayString = DaysOfWeek.SUNDAY;
+//       break;
+//   }
 
-  // Проверяем, является ли день выходным
-  if (schedule.teamId) return schedule.weekends.includes(dayString);
-  else return false
-}
-//  функция определяемт входит ли  дата в список праздниклв расписания
-const isHoliday = (date: string, schedule: ScheduleItem): boolean => {
-  // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-  // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
+//   // Проверяем, является ли день выходным
+//   if (schedule.teamId) return schedule.weekends.includes(dayString);
+//   else return false
+// }
+// //  функция определяемт входит ли  дата в список праздниклв расписания
+// const isHoliday = (date: string, schedule: ScheduleItem): boolean => {
+//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
+//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
 
-  // Проверяем, есть ли дата в массиве праздников
-  if (schedule.teamId)
-    return schedule.holidays.some(holiday =>
-      // new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === date
-      holiday=== date
-    ); else return false
-}
+//   // Проверяем, есть ли дата в массиве праздников
+//   if (schedule.teamId)
+//     return schedule.holidays.some(holiday =>
+//       // new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === date
+//       holiday=== date
+//     ); else return false
+// }
 
-// генерация привычной нам даты - ее использую как id дня
-const idDay = (date: Date): string => {
-  const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-  const year = date.getFullYear();  // Год
+// // генерация привычной нам даты - ее использую как id дня
+// const idDay = (date: Date): string => {
+//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
+//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
+//   const year = date.getFullYear();  // Год
 
-  return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-};
+//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
+// };
 
 // генерация одного дня на шкале
 const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
-  // day==YYYY-mm-dd
-  // просто делаем копию даты, чтобы не мутировать переданную 
-  // const currentDate = new Date(day);  // Используем переданную дату для генерации одного элемента
-  // currentDate.setHours(0, 0, 0, 0);
-
-  // const _isWeekend = isWeekend(currentDate, schedule);  // День недели для учета выходных
-  // const _isHoliday = isHoliday(currentDate, schedule);  // День недели для учета Праздников
-  // const _isAdditionalTime = isAdditionalTime(currentDate, schedule);  // День недели для учета Праздников
-
+  
   const _isWeekend = isWeekend(day, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(day, schedule);  // День недели для учета Праздников
   const _isAdditionalTime = isAdditionalTime(day, schedule);  // День недели для учета Праздников

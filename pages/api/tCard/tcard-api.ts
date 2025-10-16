@@ -25,13 +25,17 @@ import { UnitTable } from './../../../db/models/catalogs/units'
 import { ActionTable } from './../../../db/models/catalogs/actions'
 import { getCurrentDateInString } from "./../../../lib/common/timezone"
 
-import {  TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, StatusEnum,
-  UnitItem, UnitLoadItem, UnitTypeEnum, UnitBelongEnum, ProductItem} from './../../../types/types';
+import {
+  TCardItem, TCardProductItem, TCardOperationItem, TCardStageItem, StatusEnum,
+  UnitItem, UnitLoadItem, UnitTypeEnum, UnitBelongEnum, ProductItem
+} from './../../../types/types';
 
 import { getTeamShedule, getTCardFull, getTCardLoadsToCheckforDelete, getUnitActions, getUnits } from './../../../handlers/handlers-get';  // 
 
-import {  updateCard, updateStages, updateOperations, updateCatalogProducts, updateProducts,
-  updateTCardLoads, updateStatusTCard, updateStatusOperationByOperIds} from './../../../handlers/handlers-update';  // 
+import {
+  updateCard, updateStages, updateOperations, updateCatalogProducts, updateProducts,
+  updateTCardLoads, updateStatusTCard, updateStatusOperationByOperIds
+} from './../../../handlers/handlers-update';  // 
 
 import { YYYYMMDD } from "@/lib/common/utils"
 
@@ -44,7 +48,7 @@ interface RequestBody {
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const db = await connectDb();    
+    const db = await connectDb();
     const tCardRepository = getTypedRepository(db, 'TCardTable', TCardTable);
     const tCardProductRepository = getTypedRepository(db, 'TCardProductTable', TCardProductTable);
     const tCardOperationRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
@@ -78,7 +82,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         )
         if (!tCardGet) {
           res.status(200).json({
-            success: false,            
+            success: false,
             message: `${t('mes.tCardNotFound')}`
           })
           break;
@@ -133,8 +137,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             Number(userId),
             locale,
             tCardStageRepository,
-            tCardOperationRepository,
             tCard.tCardStages,
+            tCard.tCardOperations ?? [],
             savedTCard,
             Number(teamId),
           )
@@ -142,7 +146,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           if (!resStages.success) {
             res.status(200).json({
               success: false,
-              message: `${t('mes.error')} ${resCard.message}`
+              message: `${t('mes.error')} ${resStages.message}`
             })
             break;
           }
@@ -403,7 +407,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           await productRepository.delete({ tcard_id: tCardId });
           // Теперь удаляем саму карту
           await tCardRepository.delete({ id: tCardId });
-          
+
           res.status(200).json({
             success: true,
             loads: [] as UnitLoadItem[],

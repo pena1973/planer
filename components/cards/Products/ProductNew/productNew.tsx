@@ -15,7 +15,7 @@ export interface ProductNewProps {
     title: string,
     sync: string,
     uom: UOMItem | null,
-    deleteProductHandler: (index: number) => void,
+    deleteProductHandler: (index: number, idc:number) => void,
     changeProductHandler: (index: number, title: string, sync: string, uom: UOMItem | null) => void,
     index: number
 }
@@ -56,7 +56,7 @@ export default function ProductNew({
         <div className={styles.container_row}>
             <Image className={styles.icon_del}
                 src={del} alt="del" width={20} height={20}
-                onClick={() => deleteProductHandler(index)}
+                onClick={() => deleteProductHandler(index,idc)}
             />
             <div className={styles.idc}>{idc}</div>
             <input className={styles.title}
