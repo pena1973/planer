@@ -455,19 +455,19 @@
     "agree": "Agree"
   },
   "mes": {
-    "impossibleToDelStage": "Невозможно удалить стадию, в ней есть операции. Сначала удалите операции из стадии.",
-    "impossibleToDownloasTemplate": "Ошибка при обработке шаблона.",
-    "impossibleToDelOperReady": "Невозможно удалить операцию, т.к. есть выполнение операции с результатом или браком.",
-    "impossibleToDelOperHistory": "Невозможно удалить операцию, т.к. есть запланированное или отмененное время выполнения. Операацию можно перевести в статус отменить",
-    "mailCodeSent": "Ушло писмо с кодом на ",
-    "noLoadsToCancel": "Нет лоадов для отмены!",
-    "cardPerformed": "Карта уже выполнена и нет операций где статус меняется!",
-    "prePlanChanged": "Успешно изменено предварительное планирование операции и все последующие зависимые планирования",
-    "erazeOperLoads": "Успешно удалено планирование операции и все последующие зависимые планирования",
-    "changeOperLoads": "Успешно удалено планирование операции и все последующие зависимые планирования",
-    "tCardPlaned": "Карта успешно предварительно запланирована НО НЕЗАПИСАНА! Если все в порядке ЗАПИШИ!",
-    "tCardSaved": "Планировка карты успешно записана",
-    "tCardRead": "Карта успешно прочитана",
-    "tCardRecorded": "Карта успешно записана"
+    "impossibleToDelStage": "It is impossible to delete the stage because it contains operations. Please delete the operations from the stage first.",
+    "impossibleToDownloasTemplate": "Error while processing the template.",
+    "impossibleToDelOperReady": "It is impossible to delete the operation because it has performance results or defects.",
+    "impossibleToDelOperHistory": "It is impossible to delete the operation because there is scheduled or canceled execution time. You can change the operation status to 'canceled'.",
+    "mailCodeSent": "An email with a code has been sent to ",
+    "noLoadsToCancel": "No loads to cancel!",
+    "cardPerformed": "The card has already been completed and there are no operations whose status can be changed!",
+    "prePlanChanged": "The preliminary scheduling of the operation and all dependent subsequent schedules have been successfully updated.",
+    "erazeOperLoads": "The scheduling of the operation and all dependent subsequent schedules have been successfully deleted.",
+    "changeOperLoads": "The scheduling of the operation and all dependent subsequent schedules have been successfully deleted.",
+    "tCardPlaned": "The card has been successfully pre-scheduled BUT NOT SAVED! If everything looks correct, PLEASE SAVE!",
+    "tCardSaved": "The card schedule has been successfully saved.",
+    "tCardRead": "The card has been successfully read.",
+    "tCardRecorded": "The card has been successfully recorded."
   }
 }

@@ -5,7 +5,7 @@ import {
   TCardProductItem, TCardOperationItem, ProductItem,
   TCardItem, UnitLoadItem, UnitExceptionItem,
   CalendarItem, TimeTypeEnum, StatusEnum,
-  UnitItem, ScheduleItem, DaysOfWeek, UnitBelongEnum,
+  UnitItem, ScheduleItem, UnitBelongEnum,
   UnitActionItem, ReadyProduct
 } from "./../types/types";
 
@@ -26,83 +26,9 @@ const getLoadIdc = (
 }
 
 import { generateUniqueIdc } from './../lib/common/utils'
-// import TCardProduct from "@/components/cards/TCardProducts/TCardProduct/tCardProduct";
-// import Product from "@/components/cards/Products/Product/product";
-// генерация привычной нам даты - ее использую как id дня
-// const idDay = (date: Date): string => {
-//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-//   const year = date.getFullYear();  // Год
 
-//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-// };
-
-// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
-// const isAdditionalTime = (date: Date, schedule: ScheduleItem): boolean => {
-
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-//   const dateString = YYYYMMDD(date);
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.teamId)
-//     return schedule.workdays.some(workday =>
-//       YYYYMMDD(workday.date) === dateString
-//       // new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === dateString
-//     ); else return false
-// }
-// //  функция определяемт входит ли  дата в список выходных расписания
-// const isWeekend = (date: Date, schedule: ScheduleItem): boolean => {
-//   const dayOfWeek = date.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
-
-//   let dayString = DaysOfWeek.SUNDAY;
-
-//   switch (dayOfWeek) {
-//     case 1:
-//       dayString = DaysOfWeek.MONDAY;
-//       break;
-//     case 2:
-//       dayString = DaysOfWeek.TUESDAY;
-//       break;
-//     case 3:
-//       dayString = DaysOfWeek.WEDNESDAY;
-//       break;
-//     case 4:
-//       dayString = DaysOfWeek.THURSDAY;
-//       break;
-//     case 5:
-//       dayString = DaysOfWeek.FRIDAY;
-//       break;
-//     case 6:
-//       dayString = DaysOfWeek.SATURDAY;
-//       break;
-//     default:
-//       dayString = DaysOfWeek.SUNDAY;
-//       break;
-//   }
-
-//   // Проверяем, является ли день выходным
-//   if (schedule.teamId) return schedule.weekends.includes(dayString);
-//   else return false
-// }
-// //  функция определяемт входит ли  дата в список праздников расписания
-// const isHoliday = (date: Date, schedule: ScheduleItem): boolean => {
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-//   const dateString = YYYYMMDD(date);
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.teamId)
-//     return schedule.holidays.some(holiday =>
-//       YYYYMMDD(holiday) === dateString
-//       // new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === dateString
-//     ); else return false
-// }
 // генерация одного дня на шкале
 const generateCalendarItemOnServer = (day: string, schedule: ScheduleItem): CalendarItem => {
-
-  // const currentDate = new Date(day);  // Убираю мутабельность 
-  // currentDate.setHours(0, 0, 0, 0);
 
   const currentDate = getTimeZoneDateFromDateString(day, schedule.timeZone)
 
@@ -160,24 +86,6 @@ export const getAllPreparedOperationsIds = (
   return preparedOps.map(op => op.id!).filter(id => id !== undefined);
 };
 
-// // ! Получить ID всех зависимых операций со статусом prepared (одно "плечо", без рекурсии)
-// export const getDependentPreparedOperationsIds = (
-//   tCard: TCardItem,
-//   oper: TCardOperationItem
-// ): number[] => {
-//   const ops = tCard.tCardOperations ?? [];
-//   if (ops.length === 0) return [];
-
-//   const outCodes = new Set((oper.out ?? []).map(p => `${p?.code ?? ""}`).filter(Boolean));
-
-//   const dependentOps = ops.filter(op =>
-//     op.id !== oper.id &&
-//     (op.inn ?? []).some(inp => outCodes.has(`${inp?.code ?? ""}`))
-//   );
-
-//   const preparedOps = dependentOps.filter(op => op.status === StatusEnum.prepared);
-//   return preparedOps.map(op => op.id!).filter((id): id is number => id != null);
-// };
 
 // ! Получить ID всех зависимых операций со статусом planed (одно "плечо", без рекурсии)
 // FIX: тут раньше ошибочно стоял фильтр prepared
@@ -198,55 +106,6 @@ export const getDependentPlanedOperationsIds = (
   const planedOps = dependentOps.filter(op => op.status === StatusEnum.planed);
   return planedOps.map(op => op.id!).filter((id): id is number => id != null);
 };
-
-
-// //! Получение зависимых prepared операций
-// export const getDependentPreparedOperationsIds = (  
-//   tCard: TCardItem,
-//   oper: TCardOperationItem
-// ): number[] => {
-//   if (!tCard.tCardOperations) return [];
-
-//   // Собираем все code выходных продуктов нашей операции
-//   const outCode = new Set(oper.out.map(prod => prod.code));
-
-//   // Фильтруем операции карты (исключая саму oper)
-//   // и выбираем те, у которых хотя бы один входной продукт (inn)
-//   // имеет code, присутствующий в outCode
-//   const dependentOps = tCard.tCardOperations.filter(op => {
-//     if (op.id === oper.id) return false;
-//     return op.inn.some(inp => outCode.has(inp.code));
-//   });
-
-//   const preparedOps = dependentOps.filter(op => op.status === StatusEnum.prepared);
-
-//   // Возвращаем массив id (предполагается, что op.id всегда определён)
-//   return preparedOps.map(op => op.id!).filter(id => id !== undefined);
-// };
-
-// //! Получение всех зависимых planed операций
-// export const getDependentPlanedOperationsIds = (  
-//   tCard: TCardItem,
-//   oper: TCardOperationItem
-// ): number[] => {
-//   if (!tCard.tCardOperations) return [];
-
-//   // Собираем все code выходных продуктов нашей операции
-//   const outCode = new Set(oper.out.map(prod => prod.code));
-
-//   // Фильтруем операции карты (исключая саму oper)
-//   // и выбираем те, у которых хотя бы один входной продукт (inn)
-//   // имеет code, присутствующий в outCode
-//   const dependentOps = tCard.tCardOperations.filter(op => {
-//     if (op.id === oper.id) return false;
-//     return op.inn.some(inp => outCode.has(inp.code));
-//   });
-
-//   const preparedOps = dependentOps.filter(op => op.status === StatusEnum.prepared);
-
-//   // Возвращаем массив id (предполагается, что op.id всегда определён)
-//   return preparedOps.map(op => op.id!).filter(id => id !== undefined);
-// };
 
 
 // ! Все зависимые операции по цепочке (все статусы) — возвращаем объекты операций
@@ -382,218 +241,9 @@ export const getDependentOperations = (
   return result;
 };
 
-
 // поиск  юнита и времени выполнения операции
 // выбираем возможного юнита и самый быстрый вариант выполнения
 // с учетом временного коэфициента юнита
-function findAvailableTimeForOperation_old(
-  userId: number,
-  locale: string,
-  tCard: TCardItem,
-  compatibleuUnits: UnitItem[], // массив юнитов, которые могут выполнить операцию
-  unitActions: UnitActionItem[], //  массив операций юнитов
-  unitLoadItems: UnitLoadItem[], // массив загрузок юнитов
-  operation: TCardOperationItem, // операция (с длительностью в мс)
-  startDateStr: string,            // дата для старта выполнения операции (YYYY-MM-DD)
-  moment: number,               // момент в который можно стартовать  -  готовы все входящие материалы
-  stopDateStr: string,             // дата, после которой планирование не ведётся (90 дней вперед)
-  schedule: ScheduleItem,
-  exceptionItems: UnitExceptionItem[],
-  isPinned: boolean, //  признак того что при планировании надо установить как пришпилен
-): { success: boolean, planedUnitLoads: UnitLoadItem[], dateReady: string, timeReady: number, message: string } {
-
-  // tCard, compatibleuUnits, unitActions, updatedUnitLoads, operation, maxDateSource, maxTimeSource, stopDate, shedule_, exceptionItems, isPinned
-  const version = generateUniqueIdc();
-
-  // const targetDate = new Date(startDate);
-  // targetDate.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
-  const targetDate = getTimeZoneDateFromDateString(startDateStr, schedule.timeZone)
-  const stopDate = getTimeZoneDateFromDateString(stopDateStr, schedule.timeZone)
-
-  if (targetDate.getTime() > stopDate.getTime()) {
-    return {
-      success: false,
-      planedUnitLoads: unitLoadItems,
-      dateReady: "",
-      timeReady: 0,
-      message: `планирование не удалось: нет свободных ресурсов до ${stopDate}`
-    };
-  }
-  // Продолжительность операции в минутах (округлённая вверх)
-  const operationDuration = Math.ceil(operation.duration / (1000 * 60));
-  const interruptible = operation.action.interruptible;
-
-  // Интерфейс кандидата (для внутреннего использования)
-  interface Candidate {
-    unit: UnitItem;
-    // Сегменты выполнения операции (один или несколько)
-    opSegments: { date: string, start: number; finish: number, isRetool: boolean }[];
-    duration: number; // общая длительность (retool + выполнение операции)
-  }
-
-  // Массив кандидатов, найденных для разных юнитов
-  const possibleCandidates: Candidate[] = [];
-
-  // Перебираем каждый совместимый юнит
-  for (const unit of compatibleuUnits) {
-    const actions = unitActions.filter(ac => ac.unitId === unit.id)
-    // Определяем время переналадки и длительность выполнения операции
-    const retoolTime = unit.retool; // время переналадки (в минутах)
-    const action = actions.find(a => a.action.id === operation.action.id);
-    const koef = action ? action.koef : 1;
-    const opRequired = operationDuration * koef; // время выполнения операции (без ретула)
-    const onPlaned = 0; //- это сколько уже запланировано
-    const totalRequired = retoolTime + opRequired; // общее время
-    const opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
-    const isRetoolSegmentDefined = (retoolTime === 0)
-
-    // ищем для юнита возможные сегменты операции
-    const resultOpSegments = findAvailableSegmentsDay(
-      userId,
-      locale,
-      startDateStr,
-      moment,
-      stopDateStr,
-      opSegments,
-      unit,
-      retoolTime,
-      opRequired,
-      onPlaned,
-      unitLoadItems,
-      schedule,
-      exceptionItems,
-      interruptible,
-      totalRequired,
-      isRetoolSegmentDefined)
-
-    /// возможно надо не выкидывать а сдвигать
-    if (resultOpSegments.success) {
-      const segs = [...resultOpSegments.opSegments];
-
-      // FIX: выкидываем всё ДО стартовой даты
-      const filtered = segs.filter(s => s.date >= startDateStr);
-
-      // FIX: первый сегмент в день старта не раньше moment
-      if (filtered.length && filtered[0].date === startDateStr && filtered[0].start < moment) {
-        console.warn('[GUARD] shift first segment to moment', {
-          beforeStart: filtered[0].start, moment
-        });
-        filtered[0] = { ...filtered[0], start: moment };
-        if (filtered[0].finish <= filtered[0].start) {
-          // если окно стало пустым — удаляем сегмент
-          filtered.shift();
-        }
-      }
-
-      // Если в результате всё ещё есть сегменты — берём как кандидата
-      if (filtered.length) {
-        possibleCandidates.push({
-          unit,
-          opSegments: filtered,
-          duration: totalRequired,
-        });
-      } else {
-        console.warn('[GUARD] dropped unit due to pre-moment segments', { unitId: unit.id });
-      }
-    }
-
-    // // если успешно нашли записываем как кандидата на выполнение  
-    // if (resultOpSegments.success) {
-    //   const candidate: Candidate = {
-    //     unit,
-    //     opSegments: resultOpSegments.opSegments,
-    //     duration: totalRequired,
-    //   };
-    //   possibleCandidates.push(candidate);
-    // }
-    console.log('candidate', unit, resultOpSegments.opSegments)
-  }
-
-
-  console.log('possibleCandidates', possibleCandidates)
-
-  // Если найдены кандидаты, выбираем того, который завершит операцию раньше.
-  if (possibleCandidates.length > 0) {
-    possibleCandidates.sort((a, b) => {
-      const aLastSegment = a.opSegments.length > 0 ? a.opSegments[a.opSegments.length - 1] : null;
-      const bLastSegment = b.opSegments.length > 0 ? b.opSegments[b.opSegments.length - 1] : null;
-
-      // Если у кого-то нет сегментов — считаем их "лучше" (например, раньше)
-      if (!aLastSegment && !bLastSegment) return 0;
-      if (!aLastSegment) return -1;
-      if (!bLastSegment) return 1;
-
-      const aFinish = new Date(aLastSegment.date).getTime() + aLastSegment.finish * 60000;
-      const bFinish = new Date(bLastSegment.date).getTime() + bLastSegment.finish * 60000;
-
-      return aFinish - bFinish;
-    });
-
-    console.log('possibleCandidates  sorted', possibleCandidates)
-
-    const bestCandidate = possibleCandidates[0];
-
-    // Формируем итоговый массив загрузок (UnitLoadItem) для победившего юнита
-    const updatedUnitLoads: UnitLoadItem[] = [];
-
-    let isFirst = true;
-    bestCandidate.opSegments.forEach(seg => {
-      const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id)
-      const action = actions_.find(act => act.id === operation.action.id);
-      const koef = (action) ? action.koef : 1;
-
-      updatedUnitLoads.push({
-        idc_oper: operation.idc,
-        unit: bestCandidate.unit,
-        date: seg.date,
-        id_tCard: tCard.id,
-        timeStart: seg.start,
-        timeFinish: seg.finish,
-        status: StatusEnum.prepared,
-        id_oper: Number(operation.id),
-        idc: getLoadIdc(tCard, operation, seg),
-        isActive: true,
-        isRetool: seg.isRetool,
-        loadInfo: { tCardIdc: tCard.idc, tCardDate: tCard.date, title: operation.action.title, duration: Math.round(operation.duration / 60000), interruptible: operation.action.interruptible, koef: koef },
-        isPinned: isPinned,
-        isOuterStart: false,//  это старт оутсортера, здесь не применяется
-        isOuterFinish: false,//  это финиш оутсортера        
-        version: version,
-        isFirst: seg.isRetool ? false : isFirst
-      });
-
-      isFirst = seg.isRetool ? isFirst : false;
-    });
-
-    if (updatedUnitLoads.length === 0) {
-      return {
-        success: false,
-        planedUnitLoads: updatedUnitLoads,
-        dateReady: "",
-        timeReady: 0,
-        message: ""
-      };
-    }
-
-    const finalLoad = updatedUnitLoads[updatedUnitLoads.length - 1];
-    return {
-      success: true,
-      planedUnitLoads: updatedUnitLoads,
-      dateReady: finalLoad.date,
-      timeReady: finalLoad.timeFinish,
-      message: `Планирование не удалось: нет опрераций с указанным временем выполнения`
-    };
-  }
-
-  return {
-    success: false,
-    planedUnitLoads: unitLoadItems,
-    dateReady: "",
-    timeReady: 0,
-    message: ` до ${stopDate}
-    учитывая время и непрерывность операции, а также коэфициент времени юнитов`
-  };
-}
 
 function findAvailableTimeForOperation(
   userId: number,
@@ -886,6 +536,45 @@ function findAvailableSegmentsDay(
 
   busyPeriods.sort((a, b) => a.start - b.start);
 
+  // ——— УТРЕННЕЕ ОКНО ДНЯ (до первой чужой загрузки) ———
+  const morningFreeWindow = (dateStr: string) => {
+    const wd = generateCalendarItemOnServer(dateStr, schedule);
+    let workStart_ = wd.timeStartWork;
+    let workEnd_ = wd.timeFinishWork;
+
+    // Исключения дня
+    const ex = exceptionItems.filter(e => e.unitId === unit.id && e.date === dateStr);
+    const dayBusy: { start: number; end: number; type: TimeTypeEnum }[] = [];
+
+    if (ex.length > 0) {
+      ex.forEach(e => {
+        if (e.type === TimeTypeEnum.work) {
+          workStart_ = e.timeStart;
+          workEnd_ = e.timeFinish;
+        } else {
+          dayBusy.push({ start: e.timeStart, end: e.timeFinish, type: e.type });
+        }
+      });
+    } else {
+      // стандартные перерывы — это НЕ чужая загрузка
+      wd.breaks.forEach(b => dayBusy.push({ start: b.timeStart, end: b.timeFinish, type: TimeTypeEnum.breack }));
+    }
+
+    // Чужие загрузки юнита на эту дату
+    unitLoadItems
+      .filter(l => l.unit.id === unit.id && l.date === dateStr)
+      .forEach(l => dayBusy.push({ start: l.timeStart, end: l.timeFinish, type: TimeTypeEnum.busy }));
+
+    dayBusy.sort((a, b) => a.start - b.start);
+
+    // Первая ЧУЖАЯ загрузка после старта рабочего дня
+    const firstBusy = dayBusy.find(p => p.type === TimeTypeEnum.busy && p.end > workStart_);
+    const winStart = workStart_;
+    const winEnd = firstBusy ? Math.min(firstBusy.start, workEnd_) : workEnd_;
+
+    return { start: winStart, end: winEnd }; // если end<=start — окна нет
+  };
+
   // FIX: и ретул, и основная операция в первый день — не раньше moment
   // (на последующих днях moment=0, поэтому ограничение не мешает)
   let availableStart = Math.max(workStart, moment);
@@ -1122,8 +811,39 @@ function findAvailableSegmentsDay(
   }
 
   if (onPlaned < opRequired) {
-    const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
-    const nextDateStr = YYYYMMDDTZ(nextDate, schedule.timeZone); // FIX: TZ-безопасно
+    let nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
+    let nextDateStr = YYYYMMDDTZ(nextDate, schedule.timeZone);
+
+    // ──────────────────────────────────────────────────────────────
+    // FIX: непрерывность «своей» — если уже начали (onPlaned>0),
+    // то завтра должно быть ХОТЯ БЫ МИНУТНОЕ утреннее окно.
+    // Если окна нет (первая чужая загрузка с самого старта),
+    // откатываем сегодняшний прогресс и переносим СТАРТ на первый
+    // день, где окно > 0. Иначе продолжаем завтра утром.
+    // ──────────────────────────────────────────────────────────────
+    if (onPlaned > 0) {
+      let win = morningFreeWindow(nextDateStr);
+
+      if (win.end <= win.start) {
+        // Откатим сегодняшние сегменты (и ретул), сбросим прогресс
+        opSegments = opSegments.filter(s => s.date !== targetDateStr);
+        onPlaned = 0;
+        isRetoolSegmentDefined = false;
+
+        // Ищем первый ближайший день с положительным утренним окном
+        while (nextDateStr <= stopDateStr) {
+          win = morningFreeWindow(nextDateStr);
+          if (win.end > win.start) break;
+          nextDate = addDaysInZone(nextDate, 1, schedule.timeZone);
+          nextDateStr = YYYYMMDDTZ(nextDate, schedule.timeZone);
+        }
+
+        if (nextDateStr > stopDateStr) {
+          return { success: false, opSegments: [], message: `достигнута стоп дата и нет свободных ресурсов до ${stopDateStr}` };
+        }
+      }
+    }
+
     return findAvailableSegmentsDay(
       userId, locale, nextDateStr, 0, stopDateStr, opSegments, unit,
       retoolTime, opRequired, onPlaned, unitLoadItems, schedule,
@@ -1151,395 +871,6 @@ function findAvailableSegmentsDay(
 
   return { success: true, opSegments, message: "" };
 }
-
-// // Рекурсия для разбивки операции на промежутки по шкале времени определенного юнита на определенный день
-// // на выходе имеем сегменты разбивки
-// function findAvailableSegmentsDay(
-//   userId: number,
-//   locale: string,
-//   targetDateStr: string,
-//   moment: number,  // момент в который можно стартовать  -  готовы все входящие материалы
-//   stopDateStr: string,
-//   opSegments_: { date: string, start: number, finish: number, isRetool: boolean }[],
-//   unit: UnitItem,
-//   retoolTime: number,
-//   opRequired: number, // требуемое время  операции
-//   onPlaned_: number, // уже запланировано
-//   unitLoadItems: UnitLoadItem[], // массив загрузок юнитов  
-//   schedule: ScheduleItem,
-//   exceptionItems: UnitExceptionItem[],
-//   interruptible: boolean,
-//   totalRequired: number,
-//   isRetoolSegmentDefined_: boolean
-// ): {
-//   success: boolean,
-//   opSegments: { date: string, start: number, finish: number, isRetool: boolean }[],
-//   message: string
-// } {
-
-//   console.log("момент в который можно стартовать  -  готовы все входящие материалы", targetDateStr, moment)
-
-//    const targetDate = getTimeZoneDateFromDateString(targetDateStr, schedule.timeZone)
-
-//   if (targetDateStr > stopDateStr) {
-//     return {
-//       success: false,
-//       opSegments: [] as { date: string, start: number, finish: number, isRetool: boolean }[],
-//       message: `достигнута стоп дата и нет свободных ресурсов до ${stopDateStr}`
-//     };
-//   }
-
-//   const workDay = generateCalendarItemOnServer(targetDateStr, schedule);
-//   // Определяем рабочие рамки для данного юнита (по расписанию компании)
-//   let workStart = workDay.timeStartWork;
-//   let workEnd = workDay.timeFinishWork;
-
-//   // Массив занятых интервалов (будем заполнять его интервалами, когда юнит занят)
-//   const busyPeriods: { type: TimeTypeEnum; start: number; end: number }[] = [];
-
-//   // Проверяем исключения (например, изменённые рамки рабочего дня или дополнительные перерывы)
-//   const exceptionsWorkDayNext = exceptionItems.filter(elem =>
-//     elem.unitId === unit.id && elem.date === YYYYMMDD(targetDate)
-
-//   );
-
-//   if (exceptionsWorkDayNext.length > 0) {
-//     exceptionsWorkDayNext.forEach(ex => {
-//       if (ex.type === TimeTypeEnum.work) {
-//         workStart = ex.timeStart;
-//         workEnd = ex.timeFinish;
-//       } else {
-//         busyPeriods.push({ type: ex.type, start: ex.timeStart, end: ex.timeFinish });
-//       }
-//     });
-//   }
-
-
-//   let onPlaned = onPlaned_; // сколько минут операции запланировано c ретулом
-
-//   // в этом  массиве что на вход уже запланирована часть операции
-//   let opSegments: { date: string, start: number; finish: number, isRetool: boolean }[] = [...opSegments_];
-
-//   let isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул определен в интервал
-
-
-//   // Если рабочее время отсутствует – пропускаем день
-//   // перепрыгиваем на следующий день
-//   if (workEnd === workStart) {
-
-//     const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
-//     const nextDateStr = YYYYMMDD(nextDate);
-//     // const nextDate = new Date(targetDate)
-//     // nextDate.setDate(nextDate.getDate() + 1);
-//     // const nextDateStr = nextDate.toLocaleDateString("en-CA");
-
-//     return findAvailableSegmentsDay(
-//       userId,
-//       locale,
-//       nextDateStr,
-//       0,
-//       stopDateStr,
-//       opSegments,
-//       unit,
-//       retoolTime,
-//       opRequired,
-//       onPlaned,
-//       unitLoadItems,
-//       schedule,
-//       exceptionItems,
-//       interruptible,
-//       totalRequired,
-//       isRetoolSegmentDefined
-//     )
-
-//   };;
-
-//   // Получаем уже запланированные операции для данного юнита на targetDate  
-//   const loads = unitLoadItems.filter(load => load.unit.id === unit.id && load.date === YYYYMMDD(targetDate));
-
-//   loads.forEach(load => {
-//     busyPeriods.push({ type: TimeTypeEnum.busy, start: load.timeStart, end: load.timeFinish });
-//   });
-//   // Добавляем перерывы из календаря  если нет исключений
-//   if (exceptionsWorkDayNext.length === 0) {
-//     workDay.breaks.forEach(b => {
-//       busyPeriods.push({ type: TimeTypeEnum.breack, start: b.timeStart, end: b.timeFinish });
-//     });
-//   }
-
-//   busyPeriods.sort((a, b) => a.start - b.start);
-
-//   let availableStart = Math.max(workStart, moment);
-
-//   console.log('availableStart', availableStart)
-
-//   // если начало выпадает на занятый интервал  сдвигаем начало на окончание занятого интервала
-//   const currentbusyPeriod = busyPeriods.find(p => p.start <= availableStart && p.end > availableStart)
-//   if (currentbusyPeriod)
-//     availableStart = Math.max(availableStart, currentbusyPeriod.end);
-
-//   // Итерируем по свободным интервалам, учитывая busyPeriods, чтобы накопить totalRequired минут.
-
-//   if (!interruptible) {
-
-//     let found = false; // запланировалось
-//     // Непрерываемая операция: нужно найти один непрерывный свободный интервал для всей операции но можно отделить ретул перерывом
-
-//     while (availableStart < workEnd && !found) {
-//       const nextPeriod = busyPeriods.find(p => p.start >= availableStart);
-//       const freeEnd = nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd;
-//       let freeInterval = freeEnd - availableStart;
-
-//       //1. убедимся что в найденный интервал влазит ретул
-//       // если есть и влазит - планируем
-//       if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
-//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
-//         availableStart = availableStart + retoolTime;
-//         freeInterval = freeInterval - retoolTime
-//         isRetoolSegmentDefined = true;
-//       }
-//       //1. убедимся что в оставшийся интервал влазит операция
-//       // если есть и влазит - планируем
-//       if (freeInterval >= opRequired && isRetoolSegmentDefined) {
-//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + opRequired, isRetool: false });
-//         availableStart += opRequired;
-//         found = true;
-//       } else {
-
-//         // если не влазит проверяем следующий интервал
-//         // если  ретул разрывается с самой операцией другой операцией  -  стираем и начинаем заново
-//         if (nextPeriod?.type === TimeTypeEnum.busy) {
-//           isRetoolSegmentDefined = (retoolTime === 0) || isRetoolSegmentDefined_; // ретул возвращаем
-//           opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
-//         };
-//       }
-
-//       if (nextPeriod) {
-//         availableStart = Math.max(availableStart, nextPeriod.end);
-//       } else {
-//         break;
-//       }
-//     }
-
-
-//     // проверим еще интервал от возможного старта до конца рабочего дня    
-//     let freeInterval = workEnd - availableStart;
-//     //1. убедимся что в найденный интервал влазит ретул  и он не
-//     // если есть и влазит - планируем
-//     if (freeInterval >= retoolTime && !isRetoolSegmentDefined) {
-//       console.log('opSegment', { date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true })
-//       opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true });
-//       availableStart = availableStart + retoolTime;
-//       freeInterval = freeInterval - retoolTime
-//       isRetoolSegmentDefined = true;
-//     }
-//     if (!found) {
-//       //1. убедимся что в оставшийся интервал влазит операция
-//       // если есть и влазит - планируем
-//       if (freeInterval >= opRequired && isRetoolSegmentDefined) {
-//         console.log('opSegment && isRetoolSegmentDefined', { date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + retoolTime, isRetool: true })
-//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + opRequired, isRetool: false });
-//         availableStart += opRequired;
-//         found = true;
-//       }
-//     }
-
-//     // если в этот день интервалов не нашлось идем на след день
-//     if (!found) {
-//       // const nextDate = new Date(targetDate)      
-//       // nextDate.setDate(nextDate.getDate() + 1);
-//       // const nextDateStr = nextDate.toLocaleDateString("en-CA");
-
-//       const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
-//       const nextDateStr = YYYYMMDD(nextDate);
-
-//       return findAvailableSegmentsDay(
-//         userId,
-//         locale,
-//         nextDateStr,
-//         0,
-//         stopDateStr,
-//         opSegments,
-//         unit,
-//         retoolTime,
-//         opRequired,
-//         onPlaned,
-//         unitLoadItems,
-//         schedule,
-//         exceptionItems,
-//         interruptible,
-//         totalRequired,
-//         isRetoolSegmentDefined
-//       )
-//     }
-
-
-//     if (opSegments.length >= 2) {
-//       const retoolSeg = opSegments[0];
-//       const opSeg = opSegments[1];
-//       const opStart = opSeg.start; // начало выполнения операции
-
-//       // Ищем период breack между началом ретула и началом операции.
-//       let breackStartCandidate: number | undefined = undefined;
-//       busyPeriods.forEach(period => {
-//         if (period.type === TimeTypeEnum.breack && period.start >= retoolSeg.start && period.start < opStart) {
-//           if (breackStartCandidate === undefined || period.start < breackStartCandidate) {
-//             breackStartCandidate = period.start;
-//           }
-//         }
-//       });
-
-//       // Если найден breack – ретул заканчивается в его начале, иначе – в начале операции.
-//       const desiredRetoolFinish = breackStartCandidate !== undefined ? breackStartCandidate : opStart;
-
-//       // Определяем, к какому дню относится ретул-сегмент.      
-//       const currentDay = YYYYMMDD(targetDate);
-
-//       if (retoolSeg.date === currentDay) {
-//         // Если ретул в текущем дне – сдвигаем так, чтобы длина ретула была равна retoolTime,
-//         // но не раньше рабочего времени.
-//         const newRetoolStart = Math.max(workStart, desiredRetoolFinish - retoolTime);
-//         retoolSeg.start = newRetoolStart;
-//         retoolSeg.finish = desiredRetoolFinish;
-//       } else {
-//         // Если ретул запланирован не на текущий день (например, в конце дня, а операция – на следующий),
-//         // сдвигаем ретул так, чтобы он заканчивался ровно в конце рабочего дня для того дня,
-//         // к которому он относится.
-//         // const retoolDate = new Date(retoolSeg.date);
-//         // const workDayRetool = generateCalendarItemOnServer(retoolDate, schedule);
-//         const workDayRetool = generateCalendarItemOnServer(retoolSeg.date, schedule);
-//         const workEndRetool = workDayRetool.timeFinishWork;
-//         const newRetoolStart = workEndRetool - retoolTime;
-//         retoolSeg.start = newRetoolStart;
-//         retoolSeg.finish = workEndRetool;
-//       }
-//     }
-
-
-//     return {
-//       success: true,
-//       opSegments: opSegments,
-//       message: ""
-//     }
-
-//   } else {
-
-//     // Итерируем по свободным интервалам, учитывая busyPeriods, чтобы накопить totalRequired минут.
-//     while (availableStart < workEnd && onPlaned < opRequired) {
-
-//       // Ищем следующий занятый интервал, начинающийся после availableStart.
-//       const nextPeriod = busyPeriods.find(p => p.start >= availableStart);
-//       const freeEnd = nextPeriod ? Math.min(nextPeriod.start, workEnd) : workEnd;
-//       let freeInterval = freeEnd - availableStart;
-//       // если между ретулом и операцией другая операция то двигаем дальше
-
-//       // Сначала ретул если есть  и его не прерываем
-//       if (freeInterval > 0 && !isRetoolSegmentDefined) {
-
-//         const timeToUse = Math.min(freeInterval, retoolTime);
-//         // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
-//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
-//         availableStart = availableStart + timeToUse;
-//         freeInterval = freeInterval - timeToUse
-//         isRetoolSegmentDefined = (timeToUse === retoolTime) || isRetoolSegmentDefined_;
-
-//         // если между ретулом и операцией вклинивается другая операция  сброс и ищем дальше
-//         if (freeInterval === 0 && nextPeriod?.type === TimeTypeEnum.busy) {
-//           isRetoolSegmentDefined = isRetoolSegmentDefined_;
-//           onPlaned = 0;
-//           opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
-//         };
-
-//       }
-
-//       if (freeInterval > 0 && isRetoolSegmentDefined) {
-//         const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
-//         if (timeToUse > 0) {
-//           // opSegments.push({ date: targetDate.toLocaleDateString("en-CA"), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
-//           opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
-//           onPlaned += timeToUse;
-//           availableStart += timeToUse;
-//           if (onPlaned === opRequired) break;
-
-//           // если вклинивается другая операция то сброс и ищем дальше
-//           if (nextPeriod?.type === TimeTypeEnum.busy) {
-//             onPlaned = 0;
-//             opSegments = [] as { date: string, start: number; finish: number, isRetool: boolean }[];
-//             isRetoolSegmentDefined = false;
-//           };
-//         }
-//       }
-
-//       if (nextPeriod) {
-//         availableStart = Math.max(availableStart, nextPeriod.end);
-//       } else {
-//         break;
-//       }
-//     }
-
-//     // Здесь проверка оставшегося времени до конца рабочего дня
-//     if (onPlaned < opRequired) {
-//       // проверим еще интервал от возможного старта до конца рабочего дня    
-//       let freeInterval = workEnd - availableStart;
-//       //1. убедимся что в найденный интервал влазит ретул
-//       // если есть и влазит - планируем
-//       if (freeInterval > 0 && !isRetoolSegmentDefined) {
-//         const timeToUse = Math.min(freeInterval, retoolTime);
-
-//         opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: true });
-//         availableStart = availableStart + timeToUse;
-//         freeInterval = freeInterval - timeToUse
-//         isRetoolSegmentDefined = (timeToUse === retoolTime);
-//       }
-
-
-//       if (freeInterval > 0 && isRetoolSegmentDefined) {
-//         const timeToUse = Math.min(freeInterval, opRequired - onPlaned);
-//         if (timeToUse > 0) {
-
-//           opSegments.push({ date: YYYYMMDD(targetDate), start: availableStart, finish: availableStart + timeToUse, isRetool: false });
-//           onPlaned += timeToUse;
-//           availableStart += timeToUse;
-//         }
-//       }
-
-//     }
-
-//     if (onPlaned < opRequired) {
-//       // const nextDate = new Date(targetDate)
-//       // nextDate.setDate(nextDate.getDate() + 1);
-//       // const nextDateStr = nextDate.toLocaleDateString("en-CA");
-
-//       const nextDate = addDaysInZone(targetDate, 1, schedule.timeZone)
-//       const nextDateStr = YYYYMMDD(nextDate);
-
-//       return findAvailableSegmentsDay(
-//         userId,
-//         locale,
-//         nextDateStr,
-//         0,
-//         stopDateStr,
-//         opSegments,
-//         unit,
-//         retoolTime,
-//         opRequired,
-//         onPlaned,
-//         unitLoadItems,
-//         schedule,
-//         exceptionItems,
-//         interruptible,
-//         totalRequired,
-//         isRetoolSegmentDefined
-//       )
-//     }
-
-//     return {
-//       success: true,
-//       opSegments: opSegments,
-//       message: ""
-//     }
-//   }
-// }
 
 const doLoopProductsOper = (
   readyProducts: ReadyProduct[],

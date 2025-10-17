@@ -4,19 +4,21 @@
 import i18n, { Resource } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// JSON-ресурсы (нужно "resolveJsonModule": true в tsconfig)
-
 import ruSerMes from '../../public/locales/ru/server_messages.json';
 import enSerMes from '../../public/locales/en/server_messages.json';
 
+// Защита от случайного импорта на клиент
+if (typeof window !== 'undefined') {
+  throw new Error('Attempted to import server i18n on the client');
+}
 
 const NS = ['sermes'] as const;
 
 const resources: Resource = {
-  ru: {    
+  ru: {
     sermes: ruSerMes,
   },
-  en: {    
+  en: {
     sermes: enSerMes,
   },
 };
@@ -29,10 +31,11 @@ if (!i18n.isInitialized) {
       fallbackLng: 'ru',
       ns: NS,
       defaultNS: 'sermes',
-      resources, // ← единый набор ресурсов, без HttpBackend/require
+      resources,
       interpolation: { escapeValue: false },
       react: { useSuspense: false },
       returnEmptyString: false,
+      initImmediate: false, // ← ВАЖНО: синхронная инициализация на сервере
     });
 }
 
