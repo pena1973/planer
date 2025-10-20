@@ -122,7 +122,8 @@
     "fillProduct": "Fill in the product",
     "fillQtu": "Fill in the quantity",
     "fillAction": "Fill in the action",
-    "fillDuration": "Fill in the duration"
+    "fillDuration": "Fill in the duration",
+    "save": "Save"
   },
   "fileUpload": {
     "json": "Upload your JSON file here",

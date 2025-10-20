@@ -231,11 +231,9 @@ export default function Planing() {
     return (<DefectiveCardRow
       key={"defective" + index}
       tCard={tCard}
-      droploaderCard={droploaderCard}
-      erazLoaderCard={erazLoaderCard}
+      lightloaderCard={droploaderCard}      
       tCardLighted={tCardLighted}      
-      lightTCardHandler={lightTCardHandler}
-      erazCardHandler={erazCardHandler}
+      lightTCardHandler={lightTCardHandler}      
     />)
 
   })

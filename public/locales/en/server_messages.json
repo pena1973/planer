@@ -67,6 +67,17 @@
     "operStartLoadNotFound": "Operation start interval not found. Card:",
     "theUnitcantPerformOperation": "The selected unit cannot perform this action.",
     "loadShifted": "Cannot start the operation at the specified time; incoming sources are not ready. Interval shifted.",
-    "noCardLoads": "Error: no load intervals passed for the card."
+    "noCardLoads": "Error: no load intervals passed for the card.",
+
+    "notEnoughtProduct": "Не хватает продукта",
+    "code": "код",
+    "notEnought": "Недостаточно",
+    "cardIsNotReconciled": "Не все операции готовы к планированию или карта несогласована",
+    "noUnitsForAction": "Нет ни одного юнита который может выполнить действие",
+    "noFreeUnits": "Планирование не удалось: нет свободных ресурсов до",
+    "noPossibleLoadsForUniit": "Не удалось построить загрузки по выбранному юниту.",
+     "successfulPlaning": "Планирование успешно."
+
   }
+
 }

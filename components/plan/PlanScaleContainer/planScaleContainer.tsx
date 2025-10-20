@@ -3,19 +3,23 @@ import React, { useEffect, useState, useRef } from 'react';
 
 import styles from "./planScaleContainer.module.scss";
 
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum, UnitActionItem } from "@/types/types";
+import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum, UnitActionItem, TimeZoneEnum } from "@/types/types";
 
-import { generateCalendarItem} from "@/lib/common/utils";
+import { generateCalendarItem } from "@/lib/common/utils";
 import { isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/common/utils";
 
 import LoadInner from "./LoadInner/loadInner";
 import LoadOuter from "./LoadOuter/loadOuter";
 import DottedLine from "./DottedLine/dottedLine";
 import UnitMenu from "./UnitMenu/unitMenu";
-import { getCurrentDateInDate, addDaysInZone,getCurrentDateInString,getTimeZoneDateFromDateString } from "@/lib/client/timezone.client"
+import { getCurrentDateInDate, addDaysInZone, getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/client/timezone.client"
 import { useTranslation } from 'react-i18next';
 
 import { useResizeObserver } from './useResizeObserver'; // Хук отслеживания расмеров окна
+
+import { YYYYMMDDTZ } from "@/lib/common/timezone";
+// import { ulogger } from "./../lib/common/universal-logger";
+
 
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
@@ -64,6 +68,18 @@ const createLines = (part: string, date: string, unitLoads: UnitLoadItem[]): Lin
 
   return linesArray;
 };
+
+
+const dayNeedToMissForTimeScale = (_day: Date, settings: SettingsItem, schedule: ScheduleItem, timezone: string) => {
+
+  if (!settings.showWeekend && isWeekend(_day, schedule) && !isAdditionalTime(_day, schedule)) {
+    return true
+  }
+  if (!settings.showHoliday && isHoliday(_day, schedule) && !isAdditionalTime(_day, schedule)) {
+    return true
+  }
+  return false
+}
 
 export interface PlanScaleContainerProps {
   tCards: TCardItem[],
@@ -132,22 +148,11 @@ export default function PlanScaleContainer({
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
 
-
-  // const today = new Date();
-  // today.setHours(0, 0, 0, 0); // Устанавливаем начало дня (00:00:00.000)
   let today = getCurrentDateInDate(timezone);
   const todayStr = getCurrentDateInString(timezone);
 
-  // если  день приходится на выходные  и в настройках указано что мы скрываем выходные но нет доп часов на это время
-  // крутим до первого буднего дня
-  while (!settings.showWeekend && isWeekend(today.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(today.toLocaleDateString('en-CA'), schedule)) {
-    // today.setDate(today.getDate() + 1);
-    today = addDaysInZone(today, 1, timezone);
-  }
-  // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
-  // крутим до первого буднего дня
-  while (!settings.showHoliday && isHoliday(today.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(today.toLocaleDateString('en-CA'), schedule)) {
-    // today.setDate(today.getDate() + 1);
+  // нужно ли пропустить этот день?
+  while (dayNeedToMissForTimeScale(today, settings, schedule, timezone)) {
     today = addDaysInZone(today, 1, timezone);
   }
 
@@ -180,7 +185,6 @@ export default function PlanScaleContainer({
         calendarPlus.current = [...calendarPlus.current, generateCalendarItem(idDay, schedule)];
       }
     })
-
 
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
@@ -238,7 +242,7 @@ export default function PlanScaleContainer({
     // Из загрузки вытаскиваем список юнитов и делим его на свой чужой;
     unitsViewInner.current = units.filter(elem => elem.belong === UnitBelongEnum.inner);
     unitsViewOuter.current = units.filter(elem => elem.belong === UnitBelongEnum.outer);
-   
+
 
     // реализуем ленивую загрузку   
     // генерим стартовый день,  в соответствии с настройкой видимости
@@ -294,8 +298,8 @@ export default function PlanScaleContainer({
 
   // const calculateVisibleItemsPlus = (day: Date, timelineWidth: number, dayWidth: number, shift: number) => {
   const calculateVisibleItemsPlus = (dayStr: string, timelineWidth: number, dayWidth: number, shift: number) => {
-    
-    const day = getTimeZoneDateFromDateString(dayStr,timezone);
+
+    const day = getTimeZoneDateFromDateString(dayStr, timezone);
     const startDay = addDaysInZone(day, 0, timezone); //  убираю мутабельность и остаюсь в таймзоне команды
     // const startDay = new Date(day); // стартовый день для расчета видимых дней на шкале
     // если shift>0 тоэто сдвиг вперед
@@ -322,38 +326,25 @@ export default function PlanScaleContainer({
     let countDay = 0;
 
     while (_timelineWidth > 0) {
-
-      // Если этот день входит в дополнительные часы работы (isAdditionalTime) то проверку на выходной пропускаем
-      //  его по любому надо рисовать в шкале
-
-      // если  день приходится на выходные  и в настройках указано что мы скрываем выходные
-      // крутим до первого буднего дня
-      while (!settings.showWeekend && isWeekend(_day.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(_day.toLocaleDateString('en-CA'), schedule)) {
-        // _day.setDate(_day.getDate() + 1);
+      // нужно ли пропустить этот день?
+      if (dayNeedToMissForTimeScale(_day, settings, schedule, timezone)) {
         _day = addDaysInZone(_day, 1, timezone);
+        continue
       }
-      // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
-      // крутим до первого буднего дня
-      while (!settings.showHoliday && isHoliday(_day.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(_day.toLocaleDateString('en-CA'), schedule)) {
-        // _day.setDate(_day.getDate() + 1);
-        _day = addDaysInZone(_day, 1, timezone);
-      }
+
 
       // уменьшаем ширину на ширину дня
       _timelineWidth = _timelineWidth - dayWidth
 
-
       // обрабатываем только в том случае если день попадает в видимый диапазон       
       if (_timelineWidth + shift > timelineWidth) {
-        // _day.setDate(_day.getDate() + 1);
-         _day = addDaysInZone(_day,1,timezone);
-        continue
+        _day = addDaysInZone(_day, 1, timezone);
+        continue;
       }
 
       const id_day = idDay(_day);
 
       if (!calendarPlus.current.find(elem => elem.idDay === id_day)) {
-        // calendarPlus.current = [...calendarPlus.current, generateCalendarItem(_day, schedule)];
         calendarPlus.current = [...calendarPlus.current, generateCalendarItem(id_day, schedule)];
       }
 
@@ -378,7 +369,7 @@ export default function PlanScaleContainer({
 
     }
     // setVisibleItems(_visibleItems)
-    // calendarPlus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
+       
     calendarPlus.current.sort((a, b) => a.date.localeCompare(b.date));
     // console.log('✅ _visibleItems', _visibleItems);
     return _visibleItems;
@@ -388,7 +379,7 @@ export default function PlanScaleContainer({
   const calculateVisibleItemsMinus = (dayStr: string, timelineWidth: number, dayWidth: number, shift: number) => {
     // если shift>0 тоэто сдвиг вперед
     // если shift<0 тоэто сдвиг назад
-    const day = getTimeZoneDateFromDateString(dayStr,timezone);
+    const day = getTimeZoneDateFromDateString(dayStr, timezone);
     const startDay = addDaysInZone(day, 0, timezone); //  убираю мутабельность и остаюсь в таймзоне команды
     // видимые координаты на шкале
     const visibleleft = 0 - shift;
@@ -412,15 +403,15 @@ export default function PlanScaleContainer({
 
         // если  день приходится на выходные  и в настройках указано что мы скрываем выходные и нет доп часов
         // крутим до первого буднего дня
-        while (!settings.showWeekend && isWeekend(_dayPast.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(_dayPast.toLocaleDateString('en-CA'), schedule)) {
+        while (!settings.showWeekend && isWeekend(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
           // _dayPast.setDate(_dayPast.getDate() - 1);
-           _dayPast = addDaysInZone(_dayPast,-1,timezone);
+          _dayPast = addDaysInZone(_dayPast, -1, timezone);
         }
         // если  день приходится на праздники  и в настройках указано что мы скрываем праздники и нет доп часов
         // крутим до первого буднего дня
-        while (!settings.showHoliday && isHoliday(_dayPast.toLocaleDateString('en-CA'), schedule) && !isAdditionalTime(_dayPast.toLocaleDateString('en-CA'), schedule)) {
+        while (!settings.showHoliday && isHoliday(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
           // _dayPast.setDate(_dayPast.getDate() - 1);
-          _dayPast = addDaysInZone(_dayPast,-1,timezone);
+          _dayPast = addDaysInZone(_dayPast, -1, timezone);
         }
 
         const id_day = idDay(_dayPast); //  сгенерили
@@ -544,7 +535,7 @@ export default function PlanScaleContainer({
       draggingLoad,
       toUnitView,
       // calendarItem.date.toLocaleDateString("en-CA"),
-       calendarItem.date,
+      calendarItem.date,
       timeStart,
       timeFinish
     );
@@ -896,7 +887,7 @@ export default function PlanScaleContainer({
 
         {/* // это красная риска сегодня начало дня  */}
         {/* {today.getTime() === elem.date.getTime() && <div className={styles.today_scale}></div>} */}
-        {index===0 && <div className={styles.today_scale}></div>}
+        {index === 0 && <div className={styles.today_scale}></div>}
 
         <div className={styles.time_container}>
           {hoursScaleReactNodes}

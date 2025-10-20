@@ -1728,12 +1728,14 @@ export default function Cards() {
             />}
           {elem.modified && <div>*</div>}
           {removeLoaderCard === elem.id && <ButtonLoader />}
-          {removeLoaderCard !== elem.id &&
+          {removeLoaderCard !== elem.id && elem.status !== StatusEnum.ready &&
             <Image className="icon_del"
               src={delD} alt="del" width={20} height={20}
               onClick={() => deleteCardHandler(elem.id)}
             />}
-
+            {removeLoaderCard !== elem.id && elem.status === StatusEnum.ready &&
+            <div className="icon_empty"></div>            
+            }
         </div>
       </div>
     );

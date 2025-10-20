@@ -156,8 +156,7 @@ function weekdayEnumInTZ(ymd: string, tzValue: string): DaysOfWeek {
 }
 
 // ===== 1) Выходной день? =====
-export function isWeekend(dateOrStr: Date | string, schedule: ScheduleItem): boolean {
-  if (!schedule?.teamId) return false;
+export function isWeekend(dateOrStr: Date | string, schedule: ScheduleItem): boolean {  
   const ymd = toYMDinTZ(dateOrStr, schedule.timeZone);
   const dow = weekdayEnumInTZ(ymd, schedule.timeZone); // <-- день недели в TZ (без getUTCDay)
   return schedule.weekends.includes(dow);
@@ -165,24 +164,25 @@ export function isWeekend(dateOrStr: Date | string, schedule: ScheduleItem): boo
 
 // ===== 2) Праздничный день? =====
 export function isHoliday(dateOrStr: Date | string, schedule: ScheduleItem): boolean {
-  if (!schedule?.teamId) return false;
-
   const ymd = toYMDinTZ(dateOrStr, schedule.timeZone);
-  return schedule.holidays.some(h => {
+
+  const isit = schedule.holidays.some(h => {
     const hYmd = /^\d{4}-\d{2}-\d{2}$/.test(h) ? h : toYMDinTZ(new Date(h), schedule.timeZone);
     return hYmd === ymd;
   });
+
+  return isit;
 }
 
 // ===== 3) Доп. рабочий день? =====
-export function isAdditionalTime(dateOrStr: Date | string, schedule: ScheduleItem): boolean {
-  if (!schedule?.teamId) return false;
-
+export function isAdditionalTime(dateOrStr: Date | string, schedule: ScheduleItem): boolean {  
   const ymd = toYMDinTZ(dateOrStr, schedule.timeZone);
-  return schedule.workdays.some(w => {
+  const isit = schedule.workdays.some(w => {
     const wYmd = /^\d{4}-\d{2}-\d{2}$/.test(w.date) ? w.date : toYMDinTZ(new Date(w.date), schedule.timeZone);
     return wYmd === ymd;
   });
+  
+  return isit;
 }
 
 

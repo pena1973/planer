@@ -81,7 +81,7 @@ export default function TCardOperNew({
     const actions = useAppSelector((state: RootState) => {
         return state.catalogSlice.actions;
     })
-    
+
     interface Option {
         idc: number;
         title: string;
@@ -130,12 +130,12 @@ export default function TCardOperNew({
         filled = filled && outValue.every(item => item.qtu !== 0);
         if (!filled) { setMessage(t('cardsopernew.fillQtu')); return filled }
 
-        filled = filled && (actionValue?.id)!==undefined;
+        filled = filled && (actionValue?.id) !== undefined;
         if (!filled) { setMessage(t('cardsopernew.fillAction')); return filled }
 
         filled = filled && (hourValue !== 0 || minutValue !== 0 || secundValue !== 0 || msValue !== 0);
         if (!filled) { setMessage(t('cardsopernew.fillDuration')); return filled }
-      
+
         return filled;
     };
 
@@ -493,11 +493,34 @@ export default function TCardOperNew({
                 </div>
             </div>
             <div className={styles.container_buttons_row}>
-                <div className={styles.message}>{message}</div>
+
                 <div className={styles.container_icon_edit_save}>
-                    <Image className={styles.icon_edit_save}
+                    <Image className={styles.icon_del}
+                        src={del} alt="del" width={20} height={20}
+                        onClick={() => deleteOperHandler(idc)}
+                    />
+                    <div className={styles.message}>{message}</div>
+                    <div className={styles.save_buton_container}>
+                        <button className={styles.save_buton}
+                            onClick={() => {
+                                if (checkOperationFilled()) {
+                                    setMessage("");
+                                    saveOperHandler(
+                                        idc,
+                                        innValue,
+                                        outValue,
+                                        actionValue,
+                                        comentValue,
+                                        convertTimeToMilliseconds(hourValue, minutValue, secundValue, msValue),)
+                                }
+                            }}
+                        >{t('cardsopernew.save')}</button>
+                        {edited && <div>*</div>}
+                        {!edited && <div>&ensp;</div>}
+                    </div>
+                    {/* <Image className={styles.icon_edit_save}
                         src={save}
-                        alt="arrow" width={20} height={20}
+                        alt="save" width={20} height={20}
                         onClick={() => {
 
                             if (checkOperationFilled()) {
@@ -511,13 +534,10 @@ export default function TCardOperNew({
                                     convertTimeToMilliseconds(hourValue, minutValue, secundValue, msValue),)
                             }
                         }}
-                    />
+                    /> */}
 
-                </div> {edited && <div>*</div>}
-                <Image className={styles.icon_del}
-                    src={del} alt="del" width={20} height={20}
-                    onClick={() => deleteOperHandler(idc)}
-                />
+
+                </div>
             </div>
         </div>
     )

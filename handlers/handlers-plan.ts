@@ -261,31 +261,21 @@ function findAvailableTimeForOperation(
   isPinned: boolean,
 ): { success: boolean, planedUnitLoads: UnitLoadItem[], dateReady: string, timeReady: number, message: string } {
 
+  const t = getServerT(locale, 'sermes');
   const version = generateUniqueIdc();
 
   const targetDate = getTimeZoneDateFromDateString(startDateStr, schedule.timeZone);
   const stopDate = getTimeZoneDateFromDateString(stopDateStr, schedule.timeZone);
 
-  console.log('[FIND] inputs', {
-    userId, locale,
-    tCardId: tCard?.id, operId: operation?.id, operActionId: operation?.action?.id,
-    startDateStr, stopDateStr, timeZone: schedule?.timeZone,
-    // момент — в минутах с начала дня по вашей логике (уточняю в логе)
-    momentMinutesFromDayStart: moment,
-    compatibleUnits: compatibleuUnits?.map(u => ({ id: u.id, title: u.title })),
-    unitActionsCount: unitActions?.length ?? 0,
-    unitLoadsCount: unitLoadItems?.length ?? 0,
-    exceptionCount: exceptionItems?.length ?? 0,
-  });
-
   if (targetDate.getTime() > stopDate.getTime()) {
-    console.warn('[FIND] abort: targetDate > stopDate', { targetDate, stopDate });
+    // console.warn('[FIND] abort: targetDate > stopDate', { targetDate, stopDate });
     return {
       success: false,
       planedUnitLoads: unitLoadItems,
       dateReady: "",
       timeReady: 0,
-      message: `Планирование не удалось: нет свободных ресурсов до ${stopDateStr}`
+      // message: `Планирование не удалось: нет свободных ресурсов до ${stopDateStr}`
+      message: `${t('mes.noOperToplan')} ${stopDateStr}`
     };
   }
 
@@ -311,11 +301,11 @@ function findAvailableTimeForOperation(
     const opSegments: { date: string, start: number; finish: number, isRetool: boolean }[] = [];
     const isRetoolSegmentDefined = (retoolTime === 0);
 
-    console.log('[FIND] try unit', {
-      unitId: unit.id, unitTitle: unit.title,
-      retoolTime, opRequired, koef, totalRequired,
-      actionsForUnit: actions.map(a => ({ id: a.id, actionId: a.action?.id, koef: a.koef })),
-    });
+    // console.log('[FIND] try unit', {
+    //   unitId: unit.id, unitTitle: unit.title,
+    //   retoolTime, opRequired, koef, totalRequired,
+    //   actionsForUnit: actions.map(a => ({ id: a.id, actionId: a.action?.id, koef: a.koef })),
+    // });
 
     // КРИТИЧЕСКОЕ место: сюда передаём moment, именно тут он должен учитываться
     const resultOpSegments = findAvailableSegmentsDay(
@@ -337,13 +327,13 @@ function findAvailableTimeForOperation(
       isRetoolSegmentDefined
     );
 
-    console.log('[FIND] unit result', {
-      unitId: unit.id,
-      success: resultOpSegments?.success,
-      segments: resultOpSegments?.opSegments?.map(s => ({
-        date: s.date, start: s.start, finish: s.finish, isRetool: s.isRetool
-      }))
-    });
+    // console.log('[FIND] unit result', {
+    //   unitId: unit.id,
+    //   success: resultOpSegments?.success,
+    //   segments: resultOpSegments?.opSegments?.map(s => ({
+    //     date: s.date, start: s.start, finish: s.finish, isRetool: s.isRetool
+    //   }))
+    // });
 
     if (resultOpSegments.success) {
       possibleCandidates.push({
@@ -354,7 +344,7 @@ function findAvailableTimeForOperation(
     }
   }
 
-  console.log('[FIND] possibleCandidates count', possibleCandidates.length);
+  // console.log('[FIND] possibleCandidates count', possibleCandidates.length);
 
   if (possibleCandidates.length > 0) {
     // FIX: сортируем по финишу в той же таймзоне, что и расчёты
@@ -370,16 +360,16 @@ function findAvailableTimeForOperation(
       return finishTs(aLast) - finishTs(bLast);
     });
 
-    console.log('[FIND] candidates sorted', possibleCandidates.map(c => ({
-      unitId: c.unit.id,
-      last: c.opSegments.at(-1)
-        ? {
-          date: c.opSegments.at(-1)!.date,
-          finish: c.opSegments.at(-1)!.finish,
-          finishTs: finishTs(c.opSegments.at(-1)!)
-        }
-        : null
-    })));
+    // console.log('[FIND] candidates sorted', possibleCandidates.map(c => ({
+    //   unitId: c.unit.id,
+    //   last: c.opSegments.at(-1)
+    //     ? {
+    //       date: c.opSegments.at(-1)!.date,
+    //       finish: c.opSegments.at(-1)!.finish,
+    //       finishTs: finishTs(c.opSegments.at(-1)!)
+    //     }
+    //     : null
+    // })));
 
     const bestCandidate = possibleCandidates[0];
 
@@ -388,7 +378,7 @@ function findAvailableTimeForOperation(
 
     bestCandidate.opSegments.forEach(seg => {
       const actions_ = unitActions.filter(ac => ac.unitId === bestCandidate.unit.id);
-      // FIX: правильное сравнение, не присваивание
+
       const action_ = actions_.find(act => act.action?.id === operation.action.id); // FIX
       const koef_ = (action_) ? action_.koef : 1;
 
@@ -422,18 +412,20 @@ function findAvailableTimeForOperation(
       isFirst = seg.isRetool ? isFirst : false;
     });
 
-    console.log('[FIND] updatedUnitLoads', updatedUnitLoads.map(l => ({
-      unitId: l.unit.id, date: l.date, start: l.timeStart, finish: l.timeFinish, isRetool: l.isRetool
-    })));
+    // console.log('[FIND] updatedUnitLoads', updatedUnitLoads.map(l => ({
+    //   unitId: l.unit.id, date: l.date, start: l.timeStart, finish: l.timeFinish, isRetool: l.isRetool
+    // })));
 
     if (updatedUnitLoads.length === 0) {
-      console.warn('[FIND] no updatedUnitLoads created');
+      // console.warn('[FIND] no updatedUnitLoads created');
       return {
         success: false,
         planedUnitLoads: updatedUnitLoads,
         dateReady: "",
         timeReady: 0,
-        message: "Не удалось построить загрузки по выбранному юниту."
+        // message: "Не удалось построить загрузки по выбранному юниту."
+        message: `${t('mes.noPossibleLoadsForUniit')}`
+
       };
     }
 
@@ -444,11 +436,11 @@ function findAvailableTimeForOperation(
       planedUnitLoads: updatedUnitLoads,
       dateReady: finalLoad.date,
       timeReady: finalLoad.timeFinish,
-      message: "Планирование успешно."
+      message: `${t('mes.successfulPlaning')}`
     };
   }
 
-  console.warn('[FIND] no candidates found until stopDate', { stopDateStr, timeZone: schedule?.timeZone });
+  // console.warn('[FIND] no candidates found until stopDate', { stopDateStr, timeZone: schedule?.timeZone });
   return {
     success: false,
     planedUnitLoads: unitLoadItems,
@@ -573,6 +565,23 @@ function findAvailableSegmentsDay(
     const winEnd = firstBusy ? Math.min(firstBusy.start, workEnd_) : workEnd_;
 
     return { start: winStart, end: winEnd }; // если end<=start — окна нет
+  };
+  // рабочие границы дня с учётом исключений; hasWork=true, если есть рабочее время
+  const getWorkBounds = (dateStr: string) => {
+    const wd = generateCalendarItemOnServer(dateStr, schedule);
+    let ws = wd.timeStartWork;
+    let we = wd.timeFinishWork;
+
+    const ex = exceptionItems.filter(e => e.unitId === unit.id && e.date === dateStr);
+    if (ex.length > 0) {
+      ex.forEach(e => {
+        if (e.type === TimeTypeEnum.work) {
+          ws = e.timeStart;
+          we = e.timeFinish;
+        }
+      });
+    }
+    return { start: ws, end: we, hasWork: we > ws };
   };
 
   // FIX: и ретул, и основная операция в первый день — не раньше moment
@@ -813,34 +822,62 @@ function findAvailableSegmentsDay(
   if (onPlaned < opRequired) {
     let nextDate = addDaysInZone(targetDate, 1, schedule.timeZone);
     let nextDateStr = YYYYMMDDTZ(nextDate, schedule.timeZone);
-
+   
     // ──────────────────────────────────────────────────────────────
     // FIX: непрерывность «своей» — если уже начали (onPlaned>0),
-    // то завтра должно быть ХОТЯ БЫ МИНУТНОЕ утреннее окно.
-    // Если окна нет (первая чужая загрузка с самого старта),
-    // откатываем сегодняшний прогресс и переносим СТАРТ на первый
-    // день, где окно > 0. Иначе продолжаем завтра утром.
+    // то продолжать можно только если у ближайшего РАБОЧЕГО дня
+    // есть хотя бы минутное утреннее окно. Если ближайший день
+    // нерабочий — НЕ откатываем, просто перейдём дальше по рекурсии.
+    // Откат делаем только когда ближайший РАБОЧИЙ день стартует
+    // сразу чужой загрузкой (окна нет).
     // ──────────────────────────────────────────────────────────────
     if (onPlaned > 0) {
-      let win = morningFreeWindow(nextDateStr);
+      // 1) Сначала смотрим, является ли «завтра» рабочим днём
+      const nb = getWorkBounds(nextDateStr);
 
-      if (win.end <= win.start) {
+      let shouldRollback = false;
+
+      if (nb.hasWork) {
+        // ближайший день рабочий — проверяем утреннее окно этого дня
+        const win = morningFreeWindow(nextDateStr);
+        shouldRollback = (win.end <= win.start);
+      } else {
+        // «завтра» нерабочий — откат НЕ нужен, просто дойдём рекурсией
+        shouldRollback = false;
+      }
+
+      if (shouldRollback) {
+        // Откатываем только если БЛИЖАЙШИЙ РАБОЧИЙ день без окна
+        // (т.е. чужая загрузка "с порога")
         // Откатим сегодняшние сегменты (и ретул), сбросим прогресс
         opSegments = opSegments.filter(s => s.date !== targetDateStr);
         onPlaned = 0;
         isRetoolSegmentDefined = false;
 
-        // Ищем первый ближайший день с положительным утренним окном
-        while (nextDateStr <= stopDateStr) {
-          win = morningFreeWindow(nextDateStr);
-          if (win.end > win.start) break;
-          nextDate = addDaysInZone(nextDate, 1, schedule.timeZone);
-          nextDateStr = YYYYMMDDTZ(nextDate, schedule.timeZone);
+        // Ищем первый БЛИЖАЙШИЙ РАБОЧИЙ день с положительным утренним окном
+        let searchDate = nextDate;
+        let searchDateStr = nextDateStr;
+
+        while (searchDateStr <= stopDateStr) {
+          const wb = getWorkBounds(searchDateStr);
+          if (wb.hasWork) {
+            const w = morningFreeWindow(searchDateStr);
+            if (w.end > w.start) break; // нашли рабочий день с окном
+          }
+          searchDate = addDaysInZone(searchDate, 1, schedule.timeZone);
+          searchDateStr = YYYYMMDDTZ(searchDate, schedule.timeZone);
         }
 
-        if (nextDateStr > stopDateStr) {
+        if (searchDateStr > stopDateStr) {
           return { success: false, opSegments: [], message: `достигнута стоп дата и нет свободных ресурсов до ${stopDateStr}` };
         }
+
+        // переносим старт на найденный рабочий день с окном
+        return findAvailableSegmentsDay(
+          userId, locale, searchDateStr, 0, stopDateStr, opSegments, unit,
+          retoolTime, opRequired, onPlaned, unitLoadItems, schedule,
+          exceptionItems, interruptible, totalRequired, isRetoolSegmentDefined
+        );
       }
     }
 
@@ -997,7 +1034,8 @@ export const planTCardFromOperINC = (
 
               // Если количество в tCardReady недостаточно для операции, пропускаем операцию
               if (matchingReadyProduct.qtu < innProduct.qtu) {
-                message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu - matchingReadyProduct.qtu} единиц.\n`);
+                // message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu - matchingReadyProduct.qtu} единиц.\n`);
+                message = message.concat(`${t('mes.notEnoughtProduct')} ${innProduct.product.title} (${t('mes.code')}: ${innProduct.code}). ${t('mes.notEnought')}: ${innProduct.qtu - matchingReadyProduct.qtu} единиц.\n`);
                 return false;
               }
 
@@ -1017,7 +1055,8 @@ export const planTCardFromOperINC = (
                 })
               return true;
             }
-            message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu} единиц.\n`);
+            // message = message.concat(`Не хватает продукта ${innProduct.product.title} (код: ${innProduct.code}). Недостаточно: ${innProduct.qtu} единиц.\n`);
+            message = message.concat(`${t('mes.notEnoughtProduct')} ${innProduct.product.title} (${t('mes.code')}: ${innProduct.code}). ${t('mes.notEnought')}: ${innProduct.qtu} единиц.\n`);
 
             return false; // Если продукта нет или не совпадает по uom
           })
@@ -1033,7 +1072,8 @@ export const planTCardFromOperINC = (
         return {
           success: false,
           planedCardLoads: planedCardLoads,
-          message: `Не все операции готовы к планированию или карта несогласована ${message}`
+          // message: `Не все операции готовы к планированию или карта несогласована ${message}`
+          message: `${t('mes.cardIsNotReconciled')} ${message}`
         };
 
       // Убираем записи в которых qtu = 0 - они израсходованы на список выбранных операций 
@@ -1085,7 +1125,8 @@ export const planTCardFromOperINC = (
 
           // если подходящих юнитов нет  -  значит операцию выполнить мы не можем - уходим с планирования с отказом
           if (compatibleuUnits.length === 0) {
-            message = `Нет ни одного юнита который может выполнить действие  ${operation.action.title}`;
+            // message = `Нет ни одного юнита который может выполнить действие  ${operation.action.title}`;
+            message = `${t('mes.noUnitsForAction')}: ${operation.action.title}`;
             return { success: false, planedCardLoads: planedCardLoads, message: message };
           }
 
@@ -1131,7 +1172,8 @@ export const planTCardFromOperINC = (
 
             // если не удалось запланировать то прерываем расчет
             if (!resultPlaning.success) {
-              message = `Действие - A${operation.idc}: ${resultPlaning.message}`;
+              // message = `Действие - A${operation.idc}: ${resultPlaning.message}`;
+              message = `${t('mes.action')} - A${operation.idc}: ${resultPlaning.message}`;
               stoploop = true;
             } else {
 
@@ -1210,7 +1252,7 @@ export const planOperOnUnit = (
     if (operation.status !== StatusEnum.prepared) {
 
       // message = `Операцию - A${operation.idc} можно планировать только в prepared статусе `;
-      message = `${t('mes.onlyPreparedOperPossiblePlan')} action: A${operation.idc} (${operation.action.title})`
+      message = `${t('mes.onlyPreparedOperPossiblePlan')} ${t('mes.action')}: A${operation.idc} (${operation.action.title})`
       return { success: false, operLoads: updatedUnitLoads, message: message };
     }
 

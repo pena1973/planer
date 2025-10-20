@@ -12,22 +12,17 @@ import { padNumberToFourDigits } from "@/lib/client/utils.client";
 
 interface DefectiveCardRowProps {
   tCard: TCardItem;
-  droploaderCard: number | null;
-  erazLoaderCard: number | null;
+  lightloaderCard: number | null;  
   tCardLighted: TCardItem;
   // formatDate: (date: Date) => string;
-  lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void;
-  erazCardHandler: (id: number) => void;
+  lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void;  
 }
 
 const DefectiveCardRow: React.FC<DefectiveCardRowProps> = ({
   tCard,
-  droploaderCard,
-  erazLoaderCard,
-  tCardLighted,
-  // formatDate,
-  lightTCardHandler,
-  erazCardHandler,
+  lightloaderCard,  
+  tCardLighted,  
+  lightTCardHandler,  
 }) => {
 
   // const date = tCard.date ? formatDate(new Date(tCard.date)) : "";
@@ -35,8 +30,8 @@ const DefectiveCardRow: React.FC<DefectiveCardRowProps> = ({
   return (
     <div className="container_plan_card_planed">
       <div className="container_plan_card_icon_light">
-        {droploaderCard === tCard.id && <ButtonLoader />}
-        {droploaderCard !== tCard.id &&
+        {lightloaderCard === tCard.id && <ButtonLoader />}
+        {lightloaderCard !== tCard.id &&
           (tCard.id === tCardLighted.id ?
             <Image className="icon_edit_save" src={lighton} alt="lighton"
               width={20} height={20} onClick={() => lightTCardHandler(tCard, false)} />
@@ -50,17 +45,7 @@ const DefectiveCardRow: React.FC<DefectiveCardRowProps> = ({
         &nbsp;
         <div className="container_plan_card_planed_title">{padNumberToFourDigits(tCard.idc)} -  {tCard.date}</div>
       </div>
-
-      <div className="container_icon_edit_save">
-        {erazLoaderCard === tCard.id && <ButtonLoader />}
-        {erazLoaderCard !== tCard.id &&
-          <Image className="icon_edit_save"
-            src={eraz}
-            alt="eraz" width={20} height={20}
-            onClick={() => erazCardHandler(tCard.id)}
-          />}
-        {tCardLighted?.id === tCard.id}
-      </div>
+      
     </div>
   );
 };
