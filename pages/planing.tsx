@@ -8,7 +8,6 @@ import { preFullCardPlan } from '@/services/plan/preFullCardPlan';
 
 import Layout from "@/components/Layout/layout";
 import PlanScaleContainer from "@/components/plan/PlanScaleContainer/planScaleContainer";
-
 import PlanedCardRow from "@/components/plan/PlanedCardRow/planedCardRow";
 import ToPlanCardRow from "@/components/plan/ToPlanCardRow/toPlanCardRow";
 import DefectiveCardRow from "@/components/plan/DefectiveCardRow/defectiveCardRow";
