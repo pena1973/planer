@@ -135,7 +135,6 @@ export default function PlanScaleContainer({
   const [isLoadingDrop, setIsLoadingDrop] = useState(NaN); // для отработки задержки при перетаскивании 
 
   // Прорисовка соединительных линий лоадов аутсорта
-
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
   const [scale, setScale] = useState(50); // содержит Масштаб (10% - 100%)  
   const [isDraggingScale, setIsDraggingScale] = useState(false); // Состояние для отслеживания перетаскивания
@@ -171,8 +170,7 @@ export default function PlanScaleContainer({
     calendarPlus.current = [] as CalendarItem[];
     calendarMinus.current = [] as CalendarItem[];
     setCalendarViewPlus([] as CalendarItem[]);
-    setCalendarViewMinus([] as CalendarItem[]);
-    // setTimelineWidth(0); // убираю лишний рендер
+    setCalendarViewMinus([] as CalendarItem[]);    
     scaleRestart.current = true;
 
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
@@ -270,11 +268,9 @@ export default function PlanScaleContainer({
     setDayWidth(calculateWidthDay(timelineWidth, scale)) // //padding 20 с обоих сторон уже учтен в timelineWidth
 
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
-    // visibleItemsPlus.current = calculateVisibleItemsPlus(new Date(today), timelineWidth, _dayWidth, shift)
     visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, _dayWidth, shift)
 
-    // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный  
-    // visibleItemsMinus.current = calculateVisibleItemsMinus(new Date(today), timelineWidth, _dayWidth, shift)
+    // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный      
     visibleItemsMinus.current = calculateVisibleItemsMinus(todayStr, timelineWidth, _dayWidth, shift)
 
     //  прорисовываем шкалу планирования
@@ -287,7 +283,6 @@ export default function PlanScaleContainer({
     // // 🔧 Важное добавление — "касание" unitLoads
     // console.log("unitLoads length:", unitLoads.length);
 
-    // }, [timelineWidth, shift, todayDateRef, scaleRestart.current]);  // Пересчитываем при изменении размераб сдвига, даты или масштаба
   }, [timelineWidth, shift, todayDateRef]);  // Пересчитываем при изменении размераб сдвига, даты или масштаба
   // timelineWidth-изменение размеров экрана
   //shift  -сдвиг временной шкалы
@@ -296,7 +291,7 @@ export default function PlanScaleContainer({
   //scaleRestart.current  - принудительный рестарт
 
 
-  // const calculateVisibleItemsPlus = (day: Date, timelineWidth: number, dayWidth: number, shift: number) => {
+  
   const calculateVisibleItemsPlus = (dayStr: string, timelineWidth: number, dayWidth: number, shift: number) => {
 
     const day = getTimeZoneDateFromDateString(dayStr, timezone);
@@ -364,18 +359,15 @@ export default function PlanScaleContainer({
       }
 
       // Добавляем один день
-      _day = addDaysInZone(_day, 1, timezone);
-      // _day.setDate(_day.getDate() + 1);
+      _day = addDaysInZone(_day, 1, timezone);     
 
     }
-    // setVisibleItems(_visibleItems)
-       
+    
     calendarPlus.current.sort((a, b) => a.date.localeCompare(b.date));
     // console.log('✅ _visibleItems', _visibleItems);
     return _visibleItems;
   };
-
-  // const calculateVisibleItemsMinus = (startDay: Date, timelineWidth: number, dayWidth: number, shift: number) => {
+  
   const calculateVisibleItemsMinus = (dayStr: string, timelineWidth: number, dayWidth: number, shift: number) => {
     // если shift>0 тоэто сдвиг вперед
     // если shift<0 тоэто сдвиг назад
@@ -394,30 +386,25 @@ export default function PlanScaleContainer({
     // если сдвиг положительный то нужно отстроить дни в прошлое
     //  буду сдвиг отсчитывать от сегодня
     if (shift > 0) {
-      let _shift = shift; // сдвег в прошлое     
-      // const _dayPast = new Date(startDay); // временная переменная для дней  буду ее инкрементировать  
-      // _dayPast.setDate(today.getDate() - 1);
+      let _shift = shift; // сдвег в прошлое           
       let _dayPast = addDaysInZone(startDay, -1, timezone);
 
       while (_shift > 0) {
 
         // если  день приходится на выходные  и в настройках указано что мы скрываем выходные и нет доп часов
         // крутим до первого буднего дня
-        while (!settings.showWeekend && isWeekend(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
-          // _dayPast.setDate(_dayPast.getDate() - 1);
+        while (!settings.showWeekend && isWeekend(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {          
           _dayPast = addDaysInZone(_dayPast, -1, timezone);
         }
         // если  день приходится на праздники  и в настройках указано что мы скрываем праздники и нет доп часов
         // крутим до первого буднего дня
-        while (!settings.showHoliday && isHoliday(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {
-          // _dayPast.setDate(_dayPast.getDate() - 1);
+        while (!settings.showHoliday && isHoliday(_dayPast, schedule) && !isAdditionalTime(_dayPast, schedule)) {          
           _dayPast = addDaysInZone(_dayPast, -1, timezone);
         }
 
         const id_day = idDay(_dayPast); //  сгенерили
         if (!calendarMinus.current.find(elem => elem.idDay === id_day)) {
-          //  если его нет добавили в массив
-          // calendarMinus.current = [...calendarMinus.current, generateCalendarItem(_dayPast, schedule)];
+          //  если его нет добавили в массив          
           calendarMinus.current = [...calendarMinus.current, generateCalendarItem(id_day, schedule)];
         }
 
@@ -437,12 +424,11 @@ export default function PlanScaleContainer({
           }
 
         }
-        _dayPast = addDaysInZone(_dayPast, -1, timezone);
-        // _dayPast.setDate(_dayPast.getDate() - 1) // от сегодня сдвинули в прошлое день
+        // от сегодня сдвинули в прошлое день
+        _dayPast = addDaysInZone(_dayPast, -1, timezone);        
       }
     }
-
-    // calendarMinus.current.sort((a, b) => a.date.getTime() - b.date.getTime());
+    
     calendarMinus.current.sort((a, b) => a.date.localeCompare(b.date));
     // console.log('✅ _visibleItems', _visibleItems);
     return _visibleItems;
@@ -533,8 +519,7 @@ export default function PlanScaleContainer({
 
     await moveLoadHandler(
       draggingLoad,
-      toUnitView,
-      // calendarItem.date.toLocaleDateString("en-CA"),
+      toUnitView,      
       calendarItem.date,
       timeStart,
       timeFinish
@@ -697,8 +682,7 @@ export default function PlanScaleContainer({
           // console.log("unit_unloadEx", unit_unloadEx);
 
         }
-        // unitLoads.filter(lo=>lo.idc_oper===52)
-
+        
         const dateLoad = unitLoads.filter(lo => {
           return (lo.unit.id === unitView.id &&
             lo.date === new Date(calendarItem.date).toLocaleDateString("en-CA"))
@@ -727,8 +711,7 @@ export default function PlanScaleContainer({
               handleDragStart={handleDragStart}
               handleMouseUpOper={handleMouseUpOper}
               handleRightClickMenu={handleRightClickMenu}
-              index={index}
-              // moveLoadHandler={moveLoadHandler}
+              index={index}              
               pinLoadHandler={pinLoadHandler}
               unPinLoadHandler={unPinLoadHandler}
               isLoadingDrop={isLoadingDrop === load.version && !load.isRetool}
@@ -737,15 +720,13 @@ export default function PlanScaleContainer({
 
           // Это прорисовка загрузок 
           return (<div key={unitView.id}
-            onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
-            // onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+            onDragOver={e => e.preventDefault()} // Чтобы разрешить drop            
             onDrop={e => handleDropOper(e, unitView)}
             className={`${styles.unit_unload} ${unit_unloadEx}`}>{operBlocksReactNodes}</div>)
         }
         // Это пустые сюда кидаем
         return (<div key={unitView.id}
-          onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
-          // onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+          onDragOver={e => e.preventDefault()} // Чтобы разрешить drop          
           onDrop={e => handleDropOper(e, unitView)}
           className={`${styles.unit_unload} ${unit_unloadEx}`}></div>); // Если нет совпадений
       });
@@ -789,14 +770,12 @@ export default function PlanScaleContainer({
 
           })
           return (<div key={unitView.id}
-            onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
-            // onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+            onDragOver={e => e.preventDefault()} // Чтобы разрешить drop            
             onDrop={e => handleDropOper(e, unitView)}
             className={styles.unit_unload}>{operBlocksReactNodes}</div>)
         }
         return (<div key={unitView.id}
-          onDragOver={e => e.preventDefault()} // Чтобы разрешить drop
-          // onDrop={e => handleDropOper(e, unitView, i, calendarItem, isWorkTime, isBreakTime)}
+          onDragOver={e => e.preventDefault()} // Чтобы разрешить drop          
           onDrop={e => handleDropOper(e, unitView)}
           className={styles.unit_unload}></div>); // Если нет совпадений
       });
@@ -885,8 +864,7 @@ export default function PlanScaleContainer({
 
         {(scale > 0) && <span className={styles.day_title}>{elem.idDay}</span>}
 
-        {/* // это красная риска сегодня начало дня  */}
-        {/* {today.getTime() === elem.date.getTime() && <div className={styles.today_scale}></div>} */}
+        {/* // это красная риска сегодня начало дня  */}        
         {index === 0 && <div className={styles.today_scale}></div>}
 
         <div className={styles.time_container}>
