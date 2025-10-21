@@ -23,12 +23,30 @@ import { YYYYMMDDTZ } from "@/lib/common/timezone";
 // import { ulogger } from "./../lib/common/universal-logger";
 
 
-// расчет ширины дня
-const calculateWidthDay = (totalWidth: number, scale: number): number => {
-  // Если scale 100%, widthDay = totalWidth
-  // Если scale 10%, widthDay = totalWidth / 100
-  return (totalWidth * scale) / 100;
+// ---- НАСТРОЙКИ ЗУМА ----
+const MIN_DAYS_VISIBLE = 10;     // как раньше
+const MAX_HOURS_VISIBLE = 4;     // как раньше
+
+// верхняя граница «эффективного» масштаба: 35% от прежнего диапазона
+const EFFECTIVE_MAX = 0.35; // ← новые 100% = старые 35%
+
+const calculateWidthDay = (timelineWidth: number, scale: number): number => {
+  const dayWidthMin = timelineWidth / MIN_DAYS_VISIBLE;
+  const dayWidthMax = timelineWidth * (24 / MAX_HOURS_VISIBLE);
+
+  // UI scale идёт 0..100, но реально используем только 0..0.35 старого диапазона
+  const uiT = Math.max(0, Math.min(100, scale)) / 100; // 0..1
+  const t = uiT * EFFECTIVE_MAX;                       // 0..0.35
+
+  return dayWidthMin + (dayWidthMax - dayWidthMin) * t;
 };
+
+// // расчет ширины дня
+// const calculateWidthDay = (totalWidth: number, scale: number): number => {
+//   // Если scale 100%, widthDay = totalWidth
+//   // Если scale 10%, widthDay = totalWidth / 100
+//   return (totalWidth * scale) / 100;
+// };
 
 // вычисление связующих линий оутсорта
 interface Line { startId: string, endId: string }
@@ -98,6 +116,72 @@ function insertCalendarSorted(targetRef: React.MutableRefObject<CalendarItem[]>,
   targetRef.current = [...arr.slice(0, l), item, ...arr.slice(l)];
 }
 
+// const DayColumn = React.memo(function DayColumn({
+//   elem,
+//   dayWidth,
+//   scale,
+//   isVisible,
+//   renderDay,           // (item: CalendarItem) => React.ReactNode
+//   showToday = false,
+// }: {
+//   elem: CalendarItem;
+//   dayWidth: number;
+//   scale: number;
+//   isVisible: boolean;
+//   renderDay: (item: CalendarItem) => React.ReactNode;
+//   showToday?: boolean;
+// }) {
+//   const content = React.useMemo(
+//     () => (isVisible ? renderDay(elem) : <div style={{ width: `${dayWidth}px` }} />),
+//     // deps: содержимое дня пересобираем только когда действительно нужно
+//     [isVisible, elem.idDay, dayWidth, scale]
+//   );
+
+//   return (
+//     <div className={styles.day_scale} style={{ width: `${dayWidth}px` }} key={elem.idDay}>
+//       {scale > 0 && <span className={styles.day_title}>{elem.idDay}</span>}
+//       {showToday && <div className={styles.today_scale} />}
+//       <div className={styles.time_container}>{content}</div>
+//     </div>
+//   );
+// });
+
+const DayColumn = React.memo(function DayColumn({
+  elem,
+  dayWidth,
+  scale,
+  isVisible,
+  renderDay,             // (item: CalendarItem) => React.ReactNode
+  showToday = false,
+  freezeWhileDragging,   // ← new
+  memoDeps,              // ← deps для мемо-контента
+}: {
+  elem: CalendarItem;
+  dayWidth: number;
+  scale: number;
+  isVisible: boolean;
+  renderDay: (item: CalendarItem) => React.ReactNode;
+  showToday?: boolean;
+  freezeWhileDragging: boolean;
+  memoDeps: any[];
+}) {
+  // тяжёлый JSX считаем один раз по deps (shift сюда НЕ входит)
+  const memoContent = React.useMemo(() => renderDay(elem), memoDeps);
+
+  // во время drag показываем последний мемо-контент, а не серый плейсхолдер
+  const content = (isVisible || freezeWhileDragging)
+    ? memoContent
+    : <div style={{ width: `${dayWidth}px` }} />;
+
+  return (
+    <div className={styles.day_scale} style={{ width: `${dayWidth}px` }} key={elem.idDay}>
+      <span className={styles.day_title}>{elem.idDay}</span>
+      {showToday && <div className={styles.today_scale} />}
+      <div className={styles.time_container}>{content}</div>
+    </div>
+  );
+});
+
 
 export interface PlanScaleContainerProps {
   tCards: TCardItem[],
@@ -154,7 +238,7 @@ export default function PlanScaleContainer({
 
   // Прорисовка соединительных линий лоадов аутсорта
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
-  const [scale, setScale] = useState(50); // содержит Масштаб (10% - 100%)  
+  const [scale, setScale] = useState(5); // содержит Масштаб (0% - 100%)  
   const [isDraggingScale, setIsDraggingScale] = useState(false); // Состояние для отслеживания перетаскивания
   const [draggingLoad, setDraggingLoad] = useState(undefined as UnitLoadItem | undefined); // перетаскиваемый лоад
   const scaleRestart = useRef(false as boolean); // запускает useEffect прорисовки
@@ -164,6 +248,8 @@ export default function PlanScaleContainer({
 
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
+
+
 
   // ⚡ Индексы по датам/юнитам — считаем один раз на входные массивы
   const loadsByDateUnitMap = React.useMemo(
@@ -195,23 +281,23 @@ export default function PlanScaleContainer({
   // сброс шкалы
   const scaleReset = () => {
     setShift(0);
-    setScale(50);
-    setDayWidth(0);
+    setScale(5);
+    // setDayWidth(0);
     calendarPlus.current = [] as CalendarItem[];
     calendarMinus.current = [] as CalendarItem[];
     setCalendarViewPlus([] as CalendarItem[]);
     setCalendarViewMinus([] as CalendarItem[]);
     scaleRestart.current = true;
 
-    // Вычисляем видимые элементы  беру сегодня как стартовую дату
-    const _dayWidth = calculateWidthDay(timelineWidth, scale)
+    // Вычисляем видимые элементы  беру сегодня как стартовую дату    
+    const _dayWidth = calculateWidthDay(timelineWidth, 5); // ⬅️ можно сразу посчитать для 5%
     visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, _dayWidth, shift)
 
     visibleItemsPlus.current.forEach(idDay => {
       // реализуем ленивую загрузку видимых дней но сначала проверим чтоб не задвоить день случайно
       if (!calendarPlus.current.find(elem => elem.idDay === idDay)) {
         calendarPlus.current = [...calendarPlus.current, generateCalendarItem(idDay, schedule)];
-        
+
       }
     })
 
@@ -223,21 +309,85 @@ export default function PlanScaleContainer({
     setCalendarViewPlus(filteredCalendar);
   }
 
+  // const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newScale = Number(event.target.value);
+  //   setScale(newScale);
+  // };
+
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newScale = Number(event.target.value);
-    setScale(newScale);
+    const nextScale = Number(event.target.value);
+    if (timelineWidth === 0) { setScale(nextScale); return; }
+
+    const nextDayWidth = calculateWidthDay(timelineWidth, nextScale);
+    const nextShift = computeDynamicShiftLeft(shift, dayWidth, nextDayWidth);
+
+    // пересчитываем видимые дни для НОВЫХ параметров
+    const visPlus = calculateVisibleItemsPlus(todayStr, timelineWidth, nextDayWidth, nextShift);
+    const visMinus = calculateVisibleItemsMinus(todayStr, timelineWidth, nextDayWidth, nextShift);
+
+    // гарантируем, что дни существуют (чтобы не было "дырок" на кадр)
+    visPlus.forEach(id => {
+      if (!calendarPlus.current.find(e => e.idDay === id)) {
+        insertCalendarSorted(calendarPlus, generateCalendarItem(id, schedule));
+      }
+    });
+    visMinus.forEach(id => {
+      if (!calendarMinus.current.find(e => e.idDay === id)) {
+        insertCalendarSorted(calendarMinus, generateCalendarItem(id, schedule));
+      }
+    });
+
+    // пишем refs сразу (они не вызывают ререндера)
+    visibleItemsPlus.current = visPlus;
+    visibleItemsMinus.current = visMinus;
+
+    // одним батчем — чтобы не было промежуточного кадра с пустотой
+    setShift(nextShift);
+    setDayWidth(nextDayWidth);
+    setScale(nextScale);
+    setCalendarViewPlus(calendarPlus.current.filter(i => i.date >= todayStr));
+    setCalendarViewMinus(calendarMinus.current);
   };
-  // динамический расчет сдвига при изменении масштаба
-  const computeDynamicShift = (
+
+  // // динамический расчет сдвига при изменении масштаба
+  // const computeDynamicShift = (
+  //   oldShift: number,
+  //   oldDayWidth: number,
+  //   newDayWidth: number,
+  //   timelineWidth: number
+  // ): number => {
+  //   const focusPointPx = timelineWidth / 2;
+  //   const dayIndexAtFocus = (focusPointPx - oldShift) / oldDayWidth;
+  //   return Math.round(focusPointPx - dayIndexAtFocus * newDayWidth);
+  // };
+
+  // вместо computeDynamicShift по центру — якорь слева
+  // const computeDynamicShiftLeft = (
+  //   oldShift: number,
+  //   oldDayWidth: number,
+  //   newDayWidth: number
+  // ): number => {
+  //   if (!oldDayWidth) return oldShift;
+  //   // какой ДЕНЬ сейчас начинается у левого края в старом масштабе
+  //   const dayIndexAtLeft = (-oldShift) / oldDayWidth;
+  //   // новый shift: тот же день должен начинаться слева и в новом масштабе
+  //   return Math.round(-dayIndexAtLeft * newDayWidth);
+  // };
+
+  const computeDynamicShiftLeft = (
     oldShift: number,
     oldDayWidth: number,
-    newDayWidth: number,
-    timelineWidth: number
+    newDayWidth: number
   ): number => {
-    const focusPointPx = timelineWidth / 2;
-    const dayIndexAtFocus = (focusPointPx - oldShift) / oldDayWidth;
-    return Math.round(focusPointPx - dayIndexAtFocus * newDayWidth);
+    if (!oldDayWidth) return Math.min(0, Math.round(oldShift));
+    // какой день начинался слева
+    const dayIndexAtLeft = (-oldShift) / oldDayWidth;
+    // тот же день должен начинаться слева и в новом масштабе
+    const s = -dayIndexAtLeft * newDayWidth;
+    // левый край не должен уезжать вправо
+    return Math.min(0, Math.round(s));
   };
+
 
   const updateSize = () => {
     if (!divRef.current) return;
@@ -246,12 +396,15 @@ export default function PlanScaleContainer({
     const newTimelineWidth = rect.width;
     const newDayWidth = calculateWidthDay(newTimelineWidth, scale);
 
-    // Пересчёт shift, только если размеры уже есть
+    // // Пересчёт shift, только если размеры уже есть
+    // if (timelineWidth > 0 && dayWidth > 0 && dayWidth !== newDayWidth) {
+    //   const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, newTimelineWidth);
+    //   setShift(newShift);
+    // }
     if (timelineWidth > 0 && dayWidth > 0 && dayWidth !== newDayWidth) {
-      const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, newTimelineWidth);
+      const newShift = computeDynamicShiftLeft(shift, dayWidth, newDayWidth);
       setShift(newShift);
     }
-
     setTimelineWidth(newTimelineWidth);
     setDayWidth(newDayWidth);
   };
@@ -324,19 +477,28 @@ export default function PlanScaleContainer({
   // //scaleRestart.current  - принудительный рестарт
 
   useEffect(() => {
-  if (timelineWidth === 0) return;
+    if (timelineWidth === 0) return;
 
-  const _dayWidth = calculateWidthDay(timelineWidth, scale);
-  setDayWidth(_dayWidth);
+    const _dayWidth = calculateWidthDay(timelineWidth, scale);
+    // ⬅️ фикс якоря по левому краю при смене масштаба
+    if (dayWidth > 0 && _dayWidth !== dayWidth) {
+      const newShift = computeDynamicShiftLeft(shift, dayWidth, _dayWidth);
+      setShift(newShift);
+    }
 
-  visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, _dayWidth, shift);
-  visibleItemsMinus.current = calculateVisibleItemsMinus(todayStr, timelineWidth, _dayWidth, shift);
+    setDayWidth(_dayWidth);
 
-  const filteredCalendar = calendarPlus.current.filter(item => item.date >= todayStr);
-  setCalendarViewPlus(filteredCalendar);
-  setCalendarViewMinus(calendarMinus.current);
-}, [timelineWidth, shift, scale, todayStr]); // ⬅️ было todayDateRef — это ref-объект, он не триггерит
+    visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, _dayWidth, shift);
+    visibleItemsMinus.current = calculateVisibleItemsMinus(todayStr, timelineWidth, _dayWidth, shift);
 
+    const filteredCalendar = calendarPlus.current.filter(item => item.date >= todayStr);
+    setCalendarViewPlus(filteredCalendar);
+    setCalendarViewMinus(calendarMinus.current);
+  }, [timelineWidth, shift, scale, todayStr]); // ⬅️ было todayDateRef — это ref-объект, он не триггерит
+
+
+  const BUFFER_DAYS = 1;                   // 1–2 обычно хватает
+  const bufferPx = dayWidth * BUFFER_DAYS;
 
 
   const calculateVisibleItemsPlus = (dayStr: string, timelineWidth: number, dayWidth: number, shift: number) => {
@@ -349,9 +511,13 @@ export default function PlanScaleContainer({
 
     // // начало отсчета дней от today
     // const starttimeline = shift;
+
     // видимые координаты на шкале
-    const visibleleft = shift > 0 ? 0 : - shift;
-    const visibleright = timelineWidth - shift
+    // const visibleleft = shift > 0 ? 0 : - shift;
+    // const visibleright = timelineWidth - shift
+
+    const visibleleft = (shift > 0 ? 0 : -shift) - bufferPx;
+    const visibleright = (timelineWidth - shift) + bufferPx;
 
     // console.log('✅ left', visibleleft);
     // console.log('✅ right', visibleright);
@@ -373,7 +539,6 @@ export default function PlanScaleContainer({
         _day = addDaysInZone(_day, 1, timezone);
         continue
       }
-
 
       // уменьшаем ширину на ширину дня
       _timelineWidth = _timelineWidth - dayWidth
@@ -423,8 +588,12 @@ export default function PlanScaleContainer({
     const day = getTimeZoneDateFromDateString(dayStr, timezone);
     const startDay = addDaysInZone(day, 0, timezone); //  убираю мутабельность и остаюсь в таймзоне команды
     // видимые координаты на шкале
-    const visibleleft = 0 - shift;
-    const visibleright = (shift > timelineWidth) ? -(shift - timelineWidth) : 0;
+    // const visibleleft = 0 - shift;
+    // const visibleright = (shift > timelineWidth) ? -(shift - timelineWidth) : 0;
+
+
+    const visibleleft = -shift - bufferPx;
+    const visibleright = ((shift > timelineWidth) ? -(shift - timelineWidth) : 0) + bufferPx;
 
     // console.log('✅ visibleleft', visibleleft);
     // console.log('✅ visibleright', visibleright);
@@ -600,7 +769,7 @@ export default function PlanScaleContainer({
 
   //// ШКАЛА
   // Для перетаскивания  шкалы 
-  
+
   // optim
   // const handleMouseDownScale = (e: React.MouseEvent) => {
   //   // Нажата правая кнопка мыши 2 - тащим шкалу
@@ -631,41 +800,41 @@ export default function PlanScaleContainer({
   //   window.addEventListener('mouseup', onMouseUp); // Обработчик отпускания кнопки мыши
 
   // };
-const rafId = useRef<number | null>(null);
+  const rafId = useRef<number | null>(null);
 
-const handleMouseDownScale = (e: React.MouseEvent) => {
-  if (e.button !== 2) return;
+  const handleMouseDownScale = (e: React.MouseEvent) => {
+    if (e.button !== 2) return;
 
-  setIsDraggingScale(true);
-  let isDragging_ = true;
-  const startX = e.clientX;
-  const startShift = shift;
+    setIsDraggingScale(true);
+    let isDragging_ = true;
+    const startX = e.clientX;
+    const startShift = shift;
 
-  const onMouseMove = (moveEvent: MouseEvent) => {
-    if (!isDragging_) return;
-    const diff = moveEvent.clientX - startX;
-    const next = startShift + diff;
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDragging_) return;
+      const diff = moveEvent.clientX - startX;
+      const next = startShift + diff;
 
-    if (rafId.current) cancelAnimationFrame(rafId.current);
-    rafId.current = requestAnimationFrame(() => {
-      setShift(next);
-    });
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      rafId.current = requestAnimationFrame(() => {
+        setShift(next);
+      });
+    };
+
+    const onMouseUp = () => {
+      isDragging_ = false;
+      setIsDraggingScale(false);
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+      window.removeEventListener('mousemove', onMouseMove, true);
+      window.removeEventListener('mouseup', onMouseUp, true);
+    };
+
+    window.addEventListener('mousemove', onMouseMove, true);
+    window.addEventListener('mouseup', onMouseUp, true);
   };
-
-  const onMouseUp = () => {
-    isDragging_ = false;
-    setIsDraggingScale(false);
-    if (rafId.current) {
-      cancelAnimationFrame(rafId.current);
-      rafId.current = null;
-    }
-    window.removeEventListener('mousemove', onMouseMove, true);
-    window.removeEventListener('mouseup', onMouseUp, true);
-  };
-
-  window.addEventListener('mousemove', onMouseMove, true);
-  window.addEventListener('mouseup', onMouseUp, true);
-};
 
   // Функция ПРОРИСОВКИ  шкалы времени для одного дня  и загруза юнитов для одного дня
   const generateTimeScalePlan = (calendarItem: CalendarItem) => {
@@ -739,15 +908,23 @@ const handleMouseDownScale = (e: React.MouseEvent) => {
       // }
 
       // const { hourStyle, hoursValue, minutesValue } = hourStyleFoo(scale, hours, minutes)
-     
-      const { hourStyle, hoursValue, minutesValue } = hourStyleFoo( scale, hours,  minutes,
-        {
-          interval4hours: styles.interval4hours,
-          interval1hour: styles.interval1hour,
-          interval30min: styles.interval30min,
-          interval5min: styles.interval5min,
-        }
-      );
+
+      const density = timelineWidth > 0 ? (dayWidth / timelineWidth) * 100 : scale;
+      const { hourStyle, hoursValue, minutesValue } = hourStyleFoo(density, hours, minutes, {
+        interval4hours: styles.interval4hours,
+        interval1hour: styles.interval1hour,
+        interval30min: styles.interval30min,
+        interval5min: styles.interval5min,
+      });
+
+      // const { hourStyle, hoursValue, minutesValue } = hourStyleFoo( scale, hours,  minutes,
+      //   {
+      //     interval4hours: styles.interval4hours,
+      //     interval1hour: styles.interval1hour,
+      //     interval30min: styles.interval30min,
+      //     interval5min: styles.interval5min,
+      //   }
+      // );
 
       //  вычисление визуализации загруза юнитов
       // Внутренние   
@@ -936,47 +1113,74 @@ const handleMouseDownScale = (e: React.MouseEvent) => {
     if (idc) setUnitMenuShow(idc);
   };
 
+  // MINUS
+  const timeScaleReactNodesMinus = calendarViewMinus.map((elem) => (
+    <DayColumn
+      key={elem.idDay}
+      elem={elem}
+      dayWidth={dayWidth}
+      scale={scale}
+      isVisible={visibleItemsMinus.current.includes(elem.idDay)}
+      renderDay={generateTimeScalePlan}
+      freezeWhileDragging={isDraggingScale}
+      memoDeps={[elem.idDay, dayWidth, scale, unitLoads, unitExceptions]}
+    />
+  ));
 
-  const timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
-    // console.log("render день минус", elem.date);
-    const isVisible = visibleItemsMinus.current.includes(elem.idDay);
-    const hoursScaleReactNodes = isVisible ? generateTimeScalePlan(elem) : <div style={{ width: `${dayWidth}px` }} />;
+  // const timeScaleReactNodesMinus = calendarViewMinus.map((elem, index) => {
+  //   // console.log("render день минус", elem.date);
+  //   const isVisible = visibleItemsMinus.current.includes(elem.idDay);
+  //    const hoursScaleReactNodes = isVisible ? generateTimeScalePlan(elem) : <div style={{ width: `${dayWidth}px` }} />;
 
-    return (
-      <div
-        className={styles.day_scale}
-        style={{ width: `${dayWidth}px` }} key={`day-${index}`}>
+  //   return (
+  //     <div
+  //       className={styles.day_scale}
+  //       style={{ width: `${dayWidth}px` }} key={`day-${index}`}>
 
-        {(scale > 0) && <span className={styles.day_title}>{elem.idDay}</span>}
+  //       {(scale > 0) && <span className={styles.day_title}>{elem.idDay}</span>}
 
-        <div className={styles.time_container}>
-          {hoursScaleReactNodes}
-        </div>
-      </div>
-    )
-  });
+  //       <div className={styles.time_container}>
+  //         {hoursScaleReactNodes}
+  //       </div>
+  //     </div>
+  //   )
+  // });
 
-  const timeScaleReactNodesPlus = calendarViewPlus.map((elem, index) => {
-    // console.log("render день плюс", elem.date);
-    const isVisible = visibleItemsPlus.current.includes(elem.idDay);
-    const hoursScaleReactNodes = isVisible ? generateTimeScalePlan(elem) : <div style={{ width: `${dayWidth}px` }} />;
+  // const timeScaleReactNodesPlus = calendarViewPlus.map((elem, index) => {
+  //   // console.log("render день плюс", elem.date);
+  //   const isVisible = visibleItemsPlus.current.includes(elem.idDay);
+  //    const hoursScaleReactNodes = isVisible ? generateTimeScalePlan(elem) : <div style={{ width: `${dayWidth}px` }} />;
 
-    return (
-      <div
-        className={styles.day_scale}
-        style={{ width: `${dayWidth}px` }} key={`day-${index}`}>
+  //   return (
+  //     <div
+  //       className={styles.day_scale}
+  //       style={{ width: `${dayWidth}px` }} key={`day-${index}`}>
 
-        {(scale > 0) && <span className={styles.day_title}>{elem.idDay}</span>}
+  //       {(scale > 0) && <span className={styles.day_title}>{elem.idDay}</span>}
 
-        {/* // это красная риска сегодня начало дня  */}
-        {index === 0 && <div className={styles.today_scale}></div>}
+  //       {/* // это красная риска сегодня начало дня  */}
+  //       {index === 0 && <div className={styles.today_scale}></div>}
 
-        <div className={styles.time_container}>
-          {hoursScaleReactNodes}
-        </div>
-      </div>
-    )
-  });
+  //       <div className={styles.time_container}>
+  //         {hoursScaleReactNodes}
+  //       </div>
+  //     </div>
+  //   )
+  // });
+
+  const timeScaleReactNodesPlus = calendarViewPlus.map((elem, index) => (
+    <DayColumn
+      key={elem.idDay}
+      elem={elem}
+      dayWidth={dayWidth}
+      scale={scale}
+      isVisible={visibleItemsPlus.current.includes(elem.idDay)}
+      renderDay={generateTimeScalePlan}
+      showToday={index === 0}
+      freezeWhileDragging={isDraggingScale} // ← важное
+      memoDeps={[elem.idDay, dayWidth, scale, unitLoads, unitExceptions]} // без shift!
+    />
+  ));
 
   const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
   const linesPlusReactNodes = linesPlus.map((elem, index) => {
@@ -999,6 +1203,10 @@ const handleMouseDownScale = (e: React.MouseEvent) => {
       <div key={elem.id} className={styles.unit_name}> {elem.title}</div>
     )
   });
+
+  // const approxDaysVisible = dayWidth > 0 ? Math.round(timelineWidth / dayWidth) : 0;
+  // const approxHoursVisible = 24 / (dayWidth / timelineWidth); // ~сколько часов во вьюпорте
+
   return (
     <div className={styles.plan_scale_container}
 
@@ -1026,14 +1234,20 @@ const handleMouseDownScale = (e: React.MouseEvent) => {
             <input
               className={styles.rangeSlider}
               type="range"
-              min="30"
-              max="500"
+              // min="30"
+              // max="500"
+              min="0"
+              max="100"
               step="1"
               value={scale}
               onChange={handleScaleChange}
             />
             <label className={styles.rangeSlider_label} > {t('scale.scaleSize')} {Math.round(scale)}%</label>
 
+            {/* <label className={styles.rangeSlider_label}>
+              {t('scale.scaleSize')} {Math.round(scale)}%
+              &nbsp;·&nbsp;~{approxDaysVisible} d · ~{approxHoursVisible.toFixed(1)} h
+            </label> */}
           </div>
 
         </div>
@@ -1041,7 +1255,8 @@ const handleMouseDownScale = (e: React.MouseEvent) => {
 
           <div className={styles.timeline}
             style={{
-              width: `${timelineWidth}px`,
+              // width: `${timelineWidth}px`,
+              width: '100%',                     // ← всегда 100% ширины родителя
               transform: `translateX(${shift}px)`, // Сдвиг шкалы по оси X  
               cursor: isDraggingScale ? 'grabbing' : 'grab', // Меняем курсор в зависимости от состояния
             }}
@@ -1058,7 +1273,8 @@ const handleMouseDownScale = (e: React.MouseEvent) => {
                 display: 'flex',
                 flexDirection: 'row',
                 position: 'absolute',
-                right: `${timelineWidth}px`,
+                // right: `${timelineWidth}px`,
+                right: '100%',                   // ← всегда ровно слева от PLUS, без состояния
               }}>
               {timeScaleReactNodesMinus}
               {linesMinusReactNodes}
