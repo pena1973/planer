@@ -134,9 +134,13 @@ export default function PlanScaleContainer({
 
   const { t, i18n } = useTranslation();
 
+
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
   const divRefPlus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором планирование
   const divRefMinus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором История
+
+  const zoomAnchorPxRef = useRef<number | null>(null); // px внутри divRef
+  const prevDayWidthRef = useRef<number>(0);
 
   const [shift, setShift] = useState(0); // Сдвиг шкалы от левого края и старт день сегодня
   const calendarPlus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что можно планировать
@@ -233,11 +237,10 @@ export default function PlanScaleContainer({
     oldShift: number,
     oldDayWidth: number,
     newDayWidth: number,
-    timelineWidth: number
+    focusPointPx: number
   ): number => {
-    const focusPointPx = timelineWidth / 2;
     const dayIndexAtFocus = (focusPointPx - oldShift) / oldDayWidth;
-    return Math.round(focusPointPx - dayIndexAtFocus * newDayWidth);
+    return focusPointPx - dayIndexAtFocus * newDayWidth; // без округления
   };
 
   const updateSize = () => {
@@ -249,7 +252,9 @@ export default function PlanScaleContainer({
 
     // Пересчёт shift, только если размеры уже есть
     if (timelineWidth > 0 && dayWidth > 0 && dayWidth !== newDayWidth) {
-      const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, newTimelineWidth);
+      // const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, newTimelineWidth);
+      const focusPx = getZoomAnchorPx(); // тот же якорь, что и при зуме
+      const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, focusPx);
       setShift(newShift);
     }
 
@@ -290,12 +295,36 @@ export default function PlanScaleContainer({
     setCalendarViewPlus(filteredCalendar);
 
   }, [unitLoads]);
-  
+
+  // хелпер: где центр зума — центр контейнера   
+  const getZoomAnchorPx = () => {
+    return timelineWidth / 2;
+  };
+
+  // сохраняем предыдущее значение ширины дня
+  useEffect(() => {
+    prevDayWidthRef.current = dayWidth;
+  }, [dayWidth]);
+
+  // когда изменилась ширина дня (масштаб или ширина контейнера) — двигаем shift
+  useLayoutEffect(() => {
+    const prev = prevDayWidthRef.current;
+    const next = dayWidth;
+    if (!prev || !next || prev === next) return;
+
+    const focusPx = getZoomAnchorPx();                 // якорь зума в px
+    const dayIndexAtFocus = (focusPx - shift) / prev;  // какой «индекс дня» был под якорем
+    const newShift = focusPx - dayIndexAtFocus * next;
+
+    if (newShift !== shift) setShift(newShift);
+    // обновим ref, чтобы следующая итерация знала «старую» ширину
+    prevDayWidthRef.current = next;
+  }, [dayWidth, shift, timelineWidth]);
+
+
   useLayoutEffect(() => {
     if (timelineWidth === 0) return;
-
     // Ширину дня при изменении scale лежит в мемо dayWidth
-        
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
     visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, dayWidth, shift);
     // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный      
