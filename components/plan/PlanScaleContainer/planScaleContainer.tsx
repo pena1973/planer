@@ -139,8 +139,8 @@ export default function PlanScaleContainer({
   const divRefPlus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором планирование
   const divRefMinus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором История
 
-  const zoomAnchorPxRef = useRef<number | null>(null); // px внутри divRef
   const prevDayWidthRef = useRef<number>(0);
+  const isResettingRef = useRef(false);
 
   const [shift, setShift] = useState(0); // Сдвиг шкалы от левого края и старт день сегодня
   const calendarPlus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что можно планировать
@@ -199,33 +199,14 @@ export default function PlanScaleContainer({
   // ШКАЛА
   // сброс шкалы
   const scaleReset = () => {
+    isResettingRef.current = true;   // ← сообщаем эффектам, что это reset
     setShift(0);
-    setScale(30);
-    // setDayWidth(0);
+    setScale(30);    
     calendarPlus.current = [] as CalendarItem[];
     calendarMinus.current = [] as CalendarItem[];
     setCalendarViewPlus([] as CalendarItem[]);
     setCalendarViewMinus([] as CalendarItem[]);
-    scaleRestart.current = true;
-
-    // Вычисляем видимые элементы  беру сегодня как стартовую дату
-    const _dayWidth = calculateWidthDay(timelineWidth, scale)
-    visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, _dayWidth, shift)
-
-    visibleItemsPlus.current.forEach(idDay => {
-      // реализуем ленивую загрузку видимых дней но сначала проверим чтоб не задвоить день случайно
-      if (!calendarPlus.current.find(elem => elem.idDay === idDay)) {
-        calendarPlus.current = [...calendarPlus.current, generateCalendarItem(idDay, schedule)];
-
-      }
-    })
-
-    //  прорисовываем шкалу планирования
-    // и убираем все что меньше текущей даты если случайно попали на смену дат
-    const filteredCalendar = calendarPlus.current.filter(item => {
-      return (item.date >= todayStr)
-    });
-    setCalendarViewPlus(filteredCalendar);
+    scaleRestart.current = true;   
   }
 
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -311,6 +292,14 @@ export default function PlanScaleContainer({
     const prev = prevDayWidthRef.current;
     const next = dayWidth;
     if (!prev || !next || prev === next) return;
+
+    if (isResettingRef.current) {
+      // При сбросе жёстко ставим «сегодня» к левой границе
+      setShift(0);
+      isResettingRef.current = false;
+      prevDayWidthRef.current = next;
+      return;
+    }
 
     const focusPx = getZoomAnchorPx();                 // якорь зума в px
     const dayIndexAtFocus = (focusPx - shift) / prev;  // какой «индекс дня» был под якорем
