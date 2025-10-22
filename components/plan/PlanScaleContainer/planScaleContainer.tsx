@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 
 import styles from "./planScaleContainer.module.scss";
 
@@ -20,14 +20,6 @@ import { exceptionsByDateUnit, loadsByDateUnit, hourStyleFoo } from './useResize
 
 import { YYYYMMDDTZ } from "@/lib/common/timezone";
 // import { ulogger } from "./../lib/common/universal-logger";
-
-
-// расчет ширины дня
-// const calculateWidthDay = (totalWidth: number, scale: number): number => {
-//   // Если scale 100%, widthDay = totalWidth
-//   // Если scale 10%, widthDay = totalWidth / 100
-//   return (totalWidth * scale) / 100;
-// };
 
 // расчет ширины дня
 const calculateWidthDay = (totalWidth: number, scale: number): number => {
@@ -146,7 +138,6 @@ export default function PlanScaleContainer({
   const divRefPlus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором планирование
   const divRefMinus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором История
 
-  const [dayWidth, setDayWidth] = useState(0); // ширина дня на шкале
   const [shift, setShift] = useState(0); // Сдвиг шкалы от левого края и старт день сегодня
   const calendarPlus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что можно планировать
   const calendarMinus = useRef([] as CalendarItem[]); // хранение дней шкалы времени то что уже история
@@ -170,6 +161,12 @@ export default function PlanScaleContainer({
 
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
+
+  // ширина дня на шкале  зависит от масштаба и размера окна
+  const dayWidth = React.useMemo(
+    () => (timelineWidth === 0 ? 0 : calculateWidthDay(timelineWidth, scale)),
+    [timelineWidth, scale]
+  );
 
   // ⚡ Индексы по датам/юнитам — считаем один раз на входные массивы
   const loadsByDateUnitMap = React.useMemo(
@@ -200,7 +197,7 @@ export default function PlanScaleContainer({
   const scaleReset = () => {
     setShift(0);
     setScale(30);
-    setDayWidth(0);
+    // setDayWidth(0);
     calendarPlus.current = [] as CalendarItem[];
     calendarMinus.current = [] as CalendarItem[];
     setCalendarViewPlus([] as CalendarItem[]);
@@ -257,7 +254,7 @@ export default function PlanScaleContainer({
     }
 
     setTimelineWidth(newTimelineWidth);
-    setDayWidth(newDayWidth);
+
   };
 
   // хук отслеживания изменеия размера видимой части шкалы
@@ -293,17 +290,16 @@ export default function PlanScaleContainer({
     setCalendarViewPlus(filteredCalendar);
 
   }, [unitLoads]);
-
-  useEffect(() => {
+  
+  useLayoutEffect(() => {
     if (timelineWidth === 0) return;
 
-    // Вычисляем ширину дня при изменении scale
-    const _dayWidth = calculateWidthDay(timelineWidth, scale);
-    setDayWidth(_dayWidth);
+    // Ширину дня при изменении scale лежит в мемо dayWidth
+        
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
-    visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, _dayWidth, shift);
+    visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, dayWidth, shift);
     // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный      
-    visibleItemsMinus.current = calculateVisibleItemsMinus(todayStr, timelineWidth, _dayWidth, shift);
+    visibleItemsMinus.current = calculateVisibleItemsMinus(todayStr, timelineWidth, dayWidth, shift);
 
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
@@ -557,8 +553,8 @@ export default function PlanScaleContainer({
     // Нажата правая кнопка мыши 0 - тащим операцию на шкале
     if (e.button !== 2) return;
 
-    setIsDraggingScale(true);  // Включаем перетаскивание
-    let isDragging_ = true;    // Включаем перетаскивание
+    setIsDraggingScale(true);  // Включаем перетаскивание (для прорисовки эффектов)
+    let isDragging_ = true;    // Включаем перетаскивание (для внутренней логики)
 
     const startX = e.clientX;  // Сохраняем начальную позицию мыши X
     const startShift = shift;  // Сохраняем начальный сдвиг
