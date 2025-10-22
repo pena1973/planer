@@ -37,7 +37,7 @@ export const useResizeObserver = (
 
 // ⚡️ Индекс: [date|unitId] -> UnitLoadItem[]
 export const loadsByDateUnit = (
-    unitLoads:UnitLoadItem[]
+  unitLoads: UnitLoadItem[]
 ) => {
   const map = new Map<string, UnitLoadItem[]>();
   for (const lo of unitLoads) {
@@ -46,13 +46,13 @@ export const loadsByDateUnit = (
     map.get(key)!.push(lo);
   }
   // По желанию — сортируем один раз
-  for (const arr of map.values()) arr.sort((a,b) => a.timeStart - b.timeStart);
+  for (const arr of map.values()) arr.sort((a, b) => a.timeStart - b.timeStart);
   return map;
 };
 
 // ⚡️ Индекс: [date|unitId] -> UnitExceptionItem[]
 export const exceptionsByDateUnit = (
- unitExceptions:UnitExceptionItem[]   
+  unitExceptions: UnitExceptionItem[]
 ) => {
   const map = new Map<string, UnitExceptionItem[]>();
   for (const ex of unitExceptions) {
@@ -64,6 +64,7 @@ export const exceptionsByDateUnit = (
 };
 
 // ✅ Передаём классы объектом cls
+// ШКАЛА Вычисление высоты интервалов в зависимости от масштаба
 export function hourStyleFoo(
   scale: number,
   hours: number,
@@ -75,11 +76,12 @@ export function hourStyleFoo(
     interval5min: string;
   }
 ): { hourStyle: string; hoursValue: string; minutesValue: string } {
-  const show5Min = scale >= 200;
-  const show30Min = scale >= 80;
-  const show1Hour = scale >= 30;
-  const show4Hour = scale < 30;
+  const show5Min = scale >= 70; // Показывать интервал 5 минут, если масштаб >= 200%
+  const show30Min = scale >= 50; // Показывать интервал 30 минут, если масштаб >= 80%
+  const show1Hour = scale >= 20; // Показывать часовые интервалы, если масштаб >= 30%
+  const show4Hour = scale < 20;  // Показывать интервалы для 4 часов, если масштаб <30%
 
+  {/* Визуализация интервалов */ }
   if (show4Hour && [0, 4, 8, 12, 16, 20].includes(hours) && minutes === 0)
     return { hourStyle: cls.interval4hours, hoursValue: String(hours), minutesValue: "" };
 
@@ -93,7 +95,7 @@ export function hourStyleFoo(
   if (show30Min && minutes === 30)
     return { hourStyle: cls.interval30min, hoursValue: "", minutesValue: "" };
 
-  if (show5Min && [0,5,10,15,20,25,35,40,45,50,55].includes(minutes))
+  if (show5Min && [0, 5, 10, 15, 20, 25, 35, 40, 45, 50, 55].includes(minutes))
     return { hourStyle: cls.interval5min, hoursValue: "", minutesValue: "" };
 
   return { hourStyle: "", hoursValue: "", minutesValue: "" };
