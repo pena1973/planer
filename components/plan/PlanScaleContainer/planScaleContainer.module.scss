@@ -6,12 +6,8 @@
   display: flex;
   flex-direction: row;
   height: 100%;
-  // width: calc(100% - 40px);
-  // margin: 20px;
   background-color: $second_body_background_color;
-  // background-color: #f0f0f0;
-  /* Светло-серый фон */
-  // border-bottom: 1px solid #ccc;
+  overflow: hidden;
 
 }
 
@@ -32,20 +28,22 @@
   background-color: $main_body_background_color;
   border-top-left-radius: $border-radius;
 }
+
 .plug2 {
   display: flex;
   justify-content: center;
   height: 100px;
   width: 100%;
   background-color: $main_body_background_color;
-     /* Используем flex-grow для того, чтобы блок занял оставшееся пространство */
-   flex-grow: 1;  /* Блок будет растягиваться, заполняя доступное пространство */
-  
+  /* Используем flex-grow для того, чтобы блок занял оставшееся пространство */
+  flex-grow: 1;  
 }
-.button_reset{
+
+.button_reset {
   background-color: $button1_background_color;
   color: $button1_text_color;
 }
+
 .plan_scale_container_right {
   display: flex;
   flex-direction: column;
@@ -54,28 +52,17 @@
   width: 140px;
   min-width: 140px;
   background-color: $second_body_background_color;
-  // border-radius: 10px;
-  // padding: 10px 0;
-  // padding-top: 85px; // верхняя граница шкалы
   
-
 }
 
 .plan_scale_container_left {
-
   display: flex;
   flex-direction: column;
   width: calc(100% - 200px);
-
-  margin-right: 20px;
-
-  /* Светло-серый фон */
-  border-bottom: $border;
-  /* Граница снизу */
-  // background-color: $main_body_background_color;
+  margin-right: 20px;  
+  border-bottom: $border;  
   background-color: $second_body_background_color;
-  /* Граница справа */
-  // background-color: aliceblue;
+  
 }
 
 //ok
@@ -86,14 +73,7 @@
   padding-top: 10px;
   border-top-right-radius: $border-radius;
   // background-color: rgb(223, 182, 130);
-  background-color: $main_body_background_color;
-  /* Граница снизу */
-  // background-color: $main_body_background_color;
-  /* Граница справа */
-  // background-color: aliceblue;
-  // background-color: rgb(223, 182, 130);
-  // background-color: rgb(172, 155, 133);
-  // background-color: rgb(255, 255, 255);
+  background-color: $main_body_background_color;  
 }
 
 //ok
@@ -108,6 +88,8 @@
   transform-origin: 0% 0%;
   // background-color: rgb(172, 155, 133);
   user-select: none;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .pl_container_scale1 {
@@ -162,8 +144,6 @@
 
 .scale_header {
   background-color: $second_body_background_color;
-  
-  
 }
 
 .scale_controls {
@@ -191,10 +171,10 @@
   background-color: $main_body_background_color;
   // background-color:$button_background_color;
 }
+
 .rangeSlider_label {
   color: $third_text_color;
 }
-
 
 
 .rangeSlider[type="range"]::-webkit-slider-thumb {
@@ -221,26 +201,6 @@
   background-color: rgb(175, 159, 159);
 }
 
-// .marker {
-//   position: relative;
-//   bottom: 0;
-//   width: 20px;
-//   height: 100%;
-//   // background-color: black;
-//   display: flex;
-//   justify-content: center;
-//   align-items: flex-end;
-//   // background-color: aqua;
-// }
-
-// .marker span {
-//   font-size: 12px;
-//   transform: rotate(90deg);
-//   /* Разворачиваем текст вертикально */
-//   margin-bottom: 5px;
-// }
-
-
 .today_scale {
   position: absolute;
   left: 0;
@@ -253,55 +213,35 @@
 }
 
 //  Временная шкала часы
-/* Пример CSS для выделения времени */
 .timeBlock {
-
   display: flex;
-  flex-direction: column;
-  // background-color: rgb(235, 222, 222);
-
-
+  flex-direction: column;  
 }
 
 .workTime {
-  // background-color: rgb(208, 226, 208);
-  background-color: rgb(216, 226, 216);
-  /* Задайте цвет для рабочего времени */
-}
+    background-color: rgb(216, 226, 216);
+  }
 
 .breakTime {
   background-color: rgb(235, 224, 205);
-
-  /* Цвет для перерывов */
-  // background-color: rgb(61, 10, 30)
 }
 
 .nonWorkTime {
   background-color: rgb(255, 255, 255);
-  /* Цвет для выходного времени */
 }
 
 // Это шрифт для временной шкалы
 .timeLabel {
-  // position: absolute;
-  // top: 50%;
-  // left: 50%;
-  // transform: translate(-50%, -50%);
-  // color: rgb(114, 26, 196);
   font-size: 10px;
   font-family: Arial, sans-serif;
   text-align: center;
   // background-color: salmon;
-  // border-left: 1px solid #3a1ce2;
-  height: 100%;
+   height: 100%;
 }
 
 /* Риска для 4 часов, будет такой же, как для 1 часа, но по частоте */
 .interval4hours {
-  // position: absolute;
-  // left: 0;
-  // top: 0;
-  // width: 1px;
+ 
   height: 66px;
   // background-color: #555;  /* Та же, что и для часового интервала */
   border-left: 1px solid #555;
@@ -309,8 +249,6 @@
 
 //ok
 .day_scale {
-
-
   height: 100%;
   // background-color: rgb(224, 173, 173);
   position: relative;
@@ -318,10 +256,6 @@
   flex-direction: column;
   position: relative;
 
-  // border-bottom: 1px solid #ccc;
-  /* Граница снизу */
-
-  /* Граница справа */
 }
 
 .day_title {
@@ -358,30 +292,23 @@
 /* Риска для 5 минут */
 .interval5min {
   position: relative;
-  // height: 10px;
   height: 100%;
-  // background-color: #ccc;  /* Светло-серая */
-  // background-color: #ffffff;  /* Светло-серая */  
   border-left: 1px dashed #999;
 }
 
 /* Риска для 30 минут */
 .interval30min {
   position: relative;
-  // height: 20px;
   height: 100%;
   // background-color: #999;  /* Более темная серая */
-
   border-left: 1px solid #999;
 }
 
 
 .interval1hour {
-  position: relative;
-  // height: 40px;
+  position: relative;  
   height: 100%;
   // background-color: #555;  /* Та же, что и для часового интервала */
-
   border-left: 1px solid #555;
 }
 
@@ -391,8 +318,6 @@
   height: 100%;
   // background-color: #555;  /* Та же, что и для часового интервала */
   border-left: 1px solid #020202;
-
-
 }
 
 
@@ -408,7 +333,7 @@
   font-weight: bold;
   cursor: pointer;
   // background-color: rgb(188, 188, 199);
-  
+
 
 }
 
@@ -425,82 +350,24 @@
   font-size: $header3_font_size;
 }
 
-
-// .interval {
-//   font-size: 12px;
-//   position: absolute;
-//   height: 20px;
-//   margin: 20px 0;
-//   z-index: 1;
-//   border: 1px solid #ccc;
-//   border-radius: 10px;
-//   /* Центрируем текст вертикально и горизонтально */
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-// }
-
-
-
-// .planed {
-//   background-color: rgb(172, 169, 132);
-//   /* Добавляем выпуклый эффект */
-//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-
-// }
-
-// .draft {
-//   background-color: rgb(219, 218, 204);
-//   /* Добавляем выпуклый эффект */
-//   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15);
-// }
-
-// .prepared {
-//   background-color: rgba(107, 170, 7, 0.753);
-//   /* Добавляем выпуклый эффект */
-//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-// }
-
-// .faulty {
-//   background-color: rgb(255, 143, 79);
-//   /* Добавляем выпуклый эффект */
-//   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
-// }
-
-// .retool {
-//   background-color: rgb(241, 241, 241);
-//   height: 14px;
-//   margin: 23px 0;
-// }
-
-// .lighted {  
-//   box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
-// }
-
-.unit_load {
-  // margin-top: 20px;
+.unit_load {  
   width: 100%;
   background-color: rgb(119, 116, 69);
   min-height: 50px;
   padding: 10px 0;
-  // font-weight: bold;    
+  
 }
 
 .unit_unload {
-  position: relative;
-  // margin-top: 20px;  
+  position: relative;  
   width: 100%;
   // background-color: rgb(255, 251, 199);
-  min-height: 50px;
-  // font-weight: bold;    
-
+  min-height: 50px;  
   border-bottom: 1px dashed #ccc;
 }
 
 .unit_gap {
   margin-top: 20px;
-  width: 100%;
-  //  background-color: rgb(243, 222, 182);
-  min-height: 30px;
-  // font-weight: bold;    
+  width: 100%;  
+  min-height: 30px;  
 }

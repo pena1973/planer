@@ -14,7 +14,8 @@
   margin: 10px 0;
   padding: 10px;
   background-color: $main_container_background_color;  
-  border: 1px solid $container_border_color;
+  // border: 1px solid $container_border_color;
+  border: $border;
   border-radius: 6px;
   width: fit-content;
 }
@@ -72,33 +73,23 @@
   text-align: center;
 }
 
-.operation_title {
-  text-indent: 15px;
-  font-style: italic;
-  color: #7a7a7a;
-}
-
-.operation_row {
-  font-style: italic;
-  color: #7a7a7a;
-}
-
 .date_title {
   text-indent: 15px;
   font-style: italic;
-  color: #7a7a7a;
+  // color: #7a7a7a;
+  color: $text_color_italic;
 }
 
 
 .expand_row {
   cursor: pointer;
+  text-align: center;
 }
 
 .loader_container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  // min-width:  100%;
+  align-items: center;  
   min-height:  calc(100vh - 510px);
   flex-direction: column;
   // background-color: antiquewhite;
