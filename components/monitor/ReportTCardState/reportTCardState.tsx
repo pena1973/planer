@@ -18,16 +18,17 @@ interface ReportTCardStateProps {
   token: string
 }
 
-const statusClass: Record<StatusEnum, string> = {
-  [StatusEnum.prepared]: `${styles.status} ${styles.prepared}`,
-  [StatusEnum.planed]: `${styles.status} ${styles.planed}`,
-  [StatusEnum.ready]: `${styles.status} ${styles.ready}`,
+
+const statusClass: Record<StatusEnum | 'draft', string> = {
+  [StatusEnum.prepared]:  `${styles.status} ${styles.prepared}`,
+  [StatusEnum.planed]:    `${styles.status} ${styles.planed}`,
+  [StatusEnum.ready]:     `${styles.status} ${styles.ready}`,
   [StatusEnum.defective]: `${styles.status} ${styles.defective}`,
   [StatusEnum.performed]: `${styles.status} ${styles.performed}`,
   [StatusEnum.cancelled]: `${styles.status} ${styles.cancelled}`,
-  [StatusEnum.closed]: `${styles.status} ${styles.closed}`,
-  // fallback для неизвестных/черновиков
-} as any;
+  [StatusEnum.closed]:    `${styles.status} ${styles.closed}`,
+  draft:                  `${styles.status} ${styles.draft}`,
+};
 
 const compareYmd = (a: string, b: string) => (a > b ? 1 : a < b ? -1 : 0);
 
@@ -79,9 +80,10 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     getTCardsTermsHandler();
   }, []);
 
+  
   const getStyleStatus = (status: StatusEnum): string =>
-    statusClass[status] ?? `${styles.status} ${styles.draft}`;
-
+  statusClass[status] ?? statusClass.draft;
+  
   // Сгруппировать лоады ОДНИМ проходом: tCard -> operIdc -> version -> склеянный интервал
   type GroupedLoad = {
     status: StatusEnum;

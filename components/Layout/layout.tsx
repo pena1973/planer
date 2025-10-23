@@ -69,7 +69,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 <title>PTPro</title>
                 <meta name="description" content="plan optimizer" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <link rel="icon" type="image/x-icon" href="icon.ico"></link>
+                <link rel="icon" type="image/x-icon" href="favicon.ico"></link>
 
             </Head>
             <CookieBanner />

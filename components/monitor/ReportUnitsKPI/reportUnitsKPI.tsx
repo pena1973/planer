@@ -30,9 +30,16 @@ const pct = (num: number, den: number) =>
   den > 0 ? Math.round((num / den) * 100) : 0;
 
 // 1) ДОБАВЬ type guard (выше компонента)
+// type guard: гарантируем числовой id
 const hasNumericId = (u: UnitItem): u is UnitItem & { id: number } =>
-  typeof (u as any).id === 'number' && Number.isFinite((u as any).id);
-type MonthIdx = number; // 0..11
+  typeof u.id === 'number' && Number.isFinite(u.id);
+
+// 0..11 строго
+type MonthIdx = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
+
+// хелпер, чтобы получить MonthIdx без any
+const getMonthIdx = (d: Date): MonthIdx => d.getMonth() as MonthIdx;
+
 
 type DateRow = {
   dateStr: string;
@@ -99,9 +106,9 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   ) => {
     setShowLoader(true);
 
-    const monthIndex = monthNames.indexOf(String(month));
-    let filter = "";
 
+    const monthIndex = monthNames.indexOf(String(month)); // number
+    let filter = "";
     if (useUnit && unitId) filter += `&unitId=${unitId}`;
 
     if (useDate) {
@@ -110,7 +117,8 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
       filter += `&dateFrom=${dateFrom1}&dateTo=${dateTo1}`;
     }
 
-    if (useMonth && monthIndex >= 0) filter += `&month=${monthIndex + 1}`;
+    // if (useMonth && monthIndex >= 0) filter += `&month=${monthIndex + 1}`;
+    if (useMonth && monthIndex >= 0) filter += `&month=${(monthIndex as MonthIdx) + 1}`;
 
     await getUnitsKPI(
       userId,
@@ -149,7 +157,8 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
 
       // месяц считаем один раз с учётом TZ
       const d = getTimeZoneDateFromDateString(item.date, timezone);
-      const m = d.getMonth() as MonthIdx;
+      // const m = d.getMonth() as MonthIdx;
+      const m = getMonthIdx(d);
 
       let ub = unitsMap.get(u.id);
       if (!ub) {
