@@ -115,6 +115,7 @@
 
 .expand_row {
   cursor: pointer;
+  text-align: center;
 }
 
 
@@ -122,7 +123,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  // min-width:  100%;
   min-height: calc(100vh - 510px);
   flex-direction: column;
   // background-color: antiquewhite;
