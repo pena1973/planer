@@ -133,8 +133,7 @@ export default function PlanScaleContainer({
 }: PlanScaleContainerProps) {
 
   const { t, i18n } = useTranslation();
-
-
+ 
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
   const divRefPlus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором планирование
   const divRefMinus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором История
