@@ -335,7 +335,9 @@
     "cardSelect": "Select",
     "apply": "Apply",
     "fixing": "fixing",
-    "showClosed": "Show closed"
+    "showClosed": "Show closed",
+    "comment": "Comment"
+    
   },
   "reportUnitsKPI": {
     "wait": "Wait...",

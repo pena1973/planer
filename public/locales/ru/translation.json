@@ -336,7 +336,8 @@
     "cardSelect": "Выберите",
     "apply": "Применить",
     "fixing": "исправление",
-    "showClosed": "Показывать закрытые"
+    "showClosed": "Показывать закрытые",
+     "comment": "Комментарий"
   },
   "reportUnitsKPI": {
     "wait": "Ждем...",
