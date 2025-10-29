@@ -20,15 +20,26 @@ interface ReportTCardStateProps {
 
 
 const statusClass: Record<StatusEnum | 'draft', string> = {
-  [StatusEnum.prepared]:  `${styles.status} ${styles.prepared}`,
-  [StatusEnum.planed]:    `${styles.status} ${styles.planed}`,
-  [StatusEnum.ready]:     `${styles.status} ${styles.ready}`,
+  [StatusEnum.prepared]: `${styles.status} ${styles.prepared}`,
+  [StatusEnum.planed]: `${styles.status} ${styles.planed}`,
+  [StatusEnum.ready]: `${styles.status} ${styles.ready}`,
   [StatusEnum.defective]: `${styles.status} ${styles.defective}`,
   [StatusEnum.performed]: `${styles.status} ${styles.performed}`,
   [StatusEnum.cancelled]: `${styles.status} ${styles.cancelled}`,
-  [StatusEnum.closed]:    `${styles.status} ${styles.closed}`,
-  draft:                  `${styles.status} ${styles.draft}`,
+  [StatusEnum.closed]: `${styles.status} ${styles.closed}`,
+  draft: `${styles.status} ${styles.draft}`,
 };
+
+const previewComment = (txt?: string, limit = 50) => {
+  if (!txt) return "";
+  const clean = String(txt).replace(/\s+/g, " ").trim();
+  return clean.length > limit ? clean.slice(0, limit) + "…" : clean;
+};
+
+const shouldShowTerm = (status: StatusEnum, term?: { date?: string; time?: number | string }) =>
+  status !== StatusEnum.prepared &&
+  !!term?.date &&
+  term.date !== '0001-01-01';
 
 const compareYmd = (a: string, b: string) => (a > b ? 1 : a < b ? -1 : 0);
 
@@ -80,10 +91,10 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
     getTCardsTermsHandler();
   }, []);
 
-  
+
   const getStyleStatus = (status: StatusEnum): string =>
-  statusClass[status] ?? statusClass.draft;
-  
+    statusClass[status] ?? statusClass.draft;
+
   // Сгруппировать лоады ОДНИМ проходом: tCard -> operIdc -> version -> склеянный интервал
   type GroupedLoad = {
     status: StatusEnum;
@@ -166,6 +177,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
               <td className={styles.operation_title}>
                 &nbsp;&nbsp; {t('reportTCardState.start')} {lo.dateStart}: {convertMinutesToTime(lo.timeStart)} - {t('reportTCardState.finish')} {lo.dateFinish}: {convertMinutesToTime(lo.timeFinish)}
               </td>
+              <td></td>
               <td className={styles.operation_row}>
                 <div className={styles.status_row}>
                   <div className={loStatusStyle} />
@@ -211,6 +223,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
                 </div>
               </td>
               <td className={styles.operation_title}> A{oper.idc}, {oper.action.title}{fixTitle} </td>
+              <td></td>
               <td className={styles.operation_row}>
                 <div className={styles.status_row}>
                   <div className={operStatusStyle} />
@@ -218,8 +231,13 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
                 </div>
               </td>
               <td className={styles.operation_row}>
-                {(oper.readyTerm.date === '0001-01-01' || !oper.readyTerm.date) ? "" : `${oper.readyTerm.date} : ${convertMinutesToTime(Number(oper.readyTerm.time))}`}
+                {shouldShowTerm(oper.status, oper.readyTerm)
+                  ? `${oper.readyTerm.date} : ${convertMinutesToTime(Number(oper.readyTerm.time))}`
+                  : ""}
               </td>
+              {/* <td className={styles.operation_row}>
+                {(oper.readyTerm.date === '0001-01-01' || !oper.readyTerm.date) ? "" : `${oper.readyTerm.date} : ${convertMinutesToTime(Number(oper.readyTerm.time))}`}
+              </td> */}
               <td className={styles.operation_row}>{operReady}%</td>
             </tr>
             {expandOperValue.includes(oper.id ?? NaN) && operLoadsReactNodes}
@@ -248,13 +266,23 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
               </div>
             </td>
             <td>{cardTitle}</td>
+            {/* NEW: комментарий карты */}
+            <td className={styles.operation_row}>
+              {previewComment((tCard as TCardTermsItem).coment /* при желании: ?? (tCard as any).note */)}
+            </td>
             <td>
               <div className={styles.status_row}>
                 <div className={cardStatusStyle} />
                 {tCard.status}
               </div>
             </td>
-            <td>{(tCard.readyTerm.date === '0001-01-01') ? "" : `${tCard.readyTerm.date} : ${convertMinutesToTime(Number(tCard.readyTerm.time))}`}</td>
+            {/* <td>{(tCard.readyTerm.date === '0001-01-01') ? "" : `${tCard.readyTerm.date} : ${convertMinutesToTime(Number(tCard.readyTerm.time))}`}</td> */}
+            <td>
+              {shouldShowTerm(tCard.status, tCard.readyTerm)
+                ? `${tCard.readyTerm.date} : ${convertMinutesToTime(Number(tCard.readyTerm.time))}`
+                : ""}
+            </td>
+
             <td>{cardReady}%</td>
           </tr>
           {expandCardValue.includes(tCard.id) && tCardOperationsReactNodes}
@@ -296,6 +324,7 @@ const ReportTCardState: React.FC<ReportTCardStateProps> = ({
                   }}>{(expandCardValue.length !== 0) ? "—" : "+"}</div>
               </th>
               <th>{t('reportTCardState.card')}</th>
+              <th>{t('reportTCardState.comment')}</th>
               <th>{t('reportTCardState.status')}</th>
               <th>{t('reportTCardState.term')}</th>
               <th>{t('reportTCardState.readines')}</th>

@@ -51,6 +51,7 @@ type DateRow = {
 };
 
 type MonthBucket = {
+  year: number;            // ← ДОБАВИЛИ
   month: MonthIdx;
   dates: DateRow[];
   totals: {
@@ -64,8 +65,8 @@ type MonthBucket = {
 
 type UnitBucket = {
   unit: UnitItem;
-  unitId: number; // ← добавили
-  months: Map<MonthIdx, MonthBucket>;
+  unitId: number;
+  months: Map<string, MonthBucket>;   // ← КЛЮЧ ТЕПЕРЬ "YYYY-M"
   totals: {
     productionTime: number;
     occupiedTime: number;
@@ -141,7 +142,6 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   }, [i18n.language, t, setMessage, teamId, token, today, userId]);
 
   useEffect(() => {
-    // initial load
     getUnitKPIHandler();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -157,15 +157,16 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
 
       // месяц считаем один раз с учётом TZ
       const d = getTimeZoneDateFromDateString(item.date, timezone);
-      // const m = d.getMonth() as MonthIdx;
       const m = getMonthIdx(d);
+      const y = d.getFullYear();
+      const ymKey = `${y}-${m}`;
 
       let ub = unitsMap.get(u.id);
       if (!ub) {
         ub = {
           unit: u,
-          unitId: u.id,                                // ← сохраняем числовой id
-          months: new Map<MonthIdx, MonthBucket>(),
+          unitId: u.id,
+          months: new Map<string, MonthBucket>(),
           totals: {
             productionTime: 0,
             occupiedTime: 0,
@@ -177,9 +178,10 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         unitsMap.set(u.id, ub);
       }
 
-      let mb = ub.months.get(m);
+      let mb = ub.months.get(ymKey);
       if (!mb) {
         mb = {
+          year: y,
           month: m,
           dates: [],
           totals: {
@@ -190,7 +192,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
             defectTime: 0,
           }
         };
-        ub.months.set(m, mb);
+        ub.months.set(ymKey, mb);
       }
 
       // пушим одну строку даты (не пересчитывая потом)
@@ -235,7 +237,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
   }, [unitsKPIValue, timezone]);
 
   // Ключ месяца в Set
-  const monthKey = useCallback((unitId: number, m: number) => `${unitId}-${m}`, []);
+  const monthKey = useCallback((unitId: number, ymKey: string) => `${unitId}-${ymKey}`, []);
 
   // Триггеры раскрытий (обёрнуты в startTransition, чтобы UI не подвисал)
   const toggleUnit = useCallback((unitId: number) => {
@@ -249,9 +251,9 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
     });
   }, []);
 
-  const toggleMonth = useCallback((unitId: number, m: number) => {
+  const toggleMonth = useCallback((unitId: number, ymKey: string) => {
     startTransition(() => {
-      const key = monthKey(unitId, m);
+      const key = monthKey(unitId, ymKey);
       setExpandedMonths(prev => {
         const next = new Set(prev);
         if (next.has(key)) next.delete(key);
@@ -272,7 +274,7 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
         const mSet = new Set<string>();
         for (const ub of grouped) {
           uSet.add(ub.unitId);
-          for (const m of ub.months.keys()) mSet.add(monthKey(ub.unitId, m));
+          for (const ym of ub.months.keys()) mSet.add(monthKey(ub.unitId, ym));
         }
         setExpandedUnits(uSet);
         setExpandedMonths(mSet);
@@ -345,26 +347,29 @@ const ReportUnitsKPI: React.FC<ReportUnitsKPIProps> = ({
 
                     {uExp && Array
                       .from(ub.months.values())
-                      .sort((a, b) => a.month - b.month)
+                      .sort((a, b) => (a.year - b.year) || (a.month - b.month))
                       .map((mb) => {
-                        const mk = monthKey(uId, mb.month);
+                        const ym = `${mb.year}-${mb.month}`;
+                        const mk = monthKey(uId, ym);
                         const mExp = expandedMonths.has(mk);
-
                         const mLoad = pct(mb.totals.occupiedTime, mb.totals.productionTime);
                         const mPlan = mLoad ? pct(mb.totals.planedTime, mb.totals.occupiedTime) : 0;
                         const mRes = mLoad ? pct(mb.totals.effectiveTime, mb.totals.occupiedTime) : 0;
                         const mDef = mLoad ? pct(mb.totals.defectTime, mb.totals.occupiedTime) : 0;
 
                         return (
-                          <React.Fragment key={`unit-${uId}-m-${mb.month}`}>
+
+                          <React.Fragment key={`unit-${uId}-m-${ym}`}>
                             <tr>
                               <td>
-                                <div className={styles.expand_row} onClick={() => toggleMonth(uId, mb.month)}>
+                                <div className={styles.expand_row} onClick={() => toggleMonth(uId, ym)}>
                                   {mExp ? "—" : "+"}
                                 </div>
                               </td>
                               <td></td>
-                              <td className={styles.month_title}>{monthNames[mb.month] || ""}</td>
+                              <td className={styles.month_title}>
+                                {mb.year} {monthNames[mb.month]}
+                              </td>
                               <td>{mb.totals.productionTime > 0 ? convertMinutesToTime1(mb.totals.productionTime) : ""}</td>
                               <td>{mLoad > 0 ? `${mLoad} %` : ""}</td>
                               <td>{mb.totals.occupiedTime > 0 ? convertMinutesToTime1(mb.totals.occupiedTime) : ""}</td>

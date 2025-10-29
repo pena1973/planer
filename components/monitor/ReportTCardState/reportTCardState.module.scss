@@ -30,28 +30,32 @@
   width: 320px;
   /* Вторая колонка "Карта, Операция" */
 }
-
 ._table thead th:nth-child(3) {
   width: 100px;
   /* Третья колонка "Статус" */
 }
 
 ._table thead th:nth-child(4) {
+  width: 100px;
+  /* Третья колонка "Статус" */
+}
+
+._table thead th:nth-child(5) {
   width: 150px;
   /* Четвёртая колонка "Срок готовности" */
 }
 
-._table thead th:nth-child(5) {
+._table thead th:nth-child(6) {
   width: 50px;
   /* Четвёртая колонка "Срок готовности" */
 }
 
-._table tbody td:nth-child(5) {
+._table tbody td:nth-child(6) {
   width: 50px;
   text-align: center;
 }
 
-._table tbody td:nth-child(5) {
+._table tbody td:nth-child(6) {
   width: 50px;
   text-align: center;
 }
