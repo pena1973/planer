@@ -245,7 +245,7 @@ export default function Index() {
         }
         else {
           // Только для одного юнита           
-          await downloadBaner(undefined, undefined, token, t, locale, setMessage, dispatch);
+          await downloadBaner(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadUoms(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadActions(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadUnutActions(unit?.id, user.id, team.id, token, t, locale, setMessage, dispatch);
