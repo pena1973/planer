@@ -32,17 +32,27 @@ const Logo: React.FC = () => (
   </div>
 );
 
+
+
 // Умеет принимать "герой" и "pad" как дополнительные классы, которые берутся из CSS Module.
-const Section: React.FC<React.PropsWithChildren<{ id?: string; className?: string }>> = ({ id, className, children }) => {
-  const map = (cls?: string) => (cls ? cls.split(/\s+/).map((c) => (styles as any)[c] || c).join(" ") : "");
+const Section: React.FC<
+  React.PropsWithChildren<{ id?: string; className?: string }>
+> = ({ id, className, children }) => {
+  const map = (cls?: string) =>
+    cls
+      ? cls
+          .split(/\s+/)
+          .map((c) => (c in styles ? styles[c as keyof typeof styles] : c))
+          .join(" ")
+      : "";
+
   return (
-    <section id={id} className={`${styles.container} ${styles.section} ${map(className)}`}>{children}</section>
+    <section id={id} className={`${styles.container} ${styles.section} ${map(className)}`}>
+      {children}
+    </section>
   );
 };
 
-// const Badge: React.FC<React.PropsWithChildren> = ({ children }) => (
-//   <span className={styles.badge}><Zap size={16} aria-hidden /> {children}</span>
-// );
 
 const PrimaryButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className, ...rest }) => (
   <button {...rest} className={`${styles.btn} ${styles.btnPrimary} ${className || ""}`.trim()} />
@@ -83,8 +93,7 @@ const LangMenu: React.FC = () => {
         aria-label={t('ui.changeLanguage')}
         className={styles.langBtn}
         onClick={() => setOpen(v => !v)}
-      >
-        {/* <Globe2 size={16} aria-hidden /> */}
+      >        
         <span style={{ margin: "0 6px" }}>{(i18n.language || 'ru').toUpperCase()}</span>
         <ChevronDown size={14} aria-hidden />
       </button>
@@ -98,7 +107,7 @@ const LangMenu: React.FC = () => {
               className={styles.langItem}
               onClick={() => { i18n.changeLanguage(lng); setOpen(false); }}
             >
-              <span style={{ width: 24, display: 'inline-block' }}>{lng.toUpperCase()}</span>              
+              <span style={{ width: 24, display: 'inline-block' }}>{lng.toUpperCase()}</span>
             </button>
           ))}
         </div>
@@ -224,19 +233,8 @@ export default function LandingPlanner() {
           </div>
         </Section>
 
-        {/* Фичи */}
-        {/* <Section id="features" className="pad">
-          <div className={styles.cards}>
-            {features.map((f) => (
-              <motion.div key={f.title} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }} className={styles.card}>
-                <div className={styles.iconWrap}>{iconByKey[f.icon]}</div>
-                <div className={styles.cardTitle}>{f.title}</div>
-                <p className={styles.cardP}>{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </Section>
-         */}
+        {/* Фичи */}       
+       
         <Section id="features" className="pad">
           <div className={styles.cards}>
             {features.map((f) => (
