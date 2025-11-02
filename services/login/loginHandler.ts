@@ -1,7 +1,7 @@
 // status 0 - архив, 1 актив, 2 запрос 
 import { Dispatch } from 'redux';
 import { UserItem, TeamItem, SettingsItem, UnitItem, } from './../../types/types';
-import { setUser, setToken, setTeam, setSettings, setSignedAgreement, setUnit, setActiveTeam, } from './../../store/slices';
+import { setUser, setToken, setTeam, setSettings, setSignedAgreement, setUnit, setActiveTeam,setStep } from './../../store/slices';
 import { ulogger } from "./../../lib/common/universal-logger";
 
 interface LoginPayload {
@@ -13,7 +13,7 @@ interface LoginPayload {
   setMessage: (msg: string) => void;
   setMessageLogin: (msg: string) => void;
   dispatch: Dispatch;
-  setStep: (step: number) => void;
+  // setStep: (step: number) => void;
   agreementIdRef: React.MutableRefObject<number>;
   agreementTextRef: React.MutableRefObject<string>;
   configureTokenAccess: (
@@ -32,7 +32,7 @@ export const loginHandler = async ({
   setMessage,
   setMessageLogin,
   dispatch,
-  setStep,
+  // setStep,
   agreementIdRef,
   agreementTextRef,
   configureTokenAccess,
@@ -97,7 +97,7 @@ export const loginHandler = async ({
         dispatch(setActiveTeam(activeTeam));
         agreementIdRef.current = agreementId_;
         agreementTextRef.current = agreementText_;
-        setStep(3);
+        dispatch(setStep(3));
       } else {
         setMessage(receivedData.message);
         //  logger
