@@ -37,7 +37,7 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
-import { setLoadingComplete } from '@/store/slices'
+import { setLoadingComplete, setStep } from '@/store/slices'
 
 import ico1 from "@/public/ico1.png";
 import ico2 from "@/public/ico2.png";
@@ -67,7 +67,7 @@ export default function Index() {
   const [nicknameValue, setNicknameValue] = useState('');
   const [teamNumberValue, setTeamNumberValue] = useState('');
   const [loaderButtonRegister, setLoaderButtonRegister] = useState(false);
-  const [createTeamValue, setCreateTeamValue] = useState(false);
+  const [createTeamValue, setCreateTeamValue] = useState(true);
   const [basedOnTeamValue, setBasedOnTeamValue] = useState(false);
   const [basedTeamNumberValue, setBasedTeamNumberValue] = useState('');
 
@@ -76,7 +76,7 @@ export default function Index() {
   const textAgreement = useRef("");
 
   // управление страницей
-  const [step, setStep] = useState(2);
+  // const [step, setStep] = useState(2);
   // 1-регистер
   // 2-логин
   // 3-соглашение
@@ -98,7 +98,9 @@ export default function Index() {
   const signedAgreement = useAppSelector((state: RootState) => {
     return state.authSlice.signedAgreement;
   })
-
+const step = useAppSelector((state: RootState) => {
+    return state.viewSlice.step;
+  })
   // status 0 - архив, 1 актив, 2 запрос 
   const loginClick = async (e: React.MouseEvent<HTMLElement>) => {
     setLoaderButtonLogin(true)
@@ -123,7 +125,7 @@ export default function Index() {
       setMessage: setMessage,
       setMessageLogin: setMessageLogin,
       dispatch,
-      setStep,
+      // setStep,
       agreementIdRef: agreementId,
       agreementTextRef: textAgreement,
       configureTokenAccess,
@@ -188,7 +190,7 @@ export default function Index() {
       setMessage: setMessage,
       setMessageRegister: setMessageRegister,
       dispatch,
-      setStep,
+      // setStep,
       agreementIdRef: agreementId,
       agreementTextRef: textAgreement,
     });
@@ -215,7 +217,7 @@ export default function Index() {
       } else {
         setMessageLogin("");
       }
-      setStep(2);
+     dispatch(setStep(2));
       dispatch(setLoadingComplete(true))
       return;
     }
@@ -225,7 +227,7 @@ export default function Index() {
       dispatch(setLoadingComplete(false))
       // Если юзер залогинен и получен токен
       if (team.id && user && token.trim() !== "" && signedAgreement && user?.confirmed) {
-        setStep(4);
+        dispatch(setStep(4));
         if (user.isAdmin) {
           await downloadBaner(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadUoms(user.id, team.id, token, t, locale, setMessage, dispatch);
@@ -239,7 +241,7 @@ export default function Index() {
           await downloadTCards(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadLoads(user.id, team.id, token, t, locale, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
-          setStep(5);
+          dispatch(setStep(5));
           // Переходим на страницу "cards"
           push("/cards");
         }
@@ -255,7 +257,7 @@ export default function Index() {
           await downloadTCards(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadUnitLoads(unit?.id, user.id, team.id, token, t, locale, setMessage, dispatch);
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
-          setStep(5);
+          dispatch(setStep(5));
           // Переходим на страницу "cards"
           push("/unit-interface");
         }
@@ -270,12 +272,14 @@ export default function Index() {
     // обращаемся к базе и подписываем соглашение
     // после этого переходим к загрузке начальных таблиц
     // после этого вываливаемся на начальные настройки
-    await signAgreement(user.id, agreementId, signedAgreement, token, t, locale, setMessageLogin, setStep, setMessage, dispatch)
+    await signAgreement(user.id, agreementId, signedAgreement, token, t, locale, setMessageLogin, 
+      // setStep, 
+      setMessage, dispatch)
   }
 
   // отказ регистрироватся на этапе подписания
   const cancelSignAgreementHandler = () => {
-    setStep(2);
+    dispatch(setStep(2));
   }
 
   return (
@@ -283,7 +287,7 @@ export default function Index() {
       <pre />
       <div className="container_index">
         {(step !== 3) && <div className="container_index_left">
-          <div className="index_title">Plan&Track Pro</div>
+          <div className="index_title">Plan-Track.Pro</div>
           <div className="index_describtion">{t('index.title')}
             <div className="index_line"></div>
           </div>
@@ -333,7 +337,7 @@ export default function Index() {
 
               <div className="login_link_container">
                 <div className="login_link" onClick={(e) => {
-                  setStep(1);
+                  dispatch(setStep(1));
                   setMessageLogin("");
                 }}>{t('login.register')}
                 </div>
@@ -460,7 +464,7 @@ export default function Index() {
               </div>
               <div className="register_link_container">
                 <div className="register_link" onClick={(e) => {
-                  setStep(2);
+                  dispatch(setStep(2));
                   setMessage("");
                 }}>{t('register.login')}
                 </div>

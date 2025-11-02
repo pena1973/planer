@@ -1,6 +1,6 @@
 import { Dispatch } from 'redux';
 import { UserItem, TeamItem, SettingsItem, } from './../../types/types';
-import { setUser, setToken, setTeam, setSettings, setSignedAgreement, setActiveTeam, } from './../../store/slices';
+import { setUser, setToken, setTeam, setSettings, setSignedAgreement, setActiveTeam,setStep } from './../../store/slices';
 import { getUserTimeZoneEnum } from './../../lib/common/timezone';
 import { ulogger } from "./../../lib/common/universal-logger";
 
@@ -18,7 +18,7 @@ interface RegisterPayload {
     setMessage: (msg: string) => void,
     setMessageRegister: (msg: string) => void,
     dispatch: Dispatch,
-    setStep: (step: number) => void,
+    // setStep: (step: number) => void,
     agreementIdRef: React.MutableRefObject<number>,
     agreementTextRef: React.MutableRefObject<string>,
 }
@@ -37,7 +37,7 @@ export const registerHandler = async ({
     setMessage,
     setMessageRegister,
     dispatch,
-    setStep,
+    // setStep,
     agreementIdRef,
     agreementTextRef,
 }: RegisterPayload) => {
@@ -102,7 +102,7 @@ export const registerHandler = async ({
                 agreementIdRef.current = agreementId_;
                 agreementTextRef.current = agreementText_
                 //  далее адресуем на страницу соглашения и после этого переправляем на страницу настроек
-                setStep(3);
+               dispatch(setStep(3));
             } else {
                 setMessage(receivedData.message);
                 //  logger

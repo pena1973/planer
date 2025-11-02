@@ -1,0 +1,680 @@
+/* Глобальный скролл выключен — прокручиваем локально контейнер .scroll */
+.scroll {
+  height: 100vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Переменные перенесены на .page вместо :root — это валидно для CSS Modules */
+.page {
+  --bg: #f5f3eb;
+  --ink: #1f1f1f;
+  --muted: rgba(0, 0, 0, .6);
+  --muted-2: rgba(0, 0, 0, .1);
+  --brand: #989576;
+  --accent: #d9d7c2;
+
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(245, 243, 235, .9);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid rgba(0, 0, 0, .05);
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.logoMark {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--brand);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+}
+
+.logoText {
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+
+.nav {
+  display: none;
+  gap: 24px;
+  font-size: 14px;
+}
+
+.nav a {
+  color: inherit;
+  text-decoration: none;
+  opacity: .9;
+}
+
+.nav a:hover {
+  opacity: .7;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: box-shadow .2s, transform .02s;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btnPrimary {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+}
+
+.btnPrimary:hover {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .12);
+}
+
+.btnGhost {
+  background: rgba(255, 255, 255, .7);
+  border-color: var(--muted-2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+  color: var(--ink);
+}
+
+.btnGhost:hover {
+  background: #fff;
+}
+
+.section {
+  padding: 0 0;
+}
+
+.hero {
+  padding: 80px 0 56px;
+}
+
+.pad {
+  padding: 64px 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--muted-2);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.heroTitle {
+  margin: 16px 0 0;
+  font-size: 40px;
+  line-height: 1.15;
+  font-weight: 600;
+}
+
+.heroP {
+  margin: 20px 0 0;
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 640px;
+}
+
+.heroCta {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.heroNote {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mock {
+  position: relative;
+}
+
+.window {
+  aspect-ratio: 16/10;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .12);
+  border: 1px solid rgba(0, 0, 0, .05);
+  overflow: hidden;
+}
+
+.windowTop {
+  height: 40px;
+  background: var(--accent);
+}
+
+.skel {
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.row {
+  height: 24px;
+  width: 220px;
+  background: rgba(0, 0, 0, .05);
+  border-radius: 8px;
+}
+
+.grid7 {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.cell {
+  height: 96px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, .05);
+}
+
+.small {
+  height: 12px;
+  width: 100%;
+  background: rgba(0, 0, 0, .05);
+  border-radius: 6px;
+}
+
+.w80 {
+  width: 80%;
+}
+
+.float {
+  position: absolute;
+  left: -16px;
+  bottom: -16px;
+  background: #fff;
+  padding: 10px 12px;
+  border-radius: 12px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .12);
+  border: 1px solid rgba(0, 0, 0, .06);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.hiddenBlock {
+  display: none;
+  padding-bottom: 24px;
+}
+
+.brands {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  opacity: .7;
+}
+
+.brand {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+  border: 1px solid rgba(0, 0, 0, .05);
+}
+
+.brandsNote {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(0, 0, 0, .05);
+}
+
+.iconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent);
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cardP {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+.kpiItem {
+  background: rgba(0, 0, 0, .05);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.kpiNum {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.kpiLbl {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.center {
+  text-align: center;
+}
+
+.pricingGrid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.priceCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(0, 0, 0, .05);
+}
+
+.outline {
+  border-color: var(--brand);
+}
+
+.priceTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.priceMain {
+  margin-top: 6px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.priceSub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ul {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.demoWrap {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(0, 0, 0, .05);
+  display: grid;
+  gap: 24px;
+}
+
+.faqGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.cta {
+  background: var(--brand);
+  color: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(0, 0, 0, .05);
+  display: grid;
+  gap: 24px;
+  align-items: center;
+}
+
+.ctaGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.ctaBtn {
+  background: #fff;
+  color: var(--ink);
+  border-radius: 16px;
+  padding: 12px 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(0, 0, 0, .08);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer {
+  padding: 40px 0;
+  border-top: 1px solid rgba(0, 0, 0, .05);
+}
+
+.footerRow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 16px;
+}
+
+.footerLinks a {
+  color: inherit;
+  text-decoration: none;
+  opacity: .9;
+}
+
+.footerLinks a:hover {
+  opacity: .7;
+}
+
+@media (min-width: 768px) {
+  .nav {
+    display: flex;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .twoCol {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pricingGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .faqGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ctaGrid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+/* Видео в правой колонке геро-блока */
+.mockVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* аккуратно заполняет окно */
+  display: block;
+}
+
+/* Чуть приглушаем фон «окна» под видео (если ролик с прозрачностями) */
+.window {
+  aspect-ratio: 16/10;
+  border-radius: 20px;
+  background: #fff;
+  /* уже было — оставляем */
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .12);
+  border: 1px solid rgba(0, 0, 0, .05);
+  overflow: hidden;
+}
+
+.form {
+  margin-top: 16px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.formControl {
+  display: grid;
+  gap: 6px;
+}
+
+.formControl label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, .12);
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .02) inset;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(152, 149, 118, .15);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.check input {
+  margin-top: 2px;
+}
+
+@media (min-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Карточка медиа справа в блоке */
+.media {
+  position: relative;
+  aspect-ratio: 16/10;
+  border-radius: 20px;
+  background: #fff;
+  /* белая подложка под картинку */
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .12);
+  border: 1px solid rgba(0, 0, 0, .06);
+  overflow: hidden;
+}
+
+/* Само изображение */
+.mediaImg {
+  object-fit: cover;
+  /* чтобы красиво заполняло */
+  object-position: center;
+  display: block;
+}
+
+/* Небольшой бейдж поверх (можно убрать, если не нужен) */
+.mediaBadge {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .9);
+  backdrop-filter: saturate(160%) blur(4px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .12);
+  border: 1px solid rgba(0, 0, 0, .08);
+  font-size: 14px;
+  color: #1f1f1f;
+}
+
+/* Если хочешь оставить твой старый класс — на всякий случай оформил тоже */
+.img_planing {
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .12);
+  border: 1px solid rgba(0, 0, 0, .06);
+  // background: #fff;
+  object-fit: cover;
+  display: block;
+}
+
+// /* ⬇️ простые стили дропдауна */
+.langWrap {
+  position: relative;
+  // margin: 0;
+}
+
+.langBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 5px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: box-shadow .2s, transform .02s;
+  background-color: var(--brand);
+}
+
+// .langBtn {
+//   display:flex; align-items:center; gap:6px;
+//   padding:8px 10px; border-radius:10px; border:1px solid var(--border);
+//   background:transparent; cursor:pointer; font-weight:500;
+// }
+// .langBtn:hover {
+//   // background: rgba(0,0,0,.04); 
+// }
+
+.langMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  // min-width: 40px;
+  // background:#fff; 
+  width: 70px;
+  background-color: var(--brand);
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
+  padding: 6px;
+  z-index: 20;
+  margin: 0 5px;
+}
+
+.langItem {
+  // width: 100%;
+  text-align: left;
+  padding: 8px 5px;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.langItem:hover {
+  background: rgba(0, 0, 0, .04);
+}

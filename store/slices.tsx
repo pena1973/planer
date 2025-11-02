@@ -45,7 +45,14 @@ export type ViewState = {
     loadingComplete:boolean
     baner:BanerItem[],
     activeTeam:boolean,
+    step:number,
 }
+  // 1-регистер
+  // 2-логин
+  // 3-соглашение
+  // 4-лоадер
+  // 5-мастер заполнения
+
 // Начальное состояние
 const catalogIntialState: CatalogState = {
     team: {} as TeamItem,
@@ -81,7 +88,8 @@ const viewIntialState: ViewState = {
     suportPoint: 1,
     loadingComplete:false,
     baner: [] as BanerItem[],
-    activeTeam:false
+    activeTeam:false,
+    step:2,
 }
 // хранилище
 const authSlice = createSlice({
@@ -198,6 +206,9 @@ const viewSlice = createSlice({
         setActiveTeam: (state, action) => {
             state.activeTeam = action.payload;
         },
+          setStep: (state, action) => {
+            state.step = action.payload;
+        },
         
     },
 
@@ -209,7 +220,7 @@ export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule }
 export const { setTCards,setTCardIndex, setTemplates } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement,setUnit} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
-export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete,setBaner,setActiveTeam } = viewSlice.actions;
+export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete,setBaner,setActiveTeam,setStep } = viewSlice.actions;
 
 export { authSlice, catalogSlice, dataSlice, planSlice, viewSlice };
 

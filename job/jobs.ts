@@ -57,32 +57,35 @@ export const jobs: Record<string, JobHandler> = {
             const dayCost = await getCostForDay(null, "ru", team.id, prevDay, teamsRepository, activeTimeRepository, mainRepository)
 
             //  списание баланса
-            if (dayCost===undefined) {
+            if (dayCost === undefined) {
                 console.log(`Стоимость дня не получена, дата: ${prevDay} teamId: ${team.main_team}`);
                 console.log(`Команды не деактивированы teamId: ${team.main_team}`);
                 return;
             }
 
-            const balanceRes = await updateBalance(
-                null,
-                "ru",
-                balanceRepository,
-                team.id,
-                "charge-" + prevDay,
-                dayCost / 100,
-                prevDay,
-                false,
-                'dayly charge-' + prevDay, "-", "")
+            //  списываем если есть что списывать
+            if (dayCost > 0) {
+                const balanceRes = await updateBalance(
+                    null,
+                    "ru",
+                    balanceRepository,
+                    team.id,
+                    "charge-" + prevDay,
+                    dayCost / 100,
+                    prevDay,
+                    false,
+                    'dayly charge-' + prevDay, "-", "")
 
-            if (!balanceRes.success) {
-                console.log(`расход не списан, дата: ${prevDay} teamId: ${team.main_team}`);
+                if (!balanceRes.success) {
+                    console.log(`расход не списан, дата: ${prevDay} teamId: ${team.main_team}`);
+                }
             }
 
             // ДЕАКТИВАЦИЯ за неуплату  только если сейчас активный
             const balance = await getBalance(null, "ru", prevDay, team.id, balanceRepository);
             if (!balance) {
                 console.log(`Баланс не получен, дата: ${prevDay} teamId: ${team.main_team}`);
-                 console.log(`Команды не деактивированы teamId: ${team.main_team}`);
+                console.log(`Команды не деактивированы teamId: ${team.main_team}`);
                 return
             }
             if (balance <= 0) {

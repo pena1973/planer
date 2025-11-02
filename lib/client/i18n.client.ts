@@ -16,8 +16,10 @@ import enHelp from '../../public/locales/en/help.json';
 import enCookies from '../../public/locales/en/cookies.json';
 import ruSerMes from '../../public/locales/ru/server_messages.json';
 import enSerMes from '../../public/locales/en/server_messages.json';
- 
-const NS = ['translation', 'ui', 'help', 'cookies', 'sermes'] as const;
+import ruLanding from '../../public/locales/ru/landing.json';
+import enLanding from '../../public/locales/en/landing.json';
+
+const NS = ['translation', 'ui', 'help', 'cookies', 'sermes','landing'] as const;
 
 const resources: Resource = {
   ru: {
@@ -25,14 +27,16 @@ const resources: Resource = {
     ui: ruUi,
     help: ruHelp,
     cookies: ruCookies,
-    sermes: ruSerMes    
+    sermes: ruSerMes,    
+    landing: ruLanding
   },
   en: {
     translation: enTranslation,
     ui: enUi,
     help: enHelp,
     cookies: enCookies, 
-    sermes: enSerMes       
+    sermes: enSerMes,
+    landing: enLanding       
   },
 };
 

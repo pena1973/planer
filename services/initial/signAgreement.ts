@@ -1,5 +1,5 @@
 
-import { setSignedAgreement } from './../../store/slices';
+import { setSignedAgreement, setStep } from './../../store/slices';
 import { Dispatch } from 'redux';
 import { ulogger } from "./../../lib/common/universal-logger";
 
@@ -12,7 +12,7 @@ export const signAgreement = async (
   t: (key: string) => string,
   locale: string,
   setMessageLogin: (msg: string) => void,
-  setStep: (step: number) => void,
+  // setStep: (step: number) => void,
   setMessage: (msg: string) => void,
   dispatch: Dispatch
 ) => {
@@ -55,7 +55,7 @@ export const signAgreement = async (
         const signed_ = receivedData.signed as boolean;
         //   Обновим настройки          
         dispatch(setSignedAgreement(signed_));
-        setStep(4);
+        dispatch(setStep(4));
       } else {
         setMessage(receivedData.message);
         //  logger

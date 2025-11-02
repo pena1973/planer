@@ -1,0 +1,160 @@
+{
+  "ui": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "onlineConsult": "Online consultation",
+    "tryFree": "Try for free",
+    "changeLanguage": "Change language"
+  },
+  "hero": {
+    "badge": "Planning without chaos",
+    "title": "Plan and control your work at a glance",
+    "p": "<strong>plan-track.pro</strong> gives you team workload visibility and delivery control without chaos. Plan jobs with individual skills in mind — the system suggests the optimal schedule so you don’t lose a minute.",
+    "primaryCta": "Start 30-day trial",
+    "secondaryCta": "Watch a 2-minute video",
+    "note": "No card required. Cancel anytime.",
+    "float": "Drag & Drop + Zoom in seconds"
+  },
+  "features": [
+    {
+      "icon": "calendar",
+      "title": "180-day timeline",
+      "desc": "90 days ahead and 90 days of history. Individual working schedules per assignee."
+    },
+    {
+      "icon": "layers",
+      "title": "Worker / center loads",
+      "desc": "The system proposes a plan to meet the deadline as fast as possible considering current workload."
+    },
+    {
+      "icon": "timer",
+      "title": "Flexible settings",
+      "desc": "Task interruptibility, per-operation duration, and per-assignee skills taken into account."
+    },
+    {
+      "icon": "timer",
+      "title": "Statuses & dates",
+      "desc": "Each item has an ID, and its production status is tracked in the system."
+    },
+    {
+      "icon": "bar",
+      "title": "KPI & reports",
+      "desc": "Lead-time summaries, assignee performance, defects, throughput."
+    },
+    {
+      "icon": "shield",
+      "title": "Quality & rework control",
+      "desc": "Built-in quality checks and actions to resolve defects."
+    }
+  ],
+  "benefitsTitle": "Tangible results in the first month",
+  "benefits": [
+    "A week-ahead plan in 15 minutes",
+    "-27% downtime in the first month",
+    "Transparent workload for teams & contractors",
+    "Deadline control: risks are visible immediately"
+  ],
+  "kpi": [
+    { "num": "×3", "label": "faster recalculation" },
+    { "num": "97%", "label": "window accuracy" },
+    { "num": "24/7", "label": "cloud access" }
+  ],
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "30 days free. Then a flat price per team. 20% off for every additional team.",
+    "start": "Start",
+    "buy": "Buy",
+    "contact": "Contact us",
+    "mainTag": "main",
+    "trial": {
+      "period": "30 days",
+      "points": [
+        "All features, no limits",
+        "1 team, 30 days of use",
+        "Kick-off setup webinar — free"
+      ]
+    },
+    "standard": {
+      "sub": "per month for the first team",
+      "points": [
+        "All features, no limits",
+        "Unlimited teams",
+        "−20% for each additional team",
+        "Kick-off setup webinar — free"
+      ]
+    },
+    "custom": {
+      "title": "Dedicated instance",
+      "sub": "on request",
+      "points": [
+        "Your own app and database",
+        "−20% for each additional team",
+        "All features, no limits",
+        "Kick-off setup webinar — free"
+      ]
+    }
+  },
+  "consult": {
+    "title": "Online onboarding consultation",
+    "p": "We’ll help you tune planning to your process: calendars, employees and their skills; we’ll show how to create tech cards, plan and track. Leave a request — we’ll contact you to schedule a time.",
+    "labels": {
+      "name": "Your name *",
+      "company": "Company",
+      "time": "Convenient time (timezone)",
+      "message": "Briefly about your task",
+      "agree": "I agree to the processing of my personal data to be contacted about this request *"
+    },
+    "submit": "Send request",
+    "errorAlert": "Please provide your name, email, and check the consent box.",
+    "successMsg": "Thank you! Your request has been sent. We’ll contact you shortly.",
+    "mailSubject": "plan-track.pro — online consultation request"
+  },
+  "faq": {
+    "title": "FAQ",
+    "items": [
+      {
+        "q": "Do you support external contractors?",
+        "a": "Yes. Operations can be assigned to external production centers with contractual dates."
+      },
+      {
+        "q": "How do you handle different timezones?",
+        "a": "The team works in a single project timezone; schedules are built relative to it."
+      },
+      {
+        "q": "How do assignees get tasks?",
+        "a": "They register and open their personal dashboard. The dispatcher sets a role; tasks appear in the mobile dashboard."
+      },
+      {
+        "q": "How do people see status changes?",
+        "a": "After a status changes, others see the update within a minute."
+      },
+      {
+        "q": "How is data separated between teams?",
+        "a": "Data is isolated per team: one team can’t see another team’s data."
+      },
+      {
+        "q": "Is there a quality controller role?",
+        "a": "Yes. A dedicated controller with a QA UI to mark results/defects. The feature can be disabled."
+      },
+      {
+        "q": "Can I migrate to/from other systems?",
+        "a": "Yes. We have a gateway for importing/exporting tech cards."
+      },
+      {
+        "q": "Do you encrypt personal data?",
+        "a": "We don’t collect personal data except the email for account recovery."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to bring order to planning?",
+    "p": "Onboard your team — you can cancel or change the plan anytime.",
+    "button": "Sign up"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "support": "Support",
+    "copyright": "© {{year}} plan-track.pro"
+    }
+}
