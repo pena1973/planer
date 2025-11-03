@@ -15,6 +15,7 @@
     "migration:create:bash": "npm run typeorm -- migration:create ./db/migrations/$(date +%Y%m%d%H%M%S)",
     "migration:generate:bash": "npm run typeorm -- migration:generate ./db/migrations/$(date +%Y%m%d%H%M%S)",
     "migration:run": "npm run typeorm -- migration:run",
+    "migration:show": "npm run typeorm -- migration:show",    
     "migration:revert": "npm run typeorm -- migration:revert",
     "build:orm": "tsc -p tsconfig.server.json",
     "migration:run:prod": "node ./node_modules/typeorm/cli.js -d dist/db/cli-data-source.js migration:run",

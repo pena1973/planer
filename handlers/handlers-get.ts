@@ -99,7 +99,7 @@ export async function getMain(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -245,7 +245,7 @@ export async function getCostForDay(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -267,7 +267,7 @@ export async function getBalance(
   date: Date | string,   // yyyy-mm-dd
   teamId: number,
   balanceRepository: Repository<BalanceTable>
-): Promise<number|undefined> {
+): Promise<number | undefined> {
 
   const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
@@ -307,7 +307,7 @@ export async function getBalance(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -389,7 +389,7 @@ export async function getBalances(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -441,7 +441,7 @@ export async function getTeams(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -511,7 +511,7 @@ export async function getTeamActivity(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -566,7 +566,7 @@ export async function getTeamsByMainteamNumber(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -623,7 +623,7 @@ export async function getClient(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -681,7 +681,7 @@ export async function getClients(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -733,7 +733,7 @@ export async function getUOMs(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -788,7 +788,7 @@ export async function getActions(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -862,7 +862,7 @@ export async function getUnitActions(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -923,7 +923,7 @@ export async function getUnits(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -977,7 +977,7 @@ export async function getTemplates(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1023,7 +1023,7 @@ export async function getLoadStatuses(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1133,7 +1133,7 @@ export async function getUnitLoads(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1184,7 +1184,7 @@ export async function getTCardOperationLoads(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1277,7 +1277,7 @@ export async function getTCardLoadsToCheckforDelete(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1331,7 +1331,7 @@ export async function getTCards(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1392,7 +1392,7 @@ export async function getTCard(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1444,7 +1444,7 @@ export async function getStages(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1508,7 +1508,7 @@ export async function getProductsCatalog(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1663,7 +1663,7 @@ export async function getTCardFull(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1934,7 +1934,7 @@ export async function getTCardsTerms(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -1997,7 +1997,7 @@ export async function getUnitExceptions(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -2055,7 +2055,7 @@ export async function getTeamShedule(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -2123,7 +2123,7 @@ export async function getTeamsShedule(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -2172,7 +2172,7 @@ export async function getSettings(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -2239,7 +2239,7 @@ export async function getTCardOperation(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -2263,6 +2263,24 @@ export async function getTCardOperations(
 ): Promise<TCardOperationItem[]> {
 
   const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+
+  // 🛡️ 1) Санация и защита от пустого IN ()
+  const ids = Array.isArray(operIds)
+    ? Array.from(new Set(operIds.filter(n => Number.isFinite(n)))) as number[]
+    : [];
+
+  if (ids.length === 0) {
+    // опционально залогируем и сразу вернём пусто
+    void ulogger.warn({
+      userId,
+      location: "handlers/handlers-get/getTCardOperations",
+      event: "warn",
+      message: `Запрошены операции с пустым списком ID`,
+      context: "export async function getTCardOperations(",
+    }).catch(() => { console.error("logger error") });
+
+    return [];
+  }
 
   try {
 
@@ -2317,14 +2335,14 @@ export async function getTCardOperations(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
       userId: userId,
       location: "services/cards/getTCardOperations",
       event: "basa_error",
-      message: `catch: ${message}`,
+      message: `catch: ${message} `,
       context: "export async function getTCardOperations(",
     }).catch(() => { console.error("logger error") });
 
@@ -2396,7 +2414,7 @@ export async function getTCardOperationsByCardId(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -2517,7 +2535,7 @@ export async function getUsersUnits(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -2586,7 +2604,7 @@ export async function getUsers(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;;
     }
     //  logger
     void ulogger.error({
@@ -2622,7 +2640,7 @@ export async function getBaner(
     };
 
     const receivedBaner = await banerRepository.find({ where });
-  
+
 
     const baner = receivedBaner.map(ban => ({
       message: ban.message,
@@ -2636,11 +2654,11 @@ export async function getBaner(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
-      userId:(userId)?userId:null,
+      userId: (userId) ? userId : null,
       location: "services/cards/getBaner",
       event: "basa_error",
       message: `catch: ${message}`,
@@ -2691,7 +2709,7 @@ export async function getInvoices(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({
@@ -2751,7 +2769,7 @@ export async function getSuportMails(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
     }
     //  logger
     void ulogger.error({

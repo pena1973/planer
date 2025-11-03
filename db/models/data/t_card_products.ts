@@ -23,7 +23,7 @@ export class TCardProductTable {
   @Column('int')
   qtu!: number;
 
-  @Column('int')
+   @Column('bigint', {transformer: { to: v => v, from: v => (v==null ? null : Number(v))}})
   tcard_id!: number;
 
   @Column('int', { nullable: true })

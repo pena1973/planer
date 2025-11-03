@@ -14,7 +14,7 @@ export class TCardStageTable {
   @Column('varchar')
   code!: number;
 
-  @Column('int')
+  @Column('bigint', {transformer: { to: v => v, from: v => (v==null ? null : Number(v))}})
   tcard_id!: number;
  
   @Column('int')

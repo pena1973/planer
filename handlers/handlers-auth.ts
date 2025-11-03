@@ -77,7 +77,8 @@ export async function getUserById(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message}`;
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
+      
     }
     //  logger
     void ulogger.error({

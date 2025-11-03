@@ -22,7 +22,7 @@ export class TCardOperationTable {
   @Column('int')
   duration!: number;  // Время в миллисекундах
 
-  @Column('int')
+  @Column('bigint', {transformer: { to: v => v, from: v => (v==null ? null : Number(v))}})
   tcard_id!: number;
 
   @Column({
