@@ -3,7 +3,8 @@ import { StatusEnum } from './../../../types/types';
 
 @Entity('t_cards')
 export class TCardTable {
-  @PrimaryGeneratedColumn()
+  
+  @PrimaryGeneratedColumn({ type: 'bigint' })
   id!: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

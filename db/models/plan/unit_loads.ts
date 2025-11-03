@@ -21,7 +21,7 @@ export class UnitLoadTable {
   @Column('int')
   idc_oper!: number; // Идентификатор операции
 
-  @Column('int')
+  @Column('bigint', {transformer: { to: v => v, from: v => (v==null ? null : Number(v))}}) // bigint превращает в число для совместимости с t_cards.id
   id_tCard!: number; // Идентификатор тех карты
 
   @Column('bigint')
