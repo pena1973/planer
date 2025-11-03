@@ -45,6 +45,8 @@ export default function Admin() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+ 
+  if (!token) push('/')
 
   const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;

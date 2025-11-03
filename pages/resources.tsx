@@ -31,6 +31,8 @@ export default function Resources() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+  
+  if (!token) push('/')
 
   const resourcePoint = useAppSelector((state: RootState) => {
     return state.viewSlice.resourcePoint;

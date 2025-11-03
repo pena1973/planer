@@ -33,6 +33,7 @@ export default function UnitInterfase() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+  if (!token) push('/')
 
   const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;

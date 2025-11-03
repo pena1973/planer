@@ -16,9 +16,7 @@ export class Mig202511031126521762162013683 implements MigrationInterface {
     await qr.query(`ALTER TABLE "products"          ALTER COLUMN "tcard_id" TYPE BIGINT USING "tcard_id"::bigint`);
 
     await qr.query(`ALTER TABLE "unit_loads"        ALTER COLUMN "id_tCard" TYPE BIGINT USING "id_tCard"::bigint`);
-
-    // ВАЖНО: не добавляй здесь повторно уникальный индекс для team_schedule —
-    // он уже был добавлен предыдущей миграцией и вызовет duplicate constraint.
+   
   }
 
   public async down(qr: QueryRunner): Promise<void> {

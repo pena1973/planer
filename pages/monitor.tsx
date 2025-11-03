@@ -32,6 +32,8 @@ export default function Monitor() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+  
+  if (!token) push('/')
 
   const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;

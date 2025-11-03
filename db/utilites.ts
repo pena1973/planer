@@ -12,43 +12,6 @@ export const getRepositoryByName = <T extends ObjectLiteral>(
   return db.getRepository<T>(entity);
 };
 
-// export function getTypedRepository<T extends ObjectLiteral>(
-//   db: DataSource,
-//   name: string,
-//   ctor: EntityTarget<T>, // может быть класс или строка
-// ): Repository<T> {
-//   try {
-//     // Если в dev-режиме и ctor — это класс, можно дополнительно проверить соответствие по имени
-//     if (process.env.NODE_ENV !== 'production') {
-//       const meta = db.entityMetadatas.find(m => {
-//         const targetName = typeof m.target === 'function' ? m.target.name : String(m.target);
-//         return targetName === name;
-//       });
-
-//       if (!meta) {
-//         const available = db.entityMetadatas.map(m =>
-//           typeof m.target === 'function' ? m.target.name : String(m.target)
-//         );
-//         throw new Error(`Entity "${name}" not found. Registered: [${available.join(', ')}]`);
-//       }
-
-//       return db.getRepository<T>(meta.target as EntityTarget<T>);
-//     }
-
-//     // В проде просто используем ctor
-//     return db.getRepository<T>(ctor);
-//   } catch (err) {
-//     const registered = db.entityMetadatas.map(m =>
-//       typeof m.target === 'function' ? m.target.name : String(m.target)
-//     );
-//     const targetName = typeof ctor === 'function' ? ctor.name : String(ctor);
-//     throw new Error(`Entity "${targetName}" not found. Registered: [${registered.join(', ')}]`);
-//   }
-// }
-
-
-
-
 
 // Типы — чтобы репозиторий типизировался от ключа
 

@@ -8,12 +8,18 @@ import { useState } from "react";
 import { useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
+import { useRouter } from 'next/navigation';
+
+
 export default function UnitProfile() {
   const { t } = useTranslation();
+  const { push } = useRouter();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
+ 
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+  if (!token) push('/')
 
   const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;

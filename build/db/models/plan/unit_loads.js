@@ -40,7 +40,8 @@ __decorate([
     __metadata("design:type", Number)
 ], UnitLoadTable.prototype, "idc_oper", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int'),
+    (0, typeorm_1.Column)('bigint', { transformer: { to: v => v, from: v => (v == null ? null : Number(v)) } }) // bigint превращает в число для совместимости с t_cards.id
+    ,
     __metadata("design:type", Number)
 ], UnitLoadTable.prototype, "id_tCard", void 0);
 __decorate([

@@ -3,6 +3,8 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { Check, ArrowRight, Timer, BarChart3, CalendarDays, Shield, Zap, Globe2, Layers, ChevronDown } from "lucide-react";
 import styles from "./landing.module.scss";
+import { LeadItem } from "../../types/leads-types";
+import { saveLead } from "@/services/landing/saveLead";
 
 import { useAppDispatch } from '@/store/hooks';
 
@@ -10,8 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import { setStep } from '@/store/slices'
 import Image from "next/image";
-// import planing from "@/public/planing.png";
-
+import planing from "@/public/planing.png";
 
 
 export const TEST_IDS = {
@@ -32,8 +33,6 @@ const Logo: React.FC = () => (
   </div>
 );
 
-
-
 // Умеет принимать "герой" и "pad" как дополнительные классы, которые берутся из CSS Module.
 const Section: React.FC<
   React.PropsWithChildren<{ id?: string; className?: string }>
@@ -41,9 +40,9 @@ const Section: React.FC<
   const map = (cls?: string) =>
     cls
       ? cls
-          .split(/\s+/)
-          .map((c) => (c in styles ? styles[c as keyof typeof styles] : c))
-          .join(" ")
+        .split(/\s+/)
+        .map((c) => (c in styles ? styles[c as keyof typeof styles] : c))
+        .join(" ")
       : "";
 
   return (
@@ -53,7 +52,6 @@ const Section: React.FC<
   );
 };
 
-
 const PrimaryButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className, ...rest }) => (
   <button {...rest} className={`${styles.btn} ${styles.btnPrimary} ${className || ""}`.trim()} />
 );
@@ -61,7 +59,6 @@ const PrimaryButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = (
 const GhostButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className, ...rest }) => (
   <button {...rest} className={`${styles.btn} ${styles.btnGhost} ${className || ""}`.trim()} />
 );
-
 
 // ⬇️⬇️ ВСТАВЬ ЭТО ПЕРЕД export default ⬇️⬇️
 const LangMenu: React.FC = () => {
@@ -93,7 +90,7 @@ const LangMenu: React.FC = () => {
         aria-label={t('ui.changeLanguage')}
         className={styles.langBtn}
         onClick={() => setOpen(v => !v)}
-      >        
+      >
         <span style={{ margin: "0 6px" }}>{(i18n.language || 'ru').toUpperCase()}</span>
         <ChevronDown size={14} aria-hidden />
       </button>
@@ -132,13 +129,66 @@ export default function LandingPlanner() {
     shield: <Shield size={24} aria-hidden />,
   };
 
-  // ⬅️ было: const features = t('features', { returnObjects: true }) as ...
+
   // ⬅️ стало: безопасные массивы из переводов
   const features = asArr<{ icon: string; title: string; desc: string }>(t('features', { returnObjects: true }));
   const benefits = asArr<string>(t('benefits', { returnObjects: true }));
   const kpiItems = asArr<{ num: string; label: string }>(t('kpi', { returnObjects: true }));
   const faqItems = asArr<{ q: string; a: string }>(t('faq.items', { returnObjects: true }));
+  
+  // отправка формы 
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget as HTMLFormElement);
+    const payload = {
+      name: fd.get("name")?.toString().trim() || "",
+      email: fd.get("email")?.toString().trim() || "",
+      company: fd.get("company")?.toString().trim() || "",
+      time: fd.get("time")?.toString().trim() || "",
+      message: fd.get("message")?.toString().trim() || "",
+      agree: (fd.get("agree") as string) === "on",
+    };
 
+    // простая валидация
+    if (!payload.name || !payload.email || !payload.agree) {
+      alert(t("consult.errorAlert"));
+      return;
+    }
+
+    try {
+      // 1) формируем объект лида под твой API
+      const lead: LeadItem = {
+        name: payload.name,
+        email: payload.email,
+        company: payload.company,
+        time: payload.time,
+        message: payload.message,
+        agree: payload.agree,        
+        source: "landing",
+        type: "consultation",
+        leadStatus: "new",
+      } as LeadItem;
+
+      // 2) отправляем через сервис
+      const res = await saveLead(lead, i18n.language || "en");
+
+      if (!res.ok) throw new Error(res.error);
+
+      // 3) успех
+      (e.currentTarget as HTMLFormElement).reset();
+      alert(t("consult.successMsg"));
+    } catch {
+      // запасной вариант — откроем почтовый клиент
+      const subject = encodeURIComponent(t("consult.mailSubject"));
+      const body = encodeURIComponent(
+        `${t("consult.labels.name")}: ${payload.name}\nEmail: ${payload.email}\n${t(
+          "consult.labels.company"
+        )}: ${payload.company}\n${t("consult.labels.time")}: ${payload.time
+        }\n${t("consult.labels.message")}:\n${payload.message}\n`
+      );
+      window.location.href = `mailto:support@plan-track.pro?subject=${subject}&body=${body}`;
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -233,8 +283,7 @@ export default function LandingPlanner() {
           </div>
         </Section>
 
-        {/* Фичи */}       
-       
+        {/* Фичи */}
         <Section id="features" className="pad">
           <div className={styles.cards}>
             {features.map((f) => (
@@ -253,28 +302,6 @@ export default function LandingPlanner() {
           <div className={styles.card}>
             <div className={styles.twoCol}>
 
-              {/*
-              <div>
-
-                <h2 className={styles.cardTitle} style={{ fontSize: 28 }}>{t('benefitsTitle')}</h2>
-                <ul className={styles.ul}>
-                  {(t('benefits', { returnObjects: true }) as string[]).map((b) => (
-                    <li key={b} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <Check size={20} aria-hidden />
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className={styles.kpiGrid}>
-
-                {(t('kpi', { returnObjects: true }) as { num: string; label: string }[]).map((i) => (
-                  <div key={i.label} className={styles.kpiItem}>
-                    <div className={styles.kpiNum}>{i.num}</div>
-                    <div className={styles.kpiLbl}>{i.label}</div>
-                  </div>
-                ))}
-              </div> */}
               <div>
                 <h2 className={styles.cardTitle} style={{ fontSize: 28 }}>{t('benefitsTitle')}</h2>
                 <ul className={styles.ul}>
@@ -294,8 +321,6 @@ export default function LandingPlanner() {
                   </div>
                 ))}
               </div>
-
-
 
             </div>
           </div>
@@ -369,47 +394,7 @@ export default function LandingPlanner() {
 
                 <form
                   className={styles.form}
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    const fd = new FormData(e.currentTarget as HTMLFormElement);
-                    const payload = {
-                      name: fd.get("name")?.toString().trim() || "",
-                      email: fd.get("email")?.toString().trim() || "",
-                      company: fd.get("company")?.toString().trim() || "",
-                      time: fd.get("time")?.toString().trim() || "",
-                      message: fd.get("message")?.toString().trim() || "",
-                      agree: (fd.get("agree") as string) === "on",
-                    };
-
-                    // простая валидация
-                    if (!payload.name || !payload.email || !payload.agree) {
-                      alert(t('consult.errorAlert'));
-                      return;
-                    }
-
-                    try {
-                      // если есть API-роут — пошли туда
-                      const res = await fetch("/api/contact", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          type: "consultation",
-                          ...payload,
-                        }),
-                      });
-                      if (!res.ok) throw new Error("Request failed");
-                      (e.currentTarget as HTMLFormElement).reset();
-                      alert(t('consult.successMsg'));
-                    } catch {
-                      // запасной вариант — откроем почтовый клиент
-                      const subject = encodeURIComponent(t('consult.mailSubject'));
-
-                      const body = encodeURIComponent(
-                        `${t('consult.labels.name')}: ${payload.name}\nEmail: ${payload.email}\n${t('consult.labels.company')}: ${payload.company}\n${t('consult.labels.time')}: ${payload.time}\n${t('consult.labels.message')}:\n${payload.message}\n`
-                      );
-                      window.location.href = `mailto:support@plan-track.pro?subject=${subject}&body=${body}`;
-                    }
-                  }}
+                  onSubmit={onSubmit}
                 >
                   <div className={styles.formGrid}>
                     <div className={styles.formControl}>
@@ -449,7 +434,7 @@ export default function LandingPlanner() {
               {/* Правая колонка: иллюстрация */}
               <div className={styles.media}>
                 <Image
-                  src="/planing.png"
+                  src={planing}
                   alt="Планирование в plan-track.pro"
                   fill
                   sizes="(min-width: 1024px) 560px, (min-width: 768px) 50vw, 100vw"
