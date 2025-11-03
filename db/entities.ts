@@ -33,6 +33,7 @@ import { MainTable } from './models/billing/main';
 import { VerificationCodeTable } from './models/auth/verification_code';
 import {InvoiceTable} from './models/billing/invoice'; 
 import {SystemLogTable} from './models/logger/logger'; 
+import {LeadTable} from './models/landing/leads'; 
 
 export const entities = {
   TCardTable,
@@ -63,7 +64,8 @@ export const entities = {
   VerificationCodeTable,
   InvoiceTable,
   JobSettingsTable,
-  SystemLogTable
+  SystemLogTable,
+  LeadTable
 };
 
 export const getEntities = () => Object.values(entities);

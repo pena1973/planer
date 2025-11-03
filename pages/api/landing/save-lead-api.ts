@@ -1,3 +1,5 @@
+// pages/api/landing/save-lead-api.ts 
+// для приёма заявок с лендинга
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

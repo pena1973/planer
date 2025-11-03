@@ -15,16 +15,20 @@ import type { RootState } from '@/store';
 import { useTranslation } from 'react-i18next';
 import { } from '@/store/slices';
 
+import { useRouter } from 'next/navigation';
+
 import { setSuportPoint } from '@/store/slices';
 
 export default function Support() {
   const { t } = useTranslation();
+  const { push } = useRouter();
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState(''); // индикация сообщения об ошибках
 
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+  if (!token) push('/')
 
   const suportPoint = useAppSelector((state: RootState) => {
     return state.viewSlice.suportPoint;

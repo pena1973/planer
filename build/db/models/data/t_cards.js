@@ -16,7 +16,7 @@ let TCardTable = class TCardTable {
 };
 exports.TCardTable = TCardTable;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
+    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint' }),
     __metadata("design:type", Number)
 ], TCardTable.prototype, "id", void 0);
 __decorate([

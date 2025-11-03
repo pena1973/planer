@@ -1,5 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert } from 'typeorm';
 
 
 @Entity("teams")

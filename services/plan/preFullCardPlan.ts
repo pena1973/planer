@@ -14,8 +14,8 @@ export const preFullCardPlan = async (
   t: (key: string) => string,
   setMessage: (msg: string) => void,
 ) => {
-  const tCardLoadsPlaned = unitLoads.filter(load => load.id_tCard === tCardId && load.status !== StatusEnum.prepared)
-  const tCardLoadsWithout = unitLoads.filter(lo => lo.id_tCard !== tCardId)
+  const tCardLoadsPlaned = unitLoads.filter(load => Number(load.id_tCard) === tCardId && load.status !== StatusEnum.prepared)
+  const tCardLoadsWithout = unitLoads.filter(lo => Number(lo.id_tCard) !== tCardId)
 
   try {
     const res = await fetch(`/api/plan/pre-fullcardplan-api?userId=${userId}&teamId=${teamId}&tCardId=${tCardId}&today=${today}`,

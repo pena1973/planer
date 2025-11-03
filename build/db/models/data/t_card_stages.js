@@ -31,7 +31,7 @@ __decorate([
     __metadata("design:type", Number)
 ], TCardStageTable.prototype, "code", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int'),
+    (0, typeorm_1.Column)('bigint', { transformer: { to: v => v, from: v => (v == null ? null : Number(v)) } }),
     __metadata("design:type", Number)
 ], TCardStageTable.prototype, "tcard_id", void 0);
 __decorate([

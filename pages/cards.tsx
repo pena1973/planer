@@ -42,7 +42,7 @@ import delD from "@/public/del2-rem.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add222-rem.png";
 import reset from "@/public/cancel.png";
-import { YYYYMMDDTZ, getCurrentDateInString } from "@/lib/common/timezone";
+import {  getCurrentDateInString } from "@/lib/common/timezone";
 
 // ==== helpers ====
 const __localObjKeys = new WeakMap<object, string>();   // для объектов
@@ -87,6 +87,9 @@ export default function Cards() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+   
+  if (!token) push('/')
+
   const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })

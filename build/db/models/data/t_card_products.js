@@ -41,7 +41,7 @@ __decorate([
     __metadata("design:type", Number)
 ], TCardProductTable.prototype, "qtu", void 0);
 __decorate([
-    (0, typeorm_1.Column)('int'),
+    (0, typeorm_1.Column)('bigint', { transformer: { to: v => v, from: v => (v == null ? null : Number(v)) } }),
     __metadata("design:type", Number)
 ], TCardProductTable.prototype, "tcard_id", void 0);
 __decorate([

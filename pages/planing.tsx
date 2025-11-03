@@ -46,6 +46,9 @@ export default function Planing() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+  
+  if (!token) push('/')
+
   const team = useAppSelector((state: RootState) => {
     return state.catalogSlice.team;
   })
@@ -167,7 +170,7 @@ export default function Planing() {
     event.preventDefault();
     // Получаем id перетаскиваемого элемента в строковом виде и это будет id карты
     const itemId = event.dataTransfer.getData("itemId");
-    const tCard_ = tCards.find(tCard => tCard.id === Number(itemId))
+    const tCard_ = tCards.find(tCard => Number(tCard.id) === Number(itemId))
     if (!tCard_) return
     dispatch(setTCardPrepared(tCard_));
 
@@ -178,7 +181,7 @@ export default function Planing() {
     // чистим все лоады в статусе prepared (предыдущее несохраненное планирование)
     const unitLoads_ = unitLoads.filter(lo => lo.status !== StatusEnum.prepared)
     const today = getCurrentDateInString(schedule.timeZone);   
-    await preFullCardPlan(tCard_.id, unitLoads_, token, user.id, team.id, today, dispatch, t, setMessage,);
+    await preFullCardPlan(Number(tCard_.id), unitLoads_, token, user.id, team.id, today, dispatch, t, setMessage,);
     setDropLoaderCard(NaN)
   };
   ///////////////////////////

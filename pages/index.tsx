@@ -89,6 +89,7 @@ export default function Index() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
+
   const user = useAppSelector((state: RootState) => {
     return state.authSlice.user;
   })
