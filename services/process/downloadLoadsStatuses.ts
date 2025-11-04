@@ -48,7 +48,10 @@ export const downloadLoadsStatuses = async (
                     if (status && status !== load.status) { return { ...load, status: status } }
                     else return load;
                 })
-                dispatch(setUnitLoads(updatedUnitsLoads));
+                // косьтыль чтобы не диспатчить пустой массив
+                if (updatedUnitsLoads.length > 0) {
+                    dispatch(setUnitLoads(updatedUnitsLoads));
+                }
                 // setMessage("Загружены планы и история ")
                 setMessage(t('index.downloadLoads'))
             } else {
