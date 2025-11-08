@@ -26,9 +26,9 @@ export const TEST_IDS = {
   faq: "faq-section",
 };
 
+
 const Logo: React.FC = () => (
   <div className={styles.logo}>
-    <div className={styles.logoMark}>PT</div>
     <span className={styles.logoText}>plan-track.pro</span>
   </div>
 );
@@ -60,7 +60,7 @@ const GhostButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ 
   <button {...rest} className={`${styles.btn} ${styles.btnGhost} ${className || ""}`.trim()} />
 );
 
-// ⬇️⬇️ ВСТАВЬ ЭТО ПЕРЕД export default ⬇️⬇️
+
 const LangMenu: React.FC = () => {
   const { t, i18n } = useTranslation('landing');
   const [open, setOpen] = React.useState(false);
@@ -129,13 +129,11 @@ export default function LandingPlanner() {
     shield: <Shield size={24} aria-hidden />,
   };
 
-
-  // ⬅️ стало: безопасные массивы из переводов
   const features = asArr<{ icon: string; title: string; desc: string }>(t('features', { returnObjects: true }));
   const benefits = asArr<string>(t('benefits', { returnObjects: true }));
   const kpiItems = asArr<{ num: string; label: string }>(t('kpi', { returnObjects: true }));
   const faqItems = asArr<{ q: string; a: string }>(t('faq.items', { returnObjects: true }));
-  
+
   // отправка формы 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -163,7 +161,7 @@ export default function LandingPlanner() {
         company: payload.company,
         time: payload.time,
         message: payload.message,
-        agree: payload.agree,        
+        agree: payload.agree,
         source: "landing",
         type: "consultation",
         leadStatus: "new",
@@ -194,7 +192,6 @@ export default function LandingPlanner() {
     <div className={styles.page}>
       {/* Локальный скролл — чтобы страница скролилась даже при body/html { overflow: hidden } */}
       <div className={styles.scroll}>
-        {/* Навбар */}
         <header className={styles.header}>
           <Section>
             <div className={styles.navbar}>
@@ -206,16 +203,29 @@ export default function LandingPlanner() {
               </nav>
 
               <div className={styles.actions}>
-                <LangMenu />
-                <GhostButton onClick={() => (window.location.hash = "#consult")}>{t('ui.onlineConsult')}</GhostButton>
-                <PrimaryButton onClick={() => { dispatch(setStep(1)); router.push("/") }}>
+                <GhostButton
+                  className={styles.consultBtn}
+                  onClick={() => (window.location.hash = "#consult")}
+                >
+                  {t('ui.onlineConsult')}
+                </GhostButton>
+                <PrimaryButton
+                  className={styles.ctaBtn}
+                  onClick={() => {
+                    dispatch(setStep(1));
+                    router.push("/");
+                  }}
+                >
                   {t('ui.tryFree')} <ArrowRight size={16} aria-hidden />
                 </PrimaryButton>
               </div>
-
+              <div className={styles.tools}>
+                <LangMenu />
+              </div>
             </div>
           </Section>
         </header>
+
 
         {/* Герой */}
         <Section className="hero" data-testid={TEST_IDS.hero}>
@@ -285,6 +295,7 @@ export default function LandingPlanner() {
 
         {/* Фичи */}
         <Section id="features" className="pad">
+          <h2 className={`${styles.cardTitle} ${styles.center}`} style={{ fontSize: "28px" }}>{t('featuresTitle')}</h2>
           <div className={styles.cards}>
             {features.map((f) => (
               <motion.div key={f.title} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }} className={styles.card}>
@@ -299,7 +310,7 @@ export default function LandingPlanner() {
 
         {/* Польза в цифрах */}
         <Section className="pad">
-          <div className={styles.card}>
+          <div className={styles.card1}>
             <div className={styles.twoCol}>
 
               <div>
@@ -434,14 +445,13 @@ export default function LandingPlanner() {
               {/* Правая колонка: иллюстрация */}
               <div className={styles.media}>
                 <Image
-                  // src='/planing.png'
-                  src={planing}                  
+                  src={planing}
                   alt="Планирование в plan-track.pro"
                   fill
                   sizes="(min-width: 1024px) 560px, (min-width: 768px) 50vw, 100vw"
                   className={styles.mediaImg}
-                  priority={false}   // можно true, если хочешь грузить первым
-                  placeholder="empty"// или "blur", если у импорта есть blurDataURL
+                  priority={false}
+                  placeholder="empty"
                 />
                 <div className={styles.mediaBadge}>
                   {t('hero.float')}
@@ -476,7 +486,7 @@ export default function LandingPlanner() {
                 <p style={{ marginTop: 8, color: 'rgba(255,255,255,.9)' }}>{t('cta.p')}</p>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                <button className={styles.ctaBtn} onClick={() => {
+                <button className={styles.ctaBtn1} onClick={() => {
                   dispatch(setStep(1));
                   router.push("/")
                 }}>
@@ -492,11 +502,9 @@ export default function LandingPlanner() {
           <Section>
             <div className={styles.footerRow}>
               <Logo />
-              {/* <div style={{ color: "var(--muted)" }}>© {new Date().getFullYear()} plan-track.pro</div> */}
               <div style={{ color: "var(--muted)" }}>{t('footer.copyright', { year: new Date().getFullYear() })}</div>
               <div className={styles.footerLinks}>
-                {/* <a href="#">{t('footer.privacy')}</a> */}
-                {/* <a href="#">{t('footer.support')}</a> */}
+
               </div>
             </div>
           </Section>
