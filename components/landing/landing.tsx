@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import { setStep } from '@/store/slices'
 import Image from "next/image";
-import planing from "@/public/planing.png";
+import planing from '@/public/planing1.png';
 
 
 export const TEST_IDS = {
