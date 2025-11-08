@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import { setStep } from '@/store/slices'
 import Image from "next/image";
-//import planing from "@/public/planing.png";
+import planing from "@/public/planing.png";
 
 
 export const TEST_IDS = {
@@ -434,7 +434,8 @@ export default function LandingPlanner() {
               {/* Правая колонка: иллюстрация */}
               <div className={styles.media}>
                 <Image
-                  src='/planing.png'
+                  // src='/planing.png'
+                  src={planing}                  
                   alt="Планирование в plan-track.pro"
                   fill
                   sizes="(min-width: 1024px) 560px, (min-width: 768px) 50vw, 100vw"
