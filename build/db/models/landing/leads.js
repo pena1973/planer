@@ -14,10 +14,6 @@ exports.LeadTable = void 0;
 const typeorm_1 = require("typeorm");
 let LeadTable = class LeadTable {
     constructor() {
-        this.email = null;
-        this.phone = null;
-        // Текст заявки
-        this.message = null;
         // Статус обработки
         this.status = "new";
         // Источник (гибкий text + CHECK в миграции)
@@ -38,16 +34,24 @@ __decorate([
     __metadata("design:type", String)
 ], LeadTable.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)("varchar", { length: 255, nullable: true }),
-    __metadata("design:type", Object)
+    (0, typeorm_1.Column)("varchar", { length: 250, default: "" }),
+    __metadata("design:type", String)
+], LeadTable.prototype, "company", void 0);
+__decorate([
+    (0, typeorm_1.Column)("varchar", { length: 255, default: "" }),
+    __metadata("design:type", String)
 ], LeadTable.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)("varchar", { length: 50, nullable: true }),
-    __metadata("design:type", Object)
+    (0, typeorm_1.Column)("varchar", { length: 50, default: "" }),
+    __metadata("design:type", String)
 ], LeadTable.prototype, "phone", void 0);
 __decorate([
-    (0, typeorm_1.Column)("text", { nullable: true }),
-    __metadata("design:type", Object)
+    (0, typeorm_1.Column)("varchar", { length: 150, default: "" }),
+    __metadata("design:type", String)
+], LeadTable.prototype, "time", void 0);
+__decorate([
+    (0, typeorm_1.Column)("text", { default: "" }),
+    __metadata("design:type", String)
 ], LeadTable.prototype, "message", void 0);
 __decorate([
     (0, typeorm_1.Column)("varchar", { length: 20, default: "new" }),
@@ -58,9 +62,13 @@ __decorate([
     __metadata("design:type", String)
 ], LeadTable.prototype, "source", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { default: "" }),
+    (0, typeorm_1.Column)('varchar', { default: "en" }),
     __metadata("design:type", String)
-], LeadTable.prototype, "main_team", void 0);
+], LeadTable.prototype, "locale", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], LeadTable.prototype, "agree", void 0);
 exports.LeadTable = LeadTable = __decorate([
     (0, typeorm_1.Entity)("leads")
 ], LeadTable);
