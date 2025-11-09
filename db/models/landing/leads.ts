@@ -15,15 +15,21 @@ export class LeadTable {
     @Column("varchar", { length: 150 })
     name!: string;
 
-    @Column("varchar", { length: 255, nullable: true })
-    email: string | null = null;
+    @Column("varchar", { length: 250, default: "" })
+    company!: string;
 
-    @Column("varchar", { length: 50, nullable: true })
-    phone: string | null = null;
+    @Column("varchar", { length: 255, default: "" })
+    email!: string;
+
+    @Column("varchar", { length: 50, default: "" })
+    phone!: string;
+
+    @Column("varchar", { length: 150, default: "" })
+    time!: string;
 
     // Текст заявки
-    @Column("text", { nullable: true })
-    message: string | null = null;
+    @Column("text", { default: "" })
+    message!: string;
 
     // Статус обработки
     @Column("varchar", { length: 20, default: "new" })
@@ -33,7 +39,10 @@ export class LeadTable {
     @Column("varchar", { length: 40, default: "landing" })
     source: LeadSource = "landing";
 
-    @Column('varchar', { default: "" })
-    main_team!: string; // основная команда в которой выставляем счет
+    @Column('varchar', { default: "en" })
+    locale!: string;
+
+    @Column('boolean', { default: false })
+    agree!: boolean;
 
 }

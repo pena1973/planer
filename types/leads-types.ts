@@ -21,16 +21,15 @@ export type LeadSource =
 
 
 export interface LeadItem {
-    source: LeadSource;  // источник лида
-    type: "consultation";   // тип лида (можешь расширить enum'ом)
+    id?: number;
+    source: LeadSource;   // источник лида    
     name: string;
     email: string;
     company: string;
-    time: string;          // "вт 11:00–13:00, Europe/Riga"
+    time: string;          
     message: string;
-    agree: boolean;         // чекбокс согласия  
-    locale: string;        // 'ru' | 'en' | ...
-    tz: string;            // 'Europe/Riga'  
-    hcaptchaToken: string; // если подключишь hCaptcha
-    leadStatus: LeadStatus; // необязательное поле для статуса лида
+    agree: boolean;       
+    locale: string;       
+    hcaptchaToken?: string; // если подключишь hCaptcha
+    status: LeadStatus; 
 }

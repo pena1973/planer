@@ -16,6 +16,7 @@
     "note": "Не требует карты. Отмена в любой момент.",
     "float": "Drag & Drop + Zoom за секунды"
   },
+  "featuresTitle": "Возможности",
   "features": [
     {
       "icon": "calendar",

@@ -28,6 +28,7 @@ import { InvoiceTable } from './../db/models/billing/invoice';
 import { ClientTable } from './../db/models/billing/clients';
 
 import { MailTable } from './../db/models/support/mails';
+import { LeadTable } from './../db/models/landing/leads';
 
 import { TeamTable } from './../db/models/catalogs/teams';
 import { BanerTable } from './../db/models/support/baners';
@@ -45,6 +46,7 @@ import {
 } from './../types/types';
 
 import { ClientItem, InvoiceItem, MainItem } from './../types/service-types';
+import { LeadItem, LeadSource, LeadStatus } from './../types/leads-types';
 import { BanerItem } from './../types/service-types';
 
 import { getTeam } from './../handlers/handlers-auth';
@@ -2781,5 +2783,68 @@ export async function getSuportMails(
     }).catch(() => { console.error("logger error") });
 
     return [] as SupportMailItem[];
+  }
+}
+
+
+// получение лидов
+export async function getLeads(
+  userId: number,
+  locale: string,
+  leadRepository: Repository<LeadTable>
+): Promise<LeadItem[]> {
+
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+
+  try {
+
+    const receivedLids = await leadRepository.find();
+
+    if (receivedLids.length === 0) {
+      //  logger
+      void ulogger.warn({
+        userId: userId,
+        location: "handlers/handlers-get/getLeads",
+        event: "warn",
+        message: `При запросе ЛИДОВ - они не найдены`,
+        context: "export async function getLeads( ",
+      }).catch(() => { console.error("logger error") });
+    }
+
+    const lids = receivedLids
+      .map(lead => {
+        return {
+          id: lead.id,
+          source: lead.source as LeadSource,          
+          name: lead.name,
+          email: lead.email,
+          company: lead.company,
+          time: lead.time,
+          message: lead.message,
+          agree: lead.agree,
+          locale: lead.locale,          
+          // hcaptchaToken: string; // если подключишь hCaptcha
+          status: lead.status as LeadStatus,
+
+        } as LeadItem;
+      });
+
+    return lids;
+
+  } catch (e: unknown) {
+    let message = t('mes.error');
+    if (e instanceof Error) {
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
+    }
+    //  logger
+    void ulogger.error({
+      userId: userId,
+       location: "handlers/handlers-get/getLeads",
+      event: "basa_error",
+      message: `catch: ${message}`,
+      context: "export async function getLeads(",
+    }).catch(() => { console.error("logger error") });
+
+    return [] as LeadItem[];
   }
 }
