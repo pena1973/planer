@@ -5,7 +5,7 @@ import { Check, ArrowRight, Timer, BarChart3, CalendarDays, Shield, Zap, Globe2,
 import styles from "./landing.module.scss";
 import { LeadItem } from "../../types/leads-types";
 import { saveLead } from "@/services/landing/saveLead";
-
+import { ulogger } from "./../../lib/common/universal-logger";
 import { useAppDispatch } from '@/store/hooks';
 
 import { useTranslation } from 'react-i18next';
@@ -118,6 +118,9 @@ export default function LandingPlanner() {
   const { t, i18n } = useTranslation('landing');
   const router = useRouter();
   const dispatch = useAppDispatch();
+
+  
+
   // ⬅️ NEW: утилита-охранник, чтобы t(...) всегда давал массив
   const asArr = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 
@@ -137,6 +140,7 @@ export default function LandingPlanner() {
   // отправка формы 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     const fd = new FormData(e.currentTarget as HTMLFormElement);
     const payload = {
       name: fd.get("name")?.toString().trim() || "",
@@ -156,26 +160,37 @@ export default function LandingPlanner() {
     try {
       // 1) формируем объект лида под твой API
       const lead: LeadItem = {
+        source: "landing",
         name: payload.name,
         email: payload.email,
         company: payload.company,
         time: payload.time,
         message: payload.message,
         agree: payload.agree,
-        source: "landing",
-        type: "consultation",
-        leadStatus: "new",
+        locale: i18n.language || "en",
+        status: "new",
       } as LeadItem;
 
       // 2) отправляем через сервис
       const res = await saveLead(lead, i18n.language || "en");
 
-      if (!res.ok) throw new Error(res.error);
+      if (!res.success) throw new Error(res.error);
 
       // 3) успех
-      (e.currentTarget as HTMLFormElement).reset();
+      form.reset();
       alert(t("consult.successMsg"));
-    } catch {
+      // (e.currentTarget as HTMLFormElement).reset();
+
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+      void ulogger.error({
+        userId: null,
+        location: "components/landing",
+        event: "error",
+        message: `catch: ${msg}`,
+        context: "components/landing",
+      }).catch(() => { console.error("logger error"); });
+
       // запасной вариант — откроем почтовый клиент
       const subject = encodeURIComponent(t("consult.mailSubject"));
       const body = encodeURIComponent(
@@ -439,6 +454,8 @@ export default function LandingPlanner() {
                       {t('consult.submit')}
                     </button>
                   </div>
+
+                  
                 </form>
               </div>
 

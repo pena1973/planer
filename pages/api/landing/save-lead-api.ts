@@ -1,14 +1,64 @@
+
 // pages/api/landing/save-lead-api.ts 
 // для приёма заявок с лендинга
-import type { NextApiRequest, NextApiResponse } from "next";
+import { ulogger } from "./../../../lib/common/universal-logger";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).end();
-  const { type, name, email, company, time, message } = req.body || {};
+import { NextApiRequest, NextApiResponse } from 'next';
+import connectDb from './../../../db/database';
+import { getTypedRepository } from './../../../db/utilites'
+import { saveLead } from './../../../handlers/handlers-update';  // расчеты
+import { LeadTable } from './../../../db/models/landing/leads';
+import { LeadItem } from "@/types/leads-types";
 
-  // TODO: вставь свою логику — SendGrid/Mailgun/SMTP/Telegram и т.д.
-  // Здесь просто лог и 200.
-  console.log("[CONTACT]", { type, name, email, company, time, message });
 
-  return res.status(200).json({ ok: true });
+interface RequestBody {
+  lead: LeadItem,
 }
+
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+
+  try {
+    const db = await connectDb();
+    const leadRepository = getTypedRepository(db, 'LeadTable', LeadTable);
+    switch (req.method) {
+      
+      case 'POST':
+        // запись сообщения поддержки
+        const { lead } = req.body as RequestBody;
+
+        const resLead = await saveLead(lead, leadRepository)
+        if (!resLead.success) {
+          res.status(200).json({
+            success: false,
+            message: resLead.message
+          });
+          break;
+        }
+
+        res.status(200).json({
+          success: true,
+        });
+        break;
+
+      default:
+        res.status(405).json({ error: 'Method not supported.' });
+    }
+
+  } catch (e: unknown) {
+    let error = "";
+    if (e instanceof Error) {
+      error = e.message;
+    }
+    //  logger
+    void ulogger.error({
+      userId: null,
+      location: "pages/api/landing/save-lead-api",
+      event: "api_error",
+      message: `catch: ${error}`,
+      context: "",
+    }).catch(() => { console.error("logger error") });
+    res.status(500).json({ error: `${error}` });
+  }
+}
+
+export default handler

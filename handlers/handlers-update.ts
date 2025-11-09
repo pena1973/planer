@@ -31,6 +31,7 @@ import { BalanceTable } from "./../db/models/billing/balance";
 import { JobSettingsTable } from "./../db/models/job/job-settings";
 
 import { BanerTable } from './../db/models/support/baners';
+import { LeadTable } from './../db/models/landing/leads';
 
 // types
 import {
@@ -42,7 +43,7 @@ import {
 } from './../types/types';
 
 import { ClientItem, JobSettingItem, BanerItem } from './../types/service-types';
-
+import { LeadItem, LeadSource, LeadStatus } from './../types/leads-types';
 
 import { YYYYMMDD } from "@/lib/common/utils"
 import { getCurrentDateInString, } from "../lib/common/timezone"
@@ -1836,7 +1837,7 @@ export async function updateProducts(
       existingTCardProducts.some(ep => ep.id === np.id && ep.code === np.code && ep.type === np.type && ep.qtu === np.qtu)
     );
 
-    
+
     // Удаляем продукты
     if (productsToDelete.length > 0) await tCardProductRepository.remove(productsToDelete);
 
@@ -2243,13 +2244,13 @@ export async function updateStatusTCard(
 
     if (result.affected && result.affected > 0) {
       return {
-        success: true,        
+        success: true,
         message: `${t('mes.tCardStatusUpdated')} id: ${tCardId}`
 
       };
     } else {
       return {
-        success: false,        
+        success: false,
         message: `${t('mes.tCardStatusNotUpdated')} id: ${tCardId}`
       };
     }
@@ -2328,7 +2329,7 @@ export async function cnangeStatusMail(
   try {
     if (!Number.isFinite(id)) {
       return {
-        success: false,        
+        success: false,
         message: t('mes.uncorrectMailId')
       };
     }
@@ -2338,13 +2339,13 @@ export async function cnangeStatusMail(
 
     if ((result.affected ?? 0) === 0) {
       return {
-        success: false,        
+        success: false,
         message: t('mes.mailNotFound')
       };
     }
 
     return {
-      success: true,      
+      success: true,
       message: t('mes.mailProcessed')
 
     };
@@ -2384,10 +2385,47 @@ export async function setBaner(
 
   const baner__ = {
     message: savedBaner.message,
-    locale: savedBaner.locale,    
+    locale: savedBaner.locale,
     dateFrom: savedBaner.date_from,
     dateTo: savedBaner.date_to,
   };
 
   return baner__;
+}
+
+export async function saveLead(
+  lead:LeadItem,
+  leadRepository: Repository<LeadTable>,
+): Promise<{ success: boolean, message?: string }> {
+  const t = getServerT(lead.locale, 'sermes');
+  try {
+    const newLead = {
+      source: lead.source,
+      name: lead.name,
+      email: lead.email,      
+      company: lead.company,
+      time: lead.time,
+      message: lead.message,
+      agree: lead.agree,
+      locale: lead.locale,
+      status: lead.status,
+    } as LeadTable
+
+    const savedLead = await leadRepository.save(newLead);
+
+    return { success: true }
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId: null,
+      location: "handlers/handlers-update/saveLead",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "saveLead",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
 }

@@ -4,8 +4,8 @@ import { LeadItem } from "../../types/leads-types";
 import { ulogger } from "../../lib/common/universal-logger";
 
 export type SaveLeadResult =
-    | { ok: true; lead: LeadItem }
-    | { ok: false; error: string };
+    | { success: true }
+    | { success: false; error: string };
 
 export const saveLead = async (
     lead: LeadItem,
@@ -34,13 +34,13 @@ export const saveLead = async (
                 message: `res.status=${res.status} error=${error}`,
                 context: "export const saveLead = async (",
             }).catch(() => { console.error("logger error") });
-            return { ok: false, error };
+            return { success: false, error };
         } else {
 
             const receivedData = await res.json();
             if (receivedData.success) {
-                const lead_ = receivedData.lead as LeadItem
-                return { ok: true, lead: lead_ };
+                // const lead_ = receivedData.lead as LeadItem
+                return { success: true };
             } else {
                 //  logger
                 void ulogger.error({
@@ -50,7 +50,7 @@ export const saveLead = async (
                     message: `success=false запрос api/landing/save-lead-api`,
                     context: "export const saveLead = async (",
                 }).catch(() => { console.error("logger error") });
-                return { ok: false, error: 'Unsuccessful saving' };
+                return { success: false, error: 'Unsuccessful saving' };
             }
 
         }
@@ -68,6 +68,6 @@ export const saveLead = async (
             message: `catch: ${error}`,
             context: "export const saveLead = async (",
         }).catch(() => { console.error("logger error") });
-        return { ok: false, error };
+        return { success: false, error };
     }
 };
