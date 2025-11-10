@@ -1,6 +1,6 @@
 import React from "react";
 import Head from "next/head";
-import LandingPlanner from "../components/landing/landing";
+import LandingPlanner from "../components/Landing/landing";
 
 export default function LandingPage() {
   return (

@@ -1081,7 +1081,8 @@ export async function getUnitLoads(
       .leftJoin('t_card_operations', 'tOper', 'unitLoad.id_oper = tOper.id')
       .addSelect(['tOper.id', 'tOper.duration', 'tOper.action_id'])
       .where('unitLoad.team_id = :teamId', { teamId })
-      .where('unitLoad.unit_id IN (:...unitIds)', { unitIds });
+      // .where('unitLoad.unit_id IN (:...unitIds)', { unitIds });
+      .andWhere('unitLoad.unit_id IN (:...unitIds)', { unitIds });
 
     if (isControler) {
       query.andWhere('unitLoad.status = :status', { status: 'performed' });
@@ -1135,7 +1136,7 @@ export async function getUnitLoads(
   } catch (e: unknown) {
     let message = t('mes.error');
     if (e instanceof Error) {
-      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
+      message = `${t('mes.error')} ${e.message} stack: ${e?.stack}`;
     }
     //  logger
     void ulogger.error({
@@ -2815,6 +2816,7 @@ export async function getLeads(
       .map(lead => {
         return {
           id: lead.id,
+          date: lead.created_at ? YYYYMMDD(lead.created_at) : "",
           source: lead.source as LeadSource,          
           name: lead.name,
           email: lead.email,

@@ -5,7 +5,7 @@ import { Check, ArrowRight, Timer, BarChart3, CalendarDays, Shield, Zap, Globe2,
 import styles from "./landing.module.scss";
 import { LeadItem } from "../../types/leads-types";
 import { saveLead } from "@/services/landing/saveLead";
-import { ulogger } from "./../../lib/common/universal-logger";
+import { ulogger } from "../../lib/common/universal-logger";
 import { useAppDispatch } from '@/store/hooks';
 
 import { useTranslation } from 'react-i18next';

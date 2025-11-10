@@ -29,8 +29,7 @@ export const jobs: Record<string, JobHandler> = {
     // ежедневное списание стоимости за предыдущий день
     // спаисание идет по таймзоне команды, запуск каждый час , защита от повтора
     'billing:charge': async (params) => {
-        // const { getTeams, getCostForDay, getTeamsShedule, getBalance, getTeamActivity } = await import('../handlers/handlers-get');
-        // const { updateBalance, changeStateTeamsByIds } = await import('../handlers/handlers-update');
+        
         const db = await connectDb();
         const teamsRepository = getTypedRepository(db, 'TeamTable', TeamTable);
         const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);

@@ -70,6 +70,7 @@ export async function getUserById(
       locale: usertab.locale,
       isAdmin: usertab.isAdmin,
       active: usertab.active,
+      isSystem: usertab.isSystem,
     } as UserItem;
 
     return user;
