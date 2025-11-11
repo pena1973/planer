@@ -31,6 +31,10 @@ export class LeadTable {
     @Column("text", { default: "" })
     message!: string;
 
+    // пометки администратора
+    @Column("text", { default: "" })
+    notes!: string;
+
     // Статус обработки
     @Column("varchar", { length: 20, default: "new" })
     status: LeadStatus = "new";

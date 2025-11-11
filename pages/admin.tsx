@@ -1,8 +1,9 @@
 import Layout from "@/components/Layout/layout";
-import { useState,  } from "react";
+import { useState, } from "react";
 
 import ScheduleEditor from "@/components/admin/ScheduleEditor/scheduleEditor";
 import { SupportMailsAdmin } from "@/components/admin/SupportMailsAdmin/supportMailsAdmin";
+import {Leads } from "@/components/admin/Leads/leads";
 
 import { JobSettingItem, BanerItem } from '@/types/service-types'
 
@@ -45,7 +46,7 @@ export default function Admin() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
- 
+
   if (!token) push('/')
 
   const user = useAppSelector((state: RootState) => {
@@ -78,11 +79,11 @@ export default function Admin() {
     const [yStr, mStr] = periodDeactTeam.split('-');
     const year = Number(yStr);
     const month = Number(mStr); // 1..12
-    await deactivateTeams(user.id,token, t, i18n.language, setMessage);
+    await deactivateTeams(user.id, token, t, i18n.language, setMessage);
   };
 
   const setJobSettinghandler = async (jobSetting: JobSettingItem) => {
-    await setJobSetting(user.id, jobSetting, token,  t,  i18n.language, setMessage);
+    await setJobSetting(user.id, jobSetting, token, t, i18n.language, setMessage);
   };
 
   return (
@@ -90,7 +91,7 @@ export default function Admin() {
       <div className="container_global" >
 
         <div className="container_admin">
-          <div className="container_admin_left" >            
+          <div className="container_admin_left" >
             {user.isSystem && <div className="container_admin_block">
               Сообщения
               <code>{message}</code>
@@ -100,7 +101,11 @@ export default function Admin() {
 
             {user.isSystem && <div className="container_admin_block">
               Установка расписания рег задания
-              <ScheduleEditor onSubmit={setJobSettinghandler} />
+              <ScheduleEditor
+                token={token}
+                userId={user.id}
+                setMessage={setMessage}
+                onSubmit={setJobSettinghandler} />
 
 
               Список рег заданий с ключами:
@@ -108,7 +113,7 @@ export default function Admin() {
                 <li>списание баланса — <span>billing:charge</span></li>
                 <li>очистка 90 дней — <span>cleanup:core</span></li>
               </ol>
-
+              Состояния рег заданий (доделать)
 
             </div>}
 
@@ -187,7 +192,13 @@ export default function Admin() {
               <button onClick={setBanerHandler}>Установить</button>
 
             </div>}
-
+            {user.isSystem && <div className="container_admin_block">
+              Лиды
+              <Leads
+                userId={user.id}
+                setMessage={setMessage}
+                token={token}
+              /></div>}
           </div>
 
         </div>

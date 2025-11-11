@@ -26,6 +26,13 @@ export const SupportMailsAdmin: React.FC<SupportMailsProps> = ({
   const [supportMailsValue, setSupportMailsValue] = useState([] as SupportMailItem[]);
   const [expandValue, setExpandValue] = useState([] as number[]);
 
+  const [showClosed, setShowClosed] = useState(false);
+  const [showFixed, setShowFixed] = useState(true);
+  
+  
+    // Хелперы для статусов (подстрахуемся на случай строк)
+    const isClosed = (m: SupportMailItem) => m.status === StatusEnum.closed || String(m.status).toLowerCase() === 'closed';
+    const isFixed = (m: SupportMailItem) => m.status === StatusEnum.performed || String(m.status).toLowerCase() === 'performed';
   
   // Получаем сообщения
   const getSupportMailsAdminHandler = async () => {
@@ -118,7 +125,14 @@ const changeStatusMailHandler = async (id: number,status:StatusEnum) => {
   };
 
   // Фильтруем начальные сообщения (где нет basedOn)
-  const topLevelMessages = supportMailsValue.filter(mes => !mes.basedOn);
+  // const topLevelMessages = supportMailsValue.filter(mes => !mes.basedOn);
+  // Фильтруем начальные сообщения (где нет basedOn) + применяем чекбоксы
+  const topLevelMessages = supportMailsValue.filter(mes => {
+    if (mes.basedOn) return false;              // только верхний уровень
+    if (!showClosed && isClosed(mes)) return false; // скрыть закрытые, если флаг снят
+    if (!showFixed && isFixed(mes)) return false;   // скрыть исправленные, если флаг снят
+    return true;
+  });
 
   // Сортируем сообщения: сначала новые сообщения (id < 0), потом по убыванию id для остальных
   topLevelMessages.sort((a, b) => {
@@ -148,7 +162,29 @@ const changeStatusMailHandler = async (id: number,status:StatusEnum) => {
 
   return (
     <div className={styles.container}>
-      {/* <button onClick={addSupportMessageAdmin}>{t('support.new')}</button> */}
+{/* Фильтры над списком */}
+      <div className={styles.filters} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}>
+        <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={showClosed}
+            onChange={(e) => setShowClosed(e.target.checked)}
+          />
+          {/* <span>{t?.('leads.showSpam') || 'Показывать спам'}</span> */}
+          <span>{'Показывать закрытые'}</span>
+        </label>
+
+        <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={showFixed}
+            onChange={(e) => setShowFixed(e.target.checked)}
+          />
+          {/* <span>{t?.('leads.showLost') || 'Показывать потерянные'}</span> */}
+          <span>{'Показывать исправленные'}</span>
+        </label>
+      </div>
+      
       {topLevelMessagesReactNodes}
     </div>
   );

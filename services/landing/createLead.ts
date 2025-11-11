@@ -7,12 +7,12 @@ export type SaveLeadResult =
     | { success: true }
     | { success: false; error: string };
 
-export const saveLead = async (
+export const createLead = async (
     lead: LeadItem,
     locale: string
 ): Promise<SaveLeadResult> => {
     try {
-        const res = await fetch(`/api/landing/save-lead-api`, {
+        const res = await fetch(`/api/landing/create-lead-api`, {
             method: "POST",
             headers: new Headers({
                 "Content-Type": "application/json",

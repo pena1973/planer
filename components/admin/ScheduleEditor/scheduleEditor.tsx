@@ -2,11 +2,14 @@ import React, { useMemo, useState } from 'react';
 import styles from './scheduleEditor.module.scss';
 import { JobSettingItem, } from '@/types/service-types'
 import { TimeZoneEnum } from '@/types/types'
+import { runJobOnce } from "@/services/admin/runJobOnce";
 
 type Props = {
-    // initial?: Partial<ScheduleForm>;
     initial?: JobSettingItem;
     onSubmit: (data: JobSettingItem) => void;
+    token: string;
+    userId: number;
+    setMessage: (msg: string) => void;
 };
 
 const tzOptions = [
@@ -17,8 +20,8 @@ const tzOptions = [
     'America/New_York',
 ];
 
-export const ScheduleEditor: React.FC<Props> = ({ initial, onSubmit }) => {
-    // --- локальное состояние формы
+export const ScheduleEditor: React.FC<Props> = ({ initial, onSubmit, token, userId, setMessage }) => {
+    // --- локальноесостояние формы
     const [form, setForm] = useState<JobSettingItem>({
         job_key: '',
         enabled: true,
@@ -85,6 +88,17 @@ export const ScheduleEditor: React.FC<Props> = ({ initial, onSubmit }) => {
             monthly_day: form.monthly_end_of_month ? null : (form.monthly_day ?? null),
         };
         onSubmit(payload);
+    };
+
+    const forceStart = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const res = await runJobOnce(
+            form.job_key,
+            token,
+            setMessage, // можно заменить на твой UI уведомлений
+            userId,
+            null // параметры job, если нужны
+        );       
     };
 
     // --- подкомпоненты полей по режимам
@@ -180,6 +194,9 @@ export const ScheduleEditor: React.FC<Props> = ({ initial, onSubmit }) => {
                         value={form.job_key}
                         onChange={(e) => set('job_key', e.target.value)}
                     />
+                    <div className={styles.actions}>
+                        <button type='button' className={styles.submit} onClick={forceStart}>Запустить принудительно</button>
+                    </div>
                 </label>
 
                 <label className={styles.inputRow}>

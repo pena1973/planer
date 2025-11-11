@@ -3,11 +3,28 @@ import { TCardContent, StatusEnum, ScheduleItem, DaysOfWeek,CalendarItem, TimeZo
 import { YYYYMMDDTZ, getTimeZoneDateFromDateString,getEnumKeyByValue } from "./timezone";
 
 
+// // Перевод в "YYYY-MM-DD":
+// // - если пришла строка — возвращаем как есть (не ломаем TZ/UTC)
+// // - если пришёл Date — форматируем из самого объекта (предполагая, что он уже в нужной TZ)
+// export const YYYYMMDD = (d: Date | string = new Date()): string => {
+//   if (typeof d === "string") return d;
+//   const y = d.getFullYear();
+//   const m = String(d.getMonth() + 1).padStart(2, "0");
+//   const day = String(d.getDate()).padStart(2, "0");
+//   return `${y}-${m}-${day}`;
+// };
+
 // Перевод в "YYYY-MM-DD":
 // - если пришла строка — возвращаем как есть (не ломаем TZ/UTC)
-// - если пришёл Date — форматируем из самого объекта (предполагая, что он уже в нужной TZ)
-export const YYYYMMDD = (d: Date | string = new Date()): string => {
-  if (typeof d === "string") return d;
+// - если пришёл Date — форматируем из самого объекта
+// - если null/undefined/плохая дата — возвращаем пустую строку
+export const YYYYMMDD = (d: Date | string | null | undefined = new Date()): string => {
+  if (d == null) return "";
+  if (typeof d === "string") {
+    return d.trim() === "" ? "" : d;
+  }
+  // d — Date
+  if (!(d instanceof Date) || Number.isNaN(d.getTime())) return "";
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");

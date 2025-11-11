@@ -1,6 +1,5 @@
 export type LeadStatus =
-    | "new"
-    | "viewed"
+    | "new"    
     | "contacted"
     | "qualified"
     | "lost"
@@ -22,6 +21,7 @@ export type LeadSource =
 
 export interface LeadItem {
     id?: number;
+    date: string;
     source: LeadSource;   // источник лида    
     name: string;
     email: string;
@@ -32,4 +32,5 @@ export interface LeadItem {
     locale: string;       
     hcaptchaToken?: string; // если подключишь hCaptcha
     status: LeadStatus; 
+    notes: string; 
 }
