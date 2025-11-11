@@ -7,8 +7,6 @@ import { StatusCircle } from "@/components/StatusCircle/statusCircle";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 
 import Image from 'next/image';
-import next from "@/public/next-rem.png";
-import del from "@/public/del2-rem.png";
 import galka_vniz from "@/public/galka_vniz-rem.png";
 import galka_vpravo from "@/public/galka_vpravo-rem.png";
 
@@ -19,6 +17,7 @@ interface LeadProps {
   setMessage: (message: string) => void, // Это диагностика  
   setExpand: (id: number) => void,
   changeStatusLead: (id: number, status: LeadStatus) => void,
+  saveNotes: (id: number, notes: string) => Promise<void>,
   index: number,
   expand: boolean,
 
@@ -29,6 +28,7 @@ export const Lead: React.FC<LeadProps> = ({
   setMessage,
   setExpand,
   changeStatusLead,
+  saveNotes,
   index,
   expand,
 
@@ -36,6 +36,7 @@ export const Lead: React.FC<LeadProps> = ({
 
   const { t } = useTranslation();
   const [leadValue, setLeadValue] = useState({} as LeadItem);
+  const [isModified, setIsModified] = useState(false);
   const [buttonLoader, setButtonLoader] = useState(false);
 
 
@@ -49,10 +50,12 @@ export const Lead: React.FC<LeadProps> = ({
     }
   }, [expand]); // Зависимость от expand и содержимого
 
-
-
+  const setbodyHandler = (notes: string) => {
+    setLeadValue({ ...leadValue, notes: notes })
+  }
   // Функция для автоматической подгонки высоты
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   // Функция для автоматической подгонки высоты
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -90,6 +93,10 @@ export const Lead: React.FC<LeadProps> = ({
         return StatusEnum.cancelled;
     }
   })();
+  const saveNotesHandler = async (id: number, notes: string) => {
+    await saveNotes(id, notes);
+    setIsModified(false);
+  }
 
   return (<>
 
@@ -97,6 +104,11 @@ export const Lead: React.FC<LeadProps> = ({
 
 
       <div className={styles.left_container}>
+
+        {!["new", "contacted"].includes(leadValue.status) &&
+          <div className={styles.status_container1}>
+            <StatusCircle status={viewStatus} /> &nbsp; &nbsp;{leadValue.status}
+          </div>}
         {leadValue.status === "new" &&
           <div className={styles.buttons_container}>
             <div className={styles.status_container}>
@@ -111,34 +123,37 @@ export const Lead: React.FC<LeadProps> = ({
               Спам
             </button>
           </ div>}
+
+        {leadValue.status === "contacted" &&
+          <div className={styles.buttons_container}>
+            <div className={styles.status_container}>
+              <StatusCircle status={viewStatus} />
+            </div>
+            <button className={styles.button_mark}
+              onClick={e => { changeStatusLead(leadValue.id ?? 0, "qualified") }}>
+              успех
+            </button>
+            <button className={styles.button_mark}
+              onClick={e => { changeStatusLead(leadValue.id ?? 0, "lost") }}>
+              потерян
+            </button>
+          </ div>}
+
         {expand &&
           <textarea
-            ref={textareaRef}  // Привязываем ссылку
-            placeholder='Текст письма'
-            className={styles.body_input}
+            placeholder='Заметки'
+            className={styles.notes_input}
             id={"body" + index}
             autoComplete="off"
-            value={leadValue.message}
+            value={leadValue.notes}
+            onChange={e => { setbodyHandler(e.target.value); setIsModified(true); }}
           />}
+        {expand && <button className={styles.button_save}
+          onClick={e => saveNotesHandler(leadValue.id ?? 0, leadValue.notes)}>
+          сохранить {isModified ? "*" : ""}
+        </button>}
       </div>
 
-
-      {leadValue.status === "contacted" &&
-        <>
-          <div className={styles.status_container}>
-            <StatusCircle status={viewStatus} />
-          </div>
-          <button className={styles.button_mark}
-            onClick={e => { changeStatusLead(leadValue.id ?? 0, "qualified") }}>
-            успех
-          </button>
-          <button className={styles.button_mark}
-            onClick={e => { changeStatusLead(leadValue.id ?? 0, "lost") }}>
-            потерян
-          </button>
-        </>
-
-      }
 
       <div className={styles.message_container}>
 
@@ -164,18 +179,16 @@ export const Lead: React.FC<LeadProps> = ({
 
         {expand && <>
           <div className={styles.header_groupe_id}>
-            <div>Дата:{leadValue.date}</div>, &nbsp;&nbsp;  <div> Компания:{leadValue.company}</div>
+            <div className={styles.date_container}>Дата: {leadValue.date}</div>, &nbsp;&nbsp;  <div> Компания: {leadValue.company}</div>
           </div>
 
           <textarea
-            ref={textareaRef}  // Привязываем ссылку
-            placeholder='Текст письма'
-            className={styles.body_input}
+            ref={textareaRef}  // Привязываем ссылку            
+            className={styles.message_input}
             id={"body" + index}
             autoComplete="off"
             value={leadValue.message}
           /></>}
-
 
       </div>
 

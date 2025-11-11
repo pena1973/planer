@@ -15,9 +15,15 @@
   display: flex;
   align-items: center;
   height: 30px;
-   
+  
 }
-
+.status_container1 {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  text-align: center;   
+  width: 100px;
+}
 .message_container {
   margin: 3px;
   border: 1px solid #ccc;
@@ -26,7 +32,10 @@
   background-color: $table_background_color;
   font-size: $header3_font_size;
 }
-  
+ .date_container{
+  width: 120px;
+ }
+
 .buttons_container {
   display: flex;
   flex-direction: row;
@@ -97,7 +106,7 @@
   background-color: $table_background_color;
 }
 
-.body_input {
+.message_input {
   flex: 1;
   margin: 0;
   padding: 10px;
@@ -109,6 +118,19 @@
   margin: -1px -1px -5px -1px;
   font-size: $header3_font_size;
   background-color: $table_background_color;
+}
+.notes_input {
+  flex: 1;
+  margin: 0;
+  padding: 10px;
+  border-radius: 0;
+  height: calc(100% - 67px);
+  width: -webkit-fill-available;
+  min-height: 100px;
+  resize: none;
+  margin: -1px -1px -5px -1px;
+  font-size: $header3_font_size;
+  background-color: white;
 }
 .new {
   background-color: white;
@@ -150,4 +172,9 @@
   width: 70px;
   height: 25px;
   align-self: baseline;
+}
+.button_save{
+  margin: 5px 0;
+  width: 100%;
+  
 }

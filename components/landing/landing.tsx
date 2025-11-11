@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Check, ArrowRight, Timer, BarChart3, CalendarDays, Shield, Zap, Globe2, Layers, ChevronDown } from "lucide-react";
 import styles from "./landing.module.scss";
 import { LeadItem } from "../../types/leads-types";
-import { saveLead } from "@/services/landing/saveLead";
+import { createLead } from "@/services/landing/createLead";
 import { ulogger } from "../../lib/common/universal-logger";
 import { useAppDispatch } from '@/store/hooks';
 
@@ -172,7 +172,7 @@ export default function LandingPlanner() {
       } as LeadItem;
 
       // 2) отправляем через сервис
-      const res = await saveLead(lead, i18n.language || "en");
+      const res = await createLead(lead, i18n.language || "en");
 
       if (!res.success) throw new Error(res.error);
 

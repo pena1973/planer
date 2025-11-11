@@ -2392,9 +2392,9 @@ export async function setBaner(
 
   return baner__;
 }
-
-export async function saveLead(
-  lead:LeadItem,
+// сохранение нового лида
+export async function createLead(
+  lead: LeadItem,
   leadRepository: Repository<LeadTable>,
 ): Promise<{ success: boolean, message?: string }> {
   const t = getServerT(lead.locale, 'sermes');
@@ -2402,7 +2402,7 @@ export async function saveLead(
     const newLead = {
       source: lead.source,
       name: lead.name,
-      email: lead.email,      
+      email: lead.email,
       company: lead.company,
       time: lead.time,
       message: lead.message,
@@ -2415,6 +2415,49 @@ export async function saveLead(
 
     return { success: true }
 
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
+
+    void ulogger.error({
+      userId: null,
+      location: "handlers/handlers-update/saveLead",
+      event: "db_error",
+      message: `catch: ${msg}`,
+      context: "saveLead",
+    }).catch(() => { console.error("logger error"); });
+
+    return { success: false, message: 'db_error: ' + msg };
+  }
+}
+
+// обновление лида администратором
+export async function updateLead(
+  locale: string,
+  leadId: number,
+  status?: LeadStatus | null,
+  notes?: string | null,
+  leadRepository?: Repository<LeadTable>,
+): Promise<{ success: boolean, message?: string }> {
+   const t = getServerT(locale, 'sermes');
+  const patch: Partial<LeadTable> = {};
+
+  if (status !== undefined && status !== null) {
+    patch.status = status;
+  }
+  if (notes !== undefined && notes !== null) {
+    patch.notes = notes;
+  }
+
+  // Нечего обновлять — считаем успехом (ничего не меняем)
+  if (Object.keys(patch).length === 0)
+    return { success: true }
+
+  try {
+    const res = await leadRepository!.update({ id: leadId }, patch);
+    if (!res.affected || res.affected === 0) {
+      return { success: false, message: 'Lead not found' };
+    }
+    return { success: true }
   } catch (e: unknown) {
     const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
 

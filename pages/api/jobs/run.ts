@@ -4,9 +4,13 @@ import { withAuth } from "@/lib/server/withAuth";
 import { ulogger } from "@/lib/common/universal-logger";
 import { jobs } from "@/job/jobs";
 
+// type RunJobBody = {
+//   job?: string;
+//   params?: Record<string, any> | null;
+// };
 type RunJobBody = {
-  job?: string;
-  params?: Record<string, any> | null;
+  job?: keyof typeof jobs;
+  params?: Record<string, unknown> | null;
 };
 
 // Простая in-memory защита от параллельных запусков одной и той же job
@@ -49,10 +53,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   inFlight.add(jobKey);
 
   try {
-    const maybePromise = jobFn(params);
-    if (maybePromise && typeof (maybePromise as any).then === "function") {
-      await (maybePromise as Promise<void>);
+    // const maybePromise = jobFn(params);
+    // if (maybePromise && typeof (maybePromise as any).then === "function") {
+    //   await (maybePromise as Promise<void>);
+    // }
+
+    const result = jobFn(params);
+
+    if (result instanceof Promise) {
+      await result;
     }
+
 
     await ulogger.info({
       userId: null,
@@ -64,7 +75,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     return res.status(200).json({
       success: true,
-      message: `${jobKey} completed`,     
+      message: `${jobKey} completed`,
     });
   } catch (e: unknown) {
     const err = e instanceof Error ? e.message : String(e);

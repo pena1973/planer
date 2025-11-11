@@ -2,17 +2,17 @@
 // pages/api/landing/save-lead-api.ts 
 // для приёма заявок с лендинга
 import { ulogger } from "./../../../lib/common/universal-logger";
-
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from './../../../db/database';
 import { getTypedRepository } from './../../../db/utilites'
-import { saveLead } from './../../../handlers/handlers-update';  // расчеты
+import { createLead } from './../../../handlers/handlers-update';  // расчеты
 import { LeadTable } from './../../../db/models/landing/leads';
-import { LeadItem } from "@/types/leads-types";
+import { LeadItem, LeadStatus } from "@/types/leads-types";
 
 
 interface RequestBody {
-  lead: LeadItem,
+  lead: LeadItem,  
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -20,13 +20,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const db = await connectDb();
     const leadRepository = getTypedRepository(db, 'LeadTable', LeadTable);
+    const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
     switch (req.method) {
-      
+
       case 'POST':
         // запись сообщения поддержки
         const { lead } = req.body as RequestBody;
 
-        const resLead = await saveLead(lead, leadRepository)
+        const resLead = await createLead(lead, leadRepository)
         if (!resLead.success) {
           res.status(200).json({
             success: false,

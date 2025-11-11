@@ -32,4 +32,5 @@ export interface LeadItem {
     locale: string;       
     hcaptchaToken?: string; // если подключишь hCaptcha
     status: LeadStatus; 
+    notes: string; 
 }

@@ -2799,8 +2799,9 @@ export async function getLeads(
 
   try {
 
-    const receivedLids = await leadRepository.find();
-
+    const receivedLids = await leadRepository.find({
+      order: { created_at: 'DESC', id: 'DESC' },
+    });
     if (receivedLids.length === 0) {
       //  logger
       void ulogger.warn({
@@ -2827,7 +2828,7 @@ export async function getLeads(
           locale: lead.locale,          
           // hcaptchaToken: string; // если подключишь hCaptcha
           status: lead.status as LeadStatus,
-
+          notes: lead.notes,
         } as LeadItem;
       });
 

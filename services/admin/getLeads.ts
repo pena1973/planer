@@ -12,7 +12,7 @@ export const getLeads = async (
 ) => {
 
     try {
-        const res = await fetch(`api/landing/get-lead-api?userId=${userId}`, {
+        const res = await fetch(`api/admin/get-leads-api?userId=${userId}`, {
             method: 'get',
             headers: new Headers({
                 'Authorization': 'Basic ' + token,

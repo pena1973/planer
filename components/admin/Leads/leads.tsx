@@ -1,9 +1,10 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import styles from "./leads.module.scss";
-import { getLeads } from '@/services/landing/getLeads';
-import { changeStatusLead } from '@/services/admin/changeStatuslead';
+import { getLeads } from '@/services/admin/getLeads';
+import { updateLead } from '@/services/admin/updateLead';
+
 
 import { LeadItem, LeadSource, LeadStatus } from "@/types/leads-types";
 import { useTranslation } from 'react-i18next';
@@ -22,20 +23,15 @@ export const Leads: React.FC<LeadsProps> = ({
 }) => {
 
   const { t, i18n } = useTranslation();
-  // const [supportMailsValue, setSupportMailsValue] = useState([] as SupportMailItem[]);
   const [leadsValue, setLeadsValue] = useState([] as LeadItem[]);
   const [expandValue, setExpandValue] = useState([] as number[]);
-
+  const [showSpam, setShowSpam] = useState(false);
+  const [showLost, setShowLost] = useState(false);
 
   // Получаем сообщения
   const getLeadsHandler = async () => {
     await getLeads(userId, token, t, i18n.language, setMessage, setLeadsValue);
-    // Сортируем сообщения: сначала новые сообщения (id < 0), потом по убыванию id для остальных
-    leadsValue.sort((a, b) => {
-      if (a.id! < 0 && b.id! >= 0) return -1;  // Новые сообщения должны быть сверху
-      if (a.id! >= 0 && b.id! < 0) return 1;   // Новые сообщения должны быть сверху
-      return b.id! - a.id!;  // Для всех остальных сортировка по убыванию id
-    });
+
   };
 
   useEffect(() => {
@@ -44,10 +40,13 @@ export const Leads: React.FC<LeadsProps> = ({
 
 
   const changeStatusLeadHandler = async (id: number, status: LeadStatus) => {
-    await changeStatusLead(userId, id, status, leadsValue, setLeadsValue, token, t, i18n.language, setMessage)
+    await updateLead(userId, id, status, null, leadsValue, setLeadsValue, token, t, i18n.language, setMessage)
   }
 
+  const saveNotesHandler = async (id: number, notes: string) => {
+    await updateLead(userId, id, null, notes, leadsValue, setLeadsValue, token, t, i18n.language, setMessage)
 
+  }
 
   // На клиенте
   const setExpand = (id: number) => {
@@ -60,24 +59,59 @@ export const Leads: React.FC<LeadsProps> = ({
     });
   };
 
+  // Фильтрация по статусу
+  const filteredLeads = useMemo(() => {
+    return leadsValue.filter(lead => {
+      const s = String(lead.status ?? '').toLowerCase();
+      if (!showSpam && s === 'spam') return false;
+      if (!showLost && (s === 'lost' || s === 'lose' || s === 'losted')) return false; // подстраховка по возможным именам
+      return true;
+    });
+  }, [leadsValue, showSpam, showLost]);
 
-  const leadsValueReactNodes = leadsValue.map((lead, index) => {
+  const leadsValueReactNodes = filteredLeads.map((lead, index) => {
     return (
       <div key={lead.id}>
         <Lead
           lead={lead}
-          setMessage={setMessage}                    
+          setMessage={setMessage}
           setExpand={setExpand}
-          expand={expandValue.includes(lead.id??0)}
+          expand={expandValue.includes(lead.id ?? 0)}
           index={index}
-          changeStatusLead={changeStatusLeadHandler}        
-        />        
+          changeStatusLead={changeStatusLeadHandler}
+          saveNotes={saveNotesHandler}
+        />
       </div>
     );
   });
 
   return (
-    <div className={styles.container}>      
+
+    <div className={styles.container}>
+
+      {/* Фильтры над списком */}
+      <div className={styles.filters} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}>
+        <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={showSpam}
+            onChange={(e) => setShowSpam(e.target.checked)}
+          />
+          {/* <span>{t?.('leads.showSpam') || 'Показывать спам'}</span> */}
+          <span>{'Показывать спам'}</span>
+        </label>
+
+        <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={showLost}
+            onChange={(e) => setShowLost(e.target.checked)}
+          />
+          {/* <span>{t?.('leads.showLost') || 'Показывать потерянные'}</span> */}
+          <span>{'Показывать потерянные'}</span>
+        </label>
+      </div>
+
       {leadsValueReactNodes}
     </div>
   );
