@@ -114,7 +114,7 @@ const LangMenu: React.FC = () => {
 };
 
 
-export default function LandingPlanner() {
+export default function Landing() {
   const { t, i18n } = useTranslation('landing');
   const router = useRouter();
   const dispatch = useAppDispatch();
