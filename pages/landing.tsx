@@ -1,7 +1,7 @@
 import React from "react";
 import Head from "next/head";
 
-import Landing from "@/components/Landing/landing";
+import LandingPlaner from "@/components/LandingPlaner/landingPlaner";
 
 export default function LandingPage() {
   return (
@@ -10,7 +10,7 @@ export default function LandingPage() {
         <title>plan-track.pro — планирование производства и услуг</title>
         <meta name="description" content="Видите загрузку, окна и риски срыва сроков. 30-дневный триал." />
       </Head>
-      <Landing />
+      <LandingPlaner />
     </>
   );
 }

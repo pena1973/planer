@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { Check, ArrowRight, Timer, BarChart3, CalendarDays, Shield, Zap, Globe2, Layers, ChevronDown } from "lucide-react";
-import styles from "./landing.module.scss";
+import styles from "./landingPlaner.module.scss";
 import { LeadItem } from "../../types/leads-types";
 import { createLead } from "@/services/landing/createLead";
 import { ulogger } from "../../lib/common/universal-logger";
