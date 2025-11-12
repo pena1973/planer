@@ -68,6 +68,7 @@
     "buy": "Оформить",
     "contact": "Связаться",
     "mainTag": "основной",
+    "vatSuffix": "не включая НДС",
     "trial": {
       "period": "30 дней",
       "points": [
