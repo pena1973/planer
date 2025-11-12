@@ -68,6 +68,7 @@
     "buy": "Buy",
     "contact": "Contact us",
     "mainTag": "main",
+    "vatSuffix": "excluding VAT",
     "trial": {
       "period": "30 days",
       "points": [
