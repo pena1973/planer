@@ -465,23 +465,23 @@ function findAvailableSegmentsDay(
 
   busyPeriods.sort((a, b) => a.start - b.start);
 
-  // рабочие границы дня с учётом исключений; hasWork=true, если есть рабочее время
-  const getWorkBounds = (dateStr: string) => {
-    const wd = generateCalendarItemOnServer(dateStr, schedule);
-    let ws = wd.timeStartWork;
-    let we = wd.timeFinishWork;
+  // // рабочие границы дня с учётом исключений; hasWork=true, если есть рабочее время
+  // const getWorkBounds = (dateStr: string) => {
+  //   const wd = generateCalendarItemOnServer(dateStr, schedule);
+  //   let ws = wd.timeStartWork;
+  //   let we = wd.timeFinishWork;
 
-    const ex = exceptionItems.filter(e => e.unitId === unit.id && e.date === dateStr);
-    if (ex.length > 0) {
-      ex.forEach(e => {
-        if (e.type === TimeTypeEnum.work) {
-          ws = e.timeStart;
-          we = e.timeFinish;
-        }
-      });
-    }
-    return { start: ws, end: we, hasWork: we > ws };
-  };
+  //   const ex = exceptionItems.filter(e => e.unitId === unit.id && e.date === dateStr);
+  //   if (ex.length > 0) {
+  //     ex.forEach(e => {
+  //       if (e.type === TimeTypeEnum.work) {
+  //         ws = e.timeStart;
+  //         we = e.timeFinish;
+  //       }
+  //     });
+  //   }
+  //   return { start: ws, end: we, hasWork: we > ws };
+  // };
 
   // FIX: и ретул, и основная операция в первый день — не раньше moment
   // (на последующих днях moment=0, поэтому ограничение не мешает)
@@ -708,10 +708,20 @@ function findAvailableSegmentsDay(
         // пересчёт нулевой ёмкости от текущей позиции
         const nextP2 = busyPeriods.find(p => p.start >= availableStart);
         const freeEnd2 = nextP2 ? Math.min(nextP2.start, workEnd) : workEnd;
-        const freeInterval2 = freeEnd2 - availableStart;
+        let  freeInterval2 = freeEnd2 - availableStart;
 
         // первый НЕ-перерыв после текущей позиции
         const nb2 = nextNonBreakAfter(availableStart);
+       
+        // 🔧 FIX: если мы упёрлись ровно в перерыв (обед) и до него места нет,
+        // попробуем посмотреть ёмкость ПОСЛЕ перерыва и ДО следующего busy.
+        if (freeInterval2 === 0 && nextP2 && nextP2.type === TimeTypeEnum.breack) {
+          const afterBreakStart = nextP2.end; // конец обеда
+          const afterBreakEnd = nb2 ? Math.min(nb2.start, workEnd) : workEnd;
+          const freeAfterBreak = Math.max(0, afterBreakEnd - afterBreakStart);
+          freeInterval2 = freeAfterBreak;
+        }
+
 
         // break -> busy вплотную: свободной ёмкости нет, а ближайший НЕ-перерыв — busy
         const blockBreakThenBusy2 = (onPlaned < opRequired) && (freeInterval2 === 0) && (nb2?.type === TimeTypeEnum.busy);
