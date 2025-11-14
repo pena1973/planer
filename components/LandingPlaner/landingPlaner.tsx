@@ -289,10 +289,10 @@ export default function Landing() {
                 />
               </div>
 
-              <div className={styles.float}>
+              {/* <div className={styles.float}>
                 <Timer size={20} aria-hidden />
                 <span style={{ fontSize: 14 }}>{t('hero.float')}</span>
-              </div>
+              </div> */}
             </motion.div>
           </div>
         </Section>
