@@ -6,7 +6,7 @@ import { getSupportMails } from '@/services/suport/getSupportMails';
 import { sendMail } from '@/services/suport/sendMail';
 
 
-import { SupportMailItem,StatusEnum } from "@/types/types";
+import { SupportMailItem, StatusEnum } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import { SupportMail } from './SupportMail/supportMail';
 
@@ -32,10 +32,18 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
   const [supportMailsValue, setSupportMailsValue] = useState([] as SupportMailItem[]);
   const [expandValue, setExpandValue] = useState([] as number[]);
 
+  const [showClosed, setShowClosed] = useState(false);
+  const [showFixed, setShowFixed] = useState(true);
+
+  // Хелперы для статусов (подстрахуемся на случай строк)
+  const isClosed = (m: SupportMailItem) => m.status === StatusEnum.closed || String(m.status).toLowerCase() === 'closed';
+  const isFixed = (m: SupportMailItem) => m.status === StatusEnum.performed || String(m.status).toLowerCase() === 'performed';
+
+
   // На сервере
   // Получаем сообщения
   const getSupportMessagesHandler = async () => {
-    await getSupportMails(userId,teamId, token, t, i18n.language,setMessage, setSupportMailsValue);
+    await getSupportMails(userId, teamId, token, t, i18n.language, setMessage, setSupportMailsValue);
 
   };
 
@@ -53,8 +61,8 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
       userId: userId,
       fromUser: true,
       basedOn: NaN,
-      processed:false,
-      teamId:teamId,
+      processed: false,
+      teamId: teamId,
       status: StatusEnum.prepared,
     } as SupportMailItem;
     setSupportMailsValue([newMes, ...supportMailsValue]);
@@ -81,9 +89,9 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
       userId: userId,
       fromUser: true,
       basedOn: basedOn, // Связь с исходным сообщением
-      processed:false,
-      teamId:teamId,
-      status:StatusEnum.prepared,
+      processed: false,
+      teamId: teamId,
+      status: StatusEnum.prepared,
     } as SupportMailItem;
     setSupportMailsValue([newMes, ...supportMailsValue]);
     setExpand(newMes.id);
@@ -94,7 +102,7 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
   const sendMailHandler = async (supportMessage: SupportMailItem) => {
 
     await sendMail(supportMessage, supportMailsValue, setSupportMailsValue,
-      userId, token, t, i18n.language,setMessage, setExpand)
+      userId, token, t, i18n.language, setMessage, setExpand)
 
   }
 
@@ -141,7 +149,14 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
   };
 
   // Фильтруем начальные сообщения (где нет basedOn)
-  const topLevelMessages = supportMailsValue.filter(mes => !mes.basedOn);
+  // const topLevelMessages = supportMailsValue.filter(mes => !mes.basedOn);
+  // Фильтруем начальные сообщения (где нет basedOn) + применяем чекбоксы
+  const topLevelMessages = supportMailsValue.filter(mes => {
+    if (mes.basedOn) return false;              // только верхний уровень
+    if (!showClosed && isClosed(mes)) return false; // скрыть закрытые, если флаг снят
+    if (!showFixed && isFixed(mes)) return false;   // скрыть исправленные, если флаг снят
+    return true;
+  });
 
   // Сортируем сообщения: сначала новые сообщения (id < 0), потом по убыванию id для остальных
   topLevelMessages.sort((a, b) => {
@@ -171,6 +186,26 @@ export const SupportMails: React.FC<SupportMailsProps> = ({
 
   return (
     <div className={styles.container}>
+      {/* Фильтры над списком */}
+      <div className={styles.filters} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}>
+        <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={showClosed}
+            onChange={(e) => setShowClosed(e.target.checked)}
+          />
+          <span>{t?.('support.showClose')}</span>          
+        </label>
+
+        <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={showFixed}
+            onChange={(e) => setShowFixed(e.target.checked)}
+          />
+          <span>{t?.('support.showFixed')}</span>          
+        </label>
+      </div>
       <button onClick={addSupportMessage}>{t('support.new')}</button>
       {topLevelMessagesReactNodes}
     </div>

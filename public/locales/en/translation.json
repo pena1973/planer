@@ -370,7 +370,9 @@
     "docs": "Documentation",
     "toProcess": "To process",
     "toConfirm": "Fixed",
-    "toClose": "To close"
+    "toClose": "To close",
+    "showFixed": "show fixed",
+    "showClose": "show closed"
   },
   "client": {
     "title": "Client name",

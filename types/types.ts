@@ -41,13 +41,13 @@ export interface TCardOperationItem {
     mode?: boolean // для целей редактирования на форме
     status: StatusEnum,
     coment?: string,
-    fixOperIdc?: number, // ссылка на операцию которую исправляли
+    fixOperIdc: number, // ссылка на операцию которую исправляли
 }
 
 export interface TCardProductItem {
     id?: number,  // id BD   
     code: string, //  код источника    
-    qtu: number,   
+    qtu: number,
     product: ProductItem
 }
 
@@ -57,7 +57,7 @@ export interface ProductItem {
     title: string,
     uom: UOMItem,
     sync: string,
-   
+
 }
 
 export interface TCardItem {
@@ -78,10 +78,10 @@ export interface TCardItem {
     status: StatusEnum
 }
 export interface ReadyProduct extends TCardProductItem {
-  date: string;
-  time: number;
-  reserved: number;
-  reservedTo: number;
+    date: string;
+    time: number;
+    reserved: number;
+    reservedTo: number;
 }
 export interface UOMItem {
     id: number,
@@ -178,7 +178,7 @@ export interface UserUnitItem {
 }
 
 // хранить обрабатывать
-export enum UnitTypeEnum {    
+export enum UnitTypeEnum {
     process = 'process',
     control = 'control',
 }
@@ -337,16 +337,16 @@ export enum TimeZoneEnum {
 //// Интерфейсы для чтения карты из файла
 
 export interface ProductContent {
-    idc: number;    
+    idc: number;
     title: string;
     uom: { code: string; title: string };
     sync: string,
 }
 
-export interface TProductContent {    
-    code: string;    
+export interface TProductContent {
+    code: string;
     qtu: number;
-    productIdc:number,
+    productIdc: number,
 }
 
 export interface OperationContent {
@@ -357,7 +357,8 @@ export interface OperationContent {
     inn: TProductContent[],
     action: { code: string, title: string },
     duration: number,
-    coment?: string;
+    coment?: string,
+    fixOperIdc: number, // ссылка на операцию которую исправляли
 }
 
 export interface TCardContent {
@@ -367,8 +368,9 @@ export interface TCardContent {
     tCardOperations: OperationContent[],
     tCardWastes?: TProductContent[],
     tCardStages: { idc: number, code: number }[],
-    products:ProductContent[],
-    coment?: string;
+    products: ProductContent[],
+    coment?: string,
+
 
 }
 
@@ -381,6 +383,6 @@ export interface SupportMailItem {
     teamId: number;
     fromUser: boolean, // направление истина от юзера, лож- от системы
     basedOn: number, // если это сообщение ответ то здесь id исходного письма.
-    status:StatusEnum, // Статус обработки
-    
+    status: StatusEnum, // Статус обработки
+
 }

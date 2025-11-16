@@ -1371,27 +1371,46 @@ export async function saveNewLoads(
 ///////////////////// КАРТА ТЕХНОЛОГИЧЕСКИХ ОПЕРАЦИЙ//////////////////
 //! получаю максимальный номер карты  !!!доделать сброс в предкелах года
 // не беру id потому что он в пределах таблицы
+// async function generateNewNumberForTeam(
+//   tCardRepository: Repository<TCardTable>,
+//   teamId: number
+// ) {
+
+//   const result = await tCardRepository
+//     .createQueryBuilder("tCard")
+//     .select("MAX(CAST(tCard.idc AS int))", "maxNumber")
+//     .where({ team_id: teamId })
+//     .getRawOne();
+
+//   // Если результат не null, возвращаем максимальное значение, иначе
+//   const maxNumber = result?.maxNumber || 0;
+
+//   // console.log(maxNumber);
+
+//   // Шаг 3: Генерируем новый номер
+//   const newNumber = maxNumber + 1;
+
+//   return newNumber;
+// }
+
 async function generateNewNumberForTeam(
   tCardRepository: Repository<TCardTable>,
   teamId: number
-) {
-
+): Promise<number> {
   const result = await tCardRepository
     .createQueryBuilder("tCard")
     .select("MAX(CAST(tCard.idc AS int))", "maxNumber")
-    .where({ team_id: teamId })
-    .getRawOne();
+    .where("tCard.team_id = :teamId", { teamId })
+    .getRawOne<{ maxNumber: number | null }>();
 
-  // Если результат не null, возвращаем максимальное значение, иначе 
-  const maxNumber = result?.maxNumber || 0;
+  const maxNumber = result?.maxNumber ?? 0;
 
-  // console.log(maxNumber);
-
-  // Шаг 3: Генерируем новый номер
-  const newNumber = maxNumber + 1;
+  // Кольцевой счётчик: после 9999 -> 1
+  const newNumber = maxNumber >= 9999 ? 1 : maxNumber + 1;
 
   return newNumber;
 }
+
 
 ///////////////////// ЗАПИСЬ КАРТЫ//////////////////
 //! ТКАРТА  //  ПРОВЕРИТЬ ПРИ ЗАПИСИ ПРАВИЛЬНОСТЬ СТАТУСА (если есть БРАК!!
@@ -2438,7 +2457,7 @@ export async function updateLead(
   notes?: string | null,
   leadRepository?: Repository<LeadTable>,
 ): Promise<{ success: boolean, message?: string }> {
-   const t = getServerT(locale, 'sermes');
+  const t = getServerT(locale, 'sermes');
   const patch: Partial<LeadTable> = {};
 
   if (status !== undefined && status !== null) {
