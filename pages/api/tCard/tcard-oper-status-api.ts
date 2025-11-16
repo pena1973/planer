@@ -86,51 +86,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           break;
         }
 
-
-        // // Проверка всех операций карты: если все не ниже текущего статуса
-        // const isAllOperationsNotLowerThanStatus = tCardOperations.every(operation => {
-        //   // Функция для рекурсивной проверки статуса
-        //   const checkOperationStatus = (op: TCardOperationItem): boolean => {
-        //     if (op.status === StatusEnum.defective) {
-        //       const fixOperation = tCardOperations.find(o => o.fixOperIdc === op.idc);
-        //       if (fixOperation) {
-        //         // Если исправляющая операция тоже дефектная, продолжаем цепочку
-        //         return checkOperationStatus(fixOperation);
-        //       } else {
-        //         // Если исправляющей операции нет или она не дефектная, возвращаем статус операции
-        //         return getStatusPriority(op.status) >= getStatusPriority(status);
-        //       }
-        //     } else {
-        //       // Если операция не дефектная, просто возвращаем её статус
-        //       return getStatusPriority(op.status) >= getStatusPriority(status);
-        //     }
-        //   };
-
-        //   // Применяем проверку для текущей операции
-        //   return checkOperationStatus(operation);
-        // });
-
-        // const tCardStatus = (isAllOperationsNotLowerThanStatus) ? status : tCard.status
-
-        // // обновим статус карты если изменился
-        // if (tCard.status !== tCardStatus) {
-        //   const resCard = await updateStatusTCard(Number(userId), locale, tCardRepository, tCardId, tCardStatus)
-        //   if (!resCard.success) {
-        //     res.status(200).json({
-        //       success: false,
-        //       message: resCard.message,
-        //     });
-        //     break;
-        //   }
-        // }
-        // // отправляем ответ
-        // res.status(200).json({
-        //   success: true,
-        //   operLoadsIds: operLoadsIds,
-        //   tCardStatus: tCardStatus,
-        //   message: t('mes.tCardUpdated'),
-        // });
-
         // «Эффективный» статус операции с учётом исправлений
         function getEffectiveOperationStatus(
           op: TCardOperationItem,

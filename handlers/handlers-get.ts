@@ -1659,7 +1659,7 @@ export async function getTCardFull(
       coment: tCardtab.coment,
       status: tCardtab.status,
       modified: false,
-
+      
     } as TCardItem
 
     return tCard
@@ -2237,7 +2237,8 @@ export async function getTCardOperation(
       action: tCardOpertab.action,
       duration: tCardOpertab.duration,
       status: tCardOpertab.status,
-      coment: tCardOpertab.coment
+      coment: tCardOpertab.coment,
+      fixOperIdc: tCardOpertab.fix_oper_idc,
     };
   } catch (e: unknown) {
     let message = t('mes.error');
@@ -2293,7 +2294,7 @@ export async function getTCardOperations(
       .leftJoin('actions', 'action', 'oper.action_id = action.id')
       .leftJoin('t_cards', 'tcard', 'oper.tcard_id = tcard.id')
       .addSelect([
-        'oper.id', 'oper.idc', 'oper.order', 'oper.duration', 'oper.status', 'oper.coment',
+        'oper.id', 'oper.idc', 'oper.order', 'oper.duration', 'oper.status', 'oper.coment','oper_fix_oper_idc',
         'stage.id', 'stage.code', 'stage.idc',
         'action.id', 'action.title', 'action.code', 'action.interruptible',
         'tcard.id', 'tcard.idc', 'tcard.date'
@@ -2333,6 +2334,7 @@ export async function getTCardOperations(
       duration: row.oper_duration,
       status: row.oper_status,
       coment: row.oper_coment,
+      fixOperIdc: row.oper_fix_oper_idc,
     } as TCardOperationItem));
 
   } catch (e: unknown) {

@@ -237,12 +237,7 @@ function findAvailableTimeForOperation(
     const totalRequired = retoolTime + opRequired;
     const opSegments: { date: string, start: number; finish: number, isRetool: boolean }[] = [];
     const isRetoolSegmentDefined = (retoolTime === 0);
-
-    // console.log('[FIND] try unit', {
-    //   unitId: unit.id, unitTitle: unit.title,
-    //   retoolTime, opRequired, koef, totalRequired,
-    //   actionsForUnit: actions.map(a => ({ id: a.id, actionId: a.action?.id, koef: a.koef })),
-    // });
+   
 
     // КРИТИЧЕСКОЕ место: сюда передаём moment, именно тут он должен учитываться
     const resultOpSegments = findAvailableSegmentsDay(
@@ -263,14 +258,7 @@ function findAvailableTimeForOperation(
       totalRequired,
       isRetoolSegmentDefined
     );
-
-    // console.log('[FIND] unit result', {
-    //   unitId: unit.id,
-    //   success: resultOpSegments?.success,
-    //   segments: resultOpSegments?.opSegments?.map(s => ({
-    //     date: s.date, start: s.start, finish: s.finish, isRetool: s.isRetool
-    //   }))
-    // });
+    
 
     if (resultOpSegments.success) {
       possibleCandidates.push({
@@ -296,18 +284,7 @@ function findAvailableTimeForOperation(
       if (!bLast) return 1;
       return finishTs(aLast) - finishTs(bLast);
     });
-
-    // console.log('[FIND] candidates sorted', possibleCandidates.map(c => ({
-    //   unitId: c.unit.id,
-    //   last: c.opSegments.at(-1)
-    //     ? {
-    //       date: c.opSegments.at(-1)!.date,
-    //       finish: c.opSegments.at(-1)!.finish,
-    //       finishTs: finishTs(c.opSegments.at(-1)!)
-    //     }
-    //     : null
-    // })));
-
+    
     const bestCandidate = possibleCandidates[0];
 
     const updatedUnitLoads: UnitLoadItem[] = [];
@@ -348,10 +325,7 @@ function findAvailableTimeForOperation(
 
       isFirst = seg.isRetool ? isFirst : false;
     });
-
-    // console.log('[FIND] updatedUnitLoads', updatedUnitLoads.map(l => ({
-    //   unitId: l.unit.id, date: l.date, start: l.timeStart, finish: l.timeFinish, isRetool: l.isRetool
-    // })));
+    
 
     if (updatedUnitLoads.length === 0) {
       // console.warn('[FIND] no updatedUnitLoads created');
