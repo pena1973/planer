@@ -80,7 +80,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 title: oper.action.title,
                 duration: Math.round(oper.duration / 60000), // инфо показываем в минутах
                 interruptible: oper.action.interruptible,
-                koef: (unitAction) ? unitAction.koef : 1.00
+                koef: (unitAction) ? unitAction.koef : 1.00,
+                fixOperIdc:oper.fixOperIdc,
               },
             }
           }

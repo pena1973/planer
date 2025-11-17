@@ -252,7 +252,7 @@ export interface UnitLoadItem {
     status: StatusEnum
     isActive: boolean,
     isRetool: boolean,
-    loadInfo: { tCardIdc: number, tCardDate: string, title: string, duration: number, interruptible: boolean, koef: number },
+    loadInfo: { tCardIdc: number, tCardDate: string, title: string, duration: number, interruptible: boolean, koef: number, fixOperIdc:number },
     isPinned: boolean,//  перенесен вручшую на шкале
     isOuterStart: boolean,//  это старт оутсортера
     isOuterFinish: boolean,//  это финиш оутсортера

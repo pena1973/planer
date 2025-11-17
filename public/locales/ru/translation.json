@@ -144,7 +144,8 @@
     "duration": "Время",
     "interruptible": "Можно прерывать",
     "koef": "Коэфициент",
-    "status": "Статус"
+    "status": "Статус",
+    "fixing": "Исправление"
   },
   "contexMenuO": {
     "card": "Тех карта",

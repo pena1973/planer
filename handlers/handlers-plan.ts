@@ -314,7 +314,8 @@ function findAvailableTimeForOperation(
           title: operation.action.title,
           duration: Math.round(operation.duration / 60000),
           interruptible: operation.action.interruptible,
-          koef: koef_
+          koef: koef_,
+          fixOperIdc:operation.fixOperIdc,
         },
         isPinned: isPinned,
         isOuterStart: false,
