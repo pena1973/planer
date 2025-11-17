@@ -29,48 +29,66 @@ const calculateWidthDay = (totalWidth: number, scale: number): number => {
   return (totalWidth * internal) / 100;
 };
 
+// общий helper для старт/финиш-точек аутсорта
+export const getOuterPointId = (
+  load: UnitLoadItem,
+  edge: 'start' | 'finish'
+): string => {
+  // карта + операция + версия + тип точки
+  return `outer-${edge}-${load.id_tCard}-${load.idc_oper}-${load.version}`;
+};
 
 // вычисление связующих линий оутсорта
-interface Line { startId: string, endId: string }
+interface Line {
+  unitId: number;
+  startDate: string;   // 'YYYY-MM-DD'
+  endDate: string;
+  startTime: number;   // минуты от 0 до 1440
+  endTime: number;
+}
 
 const createLines = (part: string, date: string, unitLoads: UnitLoadItem[]): Line[] => {
-
   const outerloads = unitLoads.filter(lo => {
     if (part === "Plus") {
-      return (lo.date >= date && lo.unit.belong === UnitBelongEnum.outer)
+      return lo.date >= date && lo.unit.belong === UnitBelongEnum.outer;
     }
     if (part === "Minus") {
-      return (lo.date < date && lo.unit.belong === UnitBelongEnum.outer)
+      return lo.date < date && lo.unit.belong === UnitBelongEnum.outer;
     }
-    return false
-  })
+    return false;
+  });
 
-  // Группируем лоады по idc_oper
   const groupedLoads = outerloads.reduce((acc, load) => {
-    const key = load.idc_oper; // группировка по idc_oper
-    if (!acc[key]) {
-      acc[key] = [];
-    }
+    const key = load.idc_oper;
+    if (!acc[key]) acc[key] = [];
     acc[key].push(load);
     return acc;
   }, {} as Record<number, UnitLoadItem[]>);
 
-  // Для каждой группы сортируем по timeStart и формируем пару
-  const linesArray = Object.values(groupedLoads)
+  return Object.values(groupedLoads)
     .map(group => {
-      // Сортировка по времени начала
-      const sorted = group.sort((a, b) => a.timeStart - b.timeStart);
-      // Если в группе меньше двух лоадов, пропускаем (или можно обработать ошибку)
-      if (sorted.length < 2) return null;
-      return {
-        startId: String(sorted[0].idc),
-        endId: String(sorted[1].idc)
-      };
-    })
-    .filter((pair): pair is { startId: string; endId: string } => pair !== null);
+      // сортируем по дате+времени
+      const sorted = group.sort((a, b) => {
+        if (a.date === b.date) return a.timeStart - b.timeStart;
+        return a.date < b.date ? -1 : 1;
+      });
 
-  return linesArray;
+      if (sorted.length < 2) return null;
+
+      const start = sorted[0];
+      const end = sorted[sorted.length - 1];
+
+      return {
+        unitId: start.unit.id,     // внешний юнит один и тот же
+        startDate: start.date,
+        endDate: end.date,
+        startTime: start.timeStart,
+        endTime: end.timeStart,
+      } as Line;
+    })
+    .filter((x): x is Line => x !== null);
 };
+
 
 const dayNeedToMissForTimeScale = (_day: Date, settings: SettingsItem, schedule: ScheduleItem, timezone: string) => {
 
@@ -133,7 +151,7 @@ export default function PlanScaleContainer({
 }: PlanScaleContainerProps) {
 
   const { t, i18n } = useTranslation();
- 
+
   const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
   const divRefPlus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором планирование
   const divRefMinus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором История
@@ -182,6 +200,19 @@ export default function PlanScaleContainer({
     [unitExceptions]
   );
 
+  // рабочий диапазон дня (как в generateTimeScalePlan)
+  const timeFinishWork = settings.timeFinishWork === 0 ? 1440 : settings.timeFinishWork;
+  const startQuant = Math.floor(settings.timeStartWork / 5);
+  const finishQuant = Math.ceil(timeFinishWork / 5);
+  const minutesPerDay = (finishQuant - startQuant) * 5;
+  const dayStartMinutes = startQuant * 5;
+
+  const pxPerMinute =
+    dayWidth > 0 && minutesPerDay > 0
+      ? dayWidth / minutesPerDay
+      : 0;
+
+
   let today = getCurrentDateInDate(timezone);
   const todayStr = getCurrentDateInString(timezone);
 
@@ -200,12 +231,12 @@ export default function PlanScaleContainer({
   const scaleReset = () => {
     isResettingRef.current = true;   // ← сообщаем эффектам, что это reset
     setShift(0);
-    setScale(30);    
+    setScale(30);
     calendarPlus.current = [] as CalendarItem[];
     calendarMinus.current = [] as CalendarItem[];
     setCalendarViewPlus([] as CalendarItem[]);
     setCalendarViewMinus([] as CalendarItem[]);
-    scaleRestart.current = true;   
+    scaleRestart.current = true;
   }
 
   const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -477,6 +508,7 @@ export default function PlanScaleContainer({
     const startQuant = Math.floor(settings.timeStartWork / 5);
     const finishQuant = Math.ceil(timeFinishWork / 5);
     const quants = finishQuant - startQuant;
+
 
     const fullDayWidth = dayWidth;
     const pxPerQuant = fullDayWidth / quants;
@@ -754,12 +786,16 @@ export default function PlanScaleContainer({
           return (<div key={unitView.id}
             onDragOver={e => e.preventDefault()} // Чтобы разрешить drop            
             onDrop={e => handleDropOper(e, unitView)}
-            className={styles.unit_unload}>{operBlocksReactNodes}</div>)
+            className={styles.unit_unload}
+            data-unit-id={unitView.id}               // ⬅️ добавили
+          >{operBlocksReactNodes}</div>)
         }
         return (<div key={unitView.id}
           onDragOver={e => e.preventDefault()} // Чтобы разрешить drop          
           onDrop={e => handleDropOper(e, unitView)}
-          className={styles.unit_unload}></div>); // Если нет совпадений
+          className={styles.unit_unload}
+          data-unit-id={unitView.id}               // ⬅️ добавили
+        ></div>); // Если нет совпадений
       });
 
       dayScale.push(
@@ -855,14 +891,53 @@ export default function PlanScaleContainer({
     )
   });
 
-  const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads)
-  const linesPlusReactNodes = linesPlus.map((elem, index) => {
-    return <DottedLine key={index} startId={elem.startId} endId={elem.endId} container={divRefPlus.current} index={index} />
-  })
-  const linesMinus = createLines("Minus", today.toLocaleDateString("en-CA"), unitLoads)
-  const linesMinusReactNodes = linesMinus.map((elem, index) => {
-    return <DottedLine key={index} startId={elem.startId} endId={elem.endId} container={divRefMinus.current} index={index} />
-  })
+
+  const buildLineNodes = (
+    lines: Line[],
+    calendar: CalendarItem[],
+    containerRef: React.RefObject<HTMLDivElement>
+  ) => {
+    if (dayWidth === 0 || pxPerMinute === 0) return [];
+
+    return lines
+      .map((line, index) => {
+        const startIdx = calendar.findIndex(c => c.idDay === line.startDate);
+
+        const endIdx = calendar.findIndex(c => c.idDay === line.endDate);
+
+
+        // если день ещё не в календаре (мы его не сгенерили) — линию пока не рисуем
+        if (startIdx === -1 || endIdx === -1) return null;
+
+        const clampToDay = (minutes: number) => {
+          if (minutes <= dayStartMinutes) return 0;
+          const maxMin = dayStartMinutes + minutesPerDay;
+          if (minutes >= maxMin) return dayWidth;
+          return (minutes - dayStartMinutes) * pxPerMinute;
+        };
+
+        const x1 = startIdx * dayWidth + clampToDay(line.startTime);
+        const x2 = endIdx * dayWidth + clampToDay(line.endTime);        
+        return (
+          <DottedLine
+            key={index}
+            container={containerRef.current}
+            unitId={line.unitId}
+            x1={x1}
+            x2={x2}
+          />
+        );
+      })
+      .filter((node): node is JSX.Element => node !== null);
+  };
+
+  const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads);
+  const linesMinus = createLines("Minus", today.toLocaleDateString("en-CA"), unitLoads);
+
+  const linesPlusReactNodes = buildLineNodes(linesPlus, calendarViewPlus, divRefPlus);
+  const linesMinusReactNodes = buildLineNodes(linesMinus, calendarViewMinus, divRefMinus);
+
+
 
   const unitsReactNodesInner = unitsViewInner.current.map(elem => {
     return (
