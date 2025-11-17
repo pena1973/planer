@@ -4,6 +4,12 @@ import React from 'react';
 import ContexMenu from "./ContextMenuOuter/contextMenuOuter";
 
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
+
+// 🔹 общий helper: карта + операция + версия + тип точки (start/finish)
+export const getOuterPointId = (load: UnitLoadItem, edge: 'start' | 'finish'): string => {
+    return `outer-${edge}-${load.id_tCard}-${load.idc_oper}-${load.version}`;
+};
+
 export interface LoadProps {
     dayWidth: number,
     quants: number,
@@ -123,13 +129,29 @@ function LoadOuter({
         }
     };
 
-
+    // 🔹 id для точек начала/конца (по сборному ключу)
+    const startPointId = getOuterPointId(load, 'start');
+    const finishPointId = getOuterPointId(load, 'finish');
     return (
         <>
             {/* Треугольник (стрелка) */}
 
-            {load.isOuterFinish && <div className={triangleLeftClass} />}
-            {load.isOuterStart && <div className={triangleRightClass} />}
+            {/* {load.isOuterFinish && <div className={triangleLeftClass} />}
+            {load.isOuterStart && <div className={triangleRightClass} />} */}
+            {/* Треугольники-стрелки старта/финиша */}
+            {load.isOuterFinish && (
+                <div
+                    id={finishPointId}                    // ⬅️ точка ФИНИША
+                    className={triangleLeftClass}
+                />
+            )}
+            {load.isOuterStart && (
+                <div
+                    id={startPointId}                     // ⬅️ точка НАЧАЛА
+                    className={triangleRightClass}
+                />
+            )}
+
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}
                 onMouseUp={e => handleMouseUpOper()}
@@ -138,7 +160,7 @@ function LoadOuter({
                 style={{
                     // width: `${width}px`,
                     // left: `${left}px`,
-                    
+
                     cursor: (draggingLoad === load) ? "grabbing" : "grab"
                 }}
 
