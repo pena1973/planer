@@ -916,7 +916,7 @@ export default function PlanScaleContainer({
           return (minutes - dayStartMinutes) * pxPerMinute;
         };
 
-        const x1 = startIdx * dayWidth + clampToDay(line.startTime);
+        const x1 = startIdx * dayWidth + clampToDay(line.startTime)+30;
         const x2 = endIdx * dayWidth + clampToDay(line.endTime);        
         return (
           <DottedLine
