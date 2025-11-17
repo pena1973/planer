@@ -42,7 +42,7 @@ import delD from "@/public/del2-rem.png";
 import save from "@/public/save-rem.png";
 import add from "@/public/add222-rem.png";
 import reset from "@/public/cancel.png";
-import {  getCurrentDateInString } from "@/lib/common/timezone";
+import { getCurrentDateInString } from "@/lib/common/timezone";
 
 // ==== helpers ====
 const __localObjKeys = new WeakMap<object, string>();   // для объектов
@@ -87,7 +87,7 @@ export default function Cards() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
-   
+
   if (!token) push('/')
 
   const team = useAppSelector((state: RootState) => {
@@ -1619,7 +1619,7 @@ export default function Cards() {
 
     const operationsReactNodes = operations.map((tCardOperation, idxOper) => {
       const opKey = mkOperKey(tCardOperation, idxOper);
-      const fixed = operations.some(op => op.fixOperIdc === tCardOperation.idc);
+      const fixed = tCardOperations.some(op => Number(op.fixOperIdc) === Number(tCardOperation.idc));
       const operLoads = unitLoads.filter(
         lo => lo.idc_oper === tCardOperation.idc && lo.id_tCard === card.id
       );
@@ -1736,9 +1736,9 @@ export default function Cards() {
               src={delD} alt="del" width={20} height={20}
               onClick={() => deleteCardHandler(elem.id)}
             />}
-            {removeLoaderCard !== elem.id && (elem.status === StatusEnum.ready || elem.status === StatusEnum.closed) &&
-            <div className="icon_empty"></div>            
-            }
+          {removeLoaderCard !== elem.id && (elem.status === StatusEnum.ready || elem.status === StatusEnum.closed) &&
+            <div className="icon_empty"></div>
+          }
         </div>
       </div>
     );

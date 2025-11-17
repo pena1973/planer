@@ -144,7 +144,8 @@
     "duration": "Duration",
     "interruptible": "Interruptible",
     "koef": "Coefficient",
-    "status": "Status"
+    "status": "Status",
+    "fixing": "Fixing"
   },
   "contexMenuO": {
     "card": "Card",

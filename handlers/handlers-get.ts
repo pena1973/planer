@@ -1128,6 +1128,7 @@ export async function getUnitLoads(
           duration: row.tOper_duration,
           interruptible: unitAction?.action.interruptible ?? false,
           koef: unitAction?.koef ?? 1.00,
+          fixOperIdc: row.fixOperIdc,
         },
       } as UnitLoadItem;
     });
@@ -1272,7 +1273,8 @@ export async function getTCardLoadsToCheckforDelete(
           title: operation?.action.title ?? '',
           duration: operation?.duration ?? 0,
           interruptible: operation?.action.interruptible ?? false,
-          koef: 1   //  это неважно  при проверке возможности удаления карты
+          koef: 1,   //  это неважно  при проверке возможности удаления карты
+          fixOperIdc: operation?.fixOperIdc,
         }
       } as UnitLoadItem;
     });
@@ -1830,7 +1832,8 @@ export async function getTCardsTerms(
           title: oper.action_title,
           duration: oper.oper_duration,
           interruptible: oper.action_interruptible,
-          koef: 1
+          koef: 1,
+          fixOperIdc:oper.fixOperIdc
         },
 
       }
@@ -2294,7 +2297,7 @@ export async function getTCardOperations(
       .leftJoin('actions', 'action', 'oper.action_id = action.id')
       .leftJoin('t_cards', 'tcard', 'oper.tcard_id = tcard.id')
       .addSelect([
-        'oper.id', 'oper.idc', 'oper.order', 'oper.duration', 'oper.status', 'oper.coment','oper_fix_oper_idc',
+        'oper.id', 'oper.idc', 'oper.order', 'oper.duration', 'oper.status', 'oper.coment','oper.fix_oper_idc',
         'stage.id', 'stage.code', 'stage.idc',
         'action.id', 'action.title', 'action.code', 'action.interruptible',
         'tcard.id', 'tcard.idc', 'tcard.date'

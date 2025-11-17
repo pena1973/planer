@@ -37,9 +37,9 @@ export default function ContexMenuInner({
         return { hours, minutes };
     }
 
-    const dur = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration));
+    const durmin = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration/60000)); 
 
-    const time = convertMinutes(dur);
+    const time = convertMinutes(durmin);
 
     return (
         <div className={styles.container_context_menu}
@@ -55,7 +55,7 @@ export default function ContexMenuInner({
                 <span className={styles.title}>{t('contexMenuI.action')}</span> {`: A${load.idc_oper} (${load.isRetool ? "retool" : load.loadInfo?.title})`}
             </div>
             <div className={styles.coment}>
-                <span className={styles.title}>{t('contexMenuI.duration')}</span> {`: ${dur} min (${time.hours} h, ${time.minutes} m)`}
+                <span className={styles.title}>{t('contexMenuI.duration')}</span> {`: ${durmin} min (${time.hours} h, ${time.minutes} m)`}
             </div>
 
             <div className={styles.coment}>
@@ -68,6 +68,10 @@ export default function ContexMenuInner({
 
             <div className={styles.coment}>
                 <span className={styles.title}>{t('contexMenuI.status')}</span> {`: ${load.status}`}
+            </div>
+            
+             <div className={styles.coment}>
+                <span className={styles.title}>{t('contexMenuI.fixing')}</span> {`: ${load.loadInfo?.fixOperIdc? "A" + load.loadInfo?.fixOperIdc:"-"}`}
             </div>
 
 
