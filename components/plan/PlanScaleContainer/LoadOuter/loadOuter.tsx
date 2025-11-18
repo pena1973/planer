@@ -1,7 +1,7 @@
 
 import styles from "./loadOuter.module.scss";
 import React from 'react';
-import ContexMenu from "./ContextMenuOuter/contextMenuOuter";
+import ContexMenuOuter from "./ContextMenuOuter/contextMenuOuter";
 
 import { StatusEnum, UnitLoadItem, TCardItem, UnitItem } from "@/types/types";
 
@@ -132,6 +132,7 @@ function LoadOuter({
     // 🔹 id для точек начала/конца (по сборному ключу)
     const startPointId = getOuterPointId(load, 'start');
     const finishPointId = getOuterPointId(load, 'finish');
+    const blocked = !(load.status === StatusEnum.prepared || load.status === StatusEnum.planed);
     return (
         <>
             {/* Треугольник (стрелка) */}
@@ -168,7 +169,7 @@ function LoadOuter({
             </div>
 
             {contectMenuShow === load.idc &&
-                <ContexMenu
+                <ContexMenuOuter
                     tCard={tCard}
                     load={load}
                     left={left}
@@ -176,6 +177,7 @@ function LoadOuter({
                     retool={unitView.retool}
                     stopCloseMenu={stopCloseMenu}
                     saveLoadHandler={saveLoadHandler}
+                    blocked={blocked}
                 />}
         </>
     )

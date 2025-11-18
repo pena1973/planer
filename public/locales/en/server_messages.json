@@ -68,16 +68,13 @@
     "theUnitcantPerformOperation": "The selected unit cannot perform this action.",
     "loadShifted": "Cannot start the operation at the specified time; incoming sources are not ready. Interval shifted.",
     "noCardLoads": "Error: no load intervals passed for the card.",
-
-    "notEnoughtProduct": "Не хватает продукта",
-    "code": "код",
-    "notEnought": "Недостаточно",
-    "cardIsNotReconciled": "Не все операции готовы к планированию или карта несогласована",
-    "noUnitsForAction": "Нет ни одного юнита который может выполнить действие",
-    "noFreeUnits": "Планирование не удалось: нет свободных ресурсов до",
-    "noPossibleLoadsForUniit": "Не удалось построить загрузки по выбранному юниту.",
-     "successfulPlaning": "Планирование успешно."
-
+    "notEnoughtProduct": "Not enough product",
+    "code": "code",
+    "notEnought": "Insufficient",
+    "cardIsNotReconciled": "Not all operations are ready for planning or the card is not reconciled",
+    "noUnitsForAction": "There is no unit capable of performing the action",
+    "noFreeUnits": "Planning failed: no available resources until",
+    "noPossibleLoadsForUniit": "Failed to build loads for the selected unit.",
+    "successfulPlaning": "Planning successful."
   }
-
 }

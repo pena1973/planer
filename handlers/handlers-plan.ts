@@ -386,11 +386,11 @@ function findAvailableSegmentsDay(
   message: string
 } {
 
-  console.log("[SPLIT] start", { targetDateStr, moment, stopDateStr, tz: schedule.timeZone, unitId: unit.id });
+  // console.log("[SPLIT] start", { targetDateStr, moment, stopDateStr, tz: schedule.timeZone, unitId: unit.id });
 
   // Быстрая проверка: строки в формате YYYY-MM-DD сравнимы лексикографически
   if (targetDateStr > stopDateStr) {
-    console.warn("[SPLIT] stop reached", { targetDateStr, stopDateStr });
+    // console.warn("[SPLIT] stop reached", { targetDateStr, stopDateStr });
     return { success: false, opSegments: [], message: `достигнута стоп дата и нет свободных ресурсов до ${stopDateStr}` };
   }
 
