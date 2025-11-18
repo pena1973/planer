@@ -1,5 +1,6 @@
 
 import styles from "./contextMenuOuter.module.scss";
+import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import { padNumberToFourDigits, } from "@/lib/client/utils.client"
 import Image from 'next/image';
 import { useEffect, useState, useRef } from "react";
@@ -21,6 +22,7 @@ export interface ContexMenuOuterProps {
         timeFinisValue: number) => void,
     stopCloseMenu: (idc: number) => void,
     retool: number,
+    blocked: boolean
 }
 
 export default function ContexMenuOuter({
@@ -31,9 +33,12 @@ export default function ContexMenuOuter({
     saveLoadHandler,
     stopCloseMenu,
     retool,
+    blocked,
 
 }: ContexMenuOuterProps) {
     const { t, i18n } = useTranslation();
+
+    const [buttonLoader, setButtonLoader] = useState(false);
 
     const [timeStartValue, setTimeStartValue] = useState(0);
     const [timeFinisValue, setTimeFinishValue] = useState(0);
@@ -41,7 +46,7 @@ export default function ContexMenuOuter({
     const [isModified, setIsModified] = useState(false);
 
     const width = 10; // в случае внешнего исполнителя лоад просто точка    
-  
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setTimeFinishValue(load.timeFinish)
@@ -209,9 +214,9 @@ export default function ContexMenuOuter({
 
 
 
-            {/* <button> стереть</button> */}
-            <div className={styles.container_icon}>
 
+            {!blocked && <div className={styles.container_icon}>
+                {/* <button> Записать</button> */}
                 <div className={styles.save_container_icon}>
                     {(load.status === StatusEnum.prepared) && <Image className={styles.icon_edit_save}
                         id={"save_icon"}
@@ -229,12 +234,24 @@ export default function ContexMenuOuter({
                     />}
                     {isModified && <div>*</div>}
                 </div>
-                <Image className={styles.icon_edit_save}
-                    src={eraz}
-                    alt="eraz" width={20} height={20}
-                    onClick={() => erazLoadHandler(load.idc)}
-                />
-            </div>
+
+                {/* <button> отменить</button> */}
+                <div className={styles.save_container_icon}>
+                    {buttonLoader && <ButtonLoader />}
+                    {!buttonLoader &&
+                        <Image className={styles.icon_edit_save}
+                            src={eraz}
+                            alt="eraz" width={20} height={20}
+                            onClick={async () => {
+                                setButtonLoader(true); // Показываем индикатор загрузки
+                                erazLoadHandler(load.idc); // Вызываем асинхронную функцию
+                                setButtonLoader(false); // Скрываем индикатор загрузки
+                            }}
+                        />}
+                </div>
+
+
+            </div>}
 
         </div>
     )

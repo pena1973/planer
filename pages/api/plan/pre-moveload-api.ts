@@ -15,7 +15,7 @@ import { getTypedRepository } from './../../../db/utilites'
 
 import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getUnitExceptions, getUnitActions } from './../../../handlers/handlers-get';  // 
 import { planTCardFromOperINC, planOperOnUnit, getDependentOperations, getOperationReadyMoment } from './../../../handlers/handlers-plan';  // 
-
+import {  isHoliday,  isWeekend  } from "@/lib/common/utils"
 
 import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
 import { UnitExceptionTable } from './../../../db/models/plan/unit_exceptions';
@@ -29,7 +29,7 @@ import { ProductTable } from './../../../db/models/data/products'
 import { TCardStageTable } from './../../../db/models/data/t_card_stages'
 import { ActionTable } from './../../../db/models/catalogs/actions'
 
-import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitBelongEnum, TCardOperationItem } from "./../../../types/types";
+import { StatusEnum, TCardItem, UnitItem, UnitLoadItem, UnitBelongEnum, TCardOperationItem, UnitExceptionItem, ScheduleItem, DaysOfWeek } from "./../../../types/types";
 
 interface RequestBody {
   pinnedLoad: UnitLoadItem,
@@ -166,7 +166,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           res.status(200).json({
             success: false,
             tCardLoads: tCardLoads,
-            
+
             message: ` ${t('mes.operInnNotReady')}:  ${tCard.idc}`,
           });
           return
@@ -212,7 +212,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-export default withAuth(handler)
+ export default withAuth(handler)
 
 async function moveToOuterUnit(
   userId: number,
@@ -240,6 +240,25 @@ async function moveToOuterUnit(
 
   const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
+  // запросим юниты
+  const units_ = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
+
+  // запросим действия юнитов 
+  const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
+
+  // запросим расписание компании
+  const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+
+  if (!shedule) {
+    return {
+      success: false,
+      message: t('mes.sheduleNotFound'),
+    };
+  }
+
+  //  получим исключения рабочего времени юнитов (для зависимых операций - они остаются на выполнении у внутренних)         
+  const exceptionItems = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
+
   // если перетаскиваем на внешний
   // то старт и финиш операции не меняем  и считываем как был из старых лоадов со статусом препаред
   const operloads = tCardLoads.filter(load => load.id_oper === pinnedLoad.id_oper && load.status === StatusEnum.prepared);
@@ -249,8 +268,26 @@ async function moveToOuterUnit(
     a.date.localeCompare(b.date) || a.timeStart - b.timeStart
   );
 
+  // const loadStart = operloads[0];
+  // const oper  = tCard.tCardOperations?.find(op=> op.id===loadStart.id_oper)
+  // const dur = oper?.duration?oper.duration/60000:5 
+  // const loadFinish = operloads[operloads.length - 1];
+
   const loadStart = operloads[0];
   const loadFinish = operloads[operloads.length - 1];
+
+  // реальная длительность операции по старым лоадам (с учётом разрыва по дням)
+  const toMs = (d: string, minutes: number) => {
+    const [y, m, day] = d.split("-").map(Number);
+    return new Date(y, (m || 1) - 1, day || 1, 0, 0, 0, 0).getTime() + minutes * 60000;
+  };
+
+  const startMs = toMs(loadStart.date, loadStart.timeStart);
+  const finishMs = toMs(loadFinish.date, loadFinish.timeFinish);
+
+  // фактическая длительность операции (минуты)
+  const dur = Math.max(5, Math.round((finishMs - startMs) / 60000));
+
 
   //  перетаскиваем с с внутреннего на внешний
   if (pinnedLoad.unit.belong === UnitBelongEnum.inner) {
@@ -269,39 +306,189 @@ async function moveToOuterUnit(
         loadInfo: { ...loadStart.loadInfo, koef: 1 }
       })
 
-    // Формируем финишный лоад 
-    planedCardLoads.push(
-      {
-        ...loadFinish,
-        unit: unit,
-        isRetool: false,
-        date: loadFinish.date,
-        timeStart: loadFinish.timeFinish - 5,
-        timeFinish: loadFinish.timeFinish,
-        isPinned: true,
-        isOuterFinish: true,
-        loadInfo: { ...loadFinish.loadInfo, koef: 1 },
-      })
+    // // Формируем финишный лоад 
+    // planedCardLoads.push(
+    //   {
+    //     ...loadFinish,
+    //     unit: unit,
+    //     isRetool: false,
+    //     date: readySourceMoment.date,
+    //     timeStart: readySourceMoment.time+dur - 5,
+    //     timeFinish: readySourceMoment.time+dur,
+    //     isPinned: true,
+    //     isOuterFinish: true,
+    //     loadInfo: { ...loadFinish.loadInfo, koef: 1 },
+    //   })
 
-    // перепланируем зависимые лоады
-    // запросим юниты
-    const units_ = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
+    // --- ЗДЕСЬ считаем финиш по рабочему расписанию компании + юнита ---
+    // вспомогательный util: добавление дней к дате "YYYY-MM-DD"
+    function addDays(date: string, days: number): string {
+      const [y, m, d] = date.split("-").map(Number);
+      const dt = new Date(y, (m || 1) - 1, (d || 1) + days);
+      const yy = dt.getFullYear();
+      const mm = String(dt.getMonth() + 1).padStart(2, "0");
+      const dd = String(dt.getDate()).padStart(2, "0");
+      return `${yy}-${mm}-${dd}`;
+    }
+    
+    // рабочие интервалы для конкретной даты с учётом расписания компании,
+    // выходных/праздников, индивидуальных рабочих дней и исключений юнита
+      // рабочий отрезок в минутах от начала дня
+    type WorkSegment = { start: number; end: number };
 
-    // запросим действия юнитов 
-    const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)
+    function getWorkSegmentsForDate(
+      date: string,
+      unit: UnitItem,
+      schedule: ScheduleItem,
+      exceptionItems: UnitExceptionItem[],
+    ): WorkSegment[] {
+      let segments: WorkSegment[] = [];
 
-    // запросим расписание компании
-    const shedule = await getTeamShedule(Number(userId), locale, Number(teamId), teamScheduleRepository)
+      // --- 1) Определяем базовый рабочий интервал по расписанию ---
 
-    if (!shedule) {
+      let dayStart: number | null = null;
+      let dayEnd: number | null = null;
+
+      // если есть индивидуальный рабочий день в schedule.workdays — он приоритетнее
+      const wd = schedule.workdays?.find(w => w.date === date);
+      if (wd && wd.timeStart < wd.timeFinish) {
+        dayStart = wd.timeStart;
+        dayEnd = wd.timeFinish;
+      } else {
+        const holiday = isHoliday(date, schedule);
+        const weekend = isWeekend(date, schedule);
+
+        if (!holiday && !weekend && schedule.timeStartWork < schedule.timeFinishWork) {
+          dayStart = schedule.timeStartWork;
+          dayEnd = schedule.timeFinishWork;
+        }
+      }
+
+      if (dayStart === null || dayEnd === null || dayEnd <= dayStart) {
+        return [];
+      }
+
+      segments.push({ start: dayStart, end: dayEnd });
+
+      // --- 2) Вспомогательная функция вычитания интервала ---
+      const subtractInterval = (
+        base: WorkSegment[],
+        start: number,
+        end: number
+      ): WorkSegment[] => {
+        const result: WorkSegment[] = [];
+        for (const seg of base) {
+          if (end <= seg.start || start >= seg.end) {
+            // нет пересечения
+            result.push(seg);
+            continue;
+          }
+          if (start > seg.start) {
+            result.push({ start: seg.start, end: start });
+          }
+          if (end < seg.end) {
+            result.push({ start: end, end: seg.end });
+          }
+        }
+        return result;
+      };
+
+      // --- 3) Вычитаем общие перерывы компании ---
+      if (Array.isArray(schedule.breaks)) {
+        for (const br of schedule.breaks) {
+          const bs = br.timeStart ;
+          const be = br.timeFinish;
+          if (be > bs) {
+            segments = subtractInterval(segments, bs, be);
+          }
+        }
+      }
+
+      // --- 4) Вычитаем исключения конкретного юнита на эту дату ---
+      const unitExcs = exceptionItems.filter(
+        ex => ex.unitId === unit.id && ex.date === date
+      );
+      for (const ex of unitExcs) {
+        if (ex.timeFinish > ex.timeStart) {
+          segments = subtractInterval(segments, ex.timeStart, ex.timeFinish);
+        }
+      }
+
+      return segments
+        .filter(seg => seg.end > seg.start)
+        .sort((a, b) => a.start - b.start);
+    }
+
+    function calcFinishBySchedule(
+      startDate: string,
+      startTime: number,
+      durMinutes: number,
+    ): { finishDate: string; finishTime: number } {
+      let rest = durMinutes;
+      let curDate = startDate;
+      let curTime = startTime;
+
+      // безопасный ограничитель, чтобы не залететь в бесконечный цикл
+      for (let guard = 0; guard < 365 * 10; guard++) {
+        // здесь используем уже существующие переменные unit, shedule, exceptionItems        
+        const segments = getWorkSegmentsForDate(curDate, unit, shedule!, exceptionItems);
+        // берём только сегменты, которые ещё впереди текущего времени
+        const segmentsToday = segments
+          .filter(seg => seg.end > curTime)
+          .map(seg => ({
+            start: Math.max(seg.start, curTime),
+            end: seg.end,
+          }));
+
+        for (const seg of segmentsToday) {
+          const available = seg.end - seg.start;
+          if (available <= 0) continue;
+
+          if (rest <= available) {
+            // операция заканчивается внутри этого сегмента
+            const finishTime = seg.start + rest;
+            return { finishDate: curDate, finishTime };
+          }
+
+          // не хватило, вычитаем и идём дальше
+          rest -= available;
+          curTime = seg.end;
+        }
+
+        // если в этот день не уложились — переходим к следующему
+        curDate = addDays(curDate, 1);
+        curTime = 0;
+      }
+
+      // fallback: если вдруг что-то пошло не так — просто вернём +dur от старта
       return {
-        success: false,
-        message: t('mes.sheduleNotFound'),
+        finishDate: startDate,
+        finishTime: startTime + durMinutes,
       };
     }
 
-    //  получим исключения рабочего времени юнитов (для зависимых операций - они остаются на выполнении у внутренних)         
-    const exceptionItems = await getUnitExceptions(Number(userId), locale, Number(teamId), unitExceptionsRepository)
+    const { finishDate, finishTime } = calcFinishBySchedule(
+      readySourceMoment.date,
+      readySourceMoment.time,
+      dur,
+    );
+
+
+    // Формируем финишный лоад с учётом расписания
+    planedCardLoads.push({
+      ...loadFinish,
+      unit: unit,
+      isRetool: false,
+      date: finishDate,
+      timeStart: finishTime - 5,
+      timeFinish: finishTime,
+      isPinned: true,
+      isOuterFinish: true,
+      loadInfo: { ...loadFinish.loadInfo, koef: 1 },
+    });
+
+
+    ////////////// перепланируем зависимые лоады
 
     //  получим загрузку юнитов уже записанных в базе (планирован выполнен готов  и проч)
     const unitLoadItemsBD = await getUnitLoads(
@@ -345,7 +532,7 @@ async function moveToOuterUnit(
     // проверяем чтобы начало не было позже хваста операции
     const finishLoad = tCardLoads.find(lo => lo.id_oper === pinnedLoad.id_oper && lo.isOuterFinish);
     if (!finishLoad) {
-     
+
       return {
         success: false,
         message: `${t('mes.operFinishLoadNotFound')}: ${tCard.idc}`,
@@ -353,10 +540,10 @@ async function moveToOuterUnit(
     }
 
     if (finishLoad.date < date || finishLoad.date === date && finishLoad.timeFinish < timeStart) {
-      
+
       return {
         success: false,
-        tCardLoads: tCardLoads,        
+        tCardLoads: tCardLoads,
         message: `${t('mes.impossibleOperFinishEarlierOperStart')}: C-${tCard.idc}`,
       }
     }
@@ -504,7 +691,7 @@ async function moveToInnerUnit(
   const foundAction = actions.find(ac => ac.action.id === oper.action.id)
   if (!foundAction) {
     return {
-      success: false,      
+      success: false,
       message: `${t('mes.theUnitcantPerformOperation')} unit: ${unit.title} action: ${oper.action.title}`,
     }
   }
@@ -547,8 +734,8 @@ async function moveToInnerUnit(
   // планируем все последующие операции  исключая пришпиленные
 
   // Планируем карту начиная с нашей операции (есключая ее саму)
-  const  dependentOperationsIds = allDependentOperationsIds.filter(o=>o!==oper.id);
-    const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, dependentOperationsIds, tCard, units_, unitActions_, shedule, unitLoadItemsFull, exceptionItems, today)
+  const dependentOperationsIds = allDependentOperationsIds.filter(o => o !== oper.id);
+  const resultPlaningNextOper = planTCardFromOperINC(Number(userId), locale, dependentOperationsIds, tCard, units_, unitActions_, shedule, unitLoadItemsFull, exceptionItems, today)
   //  Если не удалось запланировать
   if (!resultPlaningNextOper.success) {
 

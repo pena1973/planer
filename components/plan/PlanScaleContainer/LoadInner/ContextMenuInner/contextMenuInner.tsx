@@ -37,7 +37,7 @@ export default function ContexMenuInner({
         return { hours, minutes };
     }
 
-    const durmin = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration/60000)); 
+    const durmin = Math.round(Number(load.isRetool ? retool : load.loadInfo?.duration)); 
 
     const time = convertMinutes(durmin);
 
