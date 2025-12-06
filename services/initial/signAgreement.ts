@@ -53,6 +53,11 @@ export const signAgreement = async (
       const receivedData = await res.json();
       if (receivedData.success) {
         const signed_ = receivedData.signed as boolean;
+        if (!signed_) {
+          setMessageLogin(receivedData.message);
+           dispatch(setStep(2));
+          return;
+        }
         //   Обновим настройки          
         dispatch(setSignedAgreement(signed_));
         dispatch(setStep(4));

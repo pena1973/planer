@@ -15,9 +15,12 @@ import { getEntities } from './entities';
 // Если запускаешь через ts-node — будет TS, иначе JS (для dist)
 // const isTsRuntime = !!process.env.TS_NODE;
 const isTsRuntime = __filename.endsWith('.ts') || !!process.env.TS_NODE;
+// const migrations = isTsRuntime
+//   ? [path.join(__dirname, 'migrations', '**', '*.ts')]
+//   : [path.join(__dirname, 'migrations', '**', '*.js')];
 const migrations = isTsRuntime
-  ? [path.join(__dirname, 'migrations', '**', '*.ts')]
-  : [path.join(__dirname, 'migrations', '**', '*.js')];
+  ? [path.join(__dirname, 'migrations', '*.ts')]
+  : [path.join(__dirname, 'migrations', '*.js')];
 
 const AppDataSource = new DataSource({
   ...config,

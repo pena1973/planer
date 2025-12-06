@@ -75,6 +75,7 @@
     "noUnitsForAction": "There is no unit capable of performing the action",
     "noFreeUnits": "Planning failed: no available resources until",
     "noPossibleLoadsForUniit": "Failed to build loads for the selected unit.",
-    "successfulPlaning": "Planning successful."
+    "successfulPlaning": "Planning successful.",
+    "noAgreementToSign": "No agreement to sign"
   }
 }

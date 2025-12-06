@@ -25,7 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-
     const t = getServerT(locale, 'sermes');
 
     switch (req.method) {
@@ -39,6 +38,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             signed: false,
             // message: "нет соглашения нечего подписывать",
             message: t("mes.noAgreementToSign"),
+          });
+
+          res.status(200).json({
+            success: true,
+            signed: false,
           });
           return;
         }
