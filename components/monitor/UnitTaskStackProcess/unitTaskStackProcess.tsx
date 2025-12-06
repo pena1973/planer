@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useRef, useMemo } from 'react';
+import type { JSX } from "react";
 import styles from "./unitTaskStackProcess.module.scss";
 import { openOperation } from '@/services/monitor/openOperation';
 import { setOperationStatus } from '@/services/monitor/unitProcess/setOperationStatus';

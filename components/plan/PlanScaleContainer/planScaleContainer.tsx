@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import type { JSX } from "react";
 
 import styles from "./planScaleContainer.module.scss";
 
@@ -152,9 +153,9 @@ export default function PlanScaleContainer({
 
   const { t, i18n } = useTranslation();
 
-  const divRef = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором временная шкала  
-  const divRefPlus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором планирование
-  const divRefMinus = useRef<HTMLDivElement>(null);  // Ссылка на div контейнер в котором История
+  const divRef = useRef<HTMLDivElement | null>(null);  // Ссылка на div контейнер в котором временная шкала    
+  const divRefPlus = useRef<HTMLDivElement | null>(null);  // Ссылка на div контейнер в котором планирование
+  const divRefMinus = useRef<HTMLDivElement | null>(null);  // Ссылка на div контейнер в котором История
 
   const prevDayWidthRef = useRef<number>(0);
   const isResettingRef = useRef(false);
@@ -895,7 +896,7 @@ export default function PlanScaleContainer({
   const buildLineNodes = (
     lines: Line[],
     calendar: CalendarItem[],
-    containerRef: React.RefObject<HTMLDivElement>
+    containerRef: React.RefObject<HTMLDivElement | null>
   ) => {
     if (dayWidth === 0 || pxPerMinute === 0) return [];
 
@@ -916,8 +917,8 @@ export default function PlanScaleContainer({
           return (minutes - dayStartMinutes) * pxPerMinute;
         };
 
-        const x1 = startIdx * dayWidth + clampToDay(line.startTime)+30;
-        const x2 = endIdx * dayWidth + clampToDay(line.endTime);        
+        const x1 = startIdx * dayWidth + clampToDay(line.startTime) + 30;
+        const x2 = endIdx * dayWidth + clampToDay(line.endTime);
         return (
           <DottedLine
             key={index}

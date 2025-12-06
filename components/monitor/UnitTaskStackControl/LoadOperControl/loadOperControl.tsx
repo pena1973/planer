@@ -1,4 +1,4 @@
-
+import type { JSX } from "react";
 import styles from "./loadOperControl.module.scss";
 import Image from 'next/image';
 import { StatusEnum, TCardOperationItem, TCardItem } from "@/types/types";

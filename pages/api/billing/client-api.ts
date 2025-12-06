@@ -18,7 +18,7 @@ import { getClient } from '../../../handlers/handlers-get';
 import { ClientTable } from '../../../db/models/billing/clients';
 import { ClientItem } from '../../../types/service-types';
 
-import { updateStripeCustomerFromClient } from "./../payments/customer-update";
+import  updateStripeCustomerFromClient from "./../payments/customer-update";
 
 interface RequestBody {
   userId: number,
