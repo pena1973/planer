@@ -1,13 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { UnitLoadItem, UnitExceptionItem, } from "@/types/types";
+import type { RefObject } from "react";
 
-export const useResizeObserver = (
-  ref: React.RefObject<HTMLElement>,
+export const useResizeObserver = <T extends HTMLElement>(
+// export const useResizeObserver = (
+  //  ref: React.RefObject<HTMLElement>,  
+    ref: RefObject<T | null>, 
   onResize: () => void,
   delay = 300
 ) => {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+  // const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!ref.current) return;
 

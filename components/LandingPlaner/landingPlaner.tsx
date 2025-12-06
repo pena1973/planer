@@ -1,4 +1,6 @@
 import React from "react";
+import type { JSX } from "react";
+
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { Check, ArrowRight, Timer, BarChart3, CalendarDays, Shield, Zap, Globe2, Layers, ChevronDown } from "lucide-react";

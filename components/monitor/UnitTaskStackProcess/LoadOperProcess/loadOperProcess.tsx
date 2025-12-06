@@ -1,5 +1,6 @@
 
 import styles from "./loadOperProcess.module.scss";
+import type { JSX } from "react";
 import Image from 'next/image';
 import { StatusEnum, TCardOperationItem, TCardItem } from "@/types/types";
 import { padNumberToFourDigits, } from "@/lib/client/utils.client"

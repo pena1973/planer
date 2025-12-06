@@ -21,7 +21,7 @@ function buildAddress(client?: ClientItem): Stripe.AddressParam | undefined {
     };
 }
 
-export async function updateStripeCustomerFromClient(
+export default async function updateStripeCustomerFromClient(
     client?: ClientItem
 ): Promise<string | undefined> {
     if (!client || (!client.email && !client.title)) return undefined;
