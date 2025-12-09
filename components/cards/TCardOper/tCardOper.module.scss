@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -8,15 +9,15 @@
     width: 495px;
     height: auto;
     margin: 5px;
-    background-color: $main_container_background_color;
-    border-radius: $border-radius;
-    border: $border;
-    box-shadow: $box-shadow;
+    background-color: colors.$main_container_background_color;
+    border-radius: colors.$border-radius;
+    border: colors.$border;
+    box-shadow: colors.$box-shadow;
     transition: box-shadow 0.3s ease;
     padding: 5px;
     position: relative;
-    color: $second_text_color;
-    font-size: $header4_font_size;
+    color: colors.$second_text_color;
+    font-size: colors.$header4_font_size;
 }
 
 .container_header {
@@ -27,9 +28,9 @@
     width: 100%;
     height: auto;
     padding: 5px;
-    border-bottom: $border;
-    font-size: $header4_font_size;
-    color: $text_color;
+    border-bottom: colors.$border;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color;
 }
 
 .container_status {
@@ -81,9 +82,9 @@
 ._loads {
     flex: 1;
     padding: 1px 1px;
-    background-color: $second_container_background_color;
-    border: $border;
-    border-radius: $border-radius;
+    background-color: colors.$second_container_background_color;
+    border: colors.$border;
+    border-radius: colors.$border-radius;
     height: auto;
 }
 
@@ -91,9 +92,9 @@
     flex: 1;
     margin: 0 3px;
     padding: 1px 1px;
-    background-color: $second_container_background_color;
-    border: $border;
-    border-radius: $border-radius;
+    background-color: colors.$second_container_background_color;
+    border: colors.$border;
+    border-radius: colors.$border-radius;
     height: auto;
 }
 
@@ -101,9 +102,9 @@
     flex: 1;
     margin: 3px;
     padding: 1px 1px;
-    background-color: $second_container_background_color;
-    border: $border;
-    border-radius: $border-radius;
+    background-color: colors.$second_container_background_color;
+    border: colors.$border;
+    border-radius: colors.$border-radius;
     height: auto;
 }
 
@@ -113,16 +114,16 @@
 .in_title,
 .coment_title {
     font-weight: bold;
-    color: $second_text_color;
+    color: colors.$second_text_color;
     text-align: center;
     height: auto;
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
 }
 
 ._oper_title,
 ._oper_qtu {
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     margin: 10px 5px;
     text-align: center;
 }
@@ -136,9 +137,9 @@
     align-items: center;
     padding: 5px;
     text-align: end;
-    font-size: $header4_font_size;
-    //     border: $border;
-    //     border-radius: $border-radius;
+    font-size: colors.$header4_font_size;
+    //     border: colors.$border;
+    //     border-radius: colors.$border-radius;
 }
 
 .in_out_item_product {
@@ -214,7 +215,7 @@
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
-    border-top: $border;
+    border-top: colors.$border;
     width: calc(100% - 4px);
     overflow: hidden;
     padding: 3px 5px;
@@ -241,30 +242,30 @@
 .load_date{
 width: 100px;
 text-align: center;
-font-size: $header4_font_size;
+font-size: colors.$header4_font_size;
 }
 
 .load_title{
 width: 20%;
 text-align: center;
-font-size: $header4_font_size;
+font-size: colors.$header4_font_size;
 }
 .load_start,
 .load_finish{
 width: 40px;
 min-width: 40px;
 text-align: center;
-font-size: $header4_font_size;
+font-size: colors.$header4_font_size;
 }
 .load_retool {
     width: 10px;
     text-align: center;
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
 }
 
 .load_status {
     display: flex;
     flex-direction: row;
     width: 100px;
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
 }

@@ -1,5 +1,6 @@
 
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .dropdownContainer{
@@ -21,11 +22,11 @@
     justify-content: space-between;
     align-items: center;
     background-color: white; // Белый фон
-    border-radius: $border-radius; // Скругление углов
+    border-radius: colors.$border-radius; // Скругление углов
     padding: 0 2px;  // Отступы, похожие на input
-    border: $border; // Цвет границы (можно заменить переменной)
-    color: $second_text_color; // Цвет текста
-    font-size: $header4_font_size;
+    border: colors.$border; // Цвет границы (можно заменить переменной)
+    color: colors.$second_text_color; // Цвет текста
+    font-size: colors.$header4_font_size;
     cursor: pointer; // Курсор при наведении
     box-sizing: border-box; // Учет паддингов в ширине элемента
     width: 100%;
@@ -48,13 +49,13 @@
   
   .dropdownList {
     position: absolute;
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
     top: 100%;
     left: 0;
     right: 0;
     background-color: white;
-    border-radius: $border-radius; // Скругление углов 
-    border: $border; // Цвет границы (можно заменить переменной)
+    border-radius: colors.$border-radius; // Скругление углов 
+    border: colors.$border; // Цвет границы (можно заменить переменной)
     z-index: 10; // Убедимся, что список будет поверх других элементов
     margin-top: 4px; // Небольшой отступ сверху от поля выбора
     list-style-type: none; // Убираем стандартные маркеры (точки)
@@ -64,8 +65,8 @@
   
   .dropdownItem {
     padding: 3px 5px; // Отступы для элементов
-    font-size: $header4_font_size;
-    color: $text_color_italic; // Цвет текста для опций
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic; // Цвет текста для опций
     cursor: pointer; // Курсор при наведении на элемент
   
     &:hover {
@@ -73,7 +74,7 @@
     }
   
     &.selected {
-      background-color: $button1_hover_background_color; // Цвет фона для выбранной опции
+      background-color: colors.$button1_hover_background_color; // Цвет фона для выбранной опции
       // color: white;  // Цвет текста для выбранного элемента
     }
   }

@@ -2,7 +2,7 @@
 // export default i18n;
 // lib/server/i18n.server.ts
 import i18n, { Resource } from 'i18next';
-import { initReactI18next } from 'react-i18next';
+// import { initReactI18next } from 'react-i18next';
 
 import ruSerMes from '../../public/locales/ru/server_messages.json';
 import enSerMes from '../../public/locales/en/server_messages.json';
@@ -25,7 +25,7 @@ const resources: Resource = {
 
 if (!i18n.isInitialized) {
   i18n
-    .use(initReactI18next)
+    // .use(initReactI18next)
     .init({
       lng: 'ru',
       fallbackLng: 'ru',

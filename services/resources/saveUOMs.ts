@@ -16,7 +16,7 @@ export const saveUOMs = async (
 ) => {
 
     try {
-        const res = await fetch(`api/uoms-api`,
+        const res = await fetch(`api/catalogs/uoms-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -58,7 +58,7 @@ export const saveUOMs = async (
                     userId: user.id,
                     location: "services/resources/saveUOMs",
                     event: "error",
-                    message: `success=false запрос api/uoms-api`,
+                    message: `success=false запрос api/catalogs/uoms-api`,
                     context: "export const saveUOMs = async (",
                 }).catch(() => { console.error("logger error") });
             }

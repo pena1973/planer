@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import React, { useEffect, useState, useRef, useLayoutEffect, useCallback } from 'react';
 import type { JSX } from "react";
 
 import styles from "./planScaleContainer.module.scss";
@@ -255,30 +255,54 @@ export default function PlanScaleContainer({
     return focusPointPx - dayIndexAtFocus * newDayWidth; // без округления
   };
 
-  const updateSize = () => {
+  // const updateSize = () => {
+  //   if (!divRef.current) return;
+
+  //   const rect = divRef.current.getBoundingClientRect();
+  //   const newTimelineWidth = rect.width;
+  //   const newDayWidth = calculateWidthDay(newTimelineWidth, scale);
+
+  //   // Пересчёт shift, только если размеры уже есть
+  //   if (timelineWidth > 0 && dayWidth > 0 && dayWidth !== newDayWidth) {
+  //     // const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, newTimelineWidth);
+  //     const focusPx = getZoomAnchorPx(); // тот же якорь, что и при зуме
+  //     const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, focusPx);
+  //     setShift(newShift);
+  //   }
+
+  //   setTimelineWidth(newTimelineWidth);
+
+  // };
+
+  const updateSize = useCallback(() => {
     if (!divRef.current) return;
 
     const rect = divRef.current.getBoundingClientRect();
     const newTimelineWidth = rect.width;
     const newDayWidth = calculateWidthDay(newTimelineWidth, scale);
 
-    // Пересчёт shift, только если размеры уже есть
+    setTimelineWidth(prevWidth => {
+      // если реально не изменилось — не трогаем стейт
+      if (Math.abs(prevWidth - newTimelineWidth) < 1) return prevWidth;
+      return newTimelineWidth;
+    });
+
     if (timelineWidth > 0 && dayWidth > 0 && dayWidth !== newDayWidth) {
-      // const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, newTimelineWidth);
-      const focusPx = getZoomAnchorPx(); // тот же якорь, что и при зуме
+      const focusPx = getZoomAnchorPx();
       const newShift = computeDynamicShift(shift, dayWidth, newDayWidth, focusPx);
       setShift(newShift);
     }
+  }, [scale, shift, dayWidth, timelineWidth]);
 
-    setTimelineWidth(newTimelineWidth);
-
-  };
 
   // хук отслеживания изменеия размера видимой части шкалы
-  useResizeObserver(divRef, () => {
-    // твой пересчёт при изменении размеров контейнера
-    updateSize();
-  }, 200); // дебаунс 300мс
+  // useResizeObserver(divRef, () => {
+  //   // твой пересчёт при изменении размеров контейнера
+  //   updateSize();
+  // }, 200); // дебаунс 300мс
+
+  useResizeObserver(divRef, updateSize, 200);
+
 
   let stopCloseMenuload = 0;
   let stopCloseMenuUnit = 0;

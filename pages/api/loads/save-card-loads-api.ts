@@ -1,24 +1,24 @@
-//pages/api/save-card-loads-api.ts
+//pages/api/loads/save-card-loads-api.ts
 // API для сохранения запланированных лоадов карты
 // Используется в планировании карт (CardPlanning)
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { getTCardOperationsByCardId } from './../../handlers/handlers-get';  // расчеты
-import { updateStatusOperationsByOperIds, updateStatusTCard } from './../../handlers/handlers-update';  // 
-import { UnitLoadTable } from './../../db/models/plan/unit_loads';
-import { TCardTable } from './../../db/models/data/t_cards'
-import { TCardOperationTable } from './../../db/models/data/t_card_operations'
-import { getStatusPriority } from "./../../lib/common/utils"
-import { TCardItem, UnitLoadItem, StatusEnum, TCardOperationItem } from "./../../types/types";
-import { saveNewLoads } from './../../handlers/handlers-update';  // расчеты
+import { getTCardOperationsByCardId } from './../../../handlers/handlers-get';  // расчеты
+import { updateStatusOperationsByOperIds, updateStatusTCard } from './../../../handlers/handlers-update';  // 
+import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
+import { TCardTable } from './../../../db/models/data/t_cards'
+import { TCardOperationTable } from './../../../db/models/data/t_card_operations'
+import { getStatusPriority } from "./../../../lib/common/utils"
+import { TCardItem, UnitLoadItem, StatusEnum, TCardOperationItem } from "./../../../types/types";
+import { saveNewLoads } from './../../../handlers/handlers-update';  // расчеты
 
 interface RequestBody {
   tCardLoads: UnitLoadItem[];  // запланированные лоады в статусе prepared  по данной карте
@@ -126,7 +126,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/save-card-loads-api",
+      location: "pages/api/loads/save-card-loads-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

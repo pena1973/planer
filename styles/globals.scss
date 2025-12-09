@@ -1,6 +1,8 @@
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use "sass:color";
+@use '@/styles/colors.scss' as colors;
 
 /* roboto-regular - cyrillic_latin */
 @font-face {
@@ -40,10 +42,10 @@ body {
     margin: 0;
     font-family: 'Roboto', Arial, sans-serif;
     // background-color: rgba(210, 210, 210, 1);
-    background: $second_body_background_color;
+    background: colors.$second_body_background_color;
     height: 100vh;
     overflow: hidden;
-    color: $text_color;
+    color: colors.$text_color;
 }
 
 body * {
@@ -68,7 +70,7 @@ a {
     flex-direction: row;
     height: calc(100% - 55px);
     width: 100%;
-    background-color: $second_body_background_color;
+    background-color: colors.$second_body_background_color;
     flex: 1;
 }
 
@@ -78,10 +80,10 @@ a {
     flex-direction: column;
     justify-content: space-between;
     min-width: 220px;
-    border-right: $border;
+    border-right: colors.$border;
     height: 100%;
     overflow: hidden;
-    background: $sidebar_background;
+    background: colors.$sidebar_background;
 }
 
 
@@ -100,12 +102,12 @@ a {
     flex-direction: column;
     // margin: 10px 0;
     // border-top: 1px solid black;
-    border-top: $border;
+    border-top: colors.$border;
     height: 100px;
     overflow: auto;
     // color: brown;
     // background-color: rgb(191, 207, 236);
-    background-color: $main_body_background_color;
+    background-color: colors.$main_body_background_color;
 
     width: 218px;
     font-size: 12px;
@@ -124,26 +126,26 @@ table {
     border-collapse: collapse;
     /* Убираем двойные границы */
     font-size: 12px;
-    color: $text_color;
+    color: colors.$text_color;
     // background-color: #f8f7f2;
-    background-color: $table_background_color;
+    background-color: colors.$table_background_color;
     /* Совпадает с контейнером */
 }
 
 table thead th {
-    background-color: $table_head_color;
+    background-color: colors.$table_head_color;
     padding: 5px 10px;
-    border: 1px solid $table_head_border_color;
+    border: 1px solid colors.$table_head_border_color;
     text-align: left;
     text-align: left
 }
 
 
 table tbody td {
-    border: 1px solid $table_body_border_color;
+    border: 1px solid colors.$table_body_border_color;
     padding: 2px 4px;
     vertical-align: middle;
-    background-color: $table_body_background_color;
+    background-color: colors.$table_body_background_color;
     height: 22px;
 }
 
@@ -154,7 +156,7 @@ table button {
     // background-color: #aca984; /* Бежево-зелёный цвет */
     border: none;
     padding: 4px 8px;
-    color: $button_text_color;
+    color: colors.$button_text_color;
     font-size: 10px;
     border-radius: 6px;
     cursor: pointer;
@@ -184,13 +186,13 @@ button {
     // background-color: #aca984; /* Бежево-зелёный цвет */
     border: none;
     padding: 4px 8px;
-    color: $button_text_color;
+    color: colors.$button_text_color;
     font-size: 14px;
     border-radius: 6px;
     cursor: pointer;
     align-self: center;
     margin: 5px;
-    background-color: $button_background_color;
+    background-color: colors.$button_background_color;
 
     /* Основной фон кнопки */
     /* Эффект при наведении */
@@ -220,20 +222,22 @@ input[type="checkbox"] {
     -webkit-appearance: none;
     width: 16px;
     height: 16px;
-    border: 1px solid $border;
+    border: 1px solid colors.$border;
     border-radius: 3px;
-    background-color: $main_body_background_color;
+    background-color: colors.$main_body_background_color;
     position: relative;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 
     &:hover {
-        border-color: darken($checkbox_accent_color, 10%);
+        // border-color: darken(colors.$checkbox_accent_color, 10%);
+        border-color: color.scale(colors.$checkbox_accent_color, $lightness: -18%);
+
     }
 
     &:checked {
-        background-color: $checkbox_accent_color;
-        border-color: $checkbox_accent_color;
+        background-color: colors.$checkbox_accent_color;
+        border-color: colors.$checkbox_accent_color;
 
         /* галочка через псевдоэлемент */
         &::after {
@@ -243,7 +247,7 @@ input[type="checkbox"] {
             top: 1px;
             width: 4px;
             height: 8px;
-            border: solid $third_text_color;
+            border: solid colors.$third_text_color;
             border-width: 0 2px 2px 0;
             transform: rotate(45deg);
         }
@@ -254,8 +258,8 @@ label {
 
     display: inline-flex;
     align-items: center;
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     font-style: italic;
 }
 
@@ -263,7 +267,7 @@ input,
 textarea
  {
     font-family: 'Roboto', Arial, sans-serif; // Указываем одинаковый шрифт для обоих элементов
-    font-size: $header4_font_size; // Устанавливаем одинаковый размер шрифта для обоих элементов
+    font-size: colors.$header4_font_size; // Устанавливаем одинаковый размер шрифта для обоих элементов
     line-height: 1.5; // Устанавливаем одинаковый межстрочный интервал
 }
 
@@ -271,31 +275,31 @@ input {
     // Существующие стили...
     border-radius: 6px;
     // padding: 5px;
-    border: $border_input;
-    color: $second_text_color;
+    border: colors.$border_input;
+    color: colors.$second_text_color;
 
     // Стили для плейсхолдера
     &::placeholder {
-        color: $second_text_color; // rgb(107,114,128)
+        color: colors.$second_text_color; // rgb(107,114,128)
         opacity: 0.6; // чуть более прозрачный
         font-style: italic; // курсив, если нужно
     }
 
     // Для лучшей кросс‑браузерности (IE, старые WebKit)
     &:-ms-input-placeholder {
-        color: $second_text_color;
+        color: colors.$second_text_color;
         opacity: 0.6;
         font-style: italic;
     }
 
     &::-ms-input-placeholder {
-        color: $second_text_color;
+        color: colors.$second_text_color;
         opacity: 0.6;
         font-style: italic;
     }
 
     &::-webkit-input-placeholder {
-        color: $second_text_color;
+        color: colors.$second_text_color;
         opacity: 0.6;
         font-style: italic;
     }
@@ -305,31 +309,31 @@ textarea {
     // Существующие стили...
     border-radius: 6px;
     padding: 5px;
-    border: $border_input;
-    color: $second_text_color;
+    border: colors.$border_input;
+    color: colors.$second_text_color;
 
     // Стили для плейсхолдера
     &::placeholder {
-        color: $second_text_color; // rgb(107,114,128)
+        color: colors.$second_text_color; // rgb(107,114,128)
         opacity: 0.6; // чуть более прозрачный
         font-style: italic; // курсив, если нужно
     }
 
     // Для лучшей кросс‑браузерности (IE, старые WebKit)
     &:-ms-input-placeholder {
-        color: $second_text_color;
+        color: colors.$second_text_color;
         opacity: 0.6;
         font-style: italic;
     }
 
     &::-ms-input-placeholder {
-        color: $second_text_color;
+        color: colors.$second_text_color;
         opacity: 0.6;
         font-style: italic;
     }
 
     &::-webkit-input-placeholder {
-        color: $second_text_color;
+        color: colors.$second_text_color;
         opacity: 0.6;
         font-style: italic;
     }
@@ -339,7 +343,7 @@ select {
     // Существующие стили...
     border-radius: 6px;
     padding: 5px;
-    border: $border_input;
-    color: $second_text_color;
+    border: colors.$border_input;
+    color: colors.$second_text_color;
 
 }

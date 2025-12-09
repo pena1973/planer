@@ -303,6 +303,7 @@ const step = useAppSelector((state: RootState) => {
         {(step !== 3) && <div className="container_index_right">
 
           {(step === 2) &&
+          
             <div className="login_container">
               <div className="login_input_container">
                 <input className="login_input"

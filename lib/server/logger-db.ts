@@ -1,4 +1,6 @@
-import { AppDataSource } from "@/db/data-source";
+// lib/server/logger-db.ts
+// Логирование на сервере в базу данных
+// Используется для записи системных логов, ошибок и событий
 import { SystemLogTable } from './../../db/models/logger/logger'
 import { LogLevelEnum, LogOriginEnum } from './../../types/service-types';
 

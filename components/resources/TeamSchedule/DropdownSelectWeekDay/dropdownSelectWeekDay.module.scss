@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -18,11 +19,11 @@
     justify-content: space-between;
     align-items: center;
     background-color: white; // Белый фон
-    border-radius: $border-radius; // Скругление углов
+    border-radius: colors.$border-radius; // Скругление углов
     padding:  0 5px;  // Отступы, похожие на input
-    border: $border; // Цвет границы (можно заменить переменной)
-    color: $second_text_color; // Цвет текста
-    font-size: $header4_font_size;
+    border: colors.$border; // Цвет границы (можно заменить переменной)
+    color: colors.$second_text_color; // Цвет текста
+    font-size: colors.$header4_font_size;
     cursor: pointer; // Курсор при наведении
     width: 100%; // Полная ширина контейнера
     box-sizing: border-box; // Учет паддингов в ширине элемента
@@ -49,13 +50,13 @@
 
   .dropdownList {
     position: absolute;
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
     top: 100%;
     left: 0;
     right: 0;
     background-color: white;
-    border-radius: $border-radius; 
-    border: $border; 
+    border-radius: colors.$border-radius; 
+    border: colors.$border; 
     z-index: 10; 
     margin-top: 4px; 
     list-style-type: none; 
@@ -65,16 +66,16 @@
   
   .dropdownItem {
     padding: 3px 5px;
-    font-size: $header4_font_size;
-    color: $text_color_italic; 
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic; 
     cursor: pointer; 
   
     &:hover {
-      background-color:$hoover; 
+      background-color:colors.$hoover; 
     }
   
     &.selected {
-      background-color: $button1_hover_background_color; 
+      background-color: colors.$button1_hover_background_color; 
       
     }
   }

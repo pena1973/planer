@@ -20,7 +20,7 @@ export const downloadUnutExceptions = async (
     }
     // Загружаем классификатор действий
     try {
-        const res = await fetch(`api/unit-exceptions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
+        const res = await fetch(`api/units/unit-exceptions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -55,7 +55,7 @@ export const downloadUnutExceptions = async (
                     userId: userId,
                     location: "services/initial/downloadUnutExceptions",
                     event: "error",
-                    message: `success=false запрос api/unit-exceptions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
+                    message: `success=false запрос api/units/unit-exceptions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
                     context: "export const downloadUnutExceptions = async (",
                 }).catch(() => { console.error("logger error") });
             }

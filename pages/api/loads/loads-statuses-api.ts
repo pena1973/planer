@@ -1,17 +1,17 @@
-// pages/api/loads-statuses-api.ts
+// pages/api/loads/loads-statuses-api.ts
 // API для получения статусов загрузок юнитов (unit loads statuses)
 // Используется в настройках команд (TeamSettings) и при создании/редактировании карт (TCardForm)
-import { ulogger } from "./../../lib/common/universal-logger";
+import { ulogger } from "./../../../lib/common/universal-logger";
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { getLoadStatuses} from './../../handlers/handlers-get';  // расчеты
-import { UnitLoadTable } from '../../db/models/plan/unit_loads';
+import { getLoadStatuses} from './../../../handlers/handlers-get';  // расчеты
+import { UnitLoadTable } from '../../../db/models/plan/unit_loads';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const db = await connectDb();

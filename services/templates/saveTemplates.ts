@@ -35,7 +35,7 @@ export const saveTemplates = async (
 
     try {
 
-        const res = await fetch(`api/templates-api`,
+        const res = await fetch(`api/catalogs/templates-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -76,7 +76,7 @@ export const saveTemplates = async (
                     userId: user.id,
                     location: "services/templates/saveTemplates",
                     event: "error",
-                    message: `success=false запрос api/templates-api`,
+                    message: `success=false запрос api/catalogs/templates-api`,
                     context: "export const saveTemplates = async (",
                 }).catch(() => { console.error("logger error") });
             }

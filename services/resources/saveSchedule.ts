@@ -23,7 +23,7 @@ export const saveSchedule = async (
 ) => {
 
     try {
-        const res = await fetch(`api/schedule-api`,
+        const res = await fetch(`api/catalogs/schedule-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -71,7 +71,7 @@ export const saveSchedule = async (
                     userId: user.id,
                     location: "services/resources/saveSchedule",
                     event: "error",
-                    message: `success=false запрос api/schedule-api`,
+                    message: `success=false запрос api/catalogs/schedule-api`,
                     context: "export const saveSchedule = async (",
                 }).catch(() => { console.error("logger error") });
             }

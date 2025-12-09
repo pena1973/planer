@@ -1,19 +1,19 @@
-// pages/api/actions-api.ts
+// pages/api/catalogs/actions-api.ts
 // API для получения и обновления действий (actions)
 // Используется в настройках команд (TeamSettings) и при создании/редактировании карт (TCardForm)
 
-import { ulogger } from "./../../lib/common/universal-logger";
+import { ulogger } from "./../../../lib/common/universal-logger";
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from './../../db/database';
+import connectDb from './../../../db/database';
 
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
-import { ActionTable } from './../../db/models/catalogs/actions';
-import { ActionItem } from './../../types/types';
-import { getActions } from './../../handlers/handlers-get';
-import { updateActions } from './../../handlers/handlers-update';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
+import { ActionTable } from './../../../db/models/catalogs/actions';
+import { ActionItem } from './../../../types/types';
+import { getActions } from './../../../handlers/handlers-get';
+import { updateActions } from './../../../handlers/handlers-update';
 
 interface RequestBody {
   userId: number,

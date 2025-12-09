@@ -32,7 +32,7 @@ export const saveSettings = async (
     }
 
     try {
-        const res = await fetch(`api/settings-api`,
+        const res = await fetch(`api/catalogs/settings-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -79,7 +79,7 @@ export const saveSettings = async (
                     userId: user.id,
                     location: "services/resources/saveSettings",
                     event: "error",
-                    message: `success=false запрос api/settings-api`,
+                    message: `success=false запрос api/catalogs/settings-api`,
                     context: "export const saveSettings = async (",
                 }).catch(() => { console.error("logger error") });
             }

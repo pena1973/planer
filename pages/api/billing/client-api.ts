@@ -1,4 +1,4 @@
-//pages/api/units-api
+//pages/api/client-api
 // API для получения, создания, обновления и удаления 
 // Используется в 
 

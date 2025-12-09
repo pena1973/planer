@@ -12,7 +12,7 @@ export const downloadUoms = async (
     setMessage: (msg: string) => void,
     dispatch: Dispatch) => {
     try {
-        const res = await fetch(`api/uoms-api?userId=${userId}&teamId=${teamId}`,
+        const res = await fetch(`api/catalogs/uoms-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -47,7 +47,7 @@ export const downloadUoms = async (
                     userId: userId,
                     location: "services/initial/downloadUoms",
                     event: "error",
-                    message: `success=false запрос api/uoms-api?userId=${userId}&teamId=${teamId}`,
+                    message: `success=false запрос api/catalogs/uoms-api?userId=${userId}&teamId=${teamId}`,
                     context: "export const downloadUoms = async (",
                 }).catch(() => { console.error("logger error") });
             }

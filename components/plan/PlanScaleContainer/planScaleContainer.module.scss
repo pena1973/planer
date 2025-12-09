@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 //ok
@@ -6,7 +7,7 @@
   display: flex;
   flex-direction: row;
   height: 100%;
-  background-color: $second_body_background_color;
+  background-color: colors.$second_body_background_color;
   overflow: hidden;
 
 }
@@ -16,7 +17,7 @@
   justify-content: center;
   height: 48px;
   width: 100%;
-  background-color: $second_body_background_color;
+  background-color: colors.$second_body_background_color;
 
 }
 
@@ -25,8 +26,8 @@
   justify-content: center;
   height: 40px;
   width: 100%;
-  background-color: $main_body_background_color;
-  border-top-left-radius: $border-radius;
+  background-color: colors.$main_body_background_color;
+  border-top-left-radius: colors.$border-radius;
 }
 
 .plug2 {
@@ -34,14 +35,14 @@
   justify-content: center;
   height: 100px;
   width: 100%;
-  background-color: $main_body_background_color;
+  background-color: colors.$main_body_background_color;
   /* Используем flex-grow для того, чтобы блок занял оставшееся пространство */
   flex-grow: 1;  
 }
 
 .button_reset {
-  background-color: $button1_background_color;
-  color: $button1_text_color;
+  background-color: colors.$button1_background_color;
+  color: colors.$button1_text_color;
 }
 
 .plan_scale_container_right {
@@ -51,7 +52,7 @@
   margin-bottom: 0;
   width: 140px;
   min-width: 140px;
-  background-color: $second_body_background_color;
+  background-color: colors.$second_body_background_color;
   
 }
 
@@ -60,8 +61,8 @@
   flex-direction: column;
   width: calc(100% - 200px);
   margin-right: 20px;  
-  border-bottom: $border;  
-  background-color: $second_body_background_color;
+  border-bottom: colors.$border;  
+  background-color: colors.$second_body_background_color;
   
 }
 
@@ -71,9 +72,9 @@
   height: 100%;
   overflow: hidden;
   padding-top: 10px;
-  border-top-right-radius: $border-radius;
+  border-top-right-radius: colors.$border-radius;
   // background-color: rgb(223, 182, 130);
-  background-color: $main_body_background_color;  
+  background-color: colors.$main_body_background_color;  
 }
 
 //ok
@@ -143,7 +144,7 @@
 }
 
 .scale_header {
-  background-color: $second_body_background_color;
+  background-color: colors.$second_body_background_color;
 }
 
 .scale_controls {
@@ -152,7 +153,7 @@
   justify-content: space-between;
   align-items: center;
   flex-direction: column;
-  background-color: $second_body_background_color;
+  background-color: colors.$second_body_background_color;
 
 }
 
@@ -168,12 +169,12 @@
   appearance: none;
   /* Стандартное свойство для совместимости с другими браузерами */
   outline: none;
-  background-color: $main_body_background_color;
-  // background-color:$button_background_color;
+  background-color: colors.$main_body_background_color;
+  // background-color:colors.$button_background_color;
 }
 
 .rangeSlider_label {
-  color: $third_text_color;
+  color: colors.$third_text_color;
 }
 
 
@@ -182,9 +183,9 @@
   width: 20px;
   height: 20px;
   // background: #333;
-  background: $text_color_italic;
+  background: colors.$text_color_italic;
   border-radius: 50%;
-  border: $border;
+  border: colors.$border;
   cursor: pointer;
 }
 
@@ -327,7 +328,7 @@
   position: relative;
   padding: 20px 10px 10px;
   width: 100%;
-  background-color: $main_body_background_color;
+  background-color: colors.$main_body_background_color;
   min-height: 30px;
   max-height: 50px;
   font-weight: bold;
@@ -344,10 +345,10 @@
   // background-color: rgb(235, 228, 137);
   min-height: 30px;
   font-weight: lighter;
-  background-color: $main_body_background_color;
+  background-color: colors.$main_body_background_color;
   // background-color: rgb(161, 161, 167);
   font-style: italic;
-  font-size: $header3_font_size;
+  font-size: colors.$header3_font_size;
 }
 
 .unit_load {  

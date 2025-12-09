@@ -45,6 +45,8 @@
 //   };
 // }
 
+// lib/client/loggerClient.ts
+// Используется для записи логов в консоль или базу данных в зависимости от окружения
 import { sendClientLog } from "@/services/logger/logClient";
 import { LogLevelEnum } from "./../../types/service-types";
 

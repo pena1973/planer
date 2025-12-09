@@ -1,5 +1,6 @@
 
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -12,8 +13,8 @@
     min-height: 100px;
     width: 100%;
     border-radius: 5px; // Скругленные углы
-    border: 2px solid $border-color; // Легкая серая граница для согласования с остальной цветовой гаммой
-    background-color: $button1_background_color; // Светло-серый фон для сдержанности
+    border: 2px solid colors.$border-color; // Легкая серая граница для согласования с остальной цветовой гаммой
+    background-color: colors.$button1_background_color; // Светло-серый фон для сдержанности
     color: rgb(100, 100, 100); // Темно-серый текст, чтобы было легко читать
     cursor: pointer; // Курсор указывает, что это область для перетаскивания
     transition: background-color 0.3s ease, border-color 0.3s ease; // Плавный переход для фона и границы
@@ -21,8 +22,8 @@
 
 /* Эффект при наведении */
 .container_card_load:hover {
-    background-color: $button1_hover_background_color; // Чуть более темный серый фон при наведении
-    border-color: $border-color; // Тонкая темная граница при наведении
+    background-color: colors.$button1_hover_background_color; // Чуть более темный серый фон при наведении
+    border-color: colors.$border-color; // Тонкая темная граница при наведении
 }
 
 /* Эффект при перетаскивании файла */

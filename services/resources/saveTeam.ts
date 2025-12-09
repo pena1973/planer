@@ -18,7 +18,7 @@ export const saveTeam = async (
     setMessage("");
 
     try {
-        const res = await fetch(`api/team-api?userId=${user.id}&teamId=${team.id}`,
+        const res = await fetch(`api/catalogs/team-api?userId=${user.id}&teamId=${team.id}`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -58,7 +58,7 @@ export const saveTeam = async (
                     userId: user.id,
                     location: "services/resources/saveTeam",
                     event: "error",
-                    message: `success=false запрос api/team-api?userId=${user.id}&teamId=${team.id}`,
+                    message: `success=false запрос api/catalogs/team-api?userId=${user.id}&teamId=${team.id}`,
                     context: "export const saveTeam = async (",
                 }).catch(() => { console.error("logger error") });
             }

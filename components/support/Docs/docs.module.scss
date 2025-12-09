@@ -1,15 +1,16 @@
 // helpTree.module.scss
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .treeContainer {
 
-  font-size: $header3_font_size;
-  color: $second_text_color;
+  font-size: colors.$header3_font_size;
+  color: colors.$second_text_color;
   padding: 1rem;
-  background-color: $main_body_background_color;
-  border: $border;
-  border-radius: $border-radius;
+  background-color: colors.$main_body_background_color;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
 }
 
 .treeNode {
@@ -29,7 +30,7 @@
 
 
 .nodeHeader:hover {
-  background-color: $background-color-select;
+  background-color: colors.$background-color-select;
 }
 
 .toggle {
@@ -43,9 +44,9 @@
 }
 
 // .title {
-//   font-size: $header4_font_size;
+//   font-size: colors.$header4_font_size;
 //   // font-weight: 500;
-//   color: $second_text_color;
+//   color: colors.$second_text_color;
 // }
 
 .nodeContent {
@@ -57,9 +58,9 @@
   margin-top: 0.25rem;
   padding: 0.25rem 0.5rem;
   color: #555;
-   border-left: 2px solid $thirds_container_background_color;
+   border-left: 2px solid colors.$thirds_container_background_color;
   // background-color: #f9f9f9;
-  background-color: $background-color-select;
+  background-color: colors.$background-color-select;
   border-radius: 4px;
 }
 

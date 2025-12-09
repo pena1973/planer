@@ -1,4 +1,4 @@
-//pages/api/template-api.ts
+//pages/api/verify-code.ts
 // pages/api/auth/verify-code.ts
 // /api/auth/verify-code 
 // — проверяет код, помечает как used, 

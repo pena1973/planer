@@ -1,5 +1,5 @@
-@import '@/styles/colors.scss';
-
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 .container_cookie {
     display: flex;
     flex-direction: row;

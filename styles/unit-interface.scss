@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 
 
 .container_unit_interface {
@@ -7,7 +8,7 @@
     height: fit-content;
     min-height: -webkit-fill-available;
     padding: 10px;
-    background-color: $second_body_background_color;
+    background-color: colors.$second_body_background_color;
     padding: 10px 10px;    
     display: flex;
     flex-direction: column;
@@ -32,16 +33,16 @@
 }
 
 .catalog_title {
-    font-size: $header2_font_size;
+    font-size: colors.$header2_font_size;
     padding: 5px;
     font-weight: bold;
-    color: $third_text_color;
+    color: colors.$third_text_color;
 }
 .unit_interfase_not_assigned_title {
-    font-size: $header2_font_size;
+    font-size: colors.$header2_font_size;
     padding: 5px;
     font-weight: bold;
-    color: $third_text_color;
+    color: colors.$third_text_color;
     display: flex;
     align-items: center;
     text-align: center;
@@ -57,8 +58,8 @@
 }
 
 .current_day {
-    font-size: $header2_font_size;
+    font-size: colors.$header2_font_size;
     padding: 5px;
     font-weight: bold;
-    color: $button1_background_color;
+    color: colors.$button1_background_color;
 }

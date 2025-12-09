@@ -1,24 +1,24 @@
-//pages/api/units-api
+//pages/api/units/units-api
 // API для получения, создания, обновления и удаления 
 // Используется в 
 
-import { ulogger } from "./../../lib/common/universal-logger";
+import { ulogger } from "./../../../lib/common/universal-logger";
 import { getServerT } from '@/lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { getUnits } from './../../handlers/handlers-get';
-import { updateUnits, updateUnitActions, updateExceptions } from './../../handlers/handlers-update';
-import { UnitTable } from './../../db/models/catalogs/units'
-import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
-import { UnitExceptionTable } from './../../db/models/plan/unit_exceptions'
+import { getUnits } from './../../../handlers/handlers-get';
+import { updateUnits, updateUnitActions, updateExceptions } from './../../../handlers/handlers-update';
+import { UnitTable } from './../../../db/models/catalogs/units'
+import { UnitActionTable } from './../../../db/models/catalogs/unit_actions'
+import { UnitExceptionTable } from './../../../db/models/plan/unit_exceptions'
 
-import { UnitItem, UnitActionItem, UnitExceptionItem } from './../../types/types';
+import { UnitItem, UnitActionItem, UnitExceptionItem } from './../../../types/types';
 
 interface RequestBody {
   userId: number,
@@ -71,6 +71,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
 
         const savedUnits = resUnit.savedUnits as UnitItem[];
+
 
         //  заполнили id юнитов в действиях,  ищем по idc все что не имело unitId и заполняем id юнита
         const unitActions_ = unitActions.map(unitAction => {
@@ -141,7 +142,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/unit-actions-api",
+      location: "pages/api/units/unit-actions-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

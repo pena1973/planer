@@ -1,3 +1,6 @@
+// lib/common/universal-logger.ts
+// Универсальный логгер для клиента и сервера
+// Используется для записи логов в консоль или базу данных в зависимости от окружения
 import { LogLevelEnum, LogOriginEnum } from './../../types/service-types';
 import type { LogPayload } from "./../../lib/server/logger-db"; // только тип — он стирается при компиляции
 

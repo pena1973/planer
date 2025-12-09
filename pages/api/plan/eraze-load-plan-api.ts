@@ -1,4 +1,4 @@
-//pages/api/units-api
+//pages/api/erase-load-plan-api
 // API для получения, создания, обновления и удаления 
 // Используется в 
 

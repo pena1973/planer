@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -9,11 +10,11 @@
 .container {
   margin: 5px ;
   padding: 3px;
-  background-color: $thirds_container_background_color;
+  background-color: colors.$thirds_container_background_color;
   
   /* Светлый бежево-серый фон */
-  border: $border;
-  border-radius: $border-radius;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
   width: 100%;
 }
 

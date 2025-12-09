@@ -17,7 +17,7 @@ export const saveActions = async (
 
     try {
 
-        const res = await fetch(`api/actions-api`,
+        const res = await fetch(`api/catalogs/actions-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -58,7 +58,7 @@ export const saveActions = async (
                     userId: user.id,
                     location: "services/process/downloadBaner",
                     event: "error",
-                    message: `success=false запрос api/actions-api`,
+                    message: `success=false запрос api/catalogs/actions-api`,
                     context: "export const downloadBaner = async (",
                 }).catch(() => { console.error("logger error") });
             }

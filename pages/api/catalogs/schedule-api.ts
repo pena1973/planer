@@ -1,20 +1,20 @@
-//pages/api/schedule-api.ts
+//pages/api/catalogs/schedule-api.ts
 // API для получения и обновления расписания команды (schedule)
 // Используется в настройках команды (TeamSettings) для изменения рабочего времени, выходных и праздников
-import { ulogger } from "./../../lib/common/universal-logger";
+import { ulogger } from "./../../../lib/common/universal-logger";
 import { getServerT } from '@/lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
-import { getTeamShedule } from './../../handlers/handlers-get';
-import { updateShedule } from './../../handlers/handlers-update';
-import { TeamScheduleTable } from './../../db/models/plan/team_schedule'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
+import { getTeamShedule } from './../../../handlers/handlers-get';
+import { updateShedule } from './../../../handlers/handlers-update';
+import { TeamScheduleTable } from './../../../db/models/plan/team_schedule'
 
-import { ScheduleItem, TimeZoneEnum } from './../../types/types';
+import { ScheduleItem, TimeZoneEnum } from './../../../types/types';
 
 interface RequestBody {
   schedule: ScheduleItem,
@@ -107,7 +107,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/schedule-api",
+      location: "pages/api/catalogs/schedule-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

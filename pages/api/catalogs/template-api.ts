@@ -1,21 +1,21 @@
-//pages/api/template-api.ts
+//pages/api/catalogs/template-api.ts
 // API для получения, создания, обновления и удаления 
 // Используется в 
 
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { TemplateTable } from './../../db/models/catalogs/templates';
-import { TCardItem, TemplateItem } from './../../types/types'; // Ваш тип TCardItem для работы с шаблонами
+import { TemplateTable } from './../../../db/models/catalogs/templates';
+import { TCardItem, TemplateItem } from './../../../types/types'; // Ваш тип TCardItem для работы с шаблонами
 
-import { padNumberToFourDigits } from "./../../lib/common/utils"
+import { padNumberToFourDigits } from "./../../../lib/common/utils"
 
 interface RequestBody {
     teamId: number,
@@ -131,7 +131,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         //  logger
         void ulogger.error({
             userId: null,
-            location: "pages/api/template-api",
+            location: "pages/api/catalogs/template-api",
             event: "api_error",
             message: `catch: ${error}`,
             context: "",

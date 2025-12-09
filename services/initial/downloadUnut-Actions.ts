@@ -19,7 +19,7 @@ export const downloadUnutActions = async (
   }
   // Загружаем классификатор действий
   try {
-    const res = await fetch(`api/unit-actions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
+    const res = await fetch(`api/units/unit-actions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
       {
         method: 'get',
         headers: new Headers({
@@ -54,7 +54,7 @@ export const downloadUnutActions = async (
           userId: userId,
           location: "services/initial/downloadUnutActions",
           event: "error",
-          message: `success=false запрос api/unit-actions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
+          message: `success=false запрос api/units/unit-actions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
           context: "export const downloadUnutActions = async (",
         }).catch(() => { console.error("logger error") });
       }

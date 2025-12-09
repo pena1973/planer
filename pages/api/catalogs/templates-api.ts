@@ -1,21 +1,21 @@
-//pages/api/templates-api.ts
+//pages/api/catalogs/templates-api.ts
 // API для получения, создания, обновления и удаления 
 // Используется в 
 
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { TemplateTable } from './../../db/models/catalogs/templates';
-import { TemplateItem } from './../../types/types';
-import { updateTemplates } from './../../handlers/handlers-update';
-import { getTemplates } from './../../handlers/handlers-get';
+import { TemplateTable } from './../../../db/models/catalogs/templates';
+import { TemplateItem } from './../../../types/types';
+import { updateTemplates } from './../../../handlers/handlers-update';
+import { getTemplates } from './../../../handlers/handlers-get';
 
 
 interface RequestBody {
@@ -90,7 +90,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/templates-api",
+      location: "pages/api/catalogs/templates-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

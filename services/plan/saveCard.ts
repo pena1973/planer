@@ -104,7 +104,7 @@ export const saveCard = async (
     // если есть что записывать  то записываем подгоитовленное
     if (tCardLoadsPrepared.length > 0) {
         try {
-            const res = await fetch(`/api/save-card-loads-api`,
+            const res = await fetch(`/api/loads/save-card-loads-api`,
                 {
                     method: 'post',
                     headers: new Headers({

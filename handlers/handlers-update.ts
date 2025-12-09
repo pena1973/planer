@@ -722,7 +722,7 @@ export async function updateTeam(
 
 
 //!ЮНИТЫ
-export async function updateUnits(
+export async function  updateUnits(
   userId: number,
   locale: string,
   unitRepository: Repository<UnitTable>,
@@ -793,7 +793,7 @@ export async function updateUnits(
     const savedUnits_ = savedUnits.map(u => {
       return {
         id: u.id,
-        idc: u.idc,
+        idc: Number(u.idc),
         title: u.title,
         code: u.code,
         retool: u.retool,
@@ -861,11 +861,11 @@ export async function updateUnitActions(
     const toUpdate = unitActions.filter(u => u.id != null && existingIds.has(u.id as number));
     const updatedEntities: UnitActionTable[] = toUpdate.map(u => ({
       id: u.id as number,
-      idc: u.idc,
+      idc: Number(u.idc),
       koef: u.koef,
       action_id: u.action.id,
       unit_id: u.unitId,
-      unit_idc: u.unitIdc,
+      unit_idc: Number(u.unitIdc),
       team_id: teamId,
     } as UnitActionTable)); // достаточно partial с id
 
@@ -875,11 +875,11 @@ export async function updateUnitActions(
     const byIdcIncoming = new Map(unitActions.map(u => [u.idc, u.action]));
     const savedUnitActions = [...savedNew, ...savedUpdated].map(uas => ({
       id: uas.id,
-      idc: uas.idc,
+      idc: Number(uas.idc),
       action: byIdcIncoming.get(uas.idc) ?? ({} as ActionItem),
       koef: uas.koef,
       unitId: uas.unit_id,
-      unitIdc: uas.unit_idc,
+      unitIdc: Number(uas.unit_idc),
     })) as UnitActionItem[];
 
     return { success: true, savedUnitActions };
@@ -936,13 +936,13 @@ export async function updateExceptions(
     // Добавляем новые действия Юнита
     const newUnitException = unitExceptionsToAdd.map(unitException => {
       return unitExceptionsRepository.create({
-        idc: unitException.idc,
+        idc: Number(unitException.idc),
         date: unitException.date,
         type: unitException.type,
         timeStart: unitException.timeStart,
         timeFinish: unitException.timeFinish,
         unit_id: unitException.unitId,
-        unit_idc: unitException.unitIdc,
+        unit_idc: Number(unitException.unitIdc),
         team_id: teamId,
       });
     });

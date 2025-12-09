@@ -1,4 +1,4 @@
-//pages/api/units-api
+//pages/api/attached-teams-api
 // API для получения, создания, обновления и удаления 
 // Используется в 
 

@@ -20,7 +20,7 @@ export const saveTemplate = async (
 
   try {
     // запрос получение текста из БД вместе со словами     textId: number, userId:number
-    const res = await fetch(`api/template-api`,
+    const res = await fetch(`api/catalogs/template-api`,
       {
         method: 'post',
         headers: new Headers({
@@ -62,7 +62,7 @@ export const saveTemplate = async (
           userId: user.id,
           location: "services/templates/saveTemplate",
           event: "error",
-          message: `success=false запрос api/template-api`,
+          message: `success=false запрос api/catalogs/template-api`,
           context: "export const saveTemplate = async (",
         }).catch(() => { console.error("logger error") });
       }
