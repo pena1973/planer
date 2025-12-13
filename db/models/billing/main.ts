@@ -1,5 +1,8 @@
+// db/models/billing/main.ts
 // Каталог номенклатуры в пределах карты. Уникальный ключ карта idc + продукт idc
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
 
 const decimalToNumber = {
   to: (v: number | null) => v,

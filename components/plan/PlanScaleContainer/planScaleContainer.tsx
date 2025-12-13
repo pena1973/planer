@@ -46,6 +46,9 @@ interface Line {
   endDate: string;
   startTime: number;   // минуты от 0 до 1440
   endTime: number;
+
+  hasHiddenStart?: boolean; // начало вне видимой области
+  hasHiddenEnd?: boolean;   // конец вне видимой области
 }
 
 const createLines = (part: string, date: string, unitLoads: UnitLoadItem[]): Line[] => {
@@ -59,8 +62,9 @@ const createLines = (part: string, date: string, unitLoads: UnitLoadItem[]): Lin
     return false;
   });
 
+
   const groupedLoads = outerloads.reduce((acc, load) => {
-    const key = load.idc_oper;
+    const key = load.version; // <--- ВОТ ТУТ ИЗМЕНЕНИЕ
     if (!acc[key]) acc[key] = [];
     acc[key].push(load);
     return acc;
@@ -172,6 +176,10 @@ export default function PlanScaleContainer({
   const [isLoadingDrop, setIsLoadingDrop] = useState(NaN); // для отработки задержки при перетаскивании 
 
   // Прорисовка соединительных линий лоадов аутсорта
+  const [linesPlusReactNodes, setLinesPlusReactNodes] = useState<JSX.Element[]>([]);
+  const [linesMinusReactNodes, setLinesMinusReactNodes] = useState<JSX.Element[]>([]);
+
+
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
   const [scale, setScale] = useState(30); // содержит Масштаб (10% - 100%)  
   const [isDraggingScale, setIsDraggingScale] = useState(false); // Состояние для отслеживания перетаскивания
@@ -368,24 +376,63 @@ export default function PlanScaleContainer({
 
   useLayoutEffect(() => {
     if (timelineWidth === 0) return;
+
+    // 1) пересчитываем видимые дни
     // Ширину дня при изменении scale лежит в мемо dayWidth
     // Вычисляем видимые элементы  беру сегодня как стартовую дату
     visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, dayWidth, shift);
-    // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный      
+    // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный
     visibleItemsMinus.current = calculateVisibleItemsMinus(todayStr, timelineWidth, dayWidth, shift);
 
+    // 2) обновляем календари (как было)
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
     const filteredCalendar = calendarPlus.current.filter(item => item.date >= todayStr);
     setCalendarViewPlus(filteredCalendar);
     //  прорисовываем шкалу истории
     setCalendarViewMinus(calendarMinus.current);
-  }, [timelineWidth, shift, scale, todayStr]); // ⬅️ было todayDateRef — это ref-объект, он не триггерит
 
+    // 3) СТРОИМ ЛИНИИ УЖЕ ПО АКТУАЛЬНЫМ КАЛЕНДАРЯМ
+    const todayIso = today.toLocaleDateString("en-CA"); // та же дата, что выше в createLines
+
+    const plusLines = createLines("Plus", todayIso, unitLoads);
+    const minusLines = createLines("Minus", todayIso, unitLoads);
+
+    setLinesPlusReactNodes(
+      buildLineNodes(plusLines, filteredCalendar, divRefPlus, shift)
+    );
+    setLinesMinusReactNodes(
+      buildLineNodes(minusLines, calendarMinus.current, divRefMinus, shift)
+    );
+  }, [timelineWidth, shift, scale, todayStr, unitLoads]);
   // timelineWidth-изменение размеров экрана
   //shift  -сдвиг временной шкалы
   //scale  - изменение масштаба
   //todayStr  - изменение текущей даты
+  // ⬆️ добавили unitLoads, чтобы линии обновлялись при изменении загрузки
+
+
+
+  // useLayoutEffect(() => {
+  //   if (timelineWidth === 0) return;
+  //   // Ширину дня при изменении scale лежит в мемо dayWidth
+  //   // Вычисляем видимые элементы  беру сегодня как стартовую дату
+  //   visibleItemsPlus.current = calculateVisibleItemsPlus(todayStr, timelineWidth, dayWidth, shift);
+  //   // Вычисляем видимые элементы  в прошлое беру сегодня как финишную дату, отсчет обратный      
+  //   visibleItemsMinus.current = calculateVisibleItemsMinus(todayStr, timelineWidth, dayWidth, shift);
+
+  //   //  прорисовываем шкалу планирования
+  //   // и убираем все что меньше текущей даты если случайно попали на смену дат
+  //   const filteredCalendar = calendarPlus.current.filter(item => item.date >= todayStr);
+  //   setCalendarViewPlus(filteredCalendar);
+  //   //  прорисовываем шкалу истории
+  //   setCalendarViewMinus(calendarMinus.current);
+  // }, [timelineWidth, shift, scale, todayStr]); // ⬅️ было todayDateRef — это ref-объект, он не триггерит
+
+  // // timelineWidth-изменение размеров экрана
+  // //shift  -сдвиг временной шкалы
+  // //scale  - изменение масштаба
+  // //todayStr  - изменение текущей даты
 
   const calculateVisibleItemsPlus = (dayStr: string, timelineWidth: number, dayWidth: number, shift: number) => {
     // стартовый день для расчета видимых дней на шкале
@@ -916,33 +963,87 @@ export default function PlanScaleContainer({
     )
   });
 
+  // оригинал
+  // const buildLineNodes = (
+  //   lines: Line[],
+  //   calendar: CalendarItem[],
+  //   containerRef: React.RefObject<HTMLDivElement | null>
+  // ) => {
+  //   if (dayWidth === 0 || pxPerMinute === 0) return [];
+
+  //   return lines
+  //     .map((line, index) => {
+  //       const startIdx = calendar.findIndex(c => c.idDay === line.startDate);
+
+  //       const endIdx = calendar.findIndex(c => c.idDay === line.endDate);
+
+
+  //       // если день ещё не в календаре (мы его не сгенерили) — линию пока не рисуем
+  //       if (startIdx === -1 || endIdx === -1) return null;
+
+  //       const clampToDay = (minutes: number) => {
+  //         if (minutes <= dayStartMinutes) return 0;
+  //         const maxMin = dayStartMinutes + minutesPerDay;
+  //         if (minutes >= maxMin) return dayWidth;
+  //         return (minutes - dayStartMinutes) * pxPerMinute;
+  //       };
+
+  //       const x1 = startIdx * dayWidth + clampToDay(line.startTime) + 30;
+  //       const x2 = endIdx * dayWidth + clampToDay(line.endTime);
+  //       return (
+  //         <DottedLine
+  //           key={index}
+  //           container={containerRef.current}
+  //           unitId={line.unitId}
+  //           x1={x1}
+  //           x2={x2}
+  //         />
+  //       );
+  //     })
+  //     .filter((node): node is JSX.Element => node !== null);
+  // };
+
 
   const buildLineNodes = (
     lines: Line[],
     calendar: CalendarItem[],
-    containerRef: React.RefObject<HTMLDivElement | null>
+    containerRef: React.RefObject<HTMLDivElement | null>,
+    recalcKey: number,
   ) => {
-    if (dayWidth === 0 || pxPerMinute === 0) return [];
+    if (dayWidth === 0 || pxPerMinute === 0 || calendar.length === 0) return [];
+
+    const totalWidth = calendar.length * dayWidth;
+    const offsetX = 30; // как было у тебя
+
+    const clampToDay = (minutes: number) => {
+      if (minutes <= dayStartMinutes) return 0;
+      const maxMin = dayStartMinutes + minutesPerDay;
+      if (minutes >= maxMin) return dayWidth;
+      return (minutes - dayStartMinutes) * pxPerMinute;
+    };
 
     return lines
       .map((line, index) => {
         const startIdx = calendar.findIndex(c => c.idDay === line.startDate);
-
         const endIdx = calendar.findIndex(c => c.idDay === line.endDate);
 
+        // 🔴 ВАЖНОЕ ИЗМЕНЕНИЕ:
+        // раньше было "||" — требовали наличие ОБОИХ концов.
+        // теперь выбрасываем линию только если оба конца вообще вне календаря.
+        if (startIdx === -1 && endIdx === -1) return null;
 
-        // если день ещё не в календаре (мы его не сгенерили) — линию пока не рисуем
-        if (startIdx === -1 || endIdx === -1) return null;
+        // если начало вне окна (раньше всех видимых дней) — прижимаем к левому краю
+        const x1 =
+          startIdx === -1
+            ? 0 + offsetX
+            : startIdx * dayWidth + clampToDay(line.startTime) + offsetX;
 
-        const clampToDay = (minutes: number) => {
-          if (minutes <= dayStartMinutes) return 0;
-          const maxMin = dayStartMinutes + minutesPerDay;
-          if (minutes >= maxMin) return dayWidth;
-          return (minutes - dayStartMinutes) * pxPerMinute;
-        };
+        // если конец вне окна (позже всех видимых дней) — прижимаем к правому краю
+        const x2 =
+          endIdx === -1
+            ? totalWidth
+            : endIdx * dayWidth + clampToDay(line.endTime);
 
-        const x1 = startIdx * dayWidth + clampToDay(line.startTime) + 30;
-        const x2 = endIdx * dayWidth + clampToDay(line.endTime);
         return (
           <DottedLine
             key={index}
@@ -950,17 +1051,19 @@ export default function PlanScaleContainer({
             unitId={line.unitId}
             x1={x1}
             x2={x2}
+            recalcKey={recalcKey}
           />
         );
       })
       .filter((node): node is JSX.Element => node !== null);
   };
 
-  const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads);
-  const linesMinus = createLines("Minus", today.toLocaleDateString("en-CA"), unitLoads);
 
-  const linesPlusReactNodes = buildLineNodes(linesPlus, calendarViewPlus, divRefPlus);
-  const linesMinusReactNodes = buildLineNodes(linesMinus, calendarViewMinus, divRefMinus);
+  // const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads);
+  // const linesMinus = createLines("Minus", today.toLocaleDateString("en-CA"), unitLoads);
+
+  // const linesPlusReactNodes = buildLineNodes(linesPlus, calendarViewPlus, divRefPlus);
+  // const linesMinusReactNodes = buildLineNodes(linesMinus, calendarViewMinus, divRefMinus);
 
 
 

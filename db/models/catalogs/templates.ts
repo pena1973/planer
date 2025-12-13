@@ -1,5 +1,8 @@
 
-import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
+// db/models/catalogs/templates.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 
 @Entity("templates")
 export class TemplateTable {

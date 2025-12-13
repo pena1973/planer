@@ -1,5 +1,7 @@
 
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+// db/models/catalogs/user_agree.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
 
 @Entity("user_agree")
 export class UserAgreeTable {

@@ -1,5 +1,8 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm';
+// db/models/catalogs/user_unit.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 
 @Entity("users_units")
 export class UserUnitTable {

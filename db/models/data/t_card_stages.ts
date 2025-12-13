@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+// db/models/data/t_card_stages.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
 
 @Entity('t_card_stages')
 export class TCardStageTable {

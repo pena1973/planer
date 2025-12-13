@@ -74,14 +74,14 @@ function LoadOuter({
 
     // финальные координаты
     const left = load.isOuterFinish ? (xFinishPx - handlePx - RIGHT_VISUAL_EPS) : xStartPx;
-    const width = (load.isOuterFinish || load.isOuterStart)
-        ? handlePx
-        : (load.timeFinish - load.timeStart) * pxPerMin;
+    // const width = (load.isOuterFinish || load.isOuterStart)
+    //     ? handlePx
+    //     : (load.timeFinish - load.timeStart) * pxPerMin;
 
 
     let intervalClass = `${styles.interval} ${styles.draft}`; // Класс по умолчанию
-    const triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
-    const triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
+    // const triangleRightClass = `${styles.triangleRight} ${styles.triangleRightDraft}`; // Класс по умолчанию
+    // const triangleLeftClass = `${styles.triangleLeft} ${styles.triangleLeftDraft}`; // Класс по умолчанию
 
     switch (load.status) {
         case StatusEnum.planed:
@@ -91,7 +91,7 @@ function LoadOuter({
             intervalClass = `${styles.interval} ${styles.prepared}`; // Если статус "ready"            
             break;
         case StatusEnum.defective:
-            intervalClass = `${styles.interval} ${styles.faulty}`; // Бракованный            
+            intervalClass = `${styles.interval} ${styles.defected}`; // Бракованный            
             break;
         case StatusEnum.ready:
             intervalClass = `${styles.interval} ${styles.ready}`; // готовый
@@ -102,6 +102,7 @@ function LoadOuter({
         case StatusEnum.cancelled:
             intervalClass = `${styles.interval} ${styles.cancelled}`; // отменен
             break;
+            
         default:
             break;
     }
@@ -130,8 +131,8 @@ function LoadOuter({
     };
 
     // 🔹 id для точек начала/конца (по сборному ключу)
-    const startPointId = getOuterPointId(load, 'start');
-    const finishPointId = getOuterPointId(load, 'finish');
+    // const startPointId = getOuterPointId(load, 'start');
+    // const finishPointId = getOuterPointId(load, 'finish');
     const blocked = !(load.status === StatusEnum.prepared || load.status === StatusEnum.planed);
     return (
         <>
@@ -140,18 +141,18 @@ function LoadOuter({
             {/* {load.isOuterFinish && <div className={triangleLeftClass} />}
             {load.isOuterStart && <div className={triangleRightClass} />} */}
             {/* Треугольники-стрелки старта/финиша */}
-            {load.isOuterFinish && (
+            {/* {load.isOuterFinish && (
                 <div
                     id={finishPointId}                    // ⬅️ точка ФИНИША
                     className={triangleLeftClass}
                 />
-            )}
-            {load.isOuterStart && (
+            )} */}
+            {/* {load.isOuterStart && (
                 <div
                     id={startPointId}                     // ⬅️ точка НАЧАЛА
                     className={triangleRightClass}
                 />
-            )}
+            )} */}
 
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}

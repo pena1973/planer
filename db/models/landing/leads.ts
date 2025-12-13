@@ -1,5 +1,7 @@
 // db/models/leads.ts
-import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 import type { LeadStatus, LeadSource } from './../../../types/leads-types';
 
 

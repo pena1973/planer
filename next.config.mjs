@@ -6,9 +6,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const nextConfig = {
-  experimental: {
-    instrumentationHook: true,
-  },
+  // experimental: {
+  //   instrumentationHook: true,
+  // },
   webpack: (config, { isServer }) => {
     if (isServer) {
       // скрываем ворнинги "Critical dependency: the request of a dependency is an expression"

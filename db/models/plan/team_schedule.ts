@@ -1,5 +1,8 @@
 
-import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
+// db/models/plan/team_schedule.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 import { DaysOfWeek,TimeZoneEnum } from "./../../../types/types"; // Подключаем сущность для связи
 
 

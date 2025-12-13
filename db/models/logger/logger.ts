@@ -1,4 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from "typeorm";
+// db/models/logger/logger.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,Index } = TypeORM;
+
 import { LogLevelEnum, LogOriginEnum} from './../../../types/service-types';
 
 @Entity({ name: "system_logs" })

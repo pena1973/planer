@@ -1,5 +1,7 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, Index  } from 'typeorm';
+// db/models/job/job-settings.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column, Index } = TypeORM;
 
 import type { JobScheduleType } from './../../../types/service-types';
 

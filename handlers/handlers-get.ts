@@ -1976,16 +1976,16 @@ export async function getUnitExceptions(
       }
     });
 
-    if (receivedExceptions.length === 0) {
-      //  logger
-      void ulogger.warn({
-        userId: userId,
-        location: "handlers/handlers-get/getUnitExceptions",
-        event: "warn",
-        message: `При запросе отклонений расписания юнитов команды  - они не найдены team_id: ${teamId}, unit_id: ${unitId}`,
-        context: "export async function getUnitExceptions(",
-      }).catch(() => { console.error("logger error") });
-    }
+    // if (receivedExceptions.length === 0) {
+    //   //  logger
+    //   void ulogger.warn({
+    //     userId: userId,
+    //     location: "handlers/handlers-get/getUnitExceptions",
+    //     event: "warn",
+    //     message: `При запросе отклонений расписания юнитов команды  - они не найдены team_id: ${teamId}, unit_id: ${unitId}`,
+    //     context: "export async function getUnitExceptions(",
+    //   }).catch(() => { console.error("logger error") });
+    // }
     const excertions = receivedExceptions
       .map(exception => {
         return {

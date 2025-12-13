@@ -1,5 +1,7 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert } from 'typeorm';
+// db/models/catalogs/teams.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column,BeforeInsert } = TypeORM;
 
 
 @Entity("teams")
