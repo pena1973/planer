@@ -7,7 +7,7 @@ import { TCardItem } from "@/types/types";
 import save from "@/public/save-rem.png";
 import eraz from "@/public/erazer1-rem.png";
 import light from "@/public/light-rem.png";
-import lighton from "@/public/light-on-rem.png";
+import lighton from "@/public/light-on_blue-rem.png";
 
 import { padNumberToFourDigits } from "@/lib/client/utils.client";
 
