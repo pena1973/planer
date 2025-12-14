@@ -1,5 +1,7 @@
 // Каталог номенклатуры в пределах карты. Уникальный ключ карта idc + продукт idc
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
 
 @Entity('active_time')
 export class ActiveTimeTable {

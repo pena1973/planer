@@ -1,5 +1,5 @@
 
-//pages/api/template-api.ts
+//pages/api/catalogs/template-api.ts
 // API для получения, создания, обновления и удаления 
 // Используется в 
 

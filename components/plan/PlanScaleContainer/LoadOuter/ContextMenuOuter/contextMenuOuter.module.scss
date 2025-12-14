@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -8,8 +9,8 @@
   top: 45px;
   width: 200px;
   border-radius: 10px;
-  background-color: $sidebar_background;
-  box-shadow: $box-shadow;
+  background-color: colors.$sidebar_background;
+  box-shadow: colors.$box-shadow;
   transition: box-shadow 0.3s ease;
   padding: 3px;
   font-size: 12px;
@@ -25,7 +26,7 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  border-top: $border;
+  border-top: colors.$border;
   padding: 0 3px;
 }
 
@@ -36,7 +37,7 @@
 .title {
   padding: 2px;
   font-weight: bold;
-  font-size: $header4_font_size;
+  font-size: colors.$header4_font_size;
 }
 
 /* Треугольник сверху блока */
@@ -48,7 +49,7 @@
   height: 0;
   border-left: 7.5px solid transparent;
   border-right: 7.5px solid transparent;
-  border-bottom: 7.5px solid $sidebar_background;
+  border-bottom: 7.5px solid colors.$sidebar_background;
   /* цвет должен совпадать с фоном меню */
 }
 
@@ -56,9 +57,9 @@
   width: 80px;
   height: 18px;
   padding: 0 2px;
-  border: $border;
-  border-radius: $border-radius;
-  font-size: $header4_font_size;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
+  font-size: colors.$header4_font_size;
   font-weight: bold;
   // margin-left: 4px;
 }
@@ -67,9 +68,9 @@
   width: 45px;
   height: 18px;
   padding: 0 2px;
-  border: $border;
-  border-radius: $border-radius;
-  font-size: $header4_font_size;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
+  font-size: colors.$header4_font_size;
   font-weight: bold;
 
 }

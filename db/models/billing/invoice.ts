@@ -14,7 +14,8 @@
 // customer_email, customer_country, customer_vat_id (если есть)
 // created_at, paid_at
 
-import { Entity, PrimaryGeneratedColumn, Column, Index, CreateDateColumn } from 'typeorm';
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column, Index,CreateDateColumn } = TypeORM;
 
 @Entity({ name: 'invoices' })
 export class InvoiceTable {

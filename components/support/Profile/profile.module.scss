@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -15,11 +16,11 @@
   max-width: 242px;
   min-width: 242px;
   border-radius: 6px;
-  background-color: $main_container_background_color;
-  border: $border;
+  background-color: colors.$main_container_background_color;
+  border: colors.$border;
   // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  box-shadow: $box-shadow;
-  color: $second_text_color;
+  box-shadow: colors.$box-shadow;
+  color: colors.$second_text_color;
 
 }
 
@@ -29,10 +30,10 @@
   max-width: 242px;
   min-width: 242px;
   border-radius: 6px;
-  background-color: $main_container_background_color;
-  border: $border;
+  background-color: colors.$main_container_background_color;
+  border: colors.$border;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  color: $second_text_color;
+  color: colors.$second_text_color;
 }
 
 .register_input_container {
@@ -74,8 +75,8 @@
   display: flex;
   justify-content: center;      // Горизонтальное центрирование
   align-items: center;          // Вертикальное центрирование
-  font-size: $header3_font_size;
-  color: $text_color_italic;
+  font-size: colors.$header3_font_size;
+  color: colors.$text_color_italic;
   text-align: center;           // Центрируем текст в блоке
   padding: 5px;                 // Отступы внутри
   box-sizing: border-box;       // Включаем padding в расчёт ширины
@@ -94,15 +95,15 @@
 }
 
 .register_notice {
-  font-size: $header4_font_size;
-  color: $text_color_italic;
+  font-size: colors.$header4_font_size;
+  color: colors.$text_color_italic;
   font-style: italic;
 }
 
 .register_input {
   border-radius: 10px;
   padding: 5px;
-  border: $border;
+  border: colors.$border;
   width: 100%;
   
 }
@@ -111,8 +112,8 @@
   width: 100%;
 }
 .register_link {
-  font-size: $header4_font_size;
-  color: $text_color_italic;
+  font-size: colors.$header4_font_size;
+  color: colors.$text_color_italic;
   font-style: italic;
   cursor: pointer;
   margin: 10px;
@@ -120,24 +121,24 @@
 }
 
 .register_pass_message_container {
-  font-size: $header4_font_size;
-  color: $text_color_italic;
+  font-size: colors.$header4_font_size;
+  color: colors.$text_color_italic;
   font-style: italic;
 }
 
 .register_message_container {
   // margin-left: 10px;
-  // color: $dark_text;    
+  // color: colors.$dark_text;    
   text-align: center;
-  font-size: $header4_font_size;
-  color: $text_color_italic;
+  font-size: colors.$header4_font_size;
+  color: colors.$text_color_italic;
   font-style: italic;
   // background-color: aqua;
 }
 
 .register_message {
-  font-size: $header4_font_size;
-  // color: $dark_text;
+  font-size: colors.$header4_font_size;
+  // color: colors.$dark_text;
 
 }
 
@@ -157,6 +158,6 @@
 }
 
 .loader_title {
-  font-size: $header1_font_size;
+  font-size: colors.$header1_font_size;
   margin: 10px;
 }

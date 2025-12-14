@@ -8,6 +8,7 @@ export const config = { runtime: 'nodejs' }; // ← обязали Node
 
 // Next.js вызовет register() при старте Node-процесса
 export async function register() {
+    
   try {
     // Опционально: выключатель, чтобы не стартовать в build-окружении и т.п.
     if (!Boolean(process.env.JOBS_ENABLED)) return;
@@ -17,7 +18,7 @@ export async function register() {
     if (process.env.NEXT_RUNTIME && process.env.NEXT_RUNTIME !== 'nodejs') return;
 
     // ⬇️ КЛЮЧЕВОЕ: динамический импорт только здесь
-    const { bootstrapServerOnce } = await import('@/lib/server/bootstrap');
+    const { bootstrapServerOnce } = await import('./lib/server/bootstrap');
 
     await bootstrapServerOnce(); // внутри вызовет startJobsInThisProcess(ds)
     console.log('[instrumentation] jobs bootstrapped');

@@ -14,7 +14,7 @@ export const downloadSchedule = async (
   dispatch: Dispatch
 ) => {
   try {
-    const res = await fetch(`api/schedule-api?userId=${userId}&teamId=${teamId}`,
+    const res = await fetch(`api/catalogs/schedule-api?userId=${userId}&teamId=${teamId}`,
       {
         method: 'get',
         headers: new Headers({
@@ -49,7 +49,7 @@ export const downloadSchedule = async (
           userId: userId,
           location: "services/initial/downloadSchedule",
           event: "error",
-          message: `success=false запрос api/schedule-api?userId=${userId}&teamId=${teamId}`,
+          message: `success=false запрос api/catalogs/schedule-api?userId=${userId}&teamId=${teamId}`,
           context: "export const downloadSchedule = async (",
         }).catch(() => { console.error("logger error") });
       }

@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -11,8 +12,8 @@
   padding: 10px;
   background-color: #f8f7f2;
   /* Светлый бежево-серый фон */
-  border: $border;
-  border-radius: $border-radius;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
   width: fit-content;
 }
 
@@ -68,11 +69,11 @@
 }
 
 .button_ready_top {
-  background-color: $load_ready ;
+  background-color: colors.$load_ready ;
 }
 
 .button_defected_top {
-  background-color: $load_defected;
+  background-color: colors.$load_defected;
 }
 
 .button_row {
@@ -80,7 +81,7 @@
 }
 
 .ready {
-  background-color: $load_ready;
+  background-color: colors.$load_ready;
   border-radius: 5px;
   width: 16px;
   height: 16px;
@@ -88,7 +89,7 @@
 }
 
 .defective {
-  background-color: $load_defected;
+  background-color: colors.$load_defected;
   border-radius: 5px;
   width: 16px;
   height: 16px;
@@ -96,7 +97,7 @@
 }
 
 .planed {
-  background-color: $load_planed;
+  background-color: colors.$load_planed;
   border-radius: 5px;
   width: 16px;
   height: 16px;

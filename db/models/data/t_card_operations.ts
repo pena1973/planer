@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { StatusEnum } from './../../../types/types';
+// db/models/data/t_card_operations.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
 
+import { StatusEnum } from './../../../types/types';
 
 @Entity('t_card_operations')
 export class TCardOperationTable {

@@ -1,5 +1,8 @@
 //  Управляет настройками видимости шкалы времени
-import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
+// db/models/plan/settings.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 
 @Entity("settings")
 export class SettingsTable {

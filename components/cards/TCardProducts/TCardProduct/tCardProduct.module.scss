@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .tCardProduct_code,
@@ -8,7 +9,7 @@
     align-items: center;
     padding: 5px;
     text-align: end;
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
 
 }
 
@@ -58,7 +59,7 @@
     flex-direction: row;
     align-items: flex-end;
     justify-content: flex-end;
-    border-top: $border;
+    border-top: colors.$border;
     // background-color: aquamarine;
     width: calc(100% - 4px);
     overflow: hidden;

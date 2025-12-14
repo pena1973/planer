@@ -1,5 +1,8 @@
 
-import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
+// db/models/catalogs/unit_actions.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 
 @Entity("unit_actions")
 export class UnitActionTable {

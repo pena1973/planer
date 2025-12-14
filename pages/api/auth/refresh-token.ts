@@ -1,4 +1,4 @@
-//pages/api/template-api.ts
+//pages/api/refresh-token.ts
 // API для получения, создания, обновления и удаления 
 // Используется в 
 

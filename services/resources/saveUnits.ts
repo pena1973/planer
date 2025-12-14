@@ -22,7 +22,7 @@ export const saveUnits = async (
 
     try {
 
-        const res = await fetch(`api/units-api`,
+        const res = await fetch(`api/units/units-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -82,7 +82,7 @@ export const saveUnits = async (
                     userId: user.id,
                     location: "services/resources/saveUnits",
                     event: "error",
-                    message: `success=false запрос api/units-api`,
+                    message: `success=false запрос api/units/units-api`,
                     context: "export const saveUnits = async (",
                 }).catch(() => { console.error("logger error") });
             }

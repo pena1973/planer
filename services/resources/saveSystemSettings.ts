@@ -21,7 +21,7 @@ export const saveSystemSettings = async (
 
     try {
 
-        const res = await fetch(`api/settings-api`,
+        const res = await fetch(`api/catalogs/settings-api`,
             {
                 method: 'post',
                 headers: new Headers({
@@ -60,7 +60,7 @@ export const saveSystemSettings = async (
                     userId: user.id,
                     location: "services/resources/saveSystemSettings",
                     event: "error",
-                    message: `success=false запрос api/settings-api`,
+                    message: `success=false запрос api/catalogs/settings-api`,
                     context: "export const saveSystemSettings = async (",
                 }).catch(() => { console.error("logger error") });
             }

@@ -1,7 +1,8 @@
+// db/models/plan/unit_exceptions.ts
 
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
 
-
-import { Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 import { TimeTypeEnum } from './../../../types/types'; // Подключаем сущность для связи
 
 // Это отклонения юнита от расписания предприятия

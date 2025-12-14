@@ -1,19 +1,19 @@
-//pages/api/unit-actions-api
+//pages/api/units/unit-actions-api
 // API для получения, создания, обновления и удаления 
 // Используется в 
 
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { getUnitActions } from './../../handlers/handlers-get';  // расчеты
-import { UnitActionTable } from './../../db/models/catalogs/unit_actions'
+import { getUnitActions } from './../../../handlers/handlers-get';  // расчеты
+import { UnitActionTable } from './../../../db/models/catalogs/unit_actions'
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -48,7 +48,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/unit-actions-api",
+      location: "pages/api/units/unit-actions-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

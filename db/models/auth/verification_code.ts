@@ -1,5 +1,7 @@
 // db/models/auth/verification_code.ts
-import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm';
+
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column, Index } = TypeORM;
 
 export type VerificationPurpose = 'signup' | 'password_reset' | 'email_change' | 'login_2fa';
 

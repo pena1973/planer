@@ -1,12 +1,13 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 .form {
   // display: grid;
   // gap: 16px;
   padding: 5px;
-  border: $border;
-  border-radius: $border-radius;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
   // max-width: 720px;
-  background: $background-color-select;
+  background: colors.$background-color-select;
   margin: 5px;
 }
 
@@ -65,8 +66,8 @@
   align-items: center;
   // gap: 8px;
   padding: 5px;
-  border: $border;
-  border-radius: $border-radius;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
   cursor: pointer;
 
   input[type="radio"] {
@@ -75,7 +76,7 @@
   }
 
   &:hover {
-    border-color: $border-color;
+    border-color: colors.$border-color;
   }
 }
 

@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -14,8 +15,8 @@
 .table_container {
   margin: 10px 0;
   padding: 10px;
-  background-color: $main_container_background_color;
-  border: 1px solid $container_border_color;
+  background-color: colors.$main_container_background_color;
+  border: 1px solid colors.$container_border_color;
   border-radius: 6px;
   width: fit-content;
 }
@@ -63,12 +64,12 @@
 .operation_title {
   text-indent: 15px;
   font-style: italic;
-  color: $text_color_italic;
+  color: colors.$text_color_italic;
 }
 
 .operation_row {
   font-style: italic;
-  color: $text_color_italic;
+  color: colors.$text_color_italic;
 }
 
 .status {
@@ -79,33 +80,33 @@
 }
 
 .draft {
-  background-color: $load_draft;
+  background-color: colors.$load_draft;
 }
 .prepared {
-  background-color: $load_prepared;
+  background-color: colors.$load_prepared;
 }
 .planed {
-  background-color: $load_planed;
+  background-color: colors.$load_planed;
 }
 
 .ready {
-  background-color: $load_ready;
+  background-color: colors.$load_ready;
 }
 
 .defective {
-  background-color: $load_defected;
+  background-color: colors.$load_defected;
 }
 
 .performed {
-  background-color: $load_performed;
+  background-color: colors.$load_performed;
 }
 
 .cancelled {
-  background-color: $load_cancelled;
+  background-color: colors.$load_cancelled;
 }
 
 .closed {
-  background-color: $load_closed;
+  background-color: colors.$load_closed;
 }
 
 .status_row {
@@ -139,7 +140,7 @@
   
   text-indent: 15px;
   font-style: normal;
-  color: $third_text_color;
+  color: colors.$third_text_color;
   margin: 10px;
 }
 

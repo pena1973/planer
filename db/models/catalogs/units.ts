@@ -1,5 +1,8 @@
 
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+// db/models/catalogs/units.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 
 import { UnitTypeEnum, UnitBelongEnum } from './../../../types/types';
 

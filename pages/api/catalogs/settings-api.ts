@@ -1,21 +1,21 @@
-//pages/api/settings-api.ts
+//pages/api/catalogs/settings-api.ts
 // API для получения и обновления настроек (settings)
 // Используется в настройках команд (TeamSettings)
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { getSettings } from './../../handlers/handlers-get';
-import { updateSettings } from './../../handlers/handlers-update';
-import { SettingsTable } from './../../db/models/plan/settings'
+import { getSettings } from './../../../handlers/handlers-get';
+import { updateSettings } from './../../../handlers/handlers-update';
+import { SettingsTable } from './../../../db/models/plan/settings'
 
-import { SettingsItem } from './../../types/types';
+import { SettingsItem } from './../../../types/types';
 
 interface RequestBody {
   userId: number,
@@ -92,7 +92,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/settings-api",
+      location: "pages/api/catalogs/settings-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

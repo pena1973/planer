@@ -1,5 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+// db/models/plan/unit_loads.ts
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 import { StatusEnum } from './../../../types/types';
+
 
 @Entity("unit_loads")
 export class UnitLoadTable {

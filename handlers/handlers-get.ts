@@ -852,11 +852,11 @@ export async function getUnitActions(
 
         return {
           id: ac.ua_id,
-          idc: ac.ua_idc,
+          idc: Number(ac.ua_idc),
           action: action,
           koef: ac.ua_koef,
-          unitId: ac.unit_id,
-          unitIdc: ac.unit_idc,
+          unitId: Number(ac.unit_id),
+          unitIdc: Number(ac.unit_idc),
         } as UnitActionItem;
       });
 
@@ -909,7 +909,7 @@ export async function getUnits(
       .map(unit => {
         return {
           id: unit.id,
-          idc: unit.idc,
+          idc: Number(unit.idc),
           title: unit.title,
           code: unit.code,
           retool: unit.retool,
@@ -1003,6 +1003,9 @@ export async function getLoadStatuses(
 ): Promise<{ idc_load: number, status: StatusEnum }[]> {
   const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
+  if (!teamId) {  return [] as { idc_load: number, status: StatusEnum }[];}
+  if (!userId) {  return [] as { idc_load: number, status: StatusEnum }[];}
+ 
   try {
     const receivedStatuses = await unitLoadRepository
       .createQueryBuilder('unitLoad')
@@ -1973,23 +1976,23 @@ export async function getUnitExceptions(
       }
     });
 
-    if (receivedExceptions.length === 0) {
-      //  logger
-      void ulogger.warn({
-        userId: userId,
-        location: "handlers/handlers-get/getUnitExceptions",
-        event: "warn",
-        message: `При запросе отклонений расписания юнитов команды  - они не найдены team_id: ${teamId}, unit_id: ${unitId}`,
-        context: "export async function getUnitExceptions(",
-      }).catch(() => { console.error("logger error") });
-    }
+    // if (receivedExceptions.length === 0) {
+    //   //  logger
+    //   void ulogger.warn({
+    //     userId: userId,
+    //     location: "handlers/handlers-get/getUnitExceptions",
+    //     event: "warn",
+    //     message: `При запросе отклонений расписания юнитов команды  - они не найдены team_id: ${teamId}, unit_id: ${unitId}`,
+    //     context: "export async function getUnitExceptions(",
+    //   }).catch(() => { console.error("logger error") });
+    // }
     const excertions = receivedExceptions
       .map(exception => {
         return {
           id: exception.id,
-          idc: exception.idc,
-          unitId: exception.unit_id,
-          unitIdc: exception.unit_idc,
+          idc: Number(exception.idc),
+          unitId: Number(exception.unit_id),
+          unitIdc: Number(exception.unit_idc),
           date: YYYYMMDD(exception.date),
           type: exception.type as TimeTypeEnum,
           timeStart: exception.timeStart,
@@ -2462,23 +2465,24 @@ export async function getUsersUnits(
 
     const activeUsers = await usersRepository.find({ where: filter });
 
-    if (activeUsers.length === 0) {
+    //if (activeUsers.length === 0) {
       //  logger
-      void ulogger.warn({
-        userId: userId,
-        location: "handlers/handlers-get/getUsersUnits",
-        event: "warn",
-        message: `При запросе активных юзеров которые не админ команды - они не найдены 'team_id: ${teamId}, withoutAdmin: ${withoutAdmin}, userIdforUnit: ${userIdforUnit}`,
-        context: "const activeUsers = await usersRepository.find({ where: filter })",
-      }).catch(() => { console.error("logger error") });
-    }
+    //   void ulogger.warn({
+    //     userId: userId,
+    //     location: "handlers/handlers-get/getUsersUnits",
+    //     event: "warn",
+    //     message: `При запросе активных юзеров которые не админ команды - они не найдены 'team_id: ${teamId}, withoutAdmin: ${withoutAdmin}, userIdforUnit: ${userIdforUnit}`,
+    //     context: "const activeUsers = await usersRepository.find({ where: filter })",
+    //   }).catch(() => { console.error("logger error") });
+    // }
+
     if (activeUsers.length === 0) {
       return {
-        success: false,
+        success: true,
         userUnits: [],
         message: t('mes.noTeamUsers'),
       };
-    }
+     }
 
     // Шаг 2: Получаем юзеров с юнитами 
     const usersUnits = await usersUnitsRepository

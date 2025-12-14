@@ -15,7 +15,7 @@ import DropdownSelectTimeType from "@/components/resources/UnitsCatalog/Dropdown
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
-import { getCurrentDateInString, getTimeZoneDateFromDateString } from "@/lib/client/timezone.client"
+import { getCurrentDateInString, } from "@/lib/client/timezone.client"
 import { useTranslation } from 'react-i18next';
 
 import cancel from "@/public/cancel.png";
@@ -89,11 +89,25 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
 
     // На клиенте    
-    const deleteUnitHandler = (indexToRemove: number) => {
-        const unitsValueUpdated = [...unitsValue]
-        unitsValueUpdated.splice(indexToRemove, 1)
-        setUnitsValue(unitsValueUpdated)
-        setFocusIndexUnit(indexToRemove - 1);
+    const deleteUnitHandler = (idcToRemoveUnit: number) => {
+        if (!idcToRemoveUnit) { return }
+
+    
+        // Действия юнита    
+        const actionsValueUpdated = unitActionsValue.filter(elem => elem.unitIdc !== idcToRemoveUnit)
+        setUnitActionsValue(actionsValueUpdated);
+
+        // Отклонения расписания юнита  
+        const exceptionsValueUpdated = exceptionsValue.filter(elem => elem.unitIdc !== idcToRemoveUnit)
+        setExceptionsValue(exceptionsValueUpdated);
+
+        // Юниты        
+        const indexToRemoveUnit = unitsValue.findIndex(elem => elem.idc === idcToRemoveUnit)
+        setFocusIndexUnit(indexToRemoveUnit === 0  ? 0 : indexToRemoveUnit - 1);
+
+        const unitsValueUpdated = unitsValue.filter(elem => elem.idc !== idcToRemoveUnit)
+        setUnitsValue(unitsValueUpdated)        
+
     };
     // На клиенте
     const changeHandler = (indexToChange: number, value: string | null | UnitBelongEnum | UnitTypeEnum, field: string) => {
@@ -248,90 +262,62 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
     ////////// для операций юнита
     // На клиенте
-    const changeUnitActionHandler = (idToChange: number | undefined, idcToChange: number, value: number | null  | { id: number, title: string }, field: string) => {
+    const changeUnitActionHandler = (idcToChange: number, value: number | null | { id: number, title: string }, field: string) => {
         unitModified();
-        // отклонения
-        const actionsValueUpdated = [...unitActionsValue]
-        let indexToChange = -1;
-
-        if (!idToChange) {
-            indexToChange = actionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
-            if (indexToChange < 0) return
-        }
-        else {
-            indexToChange = actionsValueUpdated.findIndex(elem => elem.id === idToChange)
-            if (indexToChange < 0) return
-        }
-
-        let unitaction = actionsValueUpdated[indexToChange];
-
+     
+        let unitAction = unitActionsValue.find(elem => elem.idc === idcToChange);
+        if (!unitAction) return;
 
         switch (field) {
             case "action":
-
                 const actionValue = value as { id: number, title: string }
                 const action = actions.find(elem => elem.id === actionValue.id)
-                unitaction = { ...unitaction, action: (!action) ? {} as ActionItem : action }
-
+                unitAction = { ...unitAction, action: (!action) ? {} as ActionItem : action }
                 break;
             case "koef":
                 const value_k = Number(value);
-                unitaction = { ...unitaction, koef: value_k }
+                unitAction = { ...unitAction, koef: value_k }
                 break;
             default:
                 break;
         }
-
-        actionsValueUpdated.splice(indexToChange, 1, unitaction)
+        const actionsValueUpdated = unitActionsValue.map(elem => {
+            if (elem.idc === idcToChange)
+                return unitAction as UnitActionItem;
+            else return elem;
+        })
+             
         setUnitActionsValue(actionsValueUpdated)
-    }
+    };
     // На клиенте
-    const addUnitActionHandler = () => {
+    const addUnitActionHandler = () => {        
         unitModified();
         const unit = unitsValue[focusIndexUnit];
-        const actionsValueUpdated = [
-            ...unitActionsValue,
-            {
-                idc: generateUniqueIdc(),
-                unitId: unit.id,
-                unitIdc: unit.idc,
-                koef: 1.00
-            } as UnitActionItem]
+        if (!unit) return;
+        const actionsValueUpdated = [...unitActionsValue, { idc: generateUniqueIdc(), unitIdc: unit.idc, koef: 1.00 } as UnitActionItem]
         setUnitActionsValue(actionsValueUpdated);
     };
     // На клиенте
-    const deleteUnitActionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
+    const deleteUnitActionHandler = (idcToRemove: number) => {
+        if (!idcToRemove) { return }
         unitModified();
-        let indexToRemove = -1;
-        if (!idToRemove) {
-            indexToRemove = unitActionsValue.findIndex(elem => elem.idc === idcToRemove)
-            if (indexToRemove < 0) return
-        }
-        else {
-            indexToRemove = unitActionsValue.findIndex(elem => elem.id === idToRemove)
-            if (indexToRemove < 0) return
-        }
-        const actionsValueUpdated = [...unitActionsValue];
-        actionsValueUpdated.splice(indexToRemove, 1)
+        const actionsValueUpdated = unitActionsValue.filter(elem => elem.idc !== idcToRemove)
         setUnitActionsValue(actionsValueUpdated);
     };
 
     ///////// для отклонений расписания юнита
     // На клиенте
-    const changeExceptionHandler = (idToChange: number | undefined, idcToChange: number, value: string | number | null | TimeTypeEnum, field: string) => {
+    const changeExceptionHandler = (idcToChange: number, value: string | number | null | TimeTypeEnum, field: string) => {
         unitModified();
 
         const exceptionsValueUpdated = [...exceptionsValue]
         let indexToChange = -1;
 
-        if (!idToChange) {
+        if (!idcToChange) {
             indexToChange = exceptionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
             if (indexToChange < 0) return
         }
-        else {
-            indexToChange = exceptionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
-            if (indexToChange < 0) return
-        }
+
 
         let exception = exceptionsValueUpdated[indexToChange];
 
@@ -364,20 +350,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         const exceptionsValueUpdated = [...exceptionsValue, { idc: generateUniqueIdc(), unitId: unit.id, unitIdc: unit.idc, date: todayStr } as UnitExceptionItem]
         setExceptionsValue(exceptionsValueUpdated);
     };
+
     // На клиенте
-    const deleteExceptionHandler = (idToRemove: number | undefined, idcToRemove: number) => {
+    const deleteExceptionHandler = (idcToRemove: number) => {
+        if (!idcToRemove) { return }
         unitModified();
-        let indexToRemove = -1;
-        if (!idToRemove) {
-            indexToRemove = exceptionsValue.findIndex(elem => elem.idc === idcToRemove)
-            if (indexToRemove < 0) return
-        }
-        else {
-            indexToRemove = exceptionsValue.findIndex(elem => elem.id === idToRemove)
-            if (indexToRemove < 0) return
-        }
-        const exceptionsValueUpdated = [...exceptionsValue];
-        exceptionsValueUpdated.splice(indexToRemove, 1)
+
+        const exceptionsValueUpdated = exceptionsValue.filter(elem => elem.idc !== idcToRemove)
         setExceptionsValue(exceptionsValueUpdated);
     };
 
@@ -388,7 +367,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             <td>
                 <Image className={styles.icon_del}
                     src={del} alt="del" width={20} height={20}
-                    onClick={() => deleteUnitHandler(index)}
+                    onClick={() => deleteUnitHandler(elem.idc)}
                     onFocus={() => setFocusIndexUnit(index)}
                 />
             </td>
@@ -492,7 +471,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                     <Image
                         // className={styles.icon_del}
                         src={del} alt="del" width={20} height={20}
-                        onClick={() => deleteExceptionHandler(elem.id, elem.idc)}
+                        onClick={() => deleteExceptionHandler(elem.idc)}
                     />
                 </td>
                 <td>
@@ -502,7 +481,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                         value={elem.date ? (new Date(elem.date)).toLocaleDateString('en-CA') : ""}
                         type="date"
                         onChange={e => {
-                            changeExceptionHandler(elem.id, elem.idc, e.target.value, "date");
+                            changeExceptionHandler(elem.idc, e.target.value, "date");
                         }}
                     />
                 </td>
@@ -517,7 +496,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                         onChange={e => {
                             const [hours, minutes] = e.target.value.split(":").map(Number);
                             const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
-                            changeExceptionHandler(elem.id, elem.idc, totalMinutes, "timeStart");
+                            changeExceptionHandler(elem.idc, totalMinutes, "timeStart");
                         }}
                     />
                 </td>
@@ -533,14 +512,14 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                         onChange={e => {
                             const [hours, minutes] = e.target.value.split(":").map(Number);
                             const totalMinutes = hours * 60 + minutes; // Переводим время в минуты от начала дня
-                            changeExceptionHandler(elem.id, elem.idc, totalMinutes, "timeFinish");
+                            changeExceptionHandler(elem.idc, totalMinutes, "timeFinish");
                         }}
                     />
                 </td>
                 <td>
 
                     <DropdownSelectTimeType
-                        onSelect={(value) => { changeExceptionHandler(elem.id, elem.idc, value, "timeType"); }}
+                        onSelect={(value) => { changeExceptionHandler(elem.idc, value, "timeType"); }}
                         selectedValue={elem.type || null}
                     />
                 </td>
@@ -555,6 +534,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         .map((elem) =>
             elem.action?.id
         )
+        
     // Действия
     const unitFocusActionValueReactNodes = (unitActionsValue || [])
         .filter(elem => elem.unitIdc === unitsValue[focusIndexUnit]?.idc)
@@ -565,13 +545,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                     <td>
                         <Image
                             src={del} alt="del" width={20} height={20}
-                            onClick={() => deleteUnitActionHandler(elem.id, elem.idc)}
+                            onClick={() => deleteUnitActionHandler(elem.idc)}
                         />
                     </td>
                     <td>
                         <DropdownSelectUnitAction
                             options={actions}
-                            onSelect={(value) => { changeUnitActionHandler(elem.id, elem.idc, value, "action"); }}
+                            onSelect={(value) => { changeUnitActionHandler(elem.idc, value, "action"); }}
                             selectedValue={elem.action?.id || null}
                             selectedValues={selectedValues}  // Передаем массив выбранных Значений
                         />
@@ -589,7 +569,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                                 const raw = (e.currentTarget.value || '').trim();
                                 // Пусто → передаём 0 и показываем "0,00"
                                 if (raw === '') {
-                                    changeUnitActionHandler(elem.id, elem.idc, 0, 'koef');
+                                    changeUnitActionHandler(elem.idc, 0, 'koef');
                                     e.currentTarget.value = '0,00';
                                     return;
                                 }
@@ -597,7 +577,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                                 // Нормализация: ','→'.', clamp [0..2147483647], округление до 2 знаков
                                 const n = Number(raw.replace(',', '.'));
                                 if (!Number.isFinite(n)) {
-                                    changeUnitActionHandler(elem.id, elem.idc, 0, 'koef');
+                                    changeUnitActionHandler(elem.idc, 0, 'koef');
                                     e.currentTarget.value = '0,00';
                                     return;
                                 }
@@ -606,7 +586,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
                                 const rounded = Math.round(clamped * 100) / 100;
 
                                 // В стор — NUMBER; в поле — "NNN,NN"
-                                changeUnitActionHandler(elem.id, elem.idc, rounded, 'koef');
+                                changeUnitActionHandler(elem.idc, rounded, 'koef');
                                 e.currentTarget.value = rounded.toFixed(2).replace('.', ',');
                             }}
                         />
@@ -670,7 +650,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
             {(focusIndexUnit >= 0) &&
                 <div className={styles.contaitainer_catalog_right}>
                     <div>
-                        <div className="catalog_title">{t('units.UnitActions')} {unitsValue[focusIndexUnit].title}</div>
+                        <div className="catalog_title">{t('units.UnitActions')} {unitsValue[focusIndexUnit]?.title}</div>
                         {/* <div className={styles.container_unit_actions}> */}
                         <div className={`${styles.container} ${styles._unit_actions}`}>
                             <table className={styles._table_a}>

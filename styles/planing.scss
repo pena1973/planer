@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 
 // background: rgb(240, 240, 240); 
 
@@ -16,7 +17,7 @@
     width: 100%;
     justify-content: center;
     margin: 10px 0 5px 0;
-    border-top: $border;
+    border-top: colors.$border;
 }
 
 .container_plan_planed_card {
@@ -118,7 +119,7 @@
 .container_plan_right {
     flex-direction: column;
     
-    background-color:$main_body_background_color;
+    background-color:colors.$main_body_background_color;
     // background-color:rgb(240, 240, 240)
     
 }

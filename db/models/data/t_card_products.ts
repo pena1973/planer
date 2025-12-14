@@ -1,5 +1,9 @@
+// db/models/data/t_card_products.ts
 //  Это строка в которой продукт + количество + код - 
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+import * as TypeORM from "typeorm";
+const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+
 import { TypeEnum } from './../../../types/types';
 
 @Entity('t_card_products')

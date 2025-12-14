@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 
 .container_index {
     display: flex;
@@ -51,7 +52,7 @@
 .index_title {
     display: flex;
     flex-direction: column;
-    // color: $dark_text;
+    // color: colors.$dark_text;
     font-size: 44px;
     font-weight: 700;
     padding: 10px 0;
@@ -65,7 +66,7 @@
 .index_describtion {
     display: flex;
     flex-direction: column;
-    // color: $dark_text;
+    // color: colors.$dark_text;
     font-size: 20px;
     font-weight: 400;
 
@@ -81,7 +82,7 @@
     flex-shrink: 0;
     border-radius: 17px;
     opacity: 0.4;
-    // background: $dark_background;
+    // background: colors.$dark_background;
 }
 
 
@@ -93,7 +94,7 @@
     padding: 5px;
     font-size: 16px;
 
-    // color: $dark_text;
+    // color: colors.$dark_text;
     @media screen and (min-width: 650px) {
         display: flex;
     }
@@ -103,7 +104,7 @@
     width: 50px;
     height: 50px;
     margin: 10px 20px 0 0;
-    border-radius: $border_radius;
+    border-radius: colors.$border_radius;
     // padding: 10px;
 }
 
@@ -113,9 +114,9 @@
     margin-top: 80px;
     padding: 15px;
     max-width: 242px;
-    border-radius: $border_radius;
-    background-color: $main_container_background_color;
-    border: $border;
+    border-radius: colors.$border_radius;
+    background-color: colors.$main_container_background_color;
+    border: colors.$border;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -139,21 +140,21 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    font-size: $header3_font_size;
+    font-size: colors.$header3_font_size;
     font-weight: bold;
-    // color: $dark_text;
+    // color: colors.$dark_text;
 }
 
 .login_input {
     border-radius: 10px;
     padding: 5px;
-    border: $border;
+    border: colors.$border;
     width: 100%;
 }
 
 .login_link {
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     font-style: italic;
     cursor: pointer;
     margin: 10px;
@@ -163,8 +164,8 @@
 
 .login_message_container {
     text-align: center;
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     font-style: italic;
     // margin-left: 10px;
     // text-align: center;
@@ -172,7 +173,7 @@
 
 .login_message {
     font-size: 14px;
-    // color: $dark_text;    
+    // color: colors.$dark_text;    
 }
 
 .login_button {
@@ -187,10 +188,10 @@
     padding: 15px;    
     max-width: 242px;
     min-width: 242px;
-    border-radius: $border_radius;
-    background-color: $main_container_background_color;
-    border: $border;    
-    color: $second_text_color;
+    border-radius: colors.$border_radius;
+    background-color: colors.$main_container_background_color;
+    border: colors.$border;    
+    color: colors.$second_text_color;
 }
 
 .register_input_container {
@@ -228,28 +229,28 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    font-size: $header3_font_size;
+    font-size: colors.$header3_font_size;
     font-weight: bold;
-    // color: $dark_text;
+    // color: colors.$dark_text;
 }
 
 .register_notice {
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     font-style: italic;
 }
 
 .register_input {
     border-radius: 10px;
     padding: 5px;
-    border: $border;
+    border: colors.$border;
     width: 100%;
 
 }
 
 .register_link {
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     font-style: italic;
     cursor: pointer;
     margin: 10px;
@@ -257,24 +258,24 @@
 }
 
 .register_pass_message_container {
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     font-style: italic;
 }
 
 .register_message_container {
     // margin-left: 10px;
-    // color: $dark_text;    
+    // color: colors.$dark_text;    
     text-align: center;
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     font-style: italic;
     // background-color: aqua;
 }
 
 .register_message {
-    font-size: $header4_font_size;
-    // color: $dark_text;
+    font-size: colors.$header4_font_size;
+    // color: colors.$dark_text;
 
 }
 
@@ -294,7 +295,7 @@
 }
 
 .loader_title {
-    font-size: $header1_font_size;
+    font-size: colors.$header1_font_size;
     margin: 10px;
     
 }

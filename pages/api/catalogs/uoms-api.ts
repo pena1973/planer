@@ -1,21 +1,21 @@
-//pages/api/uoms-api
+//pages/api/catalogs/uoms-api
 // API для получения, создания, обновления и удаления 
 // Используется в 
 
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
-import { getTypedRepository } from './../../db/utilites'
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
+import { getTypedRepository } from './../../../db/utilites'
 
-import { updateUOMS } from './../../handlers/handlers-update';  // расчеты
-import { UOMsTable } from './../../db/models/catalogs/uoms';
-import { UOMItem } from './../../types/types';
-import { getUOMs } from './../../handlers/handlers-get';  // расчеты
+import { updateUOMS } from './../../../handlers/handlers-update';  // расчеты
+import { UOMsTable } from './../../../db/models/catalogs/uoms';
+import { UOMItem } from './../../../types/types';
+import { getUOMs } from './../../../handlers/handlers-get';  // расчеты
 
 interface RequestBody {
   userId: number,
@@ -92,7 +92,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/uoms-api",
+      location: "pages/api/catalogs/uoms-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

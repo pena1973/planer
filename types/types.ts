@@ -140,7 +140,7 @@ export interface UnitActionItem {
     idc: number,
     action: ActionItem,
     koef: number,
-    unitId: number,
+    unitId?: number,
     unitIdc: number, // временно для синхронизации пока юнит не записан
 }
 //  отклонения юнита от расписания
@@ -151,7 +151,7 @@ export interface UnitExceptionItem {
     type: TimeTypeEnum,
     timeStart: number,
     timeFinish: number,
-    unitId: number,
+    unitId?: number,
     unitIdc: number, // временно для синхронизации пока юнит не записан     
 }
 // ТБ users

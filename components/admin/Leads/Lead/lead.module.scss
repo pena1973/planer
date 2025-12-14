@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -29,8 +30,8 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   width: 100%;
-  background-color: $table_background_color;
-  font-size: $header3_font_size;
+  background-color: colors.$table_background_color;
+  font-size: colors.$header3_font_size;
 }
  .date_container{
   width: 120px;
@@ -50,12 +51,12 @@
   justify-content: space-between;
   
   padding: 5px;
-  // background-color: $second_container_background_color;
-  border-bottom: $border;
-  border-top-left-radius: $border-radius;
-  border-top-right-radius: $border-radius;
+  // background-color: colors.$second_container_background_color;
+  border-bottom: colors.$border;
+  border-top-left-radius: colors.$border-radius;
+  border-top-right-radius: colors.$border-radius;
   width: 100%;
-  background-color: $table_background_color;
+  background-color: colors.$table_background_color;
 }
 .header_groupe{
   display: flex;
@@ -96,14 +97,14 @@
 .body {
   // margin: 3px;
   padding: 5px;
-  // background-color: $second_container_background_color;
-  // border: $border;
-  // border-radius: $border-radius;
+  // background-color: colors.$second_container_background_color;
+  // border: colors.$border;
+  // border-radius: colors.$border-radius;
   width: 100%;
   // max-width: 406px;
   min-height: 100px;
   max-height: 300px;
-  background-color: $table_background_color;
+  background-color: colors.$table_background_color;
 }
 
 .message_input {
@@ -116,8 +117,8 @@
   min-height: 100px;
   resize: none;
   margin: -1px -1px -5px -1px;
-  font-size: $header3_font_size;
-  background-color: $table_background_color;
+  font-size: colors.$header3_font_size;
+  background-color: colors.$table_background_color;
 }
 .notes_input {
   flex: 1;
@@ -129,7 +130,7 @@
   min-height: 100px;
   resize: none;
   margin: -1px -1px -5px -1px;
-  font-size: $header3_font_size;
+  font-size: colors.$header3_font_size;
   background-color: white;
 }
 .new {
@@ -144,8 +145,8 @@
   border-width: 0 ;
   width: -webkit-fill-available;
   margin-right: 5px;
-  font-size: $header3_font_size;  
-  // background-color: $table_background_color;
+  font-size: colors.$header3_font_size;  
+  // background-color: colors.$table_background_color;
 }
 
 .footer {
@@ -155,13 +156,13 @@
   align-items: center;
   // margin: 3px;
   padding: 0 5px;
-  // background-color: $second_container_background_color;
+  // background-color: colors.$second_container_background_color;
 
-  border-top: $border;
-  border-bottom-right-radius: $border-radius;
-  border-bottom-left-radius: $border-radius;
+  border-top: colors.$border;
+  border-bottom-right-radius: colors.$border-radius;
+  border-bottom-left-radius: colors.$border-radius;
   width: 100%;
-  background-color: $table_background_color;
+  background-color: colors.$table_background_color;
 }
 
 .button_send{

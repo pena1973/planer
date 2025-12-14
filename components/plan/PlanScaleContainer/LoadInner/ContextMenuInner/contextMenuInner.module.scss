@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -8,9 +9,9 @@
     z-index: 50;
     top: 45px;
     width: 200px;
-    border-radius: $border-radius;
-    background-color: $menu_background_color;
-    border: $border;
+    border-radius: colors.$border-radius;
+    background-color: colors.$menu_background_color;
+    border: colors.$border;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease;
     padding: 3px;
@@ -26,7 +27,7 @@
         height: 0;
         border-left: 8px solid transparent;
         border-right: 8px solid transparent;
-        border-bottom: 8px solid $border_color; // цвет обводки
+        border-bottom: 8px solid colors.$border_color; // цвет обводки
         z-index: 1;
     }
 
@@ -39,7 +40,7 @@
         height: 0;
         border-left: 7px solid transparent;
         border-right: 7px solid transparent;
-        border-bottom: 7px solid $menu_background_color; // цвет фона меню
+        border-bottom: 7px solid colors.$menu_background_color; // цвет фона меню
         z-index: 2;
     }
 }
@@ -53,7 +54,7 @@
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
-    border-top: $border;
+    border-top: colors.$border;
 }
 
 .coment {
@@ -63,7 +64,7 @@
 .title {
     padding: 2px;
     font-weight: bold;
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
 }
 
 // /* Треугольник сверху блока */
@@ -77,5 +78,5 @@
 //     height: 0;
 //     border-left: 7.5px solid transparent;
 //     border-right: 7.5px solid transparent;
-//     border-bottom: 7.5px solid $sidebar_background;
+//     border-bottom: 7.5px solid colors.$sidebar_background;
 // }

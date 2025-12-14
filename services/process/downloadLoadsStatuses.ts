@@ -15,7 +15,7 @@ export const downloadLoadsStatuses = async (
 ) => {
 
     try {
-        const res = await fetch(`/api/loads-statuses-api?userId=${userId}&teamId=${teamId}`,
+        const res = await fetch(`/api/loads/loads-statuses-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
                 headers: new Headers({
@@ -61,7 +61,7 @@ export const downloadLoadsStatuses = async (
                     userId: userId,
                     location: "services/process/downloadLoadsStatuses",
                     event: "error",
-                    message: `success=false запрос /api/loads-statuses-api?userId=${userId}&teamId=${teamId}`,
+                    message: `success=false запрос /api/loads/loads-statuses-api?userId=${userId}&teamId=${teamId}`,
                     context: "export const downloadLoadsStatuses = async (",
                 }).catch(() => { console.error("logger error") });
             }

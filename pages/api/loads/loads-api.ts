@@ -1,22 +1,22 @@
-// pages/api/loads-api.ts
+// pages/api/loads/loads-api.ts
 // API для получения загрузок юнитов (unit loads)
 // Используется в настройках команд (TeamSettings) и при создании/редактировании карт (TCardForm)
-import { ulogger } from "./../../lib/common/universal-logger";
-import { getServerT } from '@/lib/server/i18n.server';
+import { ulogger } from "./../../../lib/common/universal-logger";
+import { getServerT } from './../../../lib/server/i18n.server';
 
-import { withAuth } from './../../lib/server/withAuth'
+import { withAuth } from './../../../lib/server/withAuth'
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import connectDb from './../../db/database';
-import { getLocaleFromHeader } from './../../lib/server/locale';
+import connectDb from './../../../db/database';
+import { getLocaleFromHeader } from './../../../lib/server/locale';
 
-import { getTypedRepository } from './../../db/utilites'
-import { getUnits, getUnitLoads, getTCardOperations, getUnitActions } from './../../handlers/handlers-get';  // расчеты
-import { UnitLoadTable } from '../../db/models/plan/unit_loads';
-import { UnitTable } from '../../db/models/catalogs/units'
-import { UnitActionTable } from '../../db/models/catalogs/unit_actions'
-import { TCardOperationTable } from '../../db/models/data/t_card_operations'
-import { UnitTypeEnum } from './../../types/types';
+import { getTypedRepository } from './../../../db/utilites'
+import { getUnits, getUnitLoads, getTCardOperations, getUnitActions } from './../../../handlers/handlers-get';  // расчеты
+import { UnitLoadTable } from '../../../db/models/plan/unit_loads';
+import { UnitTable } from '../../../db/models/catalogs/units'
+import { UnitActionTable } from '../../../db/models/catalogs/unit_actions'
+import { TCardOperationTable } from '../../../db/models/data/t_card_operations'
+import { UnitTypeEnum } from './../../../types/types';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
@@ -107,7 +107,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/loads-api",
+      location: "pages/api/loads/loads-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

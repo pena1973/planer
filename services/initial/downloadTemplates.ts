@@ -15,7 +15,7 @@ export const downloadTemplates = async (
 ) => {
 
   try {
-    const res = await fetch(`api/templates-api?userId=${userId}&teamId=${teamId}`,
+    const res = await fetch(`api/catalogs/templates-api?userId=${userId}&teamId=${teamId}`,
       {
         method: 'get',
         headers: new Headers({
@@ -50,7 +50,7 @@ export const downloadTemplates = async (
           userId: userId,
           location: "services/initial/downloadTemplates",
           event: "error",
-          message: `success=false запрос api/templates-api?userId=${userId}&teamId=${teamId}`,
+          message: `success=false запрос api/catalogs/templates-api?userId=${userId}&teamId=${teamId}`,
           context: "export const downloadTemplates = async (",
         }).catch(() => { console.error("logger error") });
       }

@@ -99,7 +99,7 @@ export const loginHandler = async ({
         agreementTextRef.current = agreementText_;
         dispatch(setStep(3));
       } else {
-        setMessage(receivedData.message);
+        setMessageLogin(receivedData.message);
         //  logger
         void ulogger.error({
           userId: null,

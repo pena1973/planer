@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .loadingOverlay {
@@ -7,8 +8,8 @@
   left: 0;
   width: 200px;
   z-index: 10;  
-  font-size: $p_font_size;
-  color: $text_color_italic;
+  font-size: colors.$p_font_size;
+  color: colors.$text_color_italic;
   font-style: italic;
   pointer-events: none;  
   // background-color: aqua;
@@ -30,37 +31,37 @@
 }
 
 .cancelled {
-  background-color: $load_cancelled;
+  background-color: colors.$load_cancelled;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .performed {
-  background-color: $load_performed;
+  background-color: colors.$load_performed;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .ready {
-  background-color: $load_ready;
+  background-color: colors.$load_ready;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .planed {
-  background-color: $load_planed;
+  background-color: colors.$load_planed;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .prepared {
-  background-color: $load_prepared;
+  background-color: colors.$load_prepared;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .defected {
-  background-color: $load_defected;
+  background-color: colors.$load_defected;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .draft {
-  background-color: $load_draft;
+  background-color: colors.$load_draft;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
@@ -72,7 +73,8 @@
 }
 
 .lighted {
-  box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
+  // box-shadow: 0 4px 6px rgba(255, 255, 0, 0.7), 0 1px 3px rgba(255, 255, 0, 0.6);
+    box-shadow: 0 2px 4px rgb(7, 4, 148), 0 1px 2px rgba(231, 227, 222, 0.6);
 }
 
 .first {

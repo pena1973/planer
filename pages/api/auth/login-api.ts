@@ -1,4 +1,4 @@
-//pages/api/template-api.ts
+//pages/api/login-api.ts
 // API для получения, создания, обновления и удаления 
 // Используется в 
 

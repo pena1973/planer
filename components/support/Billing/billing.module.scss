@@ -1,14 +1,15 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .container {
-  background-color: $main_container_background_color;
-  border-radius: $border-radius;
-  border: $border;
+  background-color: colors.$main_container_background_color;
+  border-radius: colors.$border-radius;
+  border: colors.$border;
   margin: 10px 0;
   padding: 7px;
   width: 435px;
-  font-size: $header3_font_size;
+  font-size: colors.$header3_font_size;
 }
 
 .section_title {
@@ -80,8 +81,8 @@
   color: #333;
 }
 .notice {
-  color: $text_color_italic;
-  font-size: $header4_font_size;
+  color: colors.$text_color_italic;
+  font-size: colors.$header4_font_size;
   
 }
 

@@ -14,7 +14,7 @@ export const downloadSettings = async (
   dispatch: Dispatch
 ) => {
   try {
-    const res = await fetch(`api/settings-api?userId=${userId}&teamId=${teamId}`,
+    const res = await fetch(`api/catalogs/settings-api?userId=${userId}&teamId=${teamId}`,
       {
         method: 'get',
         headers: new Headers({
@@ -49,7 +49,7 @@ export const downloadSettings = async (
           userId: userId,
           location: "services/initial/downloadSettings",
           event: "error",
-          message: `success=false запрос api/settings-api?userId=${userId}&teamId=${teamId}`,
+          message: `success=false запрос api/catalogs/settings-api?userId=${userId}&teamId=${teamId}`,
           context: "export const downloadSettings = async (",
         }).catch(() => { console.error("logger error") });
       }

@@ -1,15 +1,16 @@
 // helpTree.module.scss
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 .сontainer {
 
-  font-size: $header3_font_size;
-  color: $second_text_color;
+  font-size: colors.$header3_font_size;
+  color: colors.$second_text_color;
   padding: 1rem;
-  background-color: $main_body_background_color;
-  border: $border;
-  border-radius: $border-radius;
+  background-color: colors.$main_body_background_color;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
   width: 80%;
 
   @media screen and (max-width: 650px) {

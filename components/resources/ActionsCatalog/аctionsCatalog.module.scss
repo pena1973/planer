@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 // @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -10,16 +11,16 @@
     width: 400px;
     height: auto;
     margin: 5px;
-    background-color: $main_container_background_color;
-    border-radius: $border-radius;
-    border: $border;
-    box-shadow: $box-shadow;
+    background-color: colors.$main_container_background_color;
+    border-radius: colors.$border-radius;
+    border: colors.$border;
+    box-shadow: colors.$box-shadow;
     transition: box-shadow 0.3s ease;
 
     padding: 25px 5px 5px 5px;
     position: relative;
-    color: $second_text_color;
-    font-size: $header4_font_size;
+    color: colors.$second_text_color;
+    font-size: colors.$header4_font_size;
 }
 
 ///////////////
@@ -70,7 +71,7 @@ td
     justify-content: flex-end;
     width: calc(100% - 4px);
     overflow: hidden;
-    border-top: $border;
+    border-top: colors.$border;
 }
 
 .container_icon_edit_save {

@@ -2,17 +2,17 @@ import { useEffect, useRef } from 'react';
 import { UnitLoadItem, UnitExceptionItem, } from "@/types/types";
 import type { RefObject } from "react";
 
+// Хук для отслеживания изменения размера элемента с помощью ResizeObserver
 export const useResizeObserver = <T extends HTMLElement>(
-// export const useResizeObserver = (
-  //  ref: React.RefObject<HTMLElement>,  
-    ref: RefObject<T | null>, 
+  ref: RefObject<T | null>,
   onResize: () => void,
   delay = 300
 ) => {
-  // const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    if (!ref.current) return;
+    const el = ref.current;
+    if (!el) return;
 
     const observer = new ResizeObserver(() => {
       if (timeoutRef.current) {
@@ -24,10 +24,7 @@ export const useResizeObserver = <T extends HTMLElement>(
       }, delay);
     });
 
-    observer.observe(ref.current);
-
-    // вызов сразу
-    onResize();
+    observer.observe(el);
 
     return () => {
       observer.disconnect();
@@ -37,6 +34,8 @@ export const useResizeObserver = <T extends HTMLElement>(
     };
   }, [ref, onResize, delay]);
 };
+
+
 
 // ⚡️ Индекс: [date|unitId] -> UnitLoadItem[]
 export const loadsByDateUnit = (

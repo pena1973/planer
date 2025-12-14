@@ -1,4 +1,5 @@
-@import '@/styles/colors.scss';
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
 
 
@@ -9,15 +10,15 @@
     width: 495px;
     height: auto;
     margin: 5px;
-    background-color: $main_container_background_color;
-    border-radius: $border-radius;
-    border: $border;
-    box-shadow: $box-shadow;
+    background-color: colors.$main_container_background_color;
+    border-radius: colors.$border-radius;
+    border: colors.$border;
+    box-shadow: colors.$box-shadow;
     transition: box-shadow 0.3s ease;
     padding: 5px;
     position: relative;
-    color: $second_text_color;
-    font-size: $header4_font_size;
+    color: colors.$second_text_color;
+    font-size: colors.$header4_font_size;
 }
 
 .container_header {
@@ -28,11 +29,11 @@
     width: 100%;
     height: auto;
     padding: 5px;
-    border-bottom: $border;
+    border-bottom: colors.$border;
     /* Нижняя граница для отделения заголовка от содержимого */
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
     /* Размер шрифта для заголовка */
-    color: $text_color;
+    color: colors.$text_color;
     /* Цвет текста заголовка */
 }
 
@@ -73,7 +74,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    border-bottom: $border;
+    border-bottom: colors.$border;
     padding: 5px 0;
 }
 
@@ -81,7 +82,7 @@
     display: flex;
     flex-direction: column;
     width: auto;
-    border-bottom: $border;
+    border-bottom: colors.$border;
     padding: 5px 0;
 }
 
@@ -98,9 +99,9 @@
 ._coment {
     flex: 1;
     padding: 1px 1px;
-    // background-color: $second_container_background_color;
-    // border: $border;
-    border-radius: $border-radius;
+    // background-color: colors.$second_container_background_color;
+    // border: colors.$border;
+    border-radius: colors.$border-radius;
     height: auto;
 }
 
@@ -115,9 +116,9 @@
     flex: 1;
     margin: 3px;
     padding: 1px 1px;
-    background-color: $second_container_background_color;
-    border: $border;
-    border-radius: $border-radius;
+    background-color: colors.$second_container_background_color;
+    border: colors.$border;
+    border-radius: colors.$border-radius;
     height: auto;
     width: 100%;
     min-height: 40px;
@@ -134,19 +135,19 @@
 .in_title,
 .coment_title {
     font-weight: bold;
-    color: $second_text_color;
+    color: colors.$second_text_color;
     text-align: center;
     height: auto;
-    font-size: $header4_font_size;
-    // border-top: $border;
+    font-size: colors.$header4_font_size;
+    // border-top: colors.$border;
     // padding: 5px 0;
     // margin-top: 3px;
 }
 
 ._oper_title,
 ._oper_qtu {
-    font-size: $header4_font_size;
-    color: $text_color_italic;
+    font-size: colors.$header4_font_size;
+    color: colors.$text_color_italic;
     margin: 10px 5px;
     text-align: center;
 }
@@ -156,7 +157,7 @@
 .tCardOper_in_title {
     font-weight: bold;
     /* Жирный текст для заголовков */
-    color: $second_text_color;
+    color: colors.$second_text_color;
     /* Темно-серый цвет текста */
     text-align: center;
     height: auto;
@@ -186,9 +187,9 @@
     align-items: center;
     padding: 5px;
     text-align: end;
-    font-size: $header4_font_size;
-    border: $border;
-    border-radius: $border-radius;
+    font-size: colors.$header4_font_size;
+    border: colors.$border;
+    border-radius: colors.$border-radius;
     height: 24px;
 }
 
@@ -263,7 +264,7 @@
 }
 
 .icon_edit_save {
-    border-top-left-radius: $border-radius;
+    border-top-left-radius: colors.$border-radius;
 }
 
 .icon_del {
@@ -284,14 +285,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-top: $border;
+    border-top: colors.$border;
     // width: calc(100% - 4px);
     overflow: hidden;
 
 }
 
 .message {
-    font-size: $header4_font_size;
+    font-size: colors.$header4_font_size;
     /* Размер шрифта для информации о времени */
     color: #666;
     /* Светло-серый цвет для дополнительной информации */
