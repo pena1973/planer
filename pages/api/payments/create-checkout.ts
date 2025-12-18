@@ -9,7 +9,7 @@ import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { ClientTable } from "./../../../db/models/billing/clients";
 import { ClientItem } from './../../../types/service-types'
 import { randomUUID } from 'crypto';
-
+import updateStripeCustomerFromClient from './customer-update';
 import { stripe } from './../../../lib/common/stripe';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -50,15 +50,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: String(userId),
       teamId: String(teamId),
       amountInCents: String(amountInCents),
-      purpose: 'balance_topup',
+      purpose: 'Service usage credit',
       locale: locale,
     };
 
     // определяем customer: либо из тела запроса, либо создаём
-    const customerId = client.customerId;
+    let customerId = client.stripe_customer_id as string | undefined;
+
+    if (!customerId) {
+      customerId = await updateStripeCustomerFromClient(client); // создаст customer по email/title
+    } else customerId = client.stripe_customer_id as string | undefined;
+
+    if (!customerId) {
+      throw new Error('Cannot create Stripe customer');
+    }
 
     const params: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
+      locale: 'en-GB',
       currency: 'eur',
       payment_method_types: ['card'],
       line_items: [
@@ -68,8 +77,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             unit_amount: amountInCents,
             tax_behavior: 'exclusive', // налог отдельной строкой
             product_data: {
-              name: 'Balance top-up',
-              description: `Пополнение баланса команды #${teamId} (инициатор #${userId})`,
+              name: 'Service usage credit',
+              description: `Prepaid credits to pay for daily service access while your team is active.`,
             },
           },
           quantity: 1,
@@ -82,17 +91,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       metadata,
 
-      // 👇 правильная логика
-      ...(customerId
-        ? { customer: customerId, customer_update: { address: 'auto', name: 'auto' } }
-        : client?.email
-          ? { customer_email: client.email }
-          : {}),
+      ...({ customer: customerId, customer_update: { address: 'auto', name: 'auto' } }),
+
 
       invoice_creation: {
         enabled: true,
         invoice_data: {
-          description: `Invoice for balance top-up`,
+          description: `Invoice for Service usage credit`,
           metadata,
         },
       },

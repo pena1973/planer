@@ -49,7 +49,7 @@ import { YYYYMMDD } from "@/lib/common/utils"
 import { getCurrentDateInString, } from "../lib/common/timezone"
 
 // Создание c строки баланса
-export async function updateBalance(
+export async function updateBalance_old(
   userId: number | null,
   locale: string,
   balanceRepository: Repository<BalanceTable>,
@@ -103,6 +103,82 @@ export async function updateBalance(
 
   };
 }
+
+export async function updateBalance(
+  userId: number | null, // пока не используешь — ок
+  locale: string,        // пока не используешь — ок
+  balanceRepository: Repository<BalanceTable>,
+  teamId: number,
+  transactionId: string,
+  amount: number,
+  date: string,
+  is_trial: boolean,
+  document: string,
+  direction: string,
+  coment: string,
+) {
+  if (!teamId) {
+    return { success: false, message: "teamId is required" };
+  }
+  if (!transactionId) {
+    return { success: false, message: "transactionId is required" };
+  }
+
+  // ✅ Идемпотентность: только team_id + transaction_id (без date)
+  const existingBalance = await balanceRepository.findOne({
+    where: { team_id: teamId, transaction_id: transactionId },
+  });
+
+  // Если уже есть — НЕ создаём второй раз
+  if (existingBalance) {
+    // Можно освежить "косметику" (не трогая сумму, чтобы не ломать учёт)
+    let changed = false;
+
+    if (existingBalance.date !== date) { existingBalance.date = date; changed = true; }
+    if (existingBalance.direction !== direction) { existingBalance.direction = direction; changed = true; }
+    if (existingBalance.document !== document) { existingBalance.document = document; changed = true; }
+    if (existingBalance.coment !== coment) { existingBalance.coment = coment; changed = true; }
+    if (existingBalance.is_trial !== is_trial) { existingBalance.is_trial = is_trial; changed = true; }
+
+    // ❗ сумму и team_id/transaction_id обычно не меняем
+    // if (existingBalance.summa !== amount) { ... }  // НЕ рекомендую
+
+    if (changed) {
+      await balanceRepository.save(existingBalance);
+    }
+
+    return { success: true, existingBalance, isNew: false };
+  }
+
+  // ✅ Если нет — создаём новую запись
+  const newBalance = balanceRepository.create({
+    team_id: teamId,
+    transaction_id: transactionId,
+    date,
+    summa: amount,
+    direction,
+    document,
+    coment,
+    is_trial,
+  });
+
+  try {
+    const savedNewBalance = await balanceRepository.save(newBalance);
+    return { success: true, savedNewBalance, isNew: true };
+  } catch (e: any) {
+    // На случай гонки вебхуков: если уникальный индекс уже сработал — считаем успехом
+    const msg = String(e?.message ?? "");
+    const code = e?.code; // Postgres: '23505'
+    if (code === "23505" || msg.toLowerCase().includes("duplicate")) {
+      const existing = await balanceRepository.findOne({
+        where: { team_id: teamId, transaction_id: transactionId },
+      });
+      return { success: true, existingBalance: existing, isNew: false };
+    }
+    return { success: false, message: "Не удалось сохранить транзакцию " + document };
+  }
+}
+
 
 // Установка настройки рег задания
 export async function updateJobSetting(
@@ -397,7 +473,7 @@ export async function updateClient(
       existingClient.email = client.email?.trim() ?? existingClient.email;
       existingClient.phone = client.phone?.trim() ?? existingClient.phone;
       existingClient.country = client.country?.trim() ?? existingClient.country;
-      existingClient.customer_id = client.customerId?.trim() ?? existingClient.customer_id;
+      existingClient.stripe_customer_id = client.stripe_customer_id?.trim() ?? existingClient.stripe_customer_id;
 
       const saved = await clientRepository.save(existingClient);
       if (!saved?.id) {
@@ -418,7 +494,7 @@ export async function updateClient(
       phone: client.phone?.trim() ?? "",
       team_id: teamId,
       country: client.country?.trim() ?? "",
-      customer_id: client.customerId?.trim() ?? "",
+      stripe_customer_id: client.stripe_customer_id?.trim() ?? "",
 
     });
 

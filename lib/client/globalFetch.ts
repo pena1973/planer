@@ -7,12 +7,8 @@ import { logout } from './../../lib/client/logout'
 const originalFetch = global.fetch.bind(global)
 
 // базовый URL для SSR (чтобы относительные превратить в абсолютные)
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  process.env.APP_BASE_URL ||
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : `http://localhost:${process.env.PORT || 3000}`)
+const BASE_URL = process.env.VERCEL_URL?String(process.env.APP_BASE_URL):`http://localhost:${process.env.PORT || 3000}`
+
 
 function absUrl(url: string) {
   try {

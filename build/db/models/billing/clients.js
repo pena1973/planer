@@ -100,7 +100,7 @@ __decorate([
 __decorate([
     Column('varchar', { default: "" }),
     __metadata("design:type", String)
-], ClientTable.prototype, "customer_id", void 0);
+], ClientTable.prototype, "stripe_customer_id", void 0);
 exports.ClientTable = ClientTable = __decorate([
     Entity('clients')
 ], ClientTable);

@@ -19,6 +19,7 @@ import { ClientTable } from '../../../db/models/billing/clients';
 import { ClientItem } from '../../../types/service-types';
 
 import  updateStripeCustomerFromClient from "./../payments/customer-update";
+import { Console } from "console";
 
 interface RequestBody {
   userId: number,
@@ -26,6 +27,7 @@ interface RequestBody {
   client: ClientItem;
 }
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  
   try {
     const db = await connectDb();
     const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
@@ -58,13 +60,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const { client, userId, teamId } = req.body as RequestBody;
 
         // обновляем в стайпе или делаем нового
-        const customerId = await updateStripeCustomerFromClient(client);
+        const stripe_customer_id = await updateStripeCustomerFromClient(client);
 
         const resClient = await updateClient(
           Number(userId),
           locale,
           clientRepository,
-          { ...client, customerId: customerId ?? "" },
+          { ...client, stripe_customer_id: stripe_customer_id ?? "" },
           Number(teamId)
         )
         if (!resClient.success) {
@@ -89,7 +91,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           email: savedClient.email,
           phone: savedClient.phone,
           country: savedClient.country,
-          customerId: savedClient.customer_id,
+          stripe_customer_id: savedClient.stripe_customer_id,
         };
 
         // отправляем ответ

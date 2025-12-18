@@ -1,7 +1,8 @@
 // db/models/billing/balance.ts
 import * as TypeORM from "typeorm";
-const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+const { Entity, PrimaryGeneratedColumn, Column, Index } = TypeORM;
 
+@Index("ux_balance_team_transaction", ["team_id", "transaction_id"], { unique: true })
 @Entity("balance")
 export class BalanceTable {
     @PrimaryGeneratedColumn()

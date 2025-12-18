@@ -23,9 +23,21 @@ export class MainTable {
   @Column('varchar')
   reg_n!: string; // VAT номер компании
 
-  @Column('varchar')
-  adress!: string; // адрес компании
+  @Column({default:"", type: 'char', length: 2 })
+  country!: string; // ISO-2 код страны (PT, LV, DE, RU и т.п.)
+    
+  @Column('varchar',{default:""})
+  postal_code!: string; 
+  
+  @Column('varchar',{default:""})
+  address_line1!: string; 
+  
+  @Column('varchar',{default:""})
+  address_line2!: string; 
 
+  @Column('varchar',{default:""})
+  city!: string; 
+  
   @Column('varchar')
   email!: string; // email компании
 

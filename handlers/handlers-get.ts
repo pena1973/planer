@@ -87,7 +87,11 @@ export async function getMain(
     const main = {
       title: row.title,
       reg_n: row.reg_n,
-      adress: row.adress,
+      country: row.country,
+      address_line1: row.address_line1,
+      address_line2: row.address_line2,
+      city: row.city,
+      postal_code: row.postal_code,
       email: row.email,
       phone: row.phone,
       person: row.person,
@@ -618,7 +622,7 @@ export async function getClient(
       reg_n: receivedClient?.reg_n ?? "",
       title: receivedClient?.title ?? "",
       country: receivedClient?.country ?? "",
-      customerId: receivedClient?.customer_id ?? "",
+      stripe_customer_id: receivedClient?.stripe_customer_id ?? "",
     } as ClientItem;
 
     return client;
@@ -675,7 +679,7 @@ export async function getClients(
           title: client.title,
           teamId: client.team_id,
           country: client?.country ?? "",
-          customerId: client?.customer_id ?? "",
+          stripe_customer_id: client?.stripe_customer_id ?? "",
         } as ClientItem;
       })
 
@@ -688,7 +692,7 @@ export async function getClients(
     //  logger
     void ulogger.error({
       userId: userId,
-      location: "handlers/handlers-get/getClients",
+      location: "s",
       event: "basa_error",
       message: `catch: ${message}`,
       context: "export async function getClients(",
@@ -1003,9 +1007,9 @@ export async function getLoadStatuses(
 ): Promise<{ idc_load: number, status: StatusEnum }[]> {
   const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
-  if (!teamId) {  return [] as { idc_load: number, status: StatusEnum }[];}
-  if (!userId) {  return [] as { idc_load: number, status: StatusEnum }[];}
- 
+  if (!teamId) { return [] as { idc_load: number, status: StatusEnum }[]; }
+  if (!userId) { return [] as { idc_load: number, status: StatusEnum }[]; }
+
   try {
     const receivedStatuses = await unitLoadRepository
       .createQueryBuilder('unitLoad')
@@ -1664,7 +1668,7 @@ export async function getTCardFull(
       coment: tCardtab.coment,
       status: tCardtab.status,
       modified: false,
-      
+
     } as TCardItem
 
     return tCard
@@ -1836,7 +1840,7 @@ export async function getTCardsTerms(
           duration: oper.oper_duration,
           interruptible: oper.action_interruptible,
           koef: 1,
-          fixOperIdc:oper.fixOperIdc
+          fixOperIdc: oper.fixOperIdc
         },
 
       }
@@ -2300,7 +2304,7 @@ export async function getTCardOperations(
       .leftJoin('actions', 'action', 'oper.action_id = action.id')
       .leftJoin('t_cards', 'tcard', 'oper.tcard_id = tcard.id')
       .addSelect([
-        'oper.id', 'oper.idc', 'oper.order', 'oper.duration', 'oper.status', 'oper.coment','oper.fix_oper_idc',
+        'oper.id', 'oper.idc', 'oper.order', 'oper.duration', 'oper.status', 'oper.coment', 'oper.fix_oper_idc',
         'stage.id', 'stage.code', 'stage.idc',
         'action.id', 'action.title', 'action.code', 'action.interruptible',
         'tcard.id', 'tcard.idc', 'tcard.date'
@@ -2466,7 +2470,7 @@ export async function getUsersUnits(
     const activeUsers = await usersRepository.find({ where: filter });
 
     //if (activeUsers.length === 0) {
-      //  logger
+    //  logger
     //   void ulogger.warn({
     //     userId: userId,
     //     location: "handlers/handlers-get/getUsersUnits",
@@ -2482,7 +2486,7 @@ export async function getUsersUnits(
         userUnits: [],
         message: t('mes.noTeamUsers'),
       };
-     }
+    }
 
     // Шаг 2: Получаем юзеров с юнитами 
     const usersUnits = await usersUnitsRepository
@@ -2712,7 +2716,9 @@ export async function getInvoices(
           id: invoice.id,
           date: invoice.paid_at ? YYYYMMDD(invoice.paid_at) : "",
           invoice: `Invoice number ${invoice.stripe_invoice_number}`,
-          link: invoice.invoice_pdf_url ?? ""
+          amount: Number(invoice.amount_total)/100,
+          currency: invoice.currency,
+          // link: invoice.invoice_pdf_url ?? ""
         } as InvoiceItem;
       });
 
@@ -2726,7 +2732,7 @@ export async function getInvoices(
     //  logger
     void ulogger.error({
       userId: userId,
-      location: "services/cards/getInvoices",
+      location: "handlers/handlers-get/getInvoices",
       event: "basa_error",
       message: `catch: ${message}`,
       context: "export async function getInvoices(",
@@ -2734,7 +2740,53 @@ export async function getInvoices(
     return [] as InvoiceItem[];
   }
 }
+//!счета
+export async function getInvoice(
+  userId: number,
+  locale: string,
+  teamId: number,
+  invoiceId: number,
+  invoicesRepository: Repository<InvoiceTable>
+): Promise<InvoiceTable | null> {
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
+  try {
+    const receivedInvoice = await invoicesRepository.findOne({
+      where: { id: invoiceId },
+    });
+
+    if (!receivedInvoice) {
+      //  logger
+      void ulogger.warn({
+        userId: userId,
+        location: "handlers/handlers-get/getInvoice",
+        event: "warn",
+        message: `При запросе инвойса по id: ${invoiceId} - он не найден, team_id: ${teamId}`,
+        context: "export async function getInvoice(",
+      }).catch(() => {
+        console.error("logger error");
+        return receivedInvoice;
+      });
+    }
+
+    return receivedInvoice;
+
+  } catch (e: unknown) {
+    let message = t('mes.error');
+    if (e instanceof Error) {
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
+    }
+    //  logger
+    void ulogger.error({
+      userId: userId,
+      location: "handlers/handlers-get/getInvoice",
+      event: "basa_error",
+      message: `catch: ${message}`,
+      context: "export async function getInvoices(",
+    }).catch(() => { console.error("logger error") });
+    return null;
+  }
+}
 //!тех поддержка получение
 export async function getSuportMails(
   userId: number,
@@ -2827,14 +2879,14 @@ export async function getLeads(
         return {
           id: lead.id,
           date: lead.created_at ? YYYYMMDD(lead.created_at) : "",
-          source: lead.source as LeadSource,          
+          source: lead.source as LeadSource,
           name: lead.name,
           email: lead.email,
           company: lead.company,
           time: lead.time,
           message: lead.message,
           agree: lead.agree,
-          locale: lead.locale,          
+          locale: lead.locale,
           // hcaptchaToken: string; // если подключишь hCaptcha
           status: lead.status as LeadStatus,
           notes: lead.notes,
@@ -2851,7 +2903,7 @@ export async function getLeads(
     //  logger
     void ulogger.error({
       userId: userId,
-       location: "handlers/handlers-get/getLeads",
+      location: "handlers/handlers-get/getLeads",
       event: "basa_error",
       message: `catch: ${message}`,
       context: "export async function getLeads(",

@@ -45,7 +45,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BalanceTable = void 0;
 // db/models/billing/balance.ts
 const TypeORM = __importStar(require("typeorm"));
-const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+const { Entity, PrimaryGeneratedColumn, Column, Index } = TypeORM;
 let BalanceTable = class BalanceTable {
 };
 exports.BalanceTable = BalanceTable;
@@ -90,5 +90,6 @@ __decorate([
     __metadata("design:type", String)
 ], BalanceTable.prototype, "transaction_id", void 0);
 exports.BalanceTable = BalanceTable = __decorate([
+    Index("ux_balance_team_transaction", ["team_id", "transaction_id"], { unique: true }),
     Entity("balance")
 ], BalanceTable);

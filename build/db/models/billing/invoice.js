@@ -108,10 +108,6 @@ __decorate([
     __metadata("design:type", Object)
 ], InvoiceTable.prototype, "hosted_invoice_url", void 0);
 __decorate([
-    Column({ name: 'invoice_pdf_url', type: 'text', nullable: true, default: null }),
-    __metadata("design:type", Object)
-], InvoiceTable.prototype, "invoice_pdf_url", void 0);
-__decorate([
     Column({ name: 'customer_email', type: 'varchar', length: 255, nullable: true, default: null }),
     __metadata("design:type", Object)
 ], InvoiceTable.prototype, "customer_email", void 0);

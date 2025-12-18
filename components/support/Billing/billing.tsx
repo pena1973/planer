@@ -66,8 +66,6 @@ export const Billing: React.FC<BillingProps> = ({
   const [expandTeams, setExpandTeams] = useState(false);
   const [expandInvoices, setExpandInvoices] = useState(false);
 
-
-
   const mainTeam = useMemo(() => generateTeamNumber(team.prefix, team.id), [team]);
   const active = useMemo(() => teamActivity?.find(a => a.teamId === team.id)?.active ?? false, [team, teamActivity]);
 
@@ -118,11 +116,42 @@ export const Billing: React.FC<BillingProps> = ({
 
   }, [])
 
+  const onDownloadInvoicePdf = async (invoiceId: number, token: string, locale: string) => {
+    const res = await fetch(`/api/billing/invoice-pdf?invoiceId=${invoiceId}&teamId=${team.id}&userId=${user.id}`, {
+      method: 'GET',
+      headers: new Headers({
+        Authorization: 'Basic ' + token,
+        'Content-Type': 'application/json',
+        'X-Lang': locale,
+      }),
+    });
+
+    if (!res.ok) {
+      // тут можешь setMessage / toast
+      throw new Error(`PDF download failed: ${res.status}`);
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    // форсируем скачивание
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice_${invoiceId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+  };
+
   const billsReactNodes = invoicesValue.map((invoice, index) => {
     return (
       <tr key={index}>
         <td>{invoice.date}</td>
         <td>{invoice.invoice}</td>
+        <td>{invoice.amount}</td>
+        <td>{invoice.currency}</td>
         <td>
           <Image
             className={styles.icon_bill}
@@ -131,7 +160,8 @@ export const Billing: React.FC<BillingProps> = ({
             width={20}
             height={20}
             role="button"
-            onClick={() => invoice.link && window.open(invoice.link, '_blank')}
+            // onClick={() => invoice.link && window.open(invoice.link, '_blank')}
+            onClick={() => invoice.id && onDownloadInvoicePdf(invoice.id, token, i18n.language)}
           />
         </td>
       </tr>
@@ -143,7 +173,7 @@ export const Billing: React.FC<BillingProps> = ({
     return (
       <tr key={index}>
         <td>{generateTeamNumber(team.prefix, team.id)}</td>
-        <td>{team.title}</td>
+        <td>{team.title}</td>        
         <td>{active ? t('bills.active') : "-"}</td>
         <td>
           <button className={styles.bt} onClick={(e) => onStateTeam(team.id, !active)}>
@@ -407,6 +437,8 @@ export const Billing: React.FC<BillingProps> = ({
           <tr>
             <th>{t('bills.date')}</th>
             <th>{t('bills.title')}</th>
+            <th>{t('bills.amount1')}</th>
+            <th>{t('bills.currency')}</th>
             <th>{t('bills.download')}</th>
 
           </tr>

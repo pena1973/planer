@@ -9,7 +9,7 @@ export default function Success() {
   const { push } = router
 
   const [countdown, setCountdown] = useState(10)
-
+  
   useEffect(() => {
     if (countdown <= 0) {
       push('/support')
@@ -28,7 +28,8 @@ export default function Success() {
       <p className="text">Баланс будет обновлён в течение пары секунд.</p>
       <button
         className="back_button"
-        onClick={() => push('/support')}
+        onClick={() => push('/support')
+        }
       >
         Возврат ({countdown})
       </button>

@@ -14,7 +14,7 @@ export const getInvoices = async (
 ) => {
 
     try {
-        const res = await fetch(`api/billing/invoice-api?userId=${userId}&teamId=${teamId}`,
+        const res = await fetch(`api/billing/invoices-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
                 headers: new Headers({

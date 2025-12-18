@@ -338,7 +338,6 @@
     "fixing": "fixing",
     "showClosed": "Show closed",
     "comment": "Comment"
-    
   },
   "reportUnitsKPI": {
     "wait": "Wait...",
@@ -395,24 +394,23 @@
     "paid": "Paid",
     "client_requisites": "Client details",
     "payment": "Payment",
-    "pay": "Pay",
-    "balance": "Balance",
+    "pay": "Pay for access",
+    "balance": "Available",
     "amount": "Payment amount",
     "attached_teams": "Teams",
     "no_attached_teams": "No teams",
     "teamNumber": "Team number",
     "teamTitle": "Team name",
-    "stateActive": "State",
+    "stateActive": "Status",
     "invoises": "Invoices",
-    "invoises_notice": "Invoices are issued on the 1st for the previous month",
-    "forecast": "Expense",
-    "VAT": "with VAT",
-    "price": "Price per point",
-    "point": "point",
-    "notification": "Funds are deducted daily. When the balance is depleted, all teams will be set to inactive.",
+    "VAT": "VAT included",
+    "point": "service usage units",
+    "notification": "Service usage units are charged daily. When all usage units are exhausted, access to the service will be temporarily suspended (all teams will be set to inactive).",
     "active": "active",
     "activate": "activate",
-    "deactivate": "deactivate"
+    "deactivate": "deactivate",
+    "amount1": "amount",
+    "currency": "currency"
   },
   "profile": {
     "buttonChangePass": "Save",

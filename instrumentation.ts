@@ -1,3 +1,4 @@
+// instrumentation.ts
 import 'server-only';
 export const runtime = 'nodejs';
 
@@ -8,7 +9,7 @@ export const config = { runtime: 'nodejs' }; // ← обязали Node
 
 // Next.js вызовет register() при старте Node-процесса
 export async function register() {
-    
+  
   try {
     // Опционально: выключатель, чтобы не стартовать в build-окружении и т.п.
     if (!Boolean(process.env.JOBS_ENABLED)) return;
