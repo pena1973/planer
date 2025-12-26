@@ -1,0 +1,103 @@
+// @import '@/styles/colors.scss';
+@use '@/styles/colors.scss' as colors;
+// @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+
+
+/***********
+ * Контейнер
+ ***********/
+.container {
+  margin: 5px;
+  padding: 3px;
+  background-color: colors.$thirds_container_background_color;
+
+  /* Светлый бежево-серый фон */
+  border: colors.$border;
+  border-radius: colors.$border-radius;
+  width: 100%;
+}
+
+
+/* таблица — оставляю твои правила */
+._table thead th:nth-child(1) {
+  width: 100px;
+}
+
+._table thead th:nth-child(2) {
+  width: 250px;
+}
+
+._table thead th:nth-child(3) {
+  width: 30px;
+}
+
+._table thead th:nth-child(4) {
+  width: 20px;
+}
+
+._table thead th:nth-child(5) {
+  width: 20px;
+}
+
+._table td:nth-child(3) {
+  text-align: center;
+}
+
+._table td:nth-child(4) {
+  text-align: center;
+}
+
+._table td:nth-child(5) {
+  text-align: center;
+}
+
+._table thead th:nth-child(4) {
+  width: 70px;
+}
+
+.icon_bill {
+  cursor: pointer;
+}
+
+// ....................
+
+.addBlock {
+
+  padding: 6px;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
+
+}
+
+
+.field {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+
+  input,
+  select {
+    border: colors.$border;
+    border-radius: colors.$border-radius;
+    //  min-width: 140px;
+  }
+}
+
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.coment {
+  width: 100%;
+  // min-height: 60px;
+  // padding: 8px;
+  border: colors.$border;
+  border-radius: colors.$border-radius;
+  resize: none;
+}

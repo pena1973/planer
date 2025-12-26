@@ -12,6 +12,8 @@ import { downloadTCards } from '@/services/initial/downloadTCards';
 import { downloadUnits } from '@/services/initial/downloadUnits';
 import { downloadUnutsActions } from '@/services/initial/downloadUnutsActions';
 import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExceptions';
+import { downloadTeams } from '@/services/initial/downloadTeams';
+
 
 import { signAgreement } from '@/services/initial/signAgreement';
 
@@ -241,6 +243,11 @@ const step = useAppSelector((state: RootState) => {
           await downloadSchedule(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadTCards(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadLoads(user.id, team.id, token, t, locale, setMessage, dispatch);
+          
+          // если это системный юзер(поддержка), то грузим все команды
+          if (user.isSystem)
+              await downloadTeams(user.id, token, t, locale, setMessage, dispatch);
+
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           dispatch(setStep(5));
           // Переходим на страницу "cards"

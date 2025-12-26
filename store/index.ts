@@ -37,7 +37,7 @@
 
 
 import { configureStore, combineReducers } from '@reduxjs/toolkit'
-import { authSlice, catalogSlice, dataSlice, planSlice, viewSlice } from './slices'
+import { authSlice, catalogSlice, dataSlice, planSlice, viewSlice, adminSlice } from './slices'
 import { persistReducer, persistStore } from 'redux-persist'
 import storageSession from 'redux-persist/lib/storage/session'
 import type { AnyAction } from '@reduxjs/toolkit'
@@ -49,6 +49,7 @@ const appReducer = combineReducers({
   dataSlice: dataSlice.reducer,
   planSlice: planSlice.reducer,
   viewSlice: viewSlice.reducer,
+  adminSlice: adminSlice.reducer,
 })
 
 // ВАЖНО: перехватываем resetApp и откатываем дерево в initialState
@@ -62,7 +63,7 @@ const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: A
 const persistConfig = {
   key: 'root',
   storage: storageSession,
-  whitelist: ['authSlice', 'catalogSlice', 'dataSlice', 'planSlice', 'viewSlice'],
+  whitelist: ['authSlice', 'catalogSlice', 'dataSlice', 'planSlice', 'viewSlice', 'adminSlice'],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

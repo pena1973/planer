@@ -13,6 +13,15 @@ export interface InvoiceItem {
   currency: string,
   // link:string, // ссылка на инвойс в страйп    
 }
+export interface UsageItem {
+  teamId: number,
+  date: string,
+  amount: number,
+  coment: string,
+  id?: number,
+  direction?: string; // направление приход/расход
+  is_gift?: boolean; // это подарочный баланс?
+}
 export type JobScheduleType = 'monthly' | 'daily' | 'hourly' | 'every_x_minutes';
 
 export interface JobSettingItem {
@@ -25,6 +34,8 @@ export interface JobSettingItem {
   daily_time?: string | null;     // 'HH:mm'
   hourly_minute?: number | null;  // 0..59
   every_minutes?: number | null;  // >0
+  next_run_at?:string,
+  last_run_at?:string
 }
 
 export interface ClientItem {

@@ -35,6 +35,7 @@ import { BanerTable } from './../db/models/support/baners';
 import { BalanceTable } from './../db/models/billing/balance';
 import { MainTable } from './../db/models/billing/main';
 import { ActiveTimeTable } from "./../db/models/billing/active_time";
+import { JobSettingsTable } from "./../db/models/job/job-settings";
 // types
 import {
   StatusEnum, UserItem, UnitItem, UnitLoadItem,
@@ -42,10 +43,10 @@ import {
   TimeTypeEnum, TimeZoneEnum, TCardOperationTermsItem,
   TCardItem, TCardOperationItem, TCardProductItem, UserUnitItem,
   TCardStageItem, ActionItem, UOMItem, ScheduleItem, SettingsItem,
-  TCardTermsItem, ProductItem, TemplateItem, TeamItem
+  TCardTermsItem, ProductItem, TemplateItem, TeamItem,
 } from './../types/types';
 
-import { ClientItem, InvoiceItem, MainItem } from './../types/service-types';
+import { ClientItem, InvoiceItem, MainItem, UsageItem, JobSettingItem } from './../types/service-types';
 import { LeadItem, LeadSource, LeadStatus } from './../types/leads-types';
 import { BanerItem } from './../types/service-types';
 
@@ -265,7 +266,71 @@ export async function getCostForDay(
     return undefined
   }
 }
+export async function getUsage(
+  userId: number | null,
+  locale: string,
+  date: Date | string,   // yyyy-mm-dd
+  teamId: number,
+  balanceRepository: Repository<BalanceTable>
+): Promise<UsageItem[]> {
 
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+
+  try {
+    const target = YYYYMMDD(date) // yyyy-mm-dd
+
+    // тянем только нужные строки: команда + все транзакции на дату и раньше
+    const rows = await balanceRepository.find({
+      where: { team_id: teamId, },
+      select: ['amount', 'direction', 'date', 'is_gift', 'is_trial', 'coment'],
+    })
+
+    if (rows.length === 0) {
+      //  logger
+      void ulogger.warn({
+        userId: userId,
+        location: "handlers/handlers-get/getBalance",
+        event: "warn",
+        message: `нет записей баланса что подозрительно: userId=${userId} date=${target} teamId=${teamId}`,
+        context: "const rows = await balanceRepository.find({",
+      }).catch(() => { console.error("logger error") });
+    }
+    const usage = rows.map(row => {
+      let coment = "";
+      if (row.is_trial && row.direction === "+") coment = "Стартовое количество единиц";
+      // else if (row.is_gift && row.direction === "+") coment = "Подарочные единицы";
+      else if (row.is_gift) coment = row.coment;
+      else if (row.direction === "+") coment = "Добавлено  единиц";
+      else if (row.direction === "-") coment = "Использовано  единиц";
+
+
+      return {
+        teamId: row.team_id,
+        date: row.date,
+        amount: (row.direction === "-") ? -row.amount : row.amount,
+        coment: coment,
+      }
+    })
+
+    return usage;
+
+  } catch (e: unknown) {
+    let message = t('mes.error');
+    if (e instanceof Error) {
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
+    }
+    //  logger
+    void ulogger.error({
+      userId: userId,
+      location: "handlers/handlers-get/getUsage",
+      event: "basa_error",
+      message: `catch: ${message}`,
+      context: "export async function getUsage(",
+    }).catch(() => { console.error("logger error") });
+
+    return [] as UsageItem[];
+  }
+}
 //! баланс команды
 export async function getBalance(
   userId: number | null,
@@ -283,7 +348,7 @@ export async function getBalance(
     // тянем только нужные строки: команда + все транзакции на дату и раньше
     const rows = await balanceRepository.find({
       where: { team_id: teamId, date: LessThanOrEqual(target) },
-      select: ['summa', 'direction', 'date'],
+      select: ['amount', 'direction', 'date'],
     })
 
     if (rows.length === 0) {
@@ -298,7 +363,7 @@ export async function getBalance(
     }
     // суммируем с учётом направления
     const total = rows.reduce((acc, tr) => {
-      const amount = Number(tr.summa) || 0;
+      const amount = Number(tr.amount) || 0;
       switch (tr.direction) {
         case '+':
           return acc + amount;
@@ -349,8 +414,8 @@ export async function getBalances(
       .addSelect(
         `SUM(
          CASE
-           WHEN b.direction = '+' THEN COALESCE((b.summa)::numeric, 0)
-           WHEN b.direction = '-' THEN -COALESCE((b.summa)::numeric, 0)
+           WHEN b.direction = '+' THEN COALESCE((b.amount)::numeric, 0)
+           WHEN b.direction = '-' THEN -COALESCE((b.amount)::numeric, 0)
            ELSE 0
          END
        )`,
@@ -407,6 +472,65 @@ export async function getBalances(
     }).catch(() => { console.error("logger error") });
 
     return [] as { teamId: number; balance: number }[];
+  }
+}
+// Установка настройки рег задания
+export async function getJobSetting(
+  userId: number,
+  locale: string,
+  jobSettingRepository: Repository<JobSettingsTable>,
+) {
+
+  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  try {
+
+    const existingJobSetting = await jobSettingRepository.find();
+
+    if (!existingJobSetting) return [] as JobSettingItem[]
+
+    if (existingJobSetting.length === 0) {
+      //  logger
+      void ulogger.error({
+        userId: userId,
+        location: "handlers/handlers-get/getJobSetting",
+        event: "error",
+        message: `нет настроек рег заданий что быть не может: await jobSettingRepository.find()`,
+        context: " const existingJobSetting = await jobSettingRepository.find();",
+      }).catch(() => { console.error("logger error") });
+    }
+
+    const jobSetting = existingJobSetting.map(job => {
+      return {
+        job_key: job.job_key,
+        enabled: job.enabled,
+        timezone: job.timezone,
+        schedule_type: job.schedule_type,
+        monthly_day: job.monthly_day,
+        monthly_end_of_month: job.monthly_end_of_month,
+        daily_time: job.daily_time,
+        hourly_minute: job.hourly_minute,
+        every_minutes: job.every_minutes,
+        next_run_at: job.next_run_at ?? undefined,
+        last_run_at: job.last_run_at ?? undefined
+      } as JobSettingItem
+    })
+
+    return jobSetting;
+  } catch (e: unknown) {
+    let message = t('mes.error');
+    if (e instanceof Error) {
+      message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
+    }
+    //  logger
+    void ulogger.error({
+      userId: userId,
+      location: "handlers/handlers-get/getJobSetting",
+      event: "basa_error",
+      message: `catch: ${message}`,
+      context: "export async function getJobSetting(",
+    }).catch(() => { console.error("logger error") });
+
+    return [] as TeamItem[];
   }
 }
 
@@ -2716,7 +2840,7 @@ export async function getInvoices(
           id: invoice.id,
           date: invoice.paid_at ? YYYYMMDD(invoice.paid_at) : "",
           invoice: `Invoice number ${invoice.stripe_invoice_number}`,
-          amount: Number(invoice.amount_total)/100,
+          amount: Number(invoice.amount_total) / 100,
           currency: invoice.currency,
           // link: invoice.invoice_pdf_url ?? ""
         } as InvoiceItem;

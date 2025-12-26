@@ -410,8 +410,18 @@
     "activate": "activate",
     "deactivate": "deactivate",
     "amount1": "amount",
-    "currency": "currency"
+    "currency": "currency",
+    "usage": "Usage",
+    "coment": "Comment",
+    "qty": "Quantity"    
   },
+   "jobs": {
+    "job_key": "key", 
+    "enabled": "enabled", 
+    "schedule": "schedule", 
+    "next_run_at": "next run", 
+    "last_run_at": "last run" 
+   },
   "profile": {
     "buttonChangePass": "Save",
     "buttonChangeName": "Save",

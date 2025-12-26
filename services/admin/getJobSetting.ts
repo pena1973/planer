@@ -1,30 +1,24 @@
-
-import { JobSettingItem } from '@/types/service-types'
-
+// services/admin/getJobs
+import { JobSettingItem } from "@/types/service-types";
 import { ulogger } from "./../../lib/common/universal-logger";
 
-export const setJobSetting = async (
-    userId: number,
-    jobSetting: JobSettingItem,
+export const getJobSetting = async (    
+    userId: number,    
     token: string,
     t: (key: string) => string,
     locale: string,
     setMessage: (msg: string) => void,
-    setJobs: (val: JobSettingItem[]) => void,
-) => {
+    setJobs: (val: JobSettingItem[]) => void,) => {
 
     try {
-        const res = await fetch(`api/admin/job-setting-api`,
+
+        const res = await fetch(`api/admin/job-setting-api?userId=${userId}`,
             {
-                method: 'POST',
+                method: 'get',
                 headers: new Headers({
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
-                body: JSON.stringify({
-                    jobSetting: jobSetting,
-                    userId: userId,
                 }),
             }
         );
@@ -35,27 +29,31 @@ export const setJobSetting = async (
             //  logger
             void ulogger.error({
                 userId: userId,
-                location: "services/admin/setJobSetting",
+                location: "services/admin/getJobSetting",
                 event: "endpoint_error",
                 message: `res.status=${res.status} error=${error}`,
-                context: "export const setJobSetting = async (",
+                context: "export const getBalance = async (",
             }).catch(() => { console.error("logger error") });
+
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
-                setMessage("Успешно изменено раcписание");
+                const jobSetting = receivedData.jobSetting as JobSettingItem[];
+                setJobs(jobSetting);
+                setMessage("");
             } else {
                 setMessage(receivedData.message);
                 //  logger
                 void ulogger.error({
                     userId: userId,
-                    location: "services/admin/setJobSetting",
+                    location: "services/admin/getJobSetting",
                     event: "error",
-                    message: `success=false запрос api/admin/job-setting-api`,
-                    context: "export const setJobSetting = async (",
+                    message: `success=false запрос api/billing/balance-api?userId=${userId}`,
+                    context: "export const getBalance = async (",
                 }).catch(() => { console.error("logger error") });
             }
         }
+
     } catch (e: unknown) {
         let error = "";
         if (e instanceof Error) {
@@ -65,12 +63,10 @@ export const setJobSetting = async (
         //  logger
         void ulogger.error({
             userId: userId,
-            location: "services/admin/setJobSetting",
+            location: "services/admin/getJobSetting",
             event: "endpoint_error",
             message: `catch: ${error}`,
-            context: "export const setJobSetting = async (",
+            context: "export const getBalance = async (",
         }).catch(() => { console.error("logger error") });
     }
-
-
 };

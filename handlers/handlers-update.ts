@@ -58,6 +58,7 @@ export async function updateBalance_old(
   amount: number,
   date: string,
   is_trial: boolean,
+  is_gift: boolean,
   document: string,
   direction: string,
   coment: string,
@@ -72,7 +73,7 @@ export async function updateBalance_old(
 
       team_id: teamId,
       date: date,
-      summa: amount,
+      amount: amount,
       direction: direction,
       document: document,
       coment: coment,
@@ -88,7 +89,7 @@ export async function updateBalance_old(
     // Если транзакция существует, обновляем ее
     existingBalance.team_id = teamId;
     existingBalance.date = date;
-    existingBalance.summa = amount;
+    existingBalance.amount = amount;
     existingBalance.direction = direction;
     existingBalance.document = document;
     existingBalance.coment = coment;
@@ -113,6 +114,7 @@ export async function updateBalance(
   amount: number,
   date: string,
   is_trial: boolean,
+  is_gift: boolean,
   document: string,
   direction: string,
   coment: string,
@@ -124,42 +126,42 @@ export async function updateBalance(
     return { success: false, message: "transactionId is required" };
   }
 
-  // ✅ Идемпотентность: только team_id + transaction_id (без date)
+  // ✅ Идемпотентность: только team_id + transaction_id (без date) и это не триал и не гифт
+  
   const existingBalance = await balanceRepository.findOne({
     where: { team_id: teamId, transaction_id: transactionId },
   });
 
-  // Если уже есть — НЕ создаём второй раз
-  if (existingBalance) {
+  // Если уже есть  и это не гифт и не триал — НЕ создаём второй раз
+  if (existingBalance ) {
     // Можно освежить "косметику" (не трогая сумму, чтобы не ломать учёт)
     let changed = false;
-
+    if (existingBalance.amount !== amount) { existingBalance.amount = amount; changed = true; }
     if (existingBalance.date !== date) { existingBalance.date = date; changed = true; }
     if (existingBalance.direction !== direction) { existingBalance.direction = direction; changed = true; }
     if (existingBalance.document !== document) { existingBalance.document = document; changed = true; }
     if (existingBalance.coment !== coment) { existingBalance.coment = coment; changed = true; }
     if (existingBalance.is_trial !== is_trial) { existingBalance.is_trial = is_trial; changed = true; }
-
-    // ❗ сумму и team_id/transaction_id обычно не меняем
-    // if (existingBalance.summa !== amount) { ... }  // НЕ рекомендую
+    if (existingBalance.is_gift !== is_gift) { existingBalance.is_gift = is_gift; changed = true; }
 
     if (changed) {
       await balanceRepository.save(existingBalance);
     }
-
     return { success: true, existingBalance, isNew: false };
   }
 
+  
   // ✅ Если нет — создаём новую запись
   const newBalance = balanceRepository.create({
     team_id: teamId,
     transaction_id: transactionId,
     date,
-    summa: amount,
+    amount: amount,
     direction,
     document,
     coment,
     is_trial,
+    is_gift,
   });
 
   try {

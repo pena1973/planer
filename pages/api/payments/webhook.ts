@@ -129,6 +129,7 @@ async function upsertInvoiceAndCredit(invoice: Stripe.Invoice): Promise<boolean>
             amountEUR,
             dateISO,
             false,
+            false,
             `Stripe top-up ${dateISO}`,
             '+',
             'Stripe invoice top-up'
@@ -202,6 +203,7 @@ async function upsertPaymentIntentAndCredit(pi: Stripe.PaymentIntent): Promise<b
     transactionId,
     amountEUR,
     dateISO,
+    false,
     false,
     `Stripe top-up ${dateISO}`,
     '+',

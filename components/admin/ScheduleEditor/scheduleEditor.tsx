@@ -37,7 +37,7 @@ export const ScheduleEditor: React.FC<Props> = ({ initial, onSubmit, token, user
 
     // --- универсальный апдейтер
     const set = <K extends keyof JobSettingItem>(key: K, value: JobSettingItem[K]) =>
-        setForm(prev => ({ ...prev, [key]: value }));
+        setForm(prev => ({ ...prev, [key.trim()]: value }));
 
     // --- текстовая подсказка
     const hint = useMemo(() => {

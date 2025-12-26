@@ -415,7 +415,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 phone: client.phone || '',
             },
 
-            items: [{ name: 'Service usage credit', qty: Number(invoiceData.amount_total) / 100, unit: Number(invoiceData.amount_total) / 100 }], // сумма в центах
+            items: [{ name: 'Service usage credit', qty: Number(invoiceData.amount_total) / 100, unit: 1 }], // сумма в центах
         };
 
         const doc = buildPdfDoc(inv);

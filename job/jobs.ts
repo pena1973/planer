@@ -73,7 +73,8 @@ export const jobs: Record<string, JobHandler> = {
                     dayCost / 100,
                     prevDay,
                     false,
-                    'dayly charge-' + prevDay, "-", "")
+                    false,
+                    'daily charge-' + prevDay, "-", "")
 
                 if (!balanceRes.success) {
                     console.log(`расход не списан, дата: ${prevDay} teamId: ${team.main_team}`);

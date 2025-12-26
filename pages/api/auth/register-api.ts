@@ -157,6 +157,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             100,
             todayStr,
             true,
+            false,
             'trial - ' + todayStr, "+", "")
 
           if (!balanceRes.success) {

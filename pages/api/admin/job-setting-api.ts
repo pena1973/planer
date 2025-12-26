@@ -9,6 +9,8 @@ import { getLocaleFromHeader } from './../../../lib/server/locale';
 import { getTypedRepository } from '../../../db/utilites'
 import { JobSettingsTable } from './../../../db/models/job/job-settings';
 import { updateJobSetting } from './../../../handlers/handlers-update';
+import { getJobSetting } from './../../../handlers/handlers-get';
+
 import { JobSettingItem, JobScheduleType } from "@/types/service-types";
 
 // ⬇️ добавили
@@ -27,6 +29,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
     switch (req.method) {
+      case 'GET': {
+        const { userId } = req.query;
+        const jobSetting = await getJobSetting(Number(userId), locale, jobSettingsRepository);
+       
+        res.status(200).json({
+          success: true,
+          jobSetting: jobSetting,         
+        });
+        break
+      }
       case 'POST': {
         const { jobSetting, userId } = req.body as RequestBody;
 
@@ -62,6 +74,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           daily_time: saved.daily_time,
           hourly_minute: saved.hourly_minute,
           every_minutes: saved.every_minutes,
+
           // если в твоём типе JobSettingItem есть это поле — верни его,
           // если нет — можно просто добавить отдельным полем в ответ:
           // next_run_at: saved.next_run_at ?? undefined,

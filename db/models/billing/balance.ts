@@ -15,7 +15,7 @@ export class BalanceTable {
     date!: string; // дата транзакции
 
     @Column('decimal', { precision: 12, scale: 2, default: 0 })
-    summa!: number; // сумма с 2 знаками после запятой
+    amount!: number; // сумма с 2 знаками после запятой
 
     @Column('varchar', { default: "" })
     direction!: string; // направление приход/расход
@@ -28,6 +28,9 @@ export class BalanceTable {
 
     @Column('boolean', { default: false })
     is_trial!: boolean; // это триальный баланс?
+
+    @Column('boolean', { default: false })
+    is_gift!: boolean; // это подарочный баланс?
 
     @Column('int')
     team_id!: number;
