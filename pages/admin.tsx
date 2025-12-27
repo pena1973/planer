@@ -1,12 +1,10 @@
 import Layout from "@/components/Layout/layout";
 import { useState, } from "react";
-
-import ScheduleEditor from "@/components/admin/ScheduleEditor/scheduleEditor";
 import { SupportMailsAdmin } from "@/components/admin/SupportMailsAdmin/supportMailsAdmin";
 import { Leads } from "@/components/admin/Leads/leads";
 import { Usages } from "@/components/admin/Usages/usages";
 
-import { JobSettingItem, BanerItem } from '@/types/service-types'
+import { BanerItem } from '@/types/service-types'
 
 import { useTranslation } from 'react-i18next';
 
@@ -18,7 +16,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
 
 import { deactivateTeams } from '@/services/admin/deactivateTeams';
-import { setJobSetting } from '@/services/admin/setJobSetting';
+
 import { setBaner } from '@/services/admin/setBaner';
 
 
@@ -41,7 +39,6 @@ export default function Admin() {
 
   const { push } = useRouter();
   const dispatch = useAppDispatch();
-  const [periodCreateInv, setPeriodCreateInv] = useState<string>(getCurrentYM()); // 'YYYY-MM'
   const [periodDeactTeam, setPeriodDeactTeam] = useState<string>(getCurrentYM()); // 'YYYY-MM'
 
   // банер
@@ -96,10 +93,6 @@ export default function Admin() {
     await deactivateTeams(user.id, token, t, i18n.language, setMessage);
   };
 
-  // const setJobSettinghandler = async (jobSetting: JobSettingItem) => {
-  //   await setJobSetting(user.id, jobSetting, token, t, i18n.language, setMessage);
-  // };
-
   return (
     <Layout>
       <div className="container_global" >
@@ -124,20 +117,7 @@ export default function Admin() {
                 />
               </div>
               {expandJobs &&
-                // <><ScheduleEditor
-                //   token={token}
-                //   userId={user.id}
-                //   setMessage={setMessage}
-                //   onSubmit={setJobSettinghandler} />
-
-                //   Список рег заданий с ключами:
-                //   <ol>
-                //     <li>списание баланса — <span>billing:charge</span></li>
-                //     <li>очистка 90 дней — <span>cleanup:core</span></li>
-                //   </ol>
-                //   Состояния рег заданий (доделать)
-
-                // </>
+                
                 <JobSettings
                   userId={user.id}
                   setMessage={setMessage}

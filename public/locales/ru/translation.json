@@ -420,8 +420,8 @@
     "job_key": "Ключ", 
     "enabled": "Активно", 
     "schedule": "Расписание", 
-    "next_run_at": "Последний", 
-    "last_run_at": "Следующий" 
+    "next_run_at": "Следующий", 
+    "last_run_at": "Последний" 
    },
   "profile": {
     "buttonChangePass": "Сохранить",

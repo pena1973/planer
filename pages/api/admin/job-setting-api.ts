@@ -32,10 +32,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'GET': {
         const { userId } = req.query;
         const jobSetting = await getJobSetting(Number(userId), locale, jobSettingsRepository);
-       
+
         res.status(200).json({
           success: true,
-          jobSetting: jobSetting,         
+          jobSetting: jobSetting,
         });
         break
       }
@@ -61,29 +61,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // если next_run_at изменился — обновим в БД
         // (можно обновлять всегда, это дешевле, чем сравнивать даты)
         await jobSettingsRepository.update({ id: saved.id }, { next_run_at: nextRun });
-        saved.next_run_at = nextRun ?? null; // синхронизируем объект для ответа
-
-        // 3) Готовим ответ
-        const jobSetting_: JobSettingItem = {
-          job_key: saved.job_key,
-          enabled: saved.enabled,
-          timezone: saved.timezone,
-          schedule_type: saved.schedule_type as JobScheduleType,
-          monthly_day: saved.monthly_day,
-          monthly_end_of_month: saved.monthly_end_of_month,
-          daily_time: saved.daily_time,
-          hourly_minute: saved.hourly_minute,
-          every_minutes: saved.every_minutes,
-
-          // если в твоём типе JobSettingItem есть это поле — верни его,
-          // если нет — можно просто добавить отдельным полем в ответ:
-          // next_run_at: saved.next_run_at ?? undefined,
-        };
+       
+        // получаем готовый список чтобы обновить
+        const jobSettings = await getJobSetting(Number(userId), locale, jobSettingsRepository);
 
         res.status(200).json({
-          success: true,
-          jobSetting: jobSetting_,
-          next_run_at: saved.next_run_at, // удобно видеть в UI
+          success: true,       
+          jobSetting: jobSettings,
+       
         });
         break;
       }

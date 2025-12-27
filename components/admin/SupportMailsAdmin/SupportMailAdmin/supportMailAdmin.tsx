@@ -123,11 +123,21 @@ export const SupportMailAdmin: React.FC<SupportMailProps> = ({
     {/* {(expand || (!supportMessageValue.basedOn)) && */}
     <div className={styles.container}>
       {(!supportMessageValue.basedOn) && supportMessageValue.status !== StatusEnum.closed &&
-
+        <div >
         <button className={styles.button_mark}
           onClick={e => { changeStatusMail(supportMessageValue.id, newStatus)}}>
           {title}
-        </button>}
+        </button>
+        {expand &&
+        <div className={styles.id_block}>
+          &nbsp; User id: {supportMessage.userId}
+        </div>}
+        {expand &&
+        <div className={styles.id_block}>
+          Team id: {supportMessage.teamId}
+        </div>}
+        </div>
+        }
 
       {!(!supportMessageValue.basedOn) &&
         <Image className={styles.icon_next}

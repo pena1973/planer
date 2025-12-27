@@ -133,19 +133,7 @@ export const JobSettings: React.FC<JobSettingsProps> = ({
     );
   });
 
-  // const jobsReactNodes = jobsValue.map((job, index) => {
-  //   const schedule = "раз в день в 15-00";
-  //   return (
-  //     <tr key={index}>
-  //       <td>{job.job_key}</td>
-  //       <td>{job.enabled}</td>
-  //       {/* <td>{job.timezone}</td> */}
-  //       <td>{schedule}</td>  {/* // описание периодичности запуска задания */}
-  //       <td>{job.next_run_at}</td>
-  //       <td>{job.last_run_at}</td>
-  //     </tr>
-  //   );
-  // });
+  
 
   return (
 
@@ -168,9 +156,9 @@ export const JobSettings: React.FC<JobSettingsProps> = ({
           <tr>
             <th>{t('jobs.job_key')}</th>
             <th>{t('jobs.enabled')}</th>
-            <th>{t('jobs.schedule')}</th>
-            <th>{t('jobs.next_run_at')}</th>
+            <th>{t('jobs.schedule')}</th>            
             <th>{t('jobs.last_run_at')}</th>
+            <th>{t('jobs.next_run_at')}</th>
           </tr>
         </thead>
         <tbody>{jobsReactNodes}

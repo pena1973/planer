@@ -64,7 +64,7 @@ __decorate([
 __decorate([
     Column('decimal', { precision: 12, scale: 2, default: 0 }),
     __metadata("design:type", Number)
-], BalanceTable.prototype, "summa", void 0);
+], BalanceTable.prototype, "amount", void 0);
 __decorate([
     Column('varchar', { default: "" }),
     __metadata("design:type", String)
@@ -81,6 +81,10 @@ __decorate([
     Column('boolean', { default: false }),
     __metadata("design:type", Boolean)
 ], BalanceTable.prototype, "is_trial", void 0);
+__decorate([
+    Column('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], BalanceTable.prototype, "is_gift", void 0);
 __decorate([
     Column('int'),
     __metadata("design:type", Number)

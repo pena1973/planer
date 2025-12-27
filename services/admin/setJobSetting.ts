@@ -43,7 +43,10 @@ export const setJobSetting = async (
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
+                const jobSetting = receivedData.jobSetting as JobSettingItem[];
+                setJobs(jobSetting);
                 setMessage("Успешно изменено раcписание");
+
             } else {
                 setMessage(receivedData.message);
                 //  logger

@@ -24,11 +24,10 @@ overflow-y: auto;
     display: flex;
     padding: 10px;
     flex-direction: column;
-    // border: colors.$border;
-    // border-radius: colors.$border-radius;
+    
     width: 40%;
-    max-width: 450px;
-    // background-color: beige;
+    min-width: 450px;
+    
     margin: 0 5px;
     height: max-content;
 
