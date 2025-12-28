@@ -1,4 +1,4 @@
-// pages/api/agreement-api.ts
+// pages/api/user_agreement-api.ts
 // API для подписания соглашения (agreement)
 // Используется при согласии пользователя с условиями соглашения
 import { ulogger } from "./../../lib/common/universal-logger";
@@ -14,7 +14,9 @@ import { signAgreement } from './../../handlers/handlers-auth';
 interface RequestBody {
   userId: number,
   signedAgreement: boolean,
-  agreementId: number
+  agreementId: number,
+  agreement_text_snapshot: string,
+  agreement_locale: string
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -30,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
       case 'POST':
 
-        const { userId, signedAgreement, agreementId } = req.body as RequestBody;
+        const { userId, signedAgreement, agreementId, agreement_text_snapshot, agreement_locale } = req.body as RequestBody;
 
         if (!agreementId) {
           res.status(200).json({
@@ -48,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // проверяем  есть ли такой логин  если есть - отказ
-        const resUserAgree = await signAgreement(userId, locale, signedAgreement, agreementId, userAgreeRepository)
+        const resUserAgree = await signAgreement(userId, locale, signedAgreement, agreementId, agreement_text_snapshot, agreement_locale, userAgreeRepository)
         if (!resUserAgree.success) {
           res.status(200).json({
             success: false,
@@ -76,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //  logger
     void ulogger.error({
       userId: null,
-      location: "pages/api/agreement-api",
+      location: "pages/api/user_agreement-api",
       event: "api_error",
       message: `catch: ${error}`,
       context: "",

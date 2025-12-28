@@ -39,7 +39,7 @@ export async function getUserById(
   userFindId: number, // кого запрашивает
   locale: string,
   usersRepository: Repository<UserTable>,
-): Promise< UserItem|undefined> {
+): Promise<UserItem | undefined> {
 
   const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
   try {
@@ -79,7 +79,7 @@ export async function getUserById(
     let message = t('mes.error');
     if (e instanceof Error) {
       message = `${t('mes.error')} ${e.message} cause: ${e?.cause}`;
-      
+
     }
     //  logger
     void ulogger.error({
@@ -389,9 +389,9 @@ export async function updateUser(
   name: string | undefined,
   usersRepository: Repository<UserTable>,
 ): Promise<{ success: boolean, savedUser?: UserItem, message?: string }> {
-  
+
   const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
-  
+
   try {
     // Ищем пользователя по ID
     // const user = await usersRepository.findOne({ where: { id: userId } });
@@ -415,7 +415,7 @@ export async function updateUser(
 
       if (hashOld !== user.pass)
         return {
-          success: false,          
+          success: false,
           // message: 'Не совпадает старый пароль',
           message: t('mes.passNotTheSame'),
         }
@@ -443,9 +443,9 @@ export async function updateUser(
       // message: 'Пользователь успешно обновлен.',
       message: t('mes.userUpdated'),
     };
-   } catch (e: unknown) {
+  } catch (e: unknown) {
     const msg = e instanceof Error ? `${t('mes.error')} ${e.message}` : t('mes.error');
-    
+
     void ulogger.error({
       userId,
       location: "handlers/handlers-auth/updateUser",
@@ -454,7 +454,7 @@ export async function updateUser(
       context: "updateUser",
     }).catch(() => { console.error("logger error"); });
 
-    return { success: false, message: 'db_error: '+ msg };
+    return { success: false, message: 'db_error: ' + msg };
   }
 
 }
@@ -558,18 +558,31 @@ export async function getLastAgreement(
   locale: string,
   userAgreeRepository: Repository<UserAgreeTable>,
   agreementRepository: Repository<AgreementTable>
-): Promise<{ agreementText: string, agreementId: number | null, signed: boolean, dateSigned?: string, message?: string }> {
+): Promise<{
+  agreementText: string,
+  agreementLocale: string,
+  agreementId: number | null,
+  signed: boolean,
+  signed_at: Date | null,
+  dateSigned?: string,
+  message?: string
+}> {
 
   const lastAgreements = await agreementRepository.find({
+    where: { locale: locale },
     order: { date: 'DESC' },  // Сортировка по дате в порядке убывания
     take: 1,  // Берем только одну запись (последнее соглашение)
   });
+  
+  
 
   // Если соглашение не найдено
   if (lastAgreements.length < 1) {
     return {
       agreementText: "",
+      agreementLocale: "",
       signed: false,
+      signed_at: null,
       agreementId: null,
       message: 'Не найдено ни одного соглашения.',
     };
@@ -582,11 +595,13 @@ export async function getLastAgreement(
   });
 
 
-  // Если соглашение не найдено
+  // Если соглашение не подписано ( запись не найдена)
   if (!userAgree) {
     return {
       agreementText: lastAgreement.text,
+      agreementLocale: lastAgreement.locale,
       signed: false,
+      signed_at: null,
       agreementId: lastAgreement.id,
       message: 'Не подписано.',
     };
@@ -595,11 +610,14 @@ export async function getLastAgreement(
   // Проверяем, подписано ли соглашение
   const signed = userAgree ? userAgree.signed : false;
   const dateSigned = signed ? String(userAgree.date) : undefined;  // Если подписано, возвращаем дату
+  const signed_at = signed ? userAgree.signed_at : null;  // Если подписано, возвращаем дату
 
   // Возвращаем информацию о последнем соглашении
   return {
     agreementText: lastAgreement.text,  // Текст последнего соглашения
+    agreementLocale: lastAgreement.locale,
     signed,                    // Статус подписания
+    signed_at,
     agreementId: lastAgreement.id,
     dateSigned,                // Дата подписания (если подписано)
     message: 'Информация успешно получена.',
@@ -613,6 +631,8 @@ export async function signAgreement(
   locale: string,
   signedAgreement: boolean,
   agreementId: number,
+  agreement_text_snapshot: string,
+  agreement_locale: string,
   userAgreeRepository: Repository<UserAgreeTable>
 ): Promise<{ success: boolean; signed: boolean; message?: string }> {
   const t = getServerT(locale, 'sermes');
@@ -640,7 +660,10 @@ export async function signAgreement(
         user_id: userId,
         agreement_id: agreementId,
         signed: true,
+        agreement_text_snapshot: agreement_text_snapshot,
+        agreement_locale: agreement_locale,
         date: new Date(),
+        signed_at: new Date(),
       });
       await userAgreeRepository.save(newUserAgree, { reload: false });
       return { success: true, signed: true, message: t('mes.agreementUpdated') };

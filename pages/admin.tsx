@@ -3,6 +3,7 @@ import { useState, } from "react";
 import { SupportMailsAdmin } from "@/components/admin/SupportMailsAdmin/supportMailsAdmin";
 import { Leads } from "@/components/admin/Leads/leads";
 import { Usages } from "@/components/admin/Usages/usages";
+import { Agreements } from "@/components/admin/Agreements/agreements";
 
 import { BanerItem } from '@/types/service-types'
 
@@ -53,6 +54,7 @@ export default function Admin() {
   const [expandMails, setExpandMails] = useState(false);
   const [expandLeads, setExpandLeads] = useState(false);
   const [expandBaher, setExpandBaher] = useState(false);
+  const [expandAgreements, setExpandAgreements] = useState(false);
 
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
@@ -117,7 +119,7 @@ export default function Admin() {
                 />
               </div>
               {expandJobs &&
-                
+
                 <JobSettings
                   userId={user.id}
                   setMessage={setMessage}
@@ -193,14 +195,12 @@ export default function Admin() {
                   onChange={(e) => setBannerText(e.target.value)}
                   placeholder="Введите текст баннера"
                 />
-                <span>locale</span>
-                <input
-                  className="input_locale"
-                  type="text"
-                  value={banerLocale}
-                  onChange={(e) => setBanerLocale(e.target.value)}
-                  placeholder="ru"
-                />
+
+                <label>locale</label>
+                <select value={banerLocale} onChange={(e) => setBanerLocale(e.target.value)}>
+                  <option value="ru">ru</option>
+                  <option value="en">en</option>
+                </select>
               </label>
 
                 {/* Период действия */}
@@ -232,6 +232,23 @@ export default function Admin() {
                 </div>
                 <button onClick={setBanerHandler}>Установить</button>
               </>}
+            </div>}
+
+            {user.isSystem && <div className="container_admin_block">
+              <div className={"section_title"}>
+                Соглашения использования
+                <Image
+                  className={"icon_bill"}
+                  src={expandAgreements ? galb : galt} alt="usage" width={20} height={20}
+                  onClick={(e) => { setExpandAgreements(!expandAgreements); }}
+                />
+              </div>
+
+              {expandAgreements && <Agreements
+                setMessage={setMessage}
+                token={token}
+                userId={user.id}
+              />}
             </div>}
             {user.isSystem && <div className="container_admin_block">
               <div className={"section_title"}>

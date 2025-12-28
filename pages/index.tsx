@@ -58,6 +58,7 @@ export default function Index() {
   // login
   const [message, setMessage] = useState('');
   const [messageLogin, setMessageLogin] = useState('');
+  const [messageLogin1, setMessageLogin1] = useState('');
   const [messageRegister, setMessageRegister] = useState('');
   const [loginValue, setLoginValue] = useState('');
   const [passValue, setPassValue] = useState('');
@@ -76,6 +77,7 @@ export default function Index() {
   // agreement для временного хранения
   const agreementId = useRef(0);
   const textAgreement = useRef("");
+  const localeAgreement = useRef("");
 
   // управление страницей
   // const [step, setStep] = useState(2);
@@ -101,7 +103,7 @@ export default function Index() {
   const signedAgreement = useAppSelector((state: RootState) => {
     return state.authSlice.signedAgreement;
   })
-const step = useAppSelector((state: RootState) => {
+  const step = useAppSelector((state: RootState) => {
     return state.viewSlice.step;
   })
   // status 0 - архив, 1 актив, 2 запрос 
@@ -127,10 +129,10 @@ const step = useAppSelector((state: RootState) => {
       locale,
       setMessage: setMessage,
       setMessageLogin: setMessageLogin,
-      dispatch,
-      // setStep,
+      dispatch,      
       agreementIdRef: agreementId,
       agreementTextRef: textAgreement,
+      agreementlocaleRef:localeAgreement,
       configureTokenAccess,
       store,
     });
@@ -213,14 +215,17 @@ const step = useAppSelector((state: RootState) => {
   useEffect(() => {
     // ждем подтверждения мейла
     setMessageLogin("");
+    setMessageLogin1("");
     if (token.trim() !== "" && !user?.confirmed) {
 
       if (team.id && user.id) {
         setMessageLogin(t('service.toPost') + user.login + t('service.sentCodeMail'));
+        setMessageLogin1( t('service.text_TTL'));
       } else {
         setMessageLogin("");
+        setMessageLogin1("");
       }
-     dispatch(setStep(2));
+      dispatch(setStep(2));
       dispatch(setLoadingComplete(true))
       return;
     }
@@ -243,10 +248,10 @@ const step = useAppSelector((state: RootState) => {
           await downloadSchedule(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadTCards(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadLoads(user.id, team.id, token, t, locale, setMessage, dispatch);
-          
+
           // если это системный юзер(поддержка), то грузим все команды
           if (user.isSystem)
-              await downloadTeams(user.id, token, t, locale, setMessage, dispatch);
+            await downloadTeams(user.id, token, t, locale, setMessage, dispatch);
 
           // Скрываем лоадер   включаем мастер заполнения (пока заглушка)
           dispatch(setStep(5));
@@ -280,7 +285,7 @@ const step = useAppSelector((state: RootState) => {
     // обращаемся к базе и подписываем соглашение
     // после этого переходим к загрузке начальных таблиц
     // после этого вываливаемся на начальные настройки
-    await signAgreement(user.id, agreementId, signedAgreement, token, t, locale, setMessageLogin, 
+    await signAgreement(user.id, agreementId, textAgreement.current, localeAgreement.current, signedAgreement, token, t, locale, setMessageLogin,
       // setStep, 
       setMessage, dispatch)
   }
@@ -310,7 +315,7 @@ const step = useAppSelector((state: RootState) => {
         {(step !== 3) && <div className="container_index_right">
 
           {(step === 2) &&
-          
+
             <div className="login_container">
               <div className="login_input_container">
                 <input className="login_input"
@@ -348,12 +353,15 @@ const step = useAppSelector((state: RootState) => {
                 <div className="login_link" onClick={(e) => {
                   dispatch(setStep(1));
                   setMessageLogin("");
+                  setMessageLogin1("");
                 }}>{t('login.register')}
                 </div>
               </div>
 
               <div className="login_message_container">
                 <div className="login_message">&nbsp;&nbsp;{messageLogin}</div>
+                {messageLogin1 !=="" && <pre/>}
+                {messageLogin1 !=="" && <div className="login_message">&nbsp;&nbsp;{messageLogin1}</div>}
               </div>
 
             </div>}

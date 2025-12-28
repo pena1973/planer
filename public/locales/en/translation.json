@@ -45,7 +45,8 @@
     "nicknameNotSelected": "No nickname selected.",
     "pass1NotEqualPass2": "Passwords do not match.",
     "toPost": "To the email address ",
-    "sentCodeMail": " an email with a verification code has been sent. Please confirm your email and then sign in."
+    "sentCodeMail": " an email with a verification code has been sent. Please confirm your email and then sign in.",
+    "text_TTL": "WE STORE YOUR EMAIL TO SEND THE VERIFICATION CODE. IF YOU DO NOT COMPLETE REGISTRATION AND ACCEPT THE TERMS, YOUR ACCOUNT WILL BE AUTOMATICALLY DELETED AFTER 7 DAYS."
   },
   "index": {
     "downloadBaner": "Banner uploaded",
@@ -466,7 +467,7 @@
   "agreement": {
     "signAgreement": " Concent",
     "cancelSignAgreement": "Cancel",
-    "agree": "Agree"
+    "agree": "I ACCEPT THE TERMS OF USE AND CONSENT TO THE PROCESSING OF MY PERSONAL DATA"
   },
   "mes": {
     "impossibleToDelStage": "It is impossible to delete the stage because it contains operations. Please delete the operations from the stage first.",

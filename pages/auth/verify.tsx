@@ -130,7 +130,7 @@ export default function VerifyPage() {
         <div className="container_verify">
             <h1 className="title">{t('register.confirmation')}</h1>
 
-            <form className="form_verify" onSubmit={submit}>
+            <form className="form_verify" onSubmit={submit}>                
                 <p className="text">{emailValue}</p>
 
                 {step < 1 && (

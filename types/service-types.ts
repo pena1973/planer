@@ -22,6 +22,15 @@ export interface UsageItem {
   direction?: string; // направление приход/расход
   is_gift?: boolean; // это подарочный баланс?
 }
+
+export interface AgreementItem {
+  id: number;
+  created_at: string; // ISO
+  date: string;       // YYYY-MM-DD (дата начала действия)
+  locale: string;     // 'ru' | 'en' | ...
+  text: string;
+}
+
 export type JobScheduleType = 'monthly' | 'daily' | 'hourly' | 'every_x_minutes';
 
 export interface JobSettingItem {

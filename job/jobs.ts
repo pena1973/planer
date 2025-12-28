@@ -105,6 +105,7 @@ export const jobs: Record<string, JobHandler> = {
                 }
             }
         }
+        
     },
     'cleanup:core': async () => {
         const db = await connectDb();
@@ -126,6 +127,9 @@ export const jobs: Record<string, JobHandler> = {
         )
         console.log('[job] cleanup:core');
     },
+    'cleanup:unconfirmed-users': async () => {
+
+    }
     // добавляй свои ключи…
 };
 

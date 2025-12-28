@@ -148,6 +148,7 @@ export const JobSettings: React.FC<JobSettingsProps> = ({
       <ol>
         <li>списание баланса — <span>billing:charge</span></li>
         <li>очистка 90 дней — <span>cleanup:core</span></li>
+        <li>удаление регистраций больше 7 дней — <span>cleanup:unconfirmed-users</span></li>
       </ol>
       Состояния рег заданий
       {/* таблица */}

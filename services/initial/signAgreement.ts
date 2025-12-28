@@ -7,6 +7,8 @@ import { ulogger } from "./../../lib/common/universal-logger";
 export const signAgreement = async (
   userId: number,
   agreementId: number,
+  agreement_text_snapshot:string,
+  agreement_locale:string,
   signedAgreement: boolean,
   token: string,
   t: (key: string) => string,
@@ -22,7 +24,7 @@ export const signAgreement = async (
   // после этого вываливаемся на начальные настройки
   try {
 
-    const res = await fetch(`api/agreement-api`,
+    const res = await fetch(`api/user-agreement-api`,
       {
         method: 'post',
         headers: new Headers({
@@ -34,6 +36,8 @@ export const signAgreement = async (
           userId: userId,
           signedAgreement: signedAgreement,
           agreementId: agreementId,
+          agreement_text_snapshot:agreement_text_snapshot,
+          agreement_locale:agreement_locale
         }),
       }
     );
@@ -68,7 +72,7 @@ export const signAgreement = async (
           userId: userId,
           location: "services/initial/signAgreement",
           event: "error",
-          message: `success=false запрос api/agreement-api`,
+          message: `success=false запрос api/user-agreement-api`,
           context: "export const signAgreement = async (",
         }).catch(() => { console.error("logger error") });
       }

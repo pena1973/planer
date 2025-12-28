@@ -1,4 +1,4 @@
-
+// Это подписание соглашения пользователем
 import React, {useState } from 'react';
 import styles from "./agreement.module.scss";
 import {UserItem } from "@/types/types";
@@ -31,7 +31,6 @@ const Agreement: React.FC<AgreementProps> = ({
 
   return (
     <div className={styles.container}>
-
 
       <div className={styles.container_block}>
         <textarea
