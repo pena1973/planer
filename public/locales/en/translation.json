@@ -414,7 +414,13 @@
     "currency": "currency",
     "usage": "Usage",
     "coment": "Comment",
-    "qty": "Quantity"    
+    "qty": "Quantity",
+    "usageWillAdded": "Usage units will be added within a few seconds.",
+    "paymentAccepted": "Payment accepted! ",
+    "paymentCanceled": "Payment canceled! ",
+    "paymentRepeat": "You can try again.",
+    "paymentReturn": "Return"  
+
   },
    "jobs": {
     "job_key": "key", 

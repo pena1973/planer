@@ -1,12 +1,21 @@
-// pages/billing/cancel.tsx
+// pages/payments/cancel.tsx
 import { useRouter } from 'next/router'
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 
 export default function Cancel() {
+  const { t, i18n } = useTranslation();
   const router = useRouter()
-  const { push } = router
+  const { push, query, isReady } = router
 
   const [countdown, setCountdown] = useState(10)
+
+  useEffect(() => {
+    if (!isReady) return
+    const lng = typeof query.lng === 'string' ? query.lng : null
+    if (lng && lng !== i18n.language) i18n.changeLanguage(lng)
+  }, [isReady, query.lng, i18n])
+
 
   useEffect(() => {
     if (countdown <= 0) {
@@ -22,13 +31,13 @@ export default function Cancel() {
 
   return (
     <div className="container_payments">
-      <h1 className="title">Оплата отменена ❌</h1>
-      <p className="text">Вы можете попробовать снова.</p>
+      <h1 className="title">{t('bills.paymentCanceled')}❌</h1>
+      <p className="text">{t('bills.paymentRepeat')}</p>
       <button
         className="back_button"
         onClick={() => push('/support')}
       >
-        Возврат ({countdown})
+        {t('bills.paymentReturn')} ({countdown})
       </button>
     </div>
   )

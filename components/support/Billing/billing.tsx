@@ -218,6 +218,7 @@ const getUsageHandler = async () => {
         amount,
         userId,
         teamId,
+        i18n.language,
         token,
         t,
         setMessage,

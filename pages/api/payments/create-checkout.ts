@@ -64,7 +64,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!customerId) {
       throw new Error('Cannot create Stripe customer');
     }
-
+   
+    const appLocale = locale === 'ru' ? 'ru' : 'en'; // что у тебя реально бывает
+   
     const params: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
       locale: 'en-GB',
@@ -102,8 +104,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
 
-      success_url: `${baseUrl}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/payments/cancel`,
+      // success_url: `${baseUrl}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+      // cancel_url: `${baseUrl}/payments/cancel`,
+
+
+      success_url: `${baseUrl}/payments/success?session_id={CHECKOUT_SESSION_ID}&lng=${encodeURIComponent(appLocale)}`,
+      cancel_url: `${baseUrl}/payments/cancel?lng=${encodeURIComponent(appLocale)}`,
     };
 
     const session = await stripe.checkout.sessions.create(
