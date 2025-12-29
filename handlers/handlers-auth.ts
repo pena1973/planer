@@ -98,7 +98,7 @@ export async function createNewTeam(
   userId: number | null, // может быть null когда создается команда а юзер еще не создан
   locale: string,
   teamsRepository: Repository<TeamTable>,
-  activeTimeRepository: Repository<ActiveTimeTable>,
+  // activeTimeRepository: Repository<ActiveTimeTable>,
   settingsRepository: Repository<SettingsTable>,
   teamScheduleRepository: Repository<TeamScheduleTable>,
   timezone: TimeZoneEnum,
@@ -130,15 +130,15 @@ export async function createNewTeam(
     }
     const savedteam = await teamsRepository.save(savedteam_);
     // Возвращаем успешный результат с данными команды
-    const dateStr = getCurrentDateInString(timezone);
+    // const dateStr = getCurrentDateInString(timezone);
 
-    // сохраним время активацими команды
-    const active_time = activeTimeRepository.create({
-      date: dateStr,
-      direction: "start",
-      team_id: savedteam_.id
-    });
-    const savedactive_time = await activeTimeRepository.save(active_time);
+    // // сохраним время активацими команды  Переносим на момент подписания соглашения первый раз
+    // const active_time = activeTimeRepository.create({
+    //   date: dateStr,
+    //   direction: "start",
+    //   team_id: savedteam_.id
+    // });
+    // const savedactive_time = await activeTimeRepository.save(active_time);
 
     // сохраним таймзону и расписание команды (предустановка)
     const newSchedule = teamScheduleRepository.create({
@@ -163,7 +163,6 @@ export async function createNewTeam(
       isQualControl: true,
     });
     const savedNewSettings = await settingsRepository.save(newSettings);
-
 
     return {
       success: true,
@@ -229,7 +228,7 @@ export async function createNewUser(
       name: newUser.name,
       locale: newUser.locale,
       isAdmin: Boolean(newUser.isAdmin),
-      teamId: newUser.team_id, // Добавляем teamId, если нужно
+      teamId: newUser.team_id,
     },
     message: 'Пользователь успешно создан.',
   };
@@ -573,8 +572,8 @@ export async function getLastAgreement(
     order: { date: 'DESC' },  // Сортировка по дате в порядке убывания
     take: 1,  // Берем только одну запись (последнее соглашение)
   });
-  
-  
+
+
 
   // Если соглашение не найдено
   if (lastAgreements.length < 1) {
