@@ -17,11 +17,11 @@ export const setJobSetting = async (
         const res = await fetch(`api/admin/job-setting-api`,
             {
                 method: 'POST',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     jobSetting: jobSetting,
                     userId: userId,

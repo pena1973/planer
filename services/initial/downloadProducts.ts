@@ -14,10 +14,10 @@ export const downloadProducts = async (
         const res = await fetch(`/api/products-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json'
-                }),
+                },
             }
         );
         if (res.status !== 200) {

@@ -123,12 +123,12 @@ const getUsageHandler = async () => {
 
   const onDownloadInvoicePdf = async (invoiceId: number, token: string, locale: string) => {
     const res = await fetch(`/api/billing/invoice-pdf?invoiceId=${invoiceId}&teamId=${team.id}&userId=${user.id}`, {
-      method: 'GET',
-      headers: new Headers({
+      method: 'GET',      
+      headers: {
         Authorization: 'Basic ' + token,
         'Content-Type': 'application/json',
         'X-Lang': locale,
-      }),
+      },
     });
 
     if (!res.ok) {

@@ -14,10 +14,10 @@ export const createLead = async (
     try {
         const res = await fetch(`/api/landing/create-lead-api`, {
             method: "POST",
-            headers: new Headers({
+            headers: {
                 "Content-Type": "application/json",
                 "X-Lang": locale,
-            }),
+            },
             body: JSON.stringify({
                 lead: lead
             }),

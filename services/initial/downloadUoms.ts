@@ -15,11 +15,11 @@ export const downloadUoms = async (
         const res = await fetch(`api/catalogs/uoms-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
             }
         );
         if (res.status !== 200) {

@@ -15,11 +15,11 @@ export const sendCodeHandler = async (
         const res = await fetch(`api/auth/send-code`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     // 'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     email: login,
                     purpose: purpose,

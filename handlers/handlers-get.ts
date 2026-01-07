@@ -269,7 +269,7 @@ export async function getCostForDay(
 export async function getUsage(
   userId: number | null,
   locale: string,
-  date: Date | string,   // yyyy-mm-dd
+  // date: Date | string,   // yyyy-mm-dd
   teamId: number,
   balanceRepository: Repository<BalanceTable>
 ): Promise<UsageItem[]> {
@@ -277,7 +277,7 @@ export async function getUsage(
   const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
   try {
-    const target = YYYYMMDD(date) // yyyy-mm-dd
+    // const target = YYYYMMDD(date) // yyyy-mm-dd
 
     // тянем только нужные строки: команда + все транзакции на дату и раньше
     const rows = await balanceRepository.find({
@@ -291,17 +291,16 @@ export async function getUsage(
         userId: userId,
         location: "handlers/handlers-get/getBalance",
         event: "warn",
-        message: `нет записей баланса что подозрительно: userId=${userId} date=${target} teamId=${teamId}`,
+        message: `нет записей баланса что подозрительно: userId=${userId} teamId=${teamId}`,
         context: "const rows = await balanceRepository.find({",
       }).catch(() => { console.error("logger error") });
     }
     const usage = rows.map(row => {
       let coment = "";
-      if (row.is_trial && row.direction === "+") coment = "Стартовое количество единиц";
-      // else if (row.is_gift && row.direction === "+") coment = "Подарочные единицы";
+      if (row.is_trial && row.direction === "+") coment = t('mes.startUsage');      
       else if (row.is_gift) coment = row.coment;
-      else if (row.direction === "+") coment = "Добавлено  единиц";
-      else if (row.direction === "-") coment = "Использовано  единиц";
+      else if (row.direction === "+") coment = t('mes.addedUsage');
+      else if (row.direction === "-") coment = t('mes.usedUsage');
 
 
       return {

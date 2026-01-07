@@ -18,11 +18,11 @@ export const getTeamActivity = async (
         const res = await fetch(`api/billing/activity-teams-api?userId=${userId}&mainTeam=${mainTeam}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
             }
         );
         if (res.status !== 200) {

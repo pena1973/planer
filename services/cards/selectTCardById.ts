@@ -20,11 +20,11 @@ export const selectTCardById = async (
         const res = await fetch(`api/tCard/tcard-api?tCardId=${selectedTCardId}&teamId=${team.id}&userId=${userId}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
             }
         );
         if (res.status !== 200) {

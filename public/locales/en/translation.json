@@ -46,7 +46,7 @@
     "pass1NotEqualPass2": "Passwords do not match.",
     "toPost": "To the email address ",
     "sentCodeMail": " an email with a verification code has been sent. Please confirm your email and then sign in.",
-    "text_TTL": "WE STORE YOUR EMAIL TO SEND THE VERIFICATION CODE. IF YOU DO NOT COMPLETE REGISTRATION AND ACCEPT THE TERMS, YOUR ACCOUNT WILL BE AUTOMATICALLY DELETED AFTER 7 DAYS."
+    "text_TTL": "We store your email to send the verification code. If you do not complete registration and accept the terms, your account will be automatically deleted after 7 days"
   },
   "index": {
     "downloadBaner": "Banner uploaded",

@@ -35,11 +35,11 @@ export const saveSettings = async (
         const res = await fetch(`api/catalogs/settings-api`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     userId: user.id,
                     teamId: team.id,

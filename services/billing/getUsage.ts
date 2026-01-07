@@ -16,11 +16,11 @@ export const getUsage = async (
         const res = await fetch(`api/billing/usage-api?userId=${userId}&teamId=${teamId}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
             }
         );
         if (res.status !== 200) {
@@ -43,6 +43,7 @@ export const getUsage = async (
                 setUsage(usage);
                 setMessage("");
             } else {
+                 setUsage([] as UsageItem[]);
                 setMessage(receivedData.message);
                 //  logger
                 void ulogger.error({

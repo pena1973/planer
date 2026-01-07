@@ -15,11 +15,11 @@ export const setBaner = async (
         const res = await fetch(`api/admin/baner-api`,
             {
                 method: 'POST',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     baner: baner,
                     userId: userId,

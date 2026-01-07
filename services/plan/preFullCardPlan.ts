@@ -12,6 +12,7 @@ export const preFullCardPlan = async (
   today: string,
   dispatch: Dispatch,
   t: (key: string) => string,
+  locale: string,
   setMessage: (msg: string) => void,
 ) => {
   const tCardLoadsPlaned = unitLoads.filter(load => Number(load.id_tCard) === tCardId && load.status !== StatusEnum.prepared)
@@ -21,10 +22,11 @@ export const preFullCardPlan = async (
     const res = await fetch(`/api/plan/pre-fullcardplan-api?userId=${userId}&teamId=${teamId}&tCardId=${tCardId}&today=${today}`,
       {
         method: 'get',
-        headers: new Headers({
+        headers: {
           'Authorization': 'Basic ' + token,
-          'Content-Type': 'application/json'
-        }),
+          'Content-Type': 'application/json',
+           'X-Lang': locale,
+        },
       }
     );
     if (res.status !== 200) {

@@ -11,6 +11,7 @@ import { ClientItem } from './../../../types/service-types'
 import { randomUUID } from 'crypto';
 import updateStripeCustomerFromClient from './customer-update';
 import { stripe } from './../../../lib/common/stripe';
+import { getServerT } from '@/lib/server/i18n.server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -20,6 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const clientRepository = getTypedRepository(db, 'ClientTable', ClientTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
+
+    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
 
     const { amount, userId, teamId } = req.body as {
       amount: number; userId: number; teamId: number; customerId?: string;
@@ -56,6 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // определяем customer: либо из тела запроса, либо создаём
     let customerId = client.stripe_customer_id as string | undefined;
+
+    if (!client || (!client.email && !client.title)) 
+      return res.status(500).send(t('mes.fillEMail'));
 
     if (!customerId) {
       customerId = await updateStripeCustomerFromClient(client); // создаст customer по email/title

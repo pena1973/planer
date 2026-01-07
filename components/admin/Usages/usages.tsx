@@ -50,14 +50,16 @@ export const Usages: React.FC<UsagesProps> = ({
 
 
   const handleSelectTeam = async (team: TeamItem | null) => {
-    if (team?.id === teamValue?.id) return;
+    if (team?.id === teamValue?.id) {
+      setUsageValue([]); 
+      return
+    };
     setTeamValue(team);
     if (team) await getUsage(userId, team.id, token, t, i18n.language, setMessage, setUsageValue);
     else setUsageValue([]);
   };
 
-
-  // TODO: сюда подключишь свой API (createUsage / adminAddUsage / etc.)
+  
   const addUsageHandler = async () => {
     if (!teamValue) {
       setMessage('Сначала выбери команду');

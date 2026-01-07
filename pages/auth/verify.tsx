@@ -98,10 +98,11 @@ export default function VerifyPage() {
             setIsChanging(true);
             const res = await fetch('/api/auth/reset-pass-api', {
                 method: 'POST',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + verifyToken.current,
-                    'Content-Type': 'application/json'
-                }),
+                    'Content-Type': 'application/json',
+                     'X-Lang':  i18n.language,
+                },
                 body: JSON.stringify({ email: emailValue, pass: pass1Value }),
             })
 

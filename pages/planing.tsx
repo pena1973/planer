@@ -111,18 +111,18 @@ export default function Planing() {
   const erazCardHandler = async (tCardId: number) => {
     setErazLoaderCard(tCardId)
     await erazeCard(tCardId, unitLoads, tCards, token, user.id, team.id,
-      today.toLocaleDateString("en-CA"), dispatch, t, setMessage,);
+      today.toLocaleDateString("en-CA"), dispatch, t, i18n.language, setMessage,);
     setErazLoaderCard(NaN)
   };
   // На сервере
   // удаление лоада из контекстного меню для сторонних юнитов
   const erazLoadHandler = async (load_idc: number) => {
-    await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
+    await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, i18n.language, setMessage);
   }
   // На сервере
   // перетаскивание лоада на шкале  возвращает измененное планирование карты
   const moveLoadHandler = async (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => {
-    await moveLoad(load, unit, date, timeStart, timeFinish, unitLoads, tCardPrepared.id, token, user.id, team.id, YYYYMMDD(today), dispatch, t, setMessage);
+    await moveLoad(load, unit, date, timeStart, timeFinish, unitLoads, tCardPrepared.id, token, user.id, team.id, YYYYMMDD(today), dispatch, t, i18n.language, setMessage);
   }
 
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
@@ -136,7 +136,7 @@ export default function Planing() {
   // Прикрепление лоада на шкале   возвращает измененное планирование карты
   const unPinLoadHandler = async (operId: number, tCardId: number, version: number) => {
     await unPinLoad(tCardId, operId, unitLoads, YYYYMMDD(today), version,
-      token, user.id, team.id, dispatch, t, setMessage);
+      token, user.id, team.id, dispatch, t, i18n.language,setMessage);
   }
 
   /// ПЕРЕТАСКИВАНИЕ КАРТЫ НА ПОЛЕ ПЛАНИРОВАНИЯ
@@ -181,7 +181,7 @@ export default function Planing() {
     // чистим все лоады в статусе prepared (предыдущее несохраненное планирование)
     const unitLoads_ = unitLoads.filter(lo => lo.status !== StatusEnum.prepared)
     const today = getCurrentDateInString(schedule.timeZone);   
-    await preFullCardPlan(Number(tCard_.id), unitLoads_, token, user.id, team.id, today, dispatch, t, setMessage,);
+    await preFullCardPlan(Number(tCard_.id), unitLoads_, token, user.id, team.id, today, dispatch, t, i18n.language,setMessage,);
     setDropLoaderCard(NaN)
   };
   ///////////////////////////

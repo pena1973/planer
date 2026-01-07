@@ -18,11 +18,11 @@ export const getUsersUnits = async (
         const res = await fetch(`api/users-units-api?userId=${user.id}&teamId=${team.id}&withoutAdmin=${true}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
             }
         );
         if (res.status !== 200) {

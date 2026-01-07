@@ -71,6 +71,9 @@ export async function getUserById(
       isAdmin: usertab.isAdmin,
       active: usertab.active,
       isSystem: usertab.isSystem,
+      teamId: usertab.team_id,
+      confirmed: Boolean(usertab.confirmed),
+
     } as UserItem;
 
     return user;

@@ -24,11 +24,11 @@ export const deleteTCardById = async (
         const res = await fetch(`api/tCard/tcard-api`,
             {
                 method: 'delete',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     tCardId: idToRemove,
                     userId: userId,

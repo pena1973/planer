@@ -23,11 +23,11 @@ export const downloadUnutExceptions = async (
         const res = await fetch(`api/units/unit-exceptions-api?userId=${userId}&teamId=${teamId}&unitId=${unitId}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
             }
         );
         if (res.status !== 200) {

@@ -42,6 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'POST':
 
         const { userId, signedAgreement, agreementId, agreement_text_snapshot, agreement_locale } = req.body as RequestBody;
+        
+        let setedActiveTeam = false;// флаг что это начальная регистрация и нужно установить активное время команды
 
         if (!agreementId) {
           res.status(200).json({
@@ -68,8 +70,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
           return;
         }
+
         // если юзер подписал
-        if (!resUserAgree.signed) {
+        if (resUserAgree.signed) {
           const user = await getUserById(Number(userId), Number(userId), locale, userRepository);
           // если юзер админ команды
           if (user?.isAdmin) {
@@ -87,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 team_id: user.teamId
               });
               const savedactive_time = await activeTimeRepository.save(active_time);
+              
             }
             // если записей баланса не было  значит первый раз подписывает соглашение  устанавливаем триальный баланс 100  единиц
             if (balances.length === 0) {
@@ -96,12 +100,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 locale,
                 balanceRepository,
                 user.teamId,
-                "",
+                "trial",
                 100,
                 dateStr,
                 true,
                 false,
                 'trial - ' + dateStr, "+", "")
+ 
+              if (balanceRes.success)  setedActiveTeam = true;
 
               if (!balanceRes.success) {
                 console.log("баланс не пополнен  trial, teamId:" + user.teamId);
@@ -122,6 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(200).json({
           success: true,
           signed: resUserAgree.signed,
+          setedActiveTeam: setedActiveTeam,
         });
         break;
       default:

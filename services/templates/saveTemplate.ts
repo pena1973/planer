@@ -23,11 +23,11 @@ export const saveTemplate = async (
     const res = await fetch(`api/catalogs/template-api`,
       {
         method: 'post',
-        headers: new Headers({
+        headers: {
           'Authorization': 'Basic ' + token,
           'Content-Type': 'application/json',
           "X-Lang": locale,
-        }),
+        },
         body: JSON.stringify({
           teamId: team.id,
           userId: user.id,

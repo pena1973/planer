@@ -21,11 +21,11 @@ export const changePassword = async (
         const res = await fetch(`api/profile-api`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     userId: userId,
                     teamId: teamId,
@@ -102,11 +102,11 @@ export const changeName = async (
         const res = await fetch(`api/profile-api`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     userId: userId,
                     teamId: teamId,
@@ -184,11 +184,11 @@ export const deleteProfile = async (
         const res = await fetch(`api/profile-api`,
             {
                 method: 'delete',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     userId: userId,
                     teamId: teamId,

@@ -30,11 +30,11 @@ export const runJobOnce = async (
     // Лучше POST, чтобы спокойно передавать сложные params и не мучаться с encodeURIComponent
     const res = await fetch(`/api/jobs/run`, {
       method: "POST",
-      headers: new Headers({
+      headers: {
         Authorization: "Basic " + token,
         "Content-Type": "application/json",
         "X-Lang": "ru",
-      }),
+      },
       body: JSON.stringify({
         job: jobKey,
         params: params ?? null,

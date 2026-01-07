@@ -16,11 +16,11 @@ export const getUnitsKPI = async (
         const res = await fetch(`api/monitor/report-units-kpi-api?userId=${userId}&teamId=${teamId}&today=${today.toLocaleDateString('en-CA')}${filter}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
             }
         );
         if (res.status !== 200) {

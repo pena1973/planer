@@ -14,11 +14,11 @@ export const getSupportMailsAdmin = async (
     try {
         const res = await fetch(`api/admin/support-admin-api`, {
             method: 'get',
-            headers: new Headers({
+            headers: {
                 'Authorization': 'Basic ' + token,
                 'Content-Type': 'application/json',
                 "X-Lang": locale,
-            }),
+            },
         });
         if (res.status !== 200) {
             const receivedData = await res.json();

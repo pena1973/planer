@@ -17,11 +17,11 @@ export const downloadTeams = async (
     const res = await fetch(`api/admin/teams-api?userId=${userId}`,
       {
         method: 'get',
-        headers: new Headers({
+        headers: {
           'Authorization': 'Basic ' + token,
           'Content-Type': 'application/json',
           "X-Lang": locale,
-        }),
+        },
       }
     );
     if (res.status !== 200) {

@@ -47,20 +47,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const { teamId: teamIdget, userId: userIdget } = req.query;
 
-        // запросим расписание компании чтобы взять timezone
-        const shedule = await getTeamShedule(Number(userIdget), locale, Number(teamIdget), teamScheduleRepository)
+        // // запросим расписание компании чтобы взять timezone
+        // const shedule = await getTeamShedule(Number(userIdget), locale, Number(teamIdget), teamScheduleRepository)
 
-        if (!shedule) {
-          return res.status(200).json({
-            success: false,
-            balance: 0,
-            message: `${t('mes.noTimezoneForBalance')}`
-          });
-        }
+        // if (!shedule) {
+        //   return res.status(200).json({
+        //     success: false,
+        //     balance: 0,
+        //     message: `${t('mes.noTimezoneForBalance')}`
+        //   });
+        // }
 
-        const today = getCurrentDateInString(shedule.timeZone);
+        // const today = getCurrentDateInString(shedule.timeZone);
 
-        const usage_ = await getUsage(Number(userIdget), locale, today, Number(teamIdget), balanceRepository)
+        const usage_ = await getUsage(Number(userIdget), locale,  Number(teamIdget), balanceRepository)
         // отправляем ответ
         res.status(200).json({
           success: true,
@@ -89,7 +89,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             direction,
             coment)
         }
-        const usage = await getUsage(Number(userId), locale, date, Number(teamId), balanceRepository)
+        const usage = await getUsage(Number(userId), locale, Number(teamId), balanceRepository)
         // отправляем ответ
         res.status(200).json({
           success: true,

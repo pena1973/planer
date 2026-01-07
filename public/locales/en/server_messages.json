@@ -76,6 +76,11 @@
     "noFreeUnits": "Planning failed: no available resources until",
     "noPossibleLoadsForUniit": "Failed to build loads for the selected unit.",
     "successfulPlaning": "Planning successful.",
-    "noAgreementToSign": "No agreement to sign"
+    "noAgreementToSign": "No agreement to sign",
+    "userAlreadyExists": "Error: user with this login already exists. If you forgot your password, use the password recovery function.",
+    "startUsage": "Start (trial) usage",
+    "addedUsage": "Added usage",
+    "usedUsage": "Used usage",
+    "fillEMail": "Please fill in your email and company name in client details before making a payment."
   }
 }

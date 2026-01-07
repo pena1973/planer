@@ -26,11 +26,11 @@ export const saveSchedule = async (
         const res = await fetch(`api/catalogs/schedule-api`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     schedule: schedule,
                     userId: user.id,

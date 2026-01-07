@@ -49,11 +49,16 @@ export const registerHandler = async ({
         const res = await fetch(`api/auth/register-api`,
             {
                 method: 'post',
-                headers: new Headers({
+                // headers: new Headers({
+                //     'Authorization': 'Basic ' + token,
+                //     'Content-Type': 'application/json',
+                //     "X-Lang": locale,
+                // }),
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     login: login,
                     pass: pass,
@@ -104,7 +109,7 @@ export const registerHandler = async ({
                 //  далее адресуем на страницу соглашения и после этого переправляем на страницу настроек
                dispatch(setStep(3));
             } else {
-                setMessage(receivedData.message);
+                setMessageRegister(receivedData.message);
                 //  logger
                 void ulogger.error({
                     userId: null,

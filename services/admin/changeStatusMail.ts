@@ -19,11 +19,11 @@ export const changeStatusMail = async (
         const res = await fetch(`api/admin/mail-status-api`,
             {
                 method: 'POST',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     mailId: mailId,
                     status: status,

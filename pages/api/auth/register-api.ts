@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           res.status(200).json({
             success: false,
             // message: " Ошибка, пользователь с таким логином уже существует, если забыли пароль, воспользуйтесь функцией восстановления пароля",
-            message: `${'mes.userAlreadyExists'}`,
+            message: `${t('mes.userAlreadyExists')}`,
           });
           return;
         }

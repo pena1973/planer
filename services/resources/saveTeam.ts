@@ -21,11 +21,11 @@ export const saveTeam = async (
         const res = await fetch(`api/catalogs/team-api?userId=${user.id}&teamId=${team.id}`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     title: titleValue,
                     coment: comentValue,

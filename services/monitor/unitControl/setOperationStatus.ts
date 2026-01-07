@@ -31,11 +31,11 @@ export const setOperationStatus = async (
     const res = await fetch(`api/tCard/tcard-oper-status-api`,
       {
         method: 'post',
-        headers: new Headers({
+        headers: {
           'Authorization': 'Basic ' + token,
           'Content-Type': 'application/json',
           "X-Lang": locale,
-        }),
+        },
         body: JSON.stringify({
           tCardId: currentLoad.id_tCard,
           operId: currentOper.id,

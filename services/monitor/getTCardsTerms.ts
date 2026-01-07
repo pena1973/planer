@@ -17,11 +17,11 @@ export const getTCardsTerms = async (
         const res = await fetch(`api/monitor/report-tcards-state-api?userId=${userId}&teamId=${teamId}${filter}`,
             {
                 method: 'get',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
             }
         );
         if (res.status !== 200) {
