@@ -73,6 +73,18 @@ __decorate([
     Column('int'),
     __metadata("design:type", Number)
 ], UserAgreeTable.prototype, "agreement_id", void 0);
+__decorate([
+    Column({ type: 'text', nullable: false, default: '' }),
+    __metadata("design:type", String)
+], UserAgreeTable.prototype, "agreement_text_snapshot", void 0);
+__decorate([
+    Column({ type: 'varchar', length: 5, default: 'ru' }),
+    __metadata("design:type", String)
+], UserAgreeTable.prototype, "agreement_locale", void 0);
+__decorate([
+    Column({ type: 'timestamptz', nullable: true }),
+    __metadata("design:type", Object)
+], UserAgreeTable.prototype, "signed_at", void 0);
 exports.UserAgreeTable = UserAgreeTable = __decorate([
     Entity("user_agree")
 ], UserAgreeTable);
