@@ -18,11 +18,11 @@ export const downloadActions = async (
     const res = await fetch(`api/catalogs/actions-api?userId=${userId}&teamId=${teamId}`,
       {
         method: 'get',
-        headers: new Headers({
+        headers: {
           'Authorization': 'Basic ' + token,
           'Content-Type': 'application/json',
           "X-Lang": locale,
-        }),
+        },
       }
     );
     if (res.status !== 200) {

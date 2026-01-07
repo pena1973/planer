@@ -49,7 +49,7 @@ import { YYYYMMDD } from "@/lib/common/utils"
 import { getCurrentDateInString, } from "../lib/common/timezone"
 
 // Создание c строки баланса
-export async function updateBalance(
+export async function updateBalance_old(
   userId: number | null,
   locale: string,
   balanceRepository: Repository<BalanceTable>,
@@ -58,6 +58,7 @@ export async function updateBalance(
   amount: number,
   date: string,
   is_trial: boolean,
+  is_gift: boolean,
   document: string,
   direction: string,
   coment: string,
@@ -72,7 +73,7 @@ export async function updateBalance(
 
       team_id: teamId,
       date: date,
-      summa: amount,
+      amount: amount,
       direction: direction,
       document: document,
       coment: coment,
@@ -88,7 +89,7 @@ export async function updateBalance(
     // Если транзакция существует, обновляем ее
     existingBalance.team_id = teamId;
     existingBalance.date = date;
-    existingBalance.summa = amount;
+    existingBalance.amount = amount;
     existingBalance.direction = direction;
     existingBalance.document = document;
     existingBalance.coment = coment;
@@ -103,6 +104,83 @@ export async function updateBalance(
 
   };
 }
+
+export async function updateBalance(
+  userId: number | null, // пока не используешь — ок
+  locale: string,        // пока не используешь — ок
+  balanceRepository: Repository<BalanceTable>,
+  teamId: number,
+  transactionId: string,
+  amount: number,
+  date: string,
+  is_trial: boolean,
+  is_gift: boolean,
+  document: string,
+  direction: string,
+  coment: string,
+) {
+  if (!teamId) {
+    return { success: false, message: "teamId is required" };
+  }
+  if (!transactionId) {
+    return { success: false, message: "transactionId is required" };
+  }
+
+  // ✅ Идемпотентность: только team_id + transaction_id (без date) и это не триал и не гифт
+  
+  const existingBalance = await balanceRepository.findOne({
+    where: { team_id: teamId, transaction_id: transactionId },
+  });
+
+  // Если уже есть  и это не гифт и не триал — НЕ создаём второй раз
+  if (existingBalance ) {
+    // Можно освежить "косметику" (не трогая сумму, чтобы не ломать учёт)
+    let changed = false;
+    if (existingBalance.amount !== amount) { existingBalance.amount = amount; changed = true; }
+    if (existingBalance.date !== date) { existingBalance.date = date; changed = true; }
+    if (existingBalance.direction !== direction) { existingBalance.direction = direction; changed = true; }
+    if (existingBalance.document !== document) { existingBalance.document = document; changed = true; }
+    if (existingBalance.coment !== coment) { existingBalance.coment = coment; changed = true; }
+    if (existingBalance.is_trial !== is_trial) { existingBalance.is_trial = is_trial; changed = true; }
+    if (existingBalance.is_gift !== is_gift) { existingBalance.is_gift = is_gift; changed = true; }
+
+    if (changed) {
+      await balanceRepository.save(existingBalance);
+    }
+    return { success: true, existingBalance, isNew: false };
+  }
+
+  
+  // ✅ Если нет — создаём новую запись
+  const newBalance = balanceRepository.create({
+    team_id: teamId,
+    transaction_id: transactionId,
+    date,
+    amount: amount,
+    direction,
+    document,
+    coment,
+    is_trial,
+    is_gift,
+  });
+
+  try {
+    const savedNewBalance = await balanceRepository.save(newBalance);
+    return { success: true, savedNewBalance, isNew: true };
+  } catch (e: any) {
+    // На случай гонки вебхуков: если уникальный индекс уже сработал — считаем успехом
+    const msg = String(e?.message ?? "");
+    const code = e?.code; // Postgres: '23505'
+    if (code === "23505" || msg.toLowerCase().includes("duplicate")) {
+      const existing = await balanceRepository.findOne({
+        where: { team_id: teamId, transaction_id: transactionId },
+      });
+      return { success: true, existingBalance: existing, isNew: false };
+    }
+    return { success: false, message: "Не удалось сохранить транзакцию " + document };
+  }
+}
+
 
 // Установка настройки рег задания
 export async function updateJobSetting(
@@ -397,7 +475,7 @@ export async function updateClient(
       existingClient.email = client.email?.trim() ?? existingClient.email;
       existingClient.phone = client.phone?.trim() ?? existingClient.phone;
       existingClient.country = client.country?.trim() ?? existingClient.country;
-      existingClient.customer_id = client.customerId?.trim() ?? existingClient.customer_id;
+      existingClient.stripe_customer_id = client.stripe_customer_id?.trim() ?? existingClient.stripe_customer_id;
 
       const saved = await clientRepository.save(existingClient);
       if (!saved?.id) {
@@ -418,7 +496,7 @@ export async function updateClient(
       phone: client.phone?.trim() ?? "",
       team_id: teamId,
       country: client.country?.trim() ?? "",
-      customer_id: client.customerId?.trim() ?? "",
+      stripe_customer_id: client.stripe_customer_id?.trim() ?? "",
 
     });
 

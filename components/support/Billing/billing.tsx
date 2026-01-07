@@ -5,7 +5,7 @@ import type { RootState } from '@/store';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { getInvoices } from '@/services/billing/getInvoices';
 
-import { ClientItem, InvoiceItem } from "@/types/service-types";
+import { ClientItem, InvoiceItem, UsageItem } from "@/types/service-types";
 import { TeamItem, UserItem } from "@/types/types";
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
@@ -24,6 +24,7 @@ import { getClient } from '@/services/billing/getClient';
 import { getAttachedTeams } from '@/services/billing/getAttachedTeams';
 import { getTeamActivity } from '@/services/billing/getTeamActivity';
 import { getBalance } from '@/services/billing/getBalance';
+import { getUsage } from '@/services/billing/getUsage';
 
 import { changeStateTeam } from '@/services/billing/changeStateTeam';
 import { createCheckoutSession } from '@/services/billing/payments';
@@ -50,6 +51,7 @@ export const Billing: React.FC<BillingProps> = ({
   const dispatch = useAppDispatch();
   // const [billsValue, setBillsValue] = useState<BillItem[]>([]);
   const [invoicesValue, setInvoicesValue] = useState<InvoiceItem[]>([]);
+  const [usageValue, setUsageValue] = useState<UsageItem[]>([]);
   const [clientForm, setClientForm] = useState({} as ClientItem);
   const [attachedTeams, setAttachedTeams] = useState<TeamItem[]>([]);
   const [teamActivity, setTeamActivity] = useState<{ teamId: number, active: boolean }[]>([]);
@@ -65,8 +67,7 @@ export const Billing: React.FC<BillingProps> = ({
   const [expandBalance, setExpandBalance] = useState(false);
   const [expandTeams, setExpandTeams] = useState(false);
   const [expandInvoices, setExpandInvoices] = useState(false);
-
-
+  const [expandUsage, setExpandUsage] = useState(false);
 
   const mainTeam = useMemo(() => generateTeamNumber(team.prefix, team.id), [team]);
   const active = useMemo(() => teamActivity?.find(a => a.teamId === team.id)?.active ?? false, [team, teamActivity]);
@@ -106,7 +107,9 @@ export const Billing: React.FC<BillingProps> = ({
   const getBalanceHandler = async () => {
     await getBalance(user.id, team.id, token, t, i18n.language, setMessage, setBalance);
   };
-
+const getUsageHandler = async () => {
+    await getUsage(user.id, team.id, token, t, i18n.language, setMessage, setUsageValue);
+  };
   useEffect(() => {
     getClientHandler();
     getinvoicesHandler()
@@ -114,15 +117,46 @@ export const Billing: React.FC<BillingProps> = ({
     getAttachedTeamsHandler();
     getTeamActivityHandler();
     getBalanceHandler();
-
+    getUsageHandler();
 
   }, [])
 
-  const billsReactNodes = invoicesValue.map((invoice, index) => {
+  const onDownloadInvoicePdf = async (invoiceId: number, token: string, locale: string) => {
+    const res = await fetch(`/api/billing/invoice-pdf?invoiceId=${invoiceId}&teamId=${team.id}&userId=${user.id}`, {
+      method: 'GET',      
+      headers: {
+        Authorization: 'Basic ' + token,
+        'Content-Type': 'application/json',
+        'X-Lang': locale,
+      },
+    });
+
+    if (!res.ok) {
+      // тут можешь setMessage / toast
+      throw new Error(`PDF download failed: ${res.status}`);
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    // форсируем скачивание
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice_${invoiceId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+  };
+
+  const invoicesReactNodes = invoicesValue.map((invoice, index) => {
     return (
       <tr key={index}>
         <td>{invoice.date}</td>
         <td>{invoice.invoice}</td>
+        <td>{invoice.amount}</td>
+        <td>{invoice.currency}</td>
         <td>
           <Image
             className={styles.icon_bill}
@@ -131,9 +165,21 @@ export const Billing: React.FC<BillingProps> = ({
             width={20}
             height={20}
             role="button"
-            onClick={() => invoice.link && window.open(invoice.link, '_blank')}
+            // onClick={() => invoice.link && window.open(invoice.link, '_blank')}
+            onClick={() => invoice.id && onDownloadInvoicePdf(invoice.id, token, i18n.language)}
           />
         </td>
+      </tr>
+    );
+  });
+
+  
+  const usageReactNodes = usageValue.map((usage, index) => {
+    return (
+      <tr key={index}>
+        <td>{usage.date}</td>                              
+        <td>{usage.coment}</td> 
+        <td>{usage.amount}</td>                
       </tr>
     );
   });
@@ -143,7 +189,7 @@ export const Billing: React.FC<BillingProps> = ({
     return (
       <tr key={index}>
         <td>{generateTeamNumber(team.prefix, team.id)}</td>
-        <td>{team.title}</td>
+        <td>{team.title}</td>        
         <td>{active ? t('bills.active') : "-"}</td>
         <td>
           <button className={styles.bt} onClick={(e) => onStateTeam(team.id, !active)}>
@@ -172,6 +218,7 @@ export const Billing: React.FC<BillingProps> = ({
         amount,
         userId,
         teamId,
+        i18n.language,
         token,
         t,
         setMessage,
@@ -348,7 +395,6 @@ export const Billing: React.FC<BillingProps> = ({
 
       </div>}
     </div>}
-
     {/* === Перечень прикрепленных команд (только для основной) === */}
     {team && isMainTeam && <div className={styles.container}>
       <div className={styles.section_title}>{t('bills.attached_teams')}
@@ -407,11 +453,38 @@ export const Billing: React.FC<BillingProps> = ({
           <tr>
             <th>{t('bills.date')}</th>
             <th>{t('bills.title')}</th>
+            <th>{t('bills.amount1')}</th>
+            <th>{t('bills.currency')}</th>
             <th>{t('bills.download')}</th>
 
           </tr>
         </thead>
-        <tbody>{billsReactNodes}</tbody>
+        <tbody>{invoicesReactNodes}</tbody>
+      </table>}
+
+    </div>}
+    {/* === Usage === */}
+    {team && isMainTeam && <div className={styles.container}>
+
+      <div className={styles.section_title}>{t('bills.usage')}
+        <Image
+          className={styles.icon_bill}
+          src={expandUsage ? galb : galt} alt="usage" width={20} height={20}
+          onClick={(e) => { setExpandUsage(!expandUsage); }}
+        />
+
+      </div>
+      <pre />
+      {expandUsage && <table className={styles._table}>
+        <thead>
+          <tr>
+            <th>{t('bills.date')}</th> 
+            <th>{t('bills.coment')}</th>           
+            <th>{t('bills.qty')}</th>
+           
+          </tr>
+        </thead>
+        <tbody>{usageReactNodes}</tbody>
       </table>}
 
     </div>}

@@ -1,5 +1,5 @@
 
-import { setSignedAgreement, setStep } from './../../store/slices';
+import { setSignedAgreement, setStep, setActiveTeam } from './../../store/slices';
 import { Dispatch } from 'redux';
 import { ulogger } from "./../../lib/common/universal-logger";
 
@@ -7,6 +7,8 @@ import { ulogger } from "./../../lib/common/universal-logger";
 export const signAgreement = async (
   userId: number,
   agreementId: number,
+  agreement_text_snapshot: string,
+  agreement_locale: string,
   signedAgreement: boolean,
   token: string,
   t: (key: string) => string,
@@ -22,18 +24,20 @@ export const signAgreement = async (
   // после этого вываливаемся на начальные настройки
   try {
 
-    const res = await fetch(`api/agreement-api`,
+    const res = await fetch(`api/user-agreement-api`,
       {
         method: 'post',
-        headers: new Headers({
+        headers: {
           'Authorization': 'Basic ' + token,
           'Content-Type': 'application/json',
           "X-Lang": locale,
-        }),
+        },
         body: JSON.stringify({
           userId: userId,
           signedAgreement: signedAgreement,
           agreementId: agreementId,
+          agreement_text_snapshot: agreement_text_snapshot,
+          agreement_locale: agreement_locale
         }),
       }
     );
@@ -53,14 +57,23 @@ export const signAgreement = async (
       const receivedData = await res.json();
       if (receivedData.success) {
         const signed_ = receivedData.signed as boolean;
+        const setedActiveTeam = receivedData.setedActiveTeam as boolean;
+
         if (!signed_) {
           setMessageLogin(receivedData.message);
-           dispatch(setStep(2));
+          dispatch(setStep(2));
           return;
         }
         //   Обновим настройки          
         dispatch(setSignedAgreement(signed_));
         dispatch(setStep(4));
+
+        // если установлен флаг что команду принудительно активировали (только при начальной регистрации триальный баланс)
+        // то здесь тоже установим активную команду
+        if (setedActiveTeam) {
+          dispatch(setActiveTeam(true));
+        }
+        
       } else {
         setMessage(receivedData.message);
         //  logger
@@ -68,7 +81,7 @@ export const signAgreement = async (
           userId: userId,
           location: "services/initial/signAgreement",
           event: "error",
-          message: `success=false запрос api/agreement-api`,
+          message: `success=false запрос api/user-agreement-api`,
           context: "export const signAgreement = async (",
         }).catch(() => { console.error("logger error") });
       }

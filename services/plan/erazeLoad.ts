@@ -12,6 +12,7 @@ export const erazeLoad = async (
   teamId: number,
   dispatch: Dispatch,
   t: (key: string) => string,
+  locale: string,
   setMessage: (message: string) => void
 ) => {
 
@@ -27,10 +28,11 @@ export const erazeLoad = async (
       const res = await fetch(`/api/plan/eraze-load-plan-api`,
         {
           method: 'post',
-          headers: new Headers({
+          headers: {
             'Authorization': 'Basic ' + token,
-            'Content-Type': 'application/json'
-          }),
+            'Content-Type': 'application/json',
+             'X-Lang': locale,
+          },
           body: JSON.stringify({
             erazload: erazload,
             tCardLoads: tCardLoads,

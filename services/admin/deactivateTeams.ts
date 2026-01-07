@@ -14,12 +14,11 @@ export const deactivateTeams = async (
         const res = await fetch(`api/admin/deactivate-teams-api`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
-
+                },
                 body: JSON.stringify({
                     userId: userId,
                 }),

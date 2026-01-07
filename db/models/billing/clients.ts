@@ -42,6 +42,6 @@ export class ClientTable {
   country!: string; // ISO-2 код страны (PT, LV, DE, RU и т.п.)
 
   @Column('varchar',{default:""})
-  customer_id!: string; // для синхронизации со stripe
+  stripe_customer_id!: string; // для синхронизации со stripe
 
 }

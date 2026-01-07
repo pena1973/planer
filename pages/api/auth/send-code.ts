@@ -15,8 +15,7 @@ import { VerificationCodeTable } from './../../../db/models/auth/verification_co
 import { genCode, hashCode, addMinutes } from './../../../lib/server/code';
 
 const APP_BASE_URL =
-    process.env.APP_BASE_URL ||
-    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.APP_BASE_URL ||    
     `http://localhost:${process.env.PORT || 3000}`;
 
 const Body = z.object({

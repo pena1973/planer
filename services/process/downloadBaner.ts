@@ -23,11 +23,11 @@ export const downloadBaner = async (
         const res = await fetch(`/api/admin/baner-api${params.toString() ? "?" + params.toString() : ""}`, {
 
             method: 'get',
-            headers: new Headers({
+            headers: {
                 'Authorization': 'Basic ' + token,
                 'Content-Type': 'application/json',
                 "X-Lang": locale,
-            }),
+            },
         }
         );
         if (res.status !== 200) {

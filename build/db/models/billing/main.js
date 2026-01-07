@@ -71,9 +71,25 @@ __decorate([
     __metadata("design:type", String)
 ], MainTable.prototype, "reg_n", void 0);
 __decorate([
-    Column('varchar'),
+    Column({ default: "", type: 'char', length: 2 }),
     __metadata("design:type", String)
-], MainTable.prototype, "adress", void 0);
+], MainTable.prototype, "country", void 0);
+__decorate([
+    Column('varchar', { default: "" }),
+    __metadata("design:type", String)
+], MainTable.prototype, "postal_code", void 0);
+__decorate([
+    Column('varchar', { default: "" }),
+    __metadata("design:type", String)
+], MainTable.prototype, "address_line1", void 0);
+__decorate([
+    Column('varchar', { default: "" }),
+    __metadata("design:type", String)
+], MainTable.prototype, "address_line2", void 0);
+__decorate([
+    Column('varchar', { default: "" }),
+    __metadata("design:type", String)
+], MainTable.prototype, "city", void 0);
 __decorate([
     Column('varchar'),
     __metadata("design:type", String)

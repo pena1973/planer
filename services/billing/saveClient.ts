@@ -18,11 +18,11 @@ export const saveClient = async (
         const res = await fetch(`api/billing/client-api`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     userId: userId,
                     teamId: teamId,

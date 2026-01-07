@@ -28,8 +28,6 @@ export type AuthState = {
     signedAgreement:boolean,
     unit:UnitItem,
 }
-
-
 export type PlanState = {
     tCardLighted: TCardItem,
     tCardPrepared: TCardItem,
@@ -47,11 +45,15 @@ export type ViewState = {
     activeTeam:boolean,
     step:number,
 }
+export type AdminState = {
+    teams: TeamItem[],    
+}
   // 1-регистер
   // 2-логин
   // 3-соглашение
   // 4-лоадер
   // 5-мастер заполнения
+  
 
 // Начальное состояние
 const catalogIntialState: CatalogState = {
@@ -90,6 +92,11 @@ const viewIntialState: ViewState = {
     baner: [] as BanerItem[],
     activeTeam:false,
     step:2,
+}
+
+// админское состояние
+const adminIntialState: AdminState = {
+    teams: [] as TeamItem[],    
 }
 // хранилище
 const authSlice = createSlice({
@@ -214,6 +221,18 @@ const viewSlice = createSlice({
 
 })
 
+const adminSlice = createSlice({
+    name: 'admin',
+    initialState: adminIntialState,
+    reducers: {
+        setTeams: (state, action) => {
+            state.teams = action.payload;
+        },
+        
+        
+    },
+
+})
 export default function Foo() { return <></> }  // пустышка для билда
 
 export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule } = catalogSlice.actions;
@@ -221,6 +240,7 @@ export const { setTCards,setTCardIndex, setTemplates } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement,setUnit} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;
 export const { setMonitorPoint, setResourcePoint,setSuportPoint,setLoadingComplete,setBaner,setActiveTeam,setStep } = viewSlice.actions;
+export const {setTeams} = adminSlice.actions;
 
-export { authSlice, catalogSlice, dataSlice, planSlice, viewSlice };
+export { authSlice, catalogSlice, dataSlice, planSlice, viewSlice, adminSlice };
 

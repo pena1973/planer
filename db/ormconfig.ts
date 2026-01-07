@@ -32,7 +32,9 @@ const base: DataSourceOptions = process.env.DATABASE_URL
 
 const config: DataSourceOptions = {
   ...base,
+  
   logging: ['error', 'warn'],
+
   entities: getEntities(),                         // явный список классов
   // migrations: [__dirname + '/migrations/**/*.ts'], // ts в dev (в prod переопределим на .js в data-source.ts)
   migrations: [

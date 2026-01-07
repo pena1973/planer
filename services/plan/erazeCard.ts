@@ -13,6 +13,7 @@ export const erazeCard = async (
     today: string,
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 
 ) => {
@@ -31,10 +32,11 @@ export const erazeCard = async (
         const res = await fetch(`/api/plan/eraze-card-plan-api`,
             {
                 method: 'post',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
-                    'Content-Type': 'application/json'
-                }),
+                    'Content-Type': 'application/json',
+                    'X-Lang': locale,
+                },
                 body: JSON.stringify({
                     tCardLoads: tCardLoads,
                     tCardId: tCardId,

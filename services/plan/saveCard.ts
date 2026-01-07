@@ -31,11 +31,11 @@ export const saveCard = async (
             const res = await fetch(`api/tCard/tcard-status-api`,
                 {
                     method: 'post',
-                    headers: new Headers({
+                    headers: {
                         'Authorization': 'Basic ' + token,
                         'Content-Type': 'application/json',
                         "X-Lang": locale,
-                    }),
+                    },
                     body: JSON.stringify({
                         tCardId: tCardPrepared.id,
                         teamId: teamId,
@@ -107,10 +107,11 @@ export const saveCard = async (
             const res = await fetch(`/api/loads/save-card-loads-api`,
                 {
                     method: 'post',
-                    headers: new Headers({
+                    headers: {
                         'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
+                        'Content-Type': 'application/json',
+                        "X-Lang": locale,
+                    },
                     body: JSON.stringify({
                         tCard: tCardPrepared,
                         tCardLoads: tCardLoadsPrepared,

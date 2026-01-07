@@ -21,11 +21,11 @@ export const updateLead = async (
         const res = await fetch(`api/admin/update-lead-api`,
             {
                 method: 'POST',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     leadId: leadId,
                     status: status,

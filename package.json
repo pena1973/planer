@@ -1,6 +1,6 @@
 {
   "name": "planer",
-  "version": "0.1.0.1",
+  "version": "0.1.0.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -50,7 +50,7 @@
     "reflect-metadata": "^0.2.2",
     "sass": "^1.81.0",
     "sharp": "^0.34.2",
-    "stripe": "^18.5.0",
+    "stripe": "^20.1.0",
     "tsconfig-paths": "^4.2.0",
     "typeorm": "^0.3.20",
     "zod": "^4.0.17"

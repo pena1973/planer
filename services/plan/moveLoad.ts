@@ -18,6 +18,7 @@ export const moveLoad = async (
     today: string,
     dispatch: Dispatch,
     t: (key: string) => string,
+    locale: string,
     setMessage: (msg: string) => void,
 ) => {
 
@@ -31,10 +32,11 @@ export const moveLoad = async (
             const res = await fetch(`/api/plan/pre-moveload-api`,
                 {
                     method: 'post',
-                    headers: new Headers({
+                    headers: {
                         'Authorization': 'Basic ' + token,
-                        'Content-Type': 'application/json'
-                    }),
+                        'Content-Type': 'application/json',
+                         'X-Lang': locale,
+                    },
                     body: JSON.stringify({
                         pinnedLoad: load,
                         tCardLoads: tCardLoads,

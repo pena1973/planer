@@ -15,11 +15,11 @@ export const getSupportMails = async (
     try {
         const res = await fetch(`api/support-api?teamId=${teamId}&userId=${userId}`, {
             method: 'get',
-            headers: new Headers({
+            headers: {
                 'Authorization': 'Basic ' + token,
                 'Content-Type': 'application/json',
                 "X-Lang": locale,
-            }),
+            },
         });
         if (res.status !== 200) {
             const receivedData = await res.json();

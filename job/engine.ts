@@ -36,8 +36,9 @@ export async function startJobsInThisProcess() {
     const rows = await repo.find();
 
     for (const s of rows) {
+     
       if (!s.enabled || !s.next_run_at || s.next_run_at > now) continue;
-
+     
       const handler = jobs[s.job_key];
 
       try {

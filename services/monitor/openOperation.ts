@@ -20,11 +20,11 @@ export const openOperation = async (
     const res = await fetch(`api/tCard/tcard-api?userId=${userId}&teamId=${teamId}&tCardId=${id_tCard}`,
       {
         method: 'get',
-        headers: new Headers({
+        headers: {
           'Authorization': 'Basic ' + token,
           'Content-Type': 'application/json',
           "X-Lang": locale,
-        }),
+        },
       }
     );
     if (res.status !== 200) {

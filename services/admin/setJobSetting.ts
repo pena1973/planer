@@ -10,17 +10,18 @@ export const setJobSetting = async (
     t: (key: string) => string,
     locale: string,
     setMessage: (msg: string) => void,
+    setJobs: (val: JobSettingItem[]) => void,
 ) => {
 
     try {
-        const res = await fetch(`api/admin/set-job-setting-api`,
+        const res = await fetch(`api/admin/job-setting-api`,
             {
                 method: 'POST',
-                headers: new Headers({
+                headers: {
                     'Authorization': 'Basic ' + token,
                     'Content-Type': 'application/json',
                     "X-Lang": locale,
-                }),
+                },
                 body: JSON.stringify({
                     jobSetting: jobSetting,
                     userId: userId,
@@ -42,7 +43,10 @@ export const setJobSetting = async (
         } else {
             const receivedData = await res.json();
             if (receivedData.success) {
+                const jobSetting = receivedData.jobSetting as JobSettingItem[];
+                setJobs(jobSetting);
                 setMessage("Успешно изменено раcписание");
+
             } else {
                 setMessage(receivedData.message);
                 //  logger
@@ -50,7 +54,7 @@ export const setJobSetting = async (
                     userId: userId,
                     location: "services/admin/setJobSetting",
                     event: "error",
-                    message: `success=false запрос api/admin/set-job-setting-api`,
+                    message: `success=false запрос api/admin/job-setting-api`,
                     context: "export const setJobSetting = async (",
                 }).catch(() => { console.error("logger error") });
             }

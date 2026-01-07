@@ -45,7 +45,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BalanceTable = void 0;
 // db/models/billing/balance.ts
 const TypeORM = __importStar(require("typeorm"));
-const { Entity, PrimaryGeneratedColumn, Column } = TypeORM;
+const { Entity, PrimaryGeneratedColumn, Column, Index } = TypeORM;
 let BalanceTable = class BalanceTable {
 };
 exports.BalanceTable = BalanceTable;
@@ -64,7 +64,7 @@ __decorate([
 __decorate([
     Column('decimal', { precision: 12, scale: 2, default: 0 }),
     __metadata("design:type", Number)
-], BalanceTable.prototype, "summa", void 0);
+], BalanceTable.prototype, "amount", void 0);
 __decorate([
     Column('varchar', { default: "" }),
     __metadata("design:type", String)
@@ -82,6 +82,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], BalanceTable.prototype, "is_trial", void 0);
 __decorate([
+    Column('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], BalanceTable.prototype, "is_gift", void 0);
+__decorate([
     Column('int'),
     __metadata("design:type", Number)
 ], BalanceTable.prototype, "team_id", void 0);
@@ -90,5 +94,6 @@ __decorate([
     __metadata("design:type", String)
 ], BalanceTable.prototype, "transaction_id", void 0);
 exports.BalanceTable = BalanceTable = __decorate([
+    Index("ux_balance_team_transaction", ["team_id", "transaction_id"], { unique: true }),
     Entity("balance")
 ], BalanceTable);

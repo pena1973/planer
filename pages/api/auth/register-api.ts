@@ -52,8 +52,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const agreementRepository = getTypedRepository(db, 'AgreementTable', AgreementTable);
     const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
     const teamScheduleRepository = getTypedRepository(db, 'TeamScheduleTable', TeamScheduleTable);
-    const active_timeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
-    const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
+    // const active_timeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
+    // const balanceRepository = getTypedRepository(db, 'BalanceTable', BalanceTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
     const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           res.status(200).json({
             success: false,
             // message: " Ошибка, пользователь с таким логином уже существует, если забыли пароль, воспользуйтесь функцией восстановления пароля",
-            message: `${'mes.userAlreadyExists'}`,
+            message: `${t('mes.userAlreadyExists')}`,
           });
           return;
         }
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             null,
             locale,
             teamsRepository,
-            active_timeRepository,
+            // active_timeRepository,
             settingsRepository,
             teamScheduleRepository,
             timezone,
@@ -145,32 +145,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const agreementText = resAgreement.agreementText;
         const agreementId = resAgreement.agreementId;
 
-        const todayStr = getCurrentDateInString(timezone)
-        // проводка пополнения  баланса  при создании новой независимой команды в режиме триал
-        if (!basedOnTeam) {
-          const balanceRes = await updateBalance(
-            savedUser.id,
-            locale,
-            balanceRepository,
-            team.id,
-            "",
-            100,
-            todayStr,
-            true,
-            'trial - ' + todayStr, "+", "")
+        // Переносим на момент подписания соглащения первый раз
+        // const todayStr = getCurrentDateInString(timezone)
+        // // проводка пополнения  баланса  при создании новой независимой команды в режиме триал
+        // if (!basedOnTeam) {
+        //   const balanceRes = await updateBalance(
+        //     savedUser.id,
+        //     locale,
+        //     balanceRepository,
+        //     team.id,
+        //     "",
+        //     100,
+        //     todayStr,
+        //     true,
+        //     false,
+        //     'trial - ' + todayStr, "+", "")
 
-          if (!balanceRes.success) {
-            console.log("баланс не пополнен  trial, teamId:" + team.id);
-            //  logger
-            void ulogger.error({
-              userId: null,
-              location: "pages/api/auth/register-api",
-              event: "error",
-              message: "баланс не пополнен  trial, teamId:" + team.id,
-              context: " const balanceRes = await updateBalance(",
-            }).catch(() => { console.error("logger error") });
-          }
-        }
+        //   if (!balanceRes.success) {
+        //     console.log("баланс не пополнен  trial, teamId:" + team.id);
+        //     //  logger
+        //     void ulogger.error({
+        //       userId: null,
+        //       location: "pages/api/auth/register-api",
+        //       event: "error",
+        //       message: "баланс не пополнен  trial, teamId:" + team.id,
+        //       context: " const balanceRes = await updateBalance(",
+        //     }).catch(() => { console.error("logger error") });
+        //   }
+        // }
+
         // отправляем ответ
         res.status(200).json({
           success: true,

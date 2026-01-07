@@ -1,4 +1,4 @@
-//pages/api/invoice-api.ts
+//pages/api/invoices-api.ts
 // API для получения, создания, обновления и удаления 
 // Используется в 
 

@@ -1582,7 +1582,7 @@ export default function Cards() {
   // ЛОАДЫ
   const cancelLoadHandler = async (load_idc: number) => {
     if (!load_idc) return;
-    await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, setMessage);
+    await erazeLoad(load_idc, unitLoads, tCards, token, user.id, team.id, dispatch, t, i18n.language, setMessage);
   }
 
 

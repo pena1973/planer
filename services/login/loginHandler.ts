@@ -1,7 +1,7 @@
 // status 0 - архив, 1 актив, 2 запрос 
 import { Dispatch } from 'redux';
 import { UserItem, TeamItem, SettingsItem, UnitItem, } from './../../types/types';
-import { setUser, setToken, setTeam, setSettings, setSignedAgreement, setUnit, setActiveTeam,setStep } from './../../store/slices';
+import { setUser, setToken, setTeam, setSettings, setSignedAgreement, setUnit, setActiveTeam, setStep } from './../../store/slices';
 import { ulogger } from "./../../lib/common/universal-logger";
 
 interface LoginPayload {
@@ -13,9 +13,9 @@ interface LoginPayload {
   setMessage: (msg: string) => void;
   setMessageLogin: (msg: string) => void;
   dispatch: Dispatch;
-  // setStep: (step: number) => void;
   agreementIdRef: React.MutableRefObject<number>;
   agreementTextRef: React.MutableRefObject<string>;
+  agreementlocaleRef: React.MutableRefObject<string>;
   configureTokenAccess: (
     getToken: () => string,
     setToken: (token: string) => void
@@ -32,9 +32,9 @@ export const loginHandler = async ({
   setMessage,
   setMessageLogin,
   dispatch,
-  // setStep,
   agreementIdRef,
   agreementTextRef,
+  agreementlocaleRef,
   configureTokenAccess,
   store,
 }: LoginPayload) => {
@@ -44,11 +44,16 @@ export const loginHandler = async ({
     const res = await fetch(`api/auth/login-api`,
       {
         method: 'post',
-        headers: new Headers({
-          'Authorization': 'Basic ' + token,
+        headers: {
+          'Authorization': `Basic ${token}`,
           'Content-Type': 'application/json',
-          "X-Lang": locale,
-        }),
+          'X-Lang': locale,
+        },
+        // headers: new Headers({
+        //   'Authorization': 'Basic ' + token,
+        //   'Content-Type': 'application/json',
+        //   "X-Lang": locale,
+        // }),
         body: JSON.stringify({
           login: login,
           pass: pass,
@@ -76,6 +81,7 @@ export const loginHandler = async ({
         const team_ = receivedData.team as TeamItem;
         const settings_ = receivedData.settings as SettingsItem;
         const agreementText_ = receivedData.agreementText as string;
+        const agreementLocale_ = receivedData.agreementLocale as string;
         const signed_ = receivedData.signed as boolean;
         const agreementId_ = receivedData.agreementId as number
         const unit_ = receivedData.unit as UnitItem
@@ -97,6 +103,7 @@ export const loginHandler = async ({
         dispatch(setActiveTeam(activeTeam));
         agreementIdRef.current = agreementId_;
         agreementTextRef.current = agreementText_;
+        agreementlocaleRef.current = agreementLocale_;
         dispatch(setStep(3));
       } else {
         setMessageLogin(receivedData.message);

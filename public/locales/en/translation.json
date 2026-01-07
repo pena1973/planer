@@ -45,7 +45,8 @@
     "nicknameNotSelected": "No nickname selected.",
     "pass1NotEqualPass2": "Passwords do not match.",
     "toPost": "To the email address ",
-    "sentCodeMail": " an email with a verification code has been sent. Please confirm your email and then sign in."
+    "sentCodeMail": " an email with a verification code has been sent. Please confirm your email and then sign in.",
+    "text_TTL": "We store your email to send the verification code. If you do not complete registration and accept the terms, your account will be automatically deleted after 7 days"
   },
   "index": {
     "downloadBaner": "Banner uploaded",
@@ -338,7 +339,6 @@
     "fixing": "fixing",
     "showClosed": "Show closed",
     "comment": "Comment"
-    
   },
   "reportUnitsKPI": {
     "wait": "Wait...",
@@ -395,25 +395,40 @@
     "paid": "Paid",
     "client_requisites": "Client details",
     "payment": "Payment",
-    "pay": "Pay",
-    "balance": "Balance",
+    "pay": "Pay for access",
+    "balance": "Available",
     "amount": "Payment amount",
     "attached_teams": "Teams",
     "no_attached_teams": "No teams",
     "teamNumber": "Team number",
     "teamTitle": "Team name",
-    "stateActive": "State",
+    "stateActive": "Status",
     "invoises": "Invoices",
-    "invoises_notice": "Invoices are issued on the 1st for the previous month",
-    "forecast": "Expense",
-    "VAT": "with VAT",
-    "price": "Price per point",
-    "point": "point",
-    "notification": "Funds are deducted daily. When the balance is depleted, all teams will be set to inactive.",
+    "VAT": "VAT included",
+    "point": "service usage units",
+    "notification": "Service usage units are charged daily. When all usage units are exhausted, access to the service will be temporarily suspended (all teams will be set to inactive).",
     "active": "active",
     "activate": "activate",
-    "deactivate": "deactivate"
+    "deactivate": "deactivate",
+    "amount1": "amount",
+    "currency": "currency",
+    "usage": "Usage",
+    "coment": "Comment",
+    "qty": "Quantity",
+    "usageWillAdded": "Usage units will be added within a few seconds.",
+    "paymentAccepted": "Payment accepted! ",
+    "paymentCanceled": "Payment canceled! ",
+    "paymentRepeat": "You can try again.",
+    "paymentReturn": "Return"  
+
   },
+   "jobs": {
+    "job_key": "key", 
+    "enabled": "enabled", 
+    "schedule": "schedule", 
+    "next_run_at": "next run", 
+    "last_run_at": "last run" 
+   },
   "profile": {
     "buttonChangePass": "Save",
     "buttonChangeName": "Save",
@@ -458,7 +473,7 @@
   "agreement": {
     "signAgreement": " Concent",
     "cancelSignAgreement": "Cancel",
-    "agree": "Agree"
+    "agree": "I ACCEPT THE TERMS OF USE AND CONSENT TO THE PROCESSING OF MY PERSONAL DATA"
   },
   "mes": {
     "impossibleToDelStage": "It is impossible to delete the stage because it contains operations. Please delete the operations from the stage first.",

@@ -1,3 +1,4 @@
+// pages/api/payments/customer-update.ts
 import Stripe from 'stripe';
 import { stripe } from '@/lib/common/stripe';
 import { ClientItem } from './../../../types/service-types';
@@ -41,7 +42,8 @@ export default async function updateStripeCustomerFromClient(
         name: client.title || undefined,
         email: client.email || undefined,
         phone: client.phone || undefined,
-        description: 'Planer',
+        description: 'plan-track.pro',        
+        preferred_locales: ['en-GB'],
         metadata: {
             teamId: String(client.teamId ?? ''),
             ...(client.teamId ? { clientId: String(client.teamId) } : {}),
@@ -57,7 +59,7 @@ export default async function updateStripeCustomerFromClient(
         tax_exempt: 'none',
     };
 
-    let customerId = client.customerId ?? undefined;
+    let customerId = client.stripe_customer_id ?? undefined;
 
     if (customerId) {
         await stripe.customers.update(customerId, params);

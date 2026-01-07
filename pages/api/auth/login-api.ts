@@ -1,4 +1,4 @@
-//pages/api/login-api.ts
+//pages/api/auth/login-api.ts
 // API для получения, создания, обновления и удаления 
 // Используется в 
 
@@ -33,6 +33,7 @@ interface RequestBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
   try {
     const db = await connectDb();
 
@@ -77,6 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const resActiveTeam = await getTeamActivity(user.id, locale, [team], activeTimeRepository)
         const activeTeam = resActiveTeam.length > 0 ? resActiveTeam[0].active : false;
+       
         //  юзер получен проверяю актуальное соглашение
         const resAgreement = await getLastAgreement(user.id, locale, userAgreeRepository, agreementRepository)
 
@@ -97,7 +99,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const signed = resAgreement.signed;
+        const signedAt = resAgreement.signed_at;
         const agreementText = resAgreement.agreementText;
+        const agreementLocale = resAgreement.agreementLocale;
         const dateSigned = signed ? resAgreement.dateSigned : null;
         const agreementId = resAgreement.agreementId;
 
@@ -142,9 +146,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           team: team,
           token: accessToken,
           user: user,
+          agreementLocale:agreementLocale,
           agreementText: agreementText,
           agreementId: agreementId,
           signed: signed,
+          signedAt:signedAt,
           dateSigned: dateSigned,
           unit: unit,
           activeTeam: activeTeam

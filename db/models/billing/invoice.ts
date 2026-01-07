@@ -54,8 +54,8 @@ export class InvoiceTable {
   @Column({ name: 'hosted_invoice_url', type: 'text', nullable: true, default: null })
   hosted_invoice_url!: string | null;
 
-  @Column({ name: 'invoice_pdf_url', type: 'text', nullable: true, default: null })
-  invoice_pdf_url!: string | null;
+  // @Column({ name: 'invoice_pdf_url', type: 'text', nullable: true, default: null })
+  // invoice_pdf_url!: string | null;
 
   @Column({ name: 'customer_email', type: 'varchar', length: 255, nullable: true, default: null })
   customer_email!: string | null;
