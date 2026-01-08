@@ -306,19 +306,7 @@ async function moveToOuterUnit(
         loadInfo: { ...loadStart.loadInfo, koef: 1 }
       })
 
-    // // Формируем финишный лоад 
-    // planedCardLoads.push(
-    //   {
-    //     ...loadFinish,
-    //     unit: unit,
-    //     isRetool: false,
-    //     date: readySourceMoment.date,
-    //     timeStart: readySourceMoment.time+dur - 5,
-    //     timeFinish: readySourceMoment.time+dur,
-    //     isPinned: true,
-    //     isOuterFinish: true,
-    //     loadInfo: { ...loadFinish.loadInfo, koef: 1 },
-    //   })
+    
 
     // --- ЗДЕСЬ считаем финиш по рабочему расписанию компании + юнита ---
     // вспомогательный util: добавление дней к дате "YYYY-MM-DD"
@@ -657,7 +645,7 @@ async function moveToOuterUnit(
     success: true,
     tCardLoads: planedCardLoads,
     message: "",
-  };;
+  };
 }
 
 

@@ -1025,7 +1025,9 @@ export const planTCardFromOperINC = (
           // console.log('readyProducts',readyProducts);
           //  Удаляем операцию из общего массива - обработали
           const index = tCardOperations.findIndex(oper => oper.id === operation.id);
-          tCardOperations.splice(index, 1);
+          if (index !== -1) {
+            tCardOperations.splice(index, 1);
+          }
 
         } else {
           // если операция входит в список планируемых - планируем
