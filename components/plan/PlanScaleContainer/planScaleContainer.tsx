@@ -963,45 +963,7 @@ export default function PlanScaleContainer({
     )
   });
 
-  // оригинал
-  // const buildLineNodes = (
-  //   lines: Line[],
-  //   calendar: CalendarItem[],
-  //   containerRef: React.RefObject<HTMLDivElement | null>
-  // ) => {
-  //   if (dayWidth === 0 || pxPerMinute === 0) return [];
-
-  //   return lines
-  //     .map((line, index) => {
-  //       const startIdx = calendar.findIndex(c => c.idDay === line.startDate);
-
-  //       const endIdx = calendar.findIndex(c => c.idDay === line.endDate);
-
-
-  //       // если день ещё не в календаре (мы его не сгенерили) — линию пока не рисуем
-  //       if (startIdx === -1 || endIdx === -1) return null;
-
-  //       const clampToDay = (minutes: number) => {
-  //         if (minutes <= dayStartMinutes) return 0;
-  //         const maxMin = dayStartMinutes + minutesPerDay;
-  //         if (minutes >= maxMin) return dayWidth;
-  //         return (minutes - dayStartMinutes) * pxPerMinute;
-  //       };
-
-  //       const x1 = startIdx * dayWidth + clampToDay(line.startTime) + 30;
-  //       const x2 = endIdx * dayWidth + clampToDay(line.endTime);
-  //       return (
-  //         <DottedLine
-  //           key={index}
-  //           container={containerRef.current}
-  //           unitId={line.unitId}
-  //           x1={x1}
-  //           x2={x2}
-  //         />
-  //       );
-  //     })
-  //     .filter((node): node is JSX.Element => node !== null);
-  // };
+ 
 
 
   const buildLineNodes = (
@@ -1058,13 +1020,7 @@ export default function PlanScaleContainer({
       .filter((node): node is JSX.Element => node !== null);
   };
 
-
-  // const linesPlus = createLines("Plus", today.toLocaleDateString("en-CA"), unitLoads);
-  // const linesMinus = createLines("Minus", today.toLocaleDateString("en-CA"), unitLoads);
-
-  // const linesPlusReactNodes = buildLineNodes(linesPlus, calendarViewPlus, divRefPlus);
-  // const linesMinusReactNodes = buildLineNodes(linesMinus, calendarViewMinus, divRefMinus);
-
+ 
 
 
   const unitsReactNodesInner = unitsViewInner.current.map(elem => {

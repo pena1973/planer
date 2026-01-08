@@ -15,7 +15,8 @@
 .plug {
   display: flex;
   justify-content: center;
-  height: 48px;
+  height: 50px;
+  min-height: 50px;
   width: 100%;
   background-color: colors.$second_body_background_color;
 
@@ -25,6 +26,7 @@
   display: flex;
   justify-content: center;
   height: 40px;
+  min-height: 40px;
   width: 100%;
   background-color: colors.$main_body_background_color;
   border-top-left-radius: colors.$border-radius;
@@ -53,7 +55,8 @@
   width: 140px;
   min-width: 140px;
   background-color: colors.$second_body_background_color;
-  
+  box-sizing: border-box;
+  overflow: hidden; // чтобы ничего не расширяло колонку по высоте
 }
 
 .plan_scale_container_left {
@@ -145,6 +148,8 @@
 
 .scale_header {
   background-color: colors.$second_body_background_color;
+  height: 50px;
+  min-height: 50px;
 }
 
 .scale_controls {
@@ -324,31 +329,76 @@
 
 ///// UNITS
 /// 
+// .unit_name {
+//   position: relative;
+//   padding: 15px 10px 10px;
+//   width: 100%;
+//   background-color: colors.$main_body_background_color;
+//   min-height: 30px;
+//   max-height: 50px;
+//   font-weight: bold;
+//   cursor: pointer;
+//    background-color: rgb(188, 188, 199);
+// }
+
 .unit_name {
-  position: relative;
-  padding: 20px 10px 10px;
-  width: 100%;
-  background-color: colors.$main_body_background_color;
-  min-height: 30px;
+  box-sizing: border-box;
+
+  height: 50px;
+  min-height: 50px;
   max-height: 50px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 10px;     // убираем вертикальные padding
+  width: 100%;
+
   font-weight: bold;
   cursor: pointer;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background-color: colors.$main_body_background_color;
   // background-color: rgb(188, 188, 199);
-
-
+  //  border: #020202 1px solid;
 }
 
+
+// .units_title {
+//   // margin: 1px;
+//   width: 100%;
+//   padding: 20px 10px 10px;
+//   // background-color: rgb(235, 228, 137);
+//   min-height: 30px;
+//   font-weight: lighter;
+//   background-color: colors.$main_body_background_color;
+//   // background-color: rgb(161, 161, 167);
+//   font-style: italic;
+//   font-size: colors.$header3_font_size;
+// }
 .units_title {
-  // margin: 1px;
-  width: 100%;
-  padding: 20px 10px 10px;
-  // background-color: rgb(235, 228, 137);
-  min-height: 30px;
+  box-sizing: border-box;
+
+  height: 50px;
+  min-height: 40px;
+  max-height: 50px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 10px;
+
   font-weight: lighter;
-  background-color: colors.$main_body_background_color;
-  // background-color: rgb(161, 161, 167);
   font-style: italic;
   font-size: colors.$header3_font_size;
+
+  background-color: colors.$main_body_background_color;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .unit_load {  
