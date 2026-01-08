@@ -15,7 +15,7 @@ import { getTypedRepository } from './../../../db/utilites'
 
 import { getTCardFull, getUnits, getTeamShedule, getUnitLoads, getUnitExceptions, getUnitActions } from './../../../handlers/handlers-get';  // 
 import { planTCardFromOperINC, planOperOnUnit, getDependentOperations, getOperationReadyMoment } from './../../../handlers/handlers-plan';  // 
-import {  isHoliday,  isWeekend  } from "@/lib/common/utils"
+import { isHoliday, isWeekend } from "@/lib/common/utils"
 
 import { UnitLoadTable } from './../../../db/models/plan/unit_loads';
 import { UnitExceptionTable } from './../../../db/models/plan/unit_exceptions';
@@ -212,7 +212,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
- export default withAuth(handler)
+export default withAuth(handler)
 
 async function moveToOuterUnit(
   userId: number,
@@ -277,16 +277,19 @@ async function moveToOuterUnit(
   const loadFinish = operloads[operloads.length - 1];
 
   // реальная длительность операции по старым лоадам (с учётом разрыва по дням)
-  const toMs = (d: string, minutes: number) => {
-    const [y, m, day] = d.split("-").map(Number);
-    return new Date(y, (m || 1) - 1, day || 1, 0, 0, 0, 0).getTime() + minutes * 60000;
-  };
+  const oper = tCard.tCardOperations?.find(op => op.id === loadStart.id_oper);
+  const dur = (!oper) ? 0 : oper.duration / 60000;
 
-  const startMs = toMs(loadStart.date, loadStart.timeStart);
-  const finishMs = toMs(loadFinish.date, loadFinish.timeFinish);
+  // const toMs = (d: string, minutes: number) => {
+  //     const [y, m, day] = d.split("-").map(Number);
+  //     return new Date(y, (m || 1) - 1, day || 1, 0, 0, 0, 0).getTime() + minutes * 60000;
+  //   };
 
-  // фактическая длительность операции (минуты)
-  const dur = Math.max(5, Math.round((finishMs - startMs) / 60000));
+  //   const startMs = toMs(loadStart.date, loadStart.timeStart);
+  //   const finishMs = toMs(loadFinish.date, loadFinish.timeFinish);
+
+  //   // фактическая длительность операции (минуты)
+  //   const dur = Math.max(5, Math.round((finishMs - startMs) / 60000));
 
 
   //  перетаскиваем с с внутреннего на внешний
@@ -306,7 +309,7 @@ async function moveToOuterUnit(
         loadInfo: { ...loadStart.loadInfo, koef: 1 }
       })
 
-    
+
 
     // --- ЗДЕСЬ считаем финиш по рабочему расписанию компании + юнита ---
     // вспомогательный util: добавление дней к дате "YYYY-MM-DD"
@@ -318,10 +321,10 @@ async function moveToOuterUnit(
       const dd = String(dt.getDate()).padStart(2, "0");
       return `${yy}-${mm}-${dd}`;
     }
-    
+
     // рабочие интервалы для конкретной даты с учётом расписания компании,
     // выходных/праздников, индивидуальных рабочих дней и исключений юнита
-      // рабочий отрезок в минутах от начала дня
+    // рабочий отрезок в минутах от начала дня
     type WorkSegment = { start: number; end: number };
 
     function getWorkSegmentsForDate(
@@ -384,7 +387,7 @@ async function moveToOuterUnit(
       // --- 3) Вычитаем общие перерывы компании ---
       if (Array.isArray(schedule.breaks)) {
         for (const br of schedule.breaks) {
-          const bs = br.timeStart ;
+          const bs = br.timeStart;
           const be = br.timeFinish;
           if (be > bs) {
             segments = subtractInterval(segments, bs, be);
@@ -593,8 +596,11 @@ async function moveToOuterUnit(
         isOuterFinish: true,
         loadInfo: { ...loadFinish.loadInfo, koef: 1 }
       })
-
-    // Далее перепланируем начиная с последующих операций
+  }
+  // 4. если перетаскиваем с внешнего на внешний и лоад стартовый или  финишный
+  // перепланируем начиная с последующих операций
+  if ((pinnedLoad.isOuterStart || pinnedLoad.isOuterFinish) && pinnedLoad.unit.belong === UnitBelongEnum.outer) {
+    
     // запросим юниты
     const units_ = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
 
