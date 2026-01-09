@@ -10,8 +10,11 @@ import { verifyRefreshToken, createAccessToken } from './../../../lib/common/aut
 
 export interface TokenPayload {
   login: string;
+  userId: number;
+  teamId: number;
   exp?: number;
   iat?: number;
+
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -27,7 +30,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(403).json({ error: 'Refresh token invalid or expired' });
     }
 
-    const newAccessToken = createAccessToken({ login: payload.login });
+    const newAccessToken = createAccessToken({ login: payload.login, userId: payload.userId, teamId: payload.teamId });
     res.status(200).json({ token: newAccessToken });
   } catch (e: unknown) {
     let error = "";

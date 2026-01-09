@@ -26,7 +26,8 @@ export interface LoadProps {
     //   moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
     pinLoadHandler: (oper_id: number, version:number) => void,
     unPinLoadHandler: (oper_id: number, tCardId: number, version:number) => void,
-    isLoadingDrop?: boolean
+    isLoadingDrop?: boolean,
+    lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void, 
 }
 
 function LoadInner({
@@ -45,7 +46,8 @@ function LoadInner({
     index,
     pinLoadHandler,
     unPinLoadHandler,
-    isLoadingDrop
+    isLoadingDrop,
+    lightTCardHandler
 }: LoadProps) {
 
     const [isMouseDown, setIsMouseDown] = useState(false);
@@ -104,6 +106,7 @@ function LoadInner({
                 onMouseUp={handleMouseUpOper}
                 onDragEnd={() => { setIsMouseDown(false) }}
                 onMouseDown={() => setIsMouseDown(true)}
+                onDoubleClick={() => lightTCardHandler(tCard, true)}
                 draggable
                 id={String(load.idc + "_" + index)}
                 style={{

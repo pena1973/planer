@@ -1061,7 +1061,9 @@ export const planTCardFromOperINC = (
             readyProducts = doLoopProductsOper(readyProducts, operation, dateFinish, timeFinish);
             //  Удаляем операцию из общего массива - обработали
             const index = tCardOperations.findIndex(oper => oper.id === operation.id);
+             if (index !== -1) {
             tCardOperations.splice(index, 1);
+             }
             isPinned = true;
           }
 
@@ -1124,7 +1126,9 @@ export const planTCardFromOperINC = (
           }
           //  Удаляем операцию из общего массива
           const index = tCardOperations.findIndex(oper => oper.id === operation.id);
+           if (index !== -1) {
           tCardOperations.splice(index, 1);
+        }
         }
       };
 

@@ -26,6 +26,7 @@ export interface LoadProps {
     handleRightClickMenu: (event: React.MouseEvent, idc: number | undefined) => void,
     stopCloseMenu: (idc: number) => void,
     moveLoadHandler: (load: UnitLoadItem, unit: UnitItem, date: string, timeStart: number, timeFinish: number) => void,
+    lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void,
 
 }
 
@@ -46,6 +47,7 @@ function LoadOuter({
 
     stopCloseMenu,
     moveLoadHandler,
+    lightTCardHandler
 
 }: LoadProps) {
 
@@ -157,6 +159,7 @@ function LoadOuter({
             <div className={intervalClass}
                 onMouseDown={e => handleMouseDownOper(e, load)}
                 onMouseUp={e => handleMouseUpOper()}
+                onDoubleClick={() => lightTCardHandler(tCard, true)}
                 draggable={true}
                 id={String(load.idc)}
                 style={{

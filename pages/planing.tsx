@@ -279,6 +279,7 @@ export default function Planing() {
             unPinLoadHandler={unPinLoadHandler}
             unitActions={unitActions}
             timezone={schedule.timeZone}
+            lightTCardHandler={lightTCardHandler}
           />
         </div>
 

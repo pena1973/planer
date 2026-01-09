@@ -109,8 +109,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // const token = sign({ data: login }, String(process.env.JWTSECRET), { expiresIn: '24h' });
 
         // const token = createToken({ login })
-        const accessToken = createAccessToken({ login })
-        const refreshToken = createRefreshToken({ login })
+        const accessToken = createAccessToken({ login: user.login, userId: user.id, teamId: user.teamId})
+        // const accessToken = createAccessToken({ login })
+        const refreshToken = createRefreshToken({ login: user.login, userId: user.id, teamId: user.teamId})
 
         // Устанавливаем refresh в HttpOnly cookie
         res.setHeader('Set-Cookie', [`refreshToken=${refreshToken}; HttpOnly; Path=/;  Max-Age=${60 * 60 * 24 * 7}`, // 7 дней
