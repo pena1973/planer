@@ -28,18 +28,20 @@
 ._table{
     width: 100%;
     margin-bottom: 5px;
+    table-layout: fixed; // ключевое
 }
 ._table thead th:nth-child(1) {
     width: 29px;    
   }
 ._table thead th:nth-child(2) {
-     width: 100%;    
+    //  width: 100%;  
+     width: 150px;      
   }
   ._table thead th:nth-child(3) {
-    width: 80px;    
+    width: 90px;    
   }
   ._table tr td:nth-child(4) {
-    width: 20px;
+    width: 25px;
     text-align: center;    
   }
 
