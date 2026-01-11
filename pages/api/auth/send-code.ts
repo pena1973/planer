@@ -47,7 +47,7 @@ ${link}
 
 Если вы не запрашивали этот код, просто проигнорируйте письмо.
 
-— Plan&Track Pro\nhttps://plan-track.pro`;
+— Plan&Track Pro\nhttps://www.plan-track.pro`;
     }
 
     return `Hello,
@@ -60,7 +60,7 @@ ${link}
 
 If you didn't request this code, please ignore this message.
 
-— Plan&Track Pro\nhttps://plan-track.pro`;
+— Plan&Track Pro\nhttps://www.plan-track.pro`;
 }
 
 function buildHtml(locale: string | undefined, purpose: string, code: string, link: string): string {
@@ -76,7 +76,7 @@ function buildHtml(locale: string | undefined, purpose: string, code: string, li
     <p>Страница подтверждения: <a href="${link}">${link}</a></p>
     <p style="color:#666;font-size:12px;margin-top:16px;">Если вы не запрашивали этот код, проигнорируйте письмо.</p>
     <hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb" />
-    <p style="font-size:12px;color:#666;margin:0;">— Plan&Track Pro · <a href="https://plan-track.pro" style="color:#2563eb;text-decoration:none;">plan-track.pro</a></p>
+    <p style="font-size:12px;color:#666;margin:0;">— Plan&Track Pro · <a href="https://www.plan-track.pro" style="color:#2563eb;text-decoration:none;">plan-track.pro</a></p>
   </div>`;
     }
 
@@ -88,7 +88,7 @@ function buildHtml(locale: string | undefined, purpose: string, code: string, li
     <p>Verification page: <a href="${link}">${link}</a></p>
     <p style="color:#666;font-size:12px;margin-top:16px;">If you didn't request this code, please ignore this message.</p>
     <hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb" />
-    <p style="font-size:12px;color:#666;margin:0;">— Plan&Track Pro · <a href="https://plan-track.pro" style="color:#2563eb;text-decoration:none;">plan-track.pro</a></p>
+    <p style="font-size:12px;color:#666;margin:0;">— Plan&Track Pro · <a href="https://www.plan-track.pro" style="color:#2563eb;text-decoration:none;">plan-track.pro</a></p>
   </div>`;
 }
 
