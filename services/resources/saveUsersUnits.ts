@@ -1,6 +1,8 @@
 
 import { TeamItem, UserItem, UserUnitItem } from "./../../types/types";
 import { ulogger } from "./../../lib/common/universal-logger";
+import { Dispatch } from 'redux';
+import { setUserUnits } from './../../store/slices';
 
 export const saveUsersUnits = async (
     users_units: UserUnitItem[],
@@ -11,11 +13,11 @@ export const saveUsersUnits = async (
     locale: string,
     setMessage: (msg: string) => void,
     setUsersUnits: (val: UserUnitItem[]) => void,
-    users_units_old_ref: React.MutableRefObject<UserUnitItem[]>,
+    dispatch: Dispatch,
 ) => {
 
     try {
-        const res = await fetch(`api/users-units-api`,
+        const res = await fetch(`api/units/users-units-api`,
             {
                 method: 'post',
                 headers: {
@@ -47,7 +49,7 @@ export const saveUsersUnits = async (
             if (receivedData.success) {
                 const users_units_ = receivedData.users_units as UserUnitItem[]
                 setUsersUnits(users_units_)
-                users_units_old_ref.current = users_units_;                
+                dispatch(setUserUnits(users_units_));                   
                 setMessage(t('users.usersUpdated'));
             } else {
                 setMessage(receivedData.message);

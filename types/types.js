@@ -82,22 +82,18 @@ var TimeZoneEnum;
     // Россия
     TimeZoneEnum["Europe/Kaliningrad"] = "Europe/Kaliningrad, UTC+2";
     TimeZoneEnum["Europe/Moscow"] = "Europe/Moscow, UTC+3";
-    TimeZoneEnum["Europe/Volgograd"] = "Europe/Volgograd, UTC+4";
-    TimeZoneEnum["Europe/Yekaterinburg"] = "Europe/Yekaterinburg, UTC+5";
-    TimeZoneEnum["Europe/Omsk"] = "Europe/Omsk, UTC+6";
-    TimeZoneEnum["Europe/Krasnoyarsk"] = "Europe/Krasnoyarsk, UTC+7";
-    TimeZoneEnum["Europe/Irkutsk"] = "Europe/Irkutsk, UTC+8";
-    TimeZoneEnum["Europe/Chita"] = "Europe/Chita, UTC+9";
-    TimeZoneEnum["Europe/Vladivostok"] = "Europe/Vladivostok, UTC+10";
-    TimeZoneEnum["Europe/Magadan"] = "Europe/Magadan, UTC+11";
-    TimeZoneEnum["Europe/Kamchatka"] = "Europe/Kamchatka, UTC+12";
-    // Казахстан
-    TimeZoneEnum["Asia/Almaty"] = "Asia/Almaty, UTC+6";
+    // Дальше — Asia/*
+    TimeZoneEnum["Asia/Yekaterinburg"] = "Asia/Yekaterinburg, UTC+5";
+    TimeZoneEnum["Asia/Omsk"] = "Asia/Omsk, UTC+6";
+    TimeZoneEnum["Asia/Krasnoyarsk"] = "Asia/Krasnoyarsk, UTC+7";
+    TimeZoneEnum["Asia/Irkutsk"] = "Asia/Irkutsk, UTC+8";
+    TimeZoneEnum["Asia/Yakutsk"] = "Asia/Yakutsk, UTC+9";
+    TimeZoneEnum["Asia/Vladivostok"] = "Asia/Vladivostok, UTC+10";
+    TimeZoneEnum["Asia/Magadan"] = "Asia/Magadan, UTC+11";
+    TimeZoneEnum["Asia/Kamchatka"] = "Asia/Kamchatka, UTC+12";
+    // Казахстан (с 01.03.2024 фактически UTC+5 по всей стране)
+    TimeZoneEnum["Asia/Almaty"] = "Asia/Almaty, UTC+5";
     TimeZoneEnum["Asia/Aqtobe"] = "Asia/Aqtobe, UTC+5";
     TimeZoneEnum["Asia/Atyrau"] = "Asia/Atyrau, UTC+5";
-    TimeZoneEnum["Asia/Qyzylorda"] = "Asia/Qyzylorda, UTC+6";
-    TimeZoneEnum["Asia/Shymkent"] = "Asia/Shymkent, UTC+6";
-    TimeZoneEnum["Asia/Oskemen"] = "Asia/Oskemen, UTC+6";
-    TimeZoneEnum["Asia/Pavlodar"] = "Asia/Pavlodar, UTC+6";
-    TimeZoneEnum["Asia/Karaganda"] = "Asia/Karaganda, UTC+6";
+    TimeZoneEnum["Asia/Qyzylorda"] = "Asia/Qyzylorda, UTC+5";
 })(TimeZoneEnum || (exports.TimeZoneEnum = TimeZoneEnum = {}));

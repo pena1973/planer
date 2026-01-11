@@ -10,6 +10,7 @@ import { downloadSchedule } from '@/services/initial/downloadSchedule';
 import { downloadSettings } from '@/services/initial/downloadSettings';
 import { downloadTCards } from '@/services/initial/downloadTCards';
 import { downloadUnits } from '@/services/initial/downloadUnits';
+import { downloadUserUnits } from '@/services/initial/downloadUser-Units';
 import { downloadUnutsActions } from '@/services/initial/downloadUnutsActions';
 import { downloadUnutsExceptions } from '@/services/initial/downloadUnutsExceptions';
 import { downloadTeams } from '@/services/initial/downloadTeams';
@@ -244,10 +245,12 @@ export default function Index() {
           await downloadUnits(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadUnutsActions(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadUnutsExceptions(user.id, team.id, token, t, locale, setMessage, dispatch);
+          await downloadUserUnits(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadSettings(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadSchedule(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadTCards(user.id, team.id, token, t, locale, setMessage, dispatch);
           await downloadLoads(user.id, team.id, token, t, locale, setMessage, dispatch);
+          
 
           // если это системный юзер(поддержка), то грузим все команды
           if (user.isSystem)

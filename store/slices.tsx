@@ -2,7 +2,7 @@ import {
     UOMItem, ActionItem, UnitItem, SettingsItem,
     TCardItem,  UnitLoadItem, ScheduleItem,
     UnitExceptionItem, UnitActionItem, UserItem,
-    TeamItem,TemplateItem,ProductItem
+    TeamItem,TemplateItem, UserUnitItem
 } from './../types/types';
 import { BanerItem } from './../types/service-types';
 
@@ -16,6 +16,7 @@ export type CatalogState = {
     units: UnitItem[],
     settings: SettingsItem,
     schedule: ScheduleItem,    
+    userUnits: UserUnitItem[],
 }
 export type DataState = {
     tCards: TCardItem[],
@@ -63,6 +64,7 @@ const catalogIntialState: CatalogState = {
     units: [] as UnitItem[],
     settings: {} as SettingsItem,
     schedule: {} as ScheduleItem,
+    userUnits: [] as UserUnitItem[],
     
 }
 const dataIntialState: DataState = {
@@ -145,6 +147,9 @@ const catalogSlice = createSlice({
         setSchedule: (state, action) => {
             state.schedule = action.payload;
         },
+        setUserUnits: (state, action) => {
+            state.userUnits = action.payload;
+        }
     },
 
 })
@@ -235,7 +240,7 @@ const adminSlice = createSlice({
 })
 export default function Foo() { return <></> }  // пустышка для билда
 
-export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule } = catalogSlice.actions;
+export const {setTeam, setActions, setUOMs, setUnits, setSettings, setSchedule, setUserUnits } = catalogSlice.actions;
 export const { setTCards,setTCardIndex, setTemplates } = dataSlice.actions;
 export const { setToken, setUser,setSignedAgreement,setUnit} = authSlice.actions;
 export const { setTCardLighted, setTCardPrepared, setUnitLoads, setUnitExceptions,setUnitActions } = planSlice.actions;

@@ -137,7 +137,8 @@
     "resetScale": "Reset scale",
     "scaleSize": "Scale:",
     "inner": "Internal",
-    "outer": "External"
+    "outer": "External",
+    "notAssigned": "Not assigned"
   },
   "contexMenuI": {
     "card": "Card",

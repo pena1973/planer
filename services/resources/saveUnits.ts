@@ -63,16 +63,16 @@ export const saveUnits = async (
                 });
                 const exceptions_ = receivedData.exceptions as UnitExceptionItem[]
                 const actions_ = receivedData.actions as UnitActionItem[]
-                // временное хранилище                  
-                setUnitsValue(units_);
+
                 // сеансовое хранилище                  
                 dispatch(setUnits(units_));
-                // отклонения                    
-                setExceptionsValue(exceptions_)
                 dispatch(setUnitExceptions(exceptions_));
-                // действия
-                setActionsValue(actions_)
                 dispatch(setUnitActions(actions_));
+                // временное хранилище                  
+                setUnitsValue(units_);
+                setExceptionsValue(exceptions_)
+                setActionsValue(actions_)
+                
                 setMessage(receivedData.error)
                 setMessage(t('units.unitsUpdated'));
             } else {

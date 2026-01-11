@@ -82,6 +82,9 @@ export default function Planing() {
   const schedule = useAppSelector((state: RootState) => {
     return state.catalogSlice.schedule;
   })
+  const userUnits = useAppSelector((state: RootState) => {
+    return state.catalogSlice.userUnits;
+  })
 
   //показывает текущее состояние активности команды
   const activeTeam = useAppSelector((state: RootState) => {
@@ -280,6 +283,8 @@ export default function Planing() {
             unitActions={unitActions}
             timezone={schedule.timeZone}
             lightTCardHandler={lightTCardHandler}
+            userUnits={userUnits}
+
           />
         </div>
 

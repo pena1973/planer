@@ -307,28 +307,24 @@ export enum TimeZoneEnum {
     "Europe/Bucharest" = "Europe/Bucharest, UTC+2", // Бухарест  
     "Europe/Riga" = "Europe/Riga, UTC+2", // Бухарест  
 
-    // Россия
-    "Europe/Kaliningrad" = "Europe/Kaliningrad, UTC+2", // Калининград
-    "Europe/Moscow" = "Europe/Moscow, UTC+3", // Москва
-    "Europe/Volgograd" = "Europe/Volgograd, UTC+4", // Волгоград
-    "Europe/Yekaterinburg" = "Europe/Yekaterinburg, UTC+5", // Екатеринбург
-    "Europe/Omsk" = "Europe/Omsk, UTC+6", // Омск
-    "Europe/Krasnoyarsk" = "Europe/Krasnoyarsk, UTC+7", // Красноярск
-    "Europe/Irkutsk" = "Europe/Irkutsk, UTC+8", // Иркутск
-    "Europe/Chita" = "Europe/Chita, UTC+9", // Чита
-    "Europe/Vladivostok" = "Europe/Vladivostok, UTC+10", // Владивосток
-    "Europe/Magadan" = "Europe/Magadan, UTC+11", // Магадан
-    "Europe/Kamchatka" = "Europe/Kamchatka, UTC+12", // Камчатка
+     // Россия
+    "Europe/Kaliningrad" = "Europe/Kaliningrad, UTC+2",
+    "Europe/Moscow" = "Europe/Moscow, UTC+3",
+    // Дальше — Asia/*
+    "Asia/Yekaterinburg" = "Asia/Yekaterinburg, UTC+5",
+    "Asia/Omsk" = "Asia/Omsk, UTC+6",
+    "Asia/Krasnoyarsk" = "Asia/Krasnoyarsk, UTC+7",
+    "Asia/Irkutsk" = "Asia/Irkutsk, UTC+8",
+    "Asia/Yakutsk" = "Asia/Yakutsk, UTC+9",
+    "Asia/Vladivostok" = "Asia/Vladivostok, UTC+10",
+    "Asia/Magadan" = "Asia/Magadan, UTC+11",
+    "Asia/Kamchatka" = "Asia/Kamchatka, UTC+12",
+   // Казахстан (с 01.03.2024 фактически UTC+5 по всей стране)
+"Asia/Almaty"    = "Asia/Almaty, UTC+5",    // Алматы, Астана, Шымкент, Караганда, Павлодар, Усть-Каменогорск и т.д.
+"Asia/Aqtobe"    = "Asia/Aqtobe, UTC+5",    // Актобе
+"Asia/Atyrau"    = "Asia/Atyrau, UTC+5",    // Атырау
+"Asia/Qyzylorda" = "Asia/Qyzylorda, UTC+5", // Кызылорда
 
-    // Казахстан
-    "Asia/Almaty" = "Asia/Almaty, UTC+6", // Алматы
-    "Asia/Aqtobe" = "Asia/Aqtobe, UTC+5", // Актобе
-    "Asia/Atyrau" = "Asia/Atyrau, UTC+5", // Атырау
-    "Asia/Qyzylorda" = "Asia/Qyzylorda, UTC+6", // Кызылорда
-    "Asia/Shymkent" = "Asia/Shymkent, UTC+6", // Шымкент
-    "Asia/Oskemen" = "Asia/Oskemen, UTC+6", // Усть-Каменогорск
-    "Asia/Pavlodar" = "Asia/Pavlodar, UTC+6", // Павлодар
-    "Asia/Karaganda" = "Asia/Karaganda, UTC+6", // Караганда
 }
 
 

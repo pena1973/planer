@@ -156,7 +156,7 @@ function weekdayEnumInTZ(ymd: string, tzValue: string): DaysOfWeek {
   const tzMidnight = getTimeZoneDateFromDateString(ymd, tzValue); // момент, когда в TZ было 00:00
   const timeZone = getEnumKeyByValue(TimeZoneEnum, tzValue);
 
-  const short = new Intl.DateTimeFormat("en-US", {
+  const short = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     weekday: "short",
   }).format(tzMidnight); // "Sun" | "Mon" | ...

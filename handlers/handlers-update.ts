@@ -127,13 +127,13 @@ export async function updateBalance(
   }
 
   // ✅ Идемпотентность: только team_id + transaction_id (без date) и это не триал и не гифт
-  
+
   const existingBalance = await balanceRepository.findOne({
     where: { team_id: teamId, transaction_id: transactionId },
   });
 
   // Если уже есть  и это не гифт и не триал — НЕ создаём второй раз
-  if (existingBalance ) {
+  if (existingBalance) {
     // Можно освежить "косметику" (не трогая сумму, чтобы не ломать учёт)
     let changed = false;
     if (existingBalance.amount !== amount) { existingBalance.amount = amount; changed = true; }
@@ -150,7 +150,7 @@ export async function updateBalance(
     return { success: true, existingBalance, isNew: false };
   }
 
-  
+
   // ✅ Если нет — создаём новую запись
   const newBalance = balanceRepository.create({
     team_id: teamId,
@@ -347,12 +347,15 @@ export async function updateSettings(
 
     } else {
       // Если расписание существует, обновляем его
+
       existingSetting.timeStartWork = settings.timeStartWork;
       existingSetting.timeFinishWork = settings.timeFinishWork;
       existingSetting.showHoliday = settings.showHoliday;
       existingSetting.showWeekend = settings.showWeekend;
       existingSetting.isQualControl = settings.isQualControl;
+
       const savedUpdatedSettings = await settingsRepository.save(existingSetting);
+
       return { success: true, savedSettings: savedUpdatedSettings };
     }
   } catch (e: unknown) {
@@ -800,7 +803,7 @@ export async function updateTeam(
 
 
 //!ЮНИТЫ
-export async function  updateUnits(
+export async function updateUnits(
   userId: number,
   locale: string,
   unitRepository: Repository<UnitTable>,
@@ -1019,7 +1022,7 @@ export async function updateExceptions(
         type: unitException.type,
         timeStart: unitException.timeStart,
         timeFinish: unitException.timeFinish,
-        unit_id: unitException.unitId,
+        unit_id:  Number(unitException.unitId),
         unit_idc: Number(unitException.unitIdc),
         team_id: teamId,
       });
@@ -1048,13 +1051,13 @@ export async function updateExceptions(
     const savedUnitExceptions_ = savedUnitExceptions.map(sue => {
       return {
         id: sue.id,
-        idc: sue.idc,
+        idc: Number(sue.idc),
         date: YYYYMMDD(sue.date),
         type: sue.type,
         timeStart: sue.timeStart,
         timeFinish: sue.timeFinish,
-        unitId: sue.unit_id,
-        unitIdc: sue.unit_idc,
+        unitId: Number(sue.unit_id),
+        unitIdc: Number(sue.unit_idc),
       } as UnitExceptionItem
     })
     return { success: true, savedUnitExceptions: savedUnitExceptions_ }

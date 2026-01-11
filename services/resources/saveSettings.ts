@@ -5,10 +5,11 @@ import { setSettings } from "./../../store/slices";
 import { ulogger } from "./../../lib/common/universal-logger";
 
 export const saveSettings = async (
+    settings: SettingsItem,
     timeStartWorkValue: number,
     timeFinishWorkValue: number,
     showWeekendValue: boolean,
-    showHolidayValue: boolean,
+    showHolidayValue: boolean,    
     user: UserItem,
     team: TeamItem,
     token: string,
@@ -24,12 +25,19 @@ export const saveSettings = async (
 
 
     setMessage("");
-    const settingsValue = {
+    const settings_ = { ...settings,    
         timeStartWork: timeStartWorkValue,
         timeFinishWork: timeFinishWorkValue,
         showWeekend: showWeekendValue,
-        showHoliday: showHolidayValue,
-    }
+        showHoliday: showHolidayValue, }
+
+    // const settingsValue = {
+    //     timeStartWork: timeStartWorkValue,
+    //     timeFinishWork: timeFinishWorkValue,
+    //     showWeekend: showWeekendValue,
+    //     showHoliday: showHolidayValue,
+    
+    // }
 
     try {
         const res = await fetch(`api/catalogs/settings-api`,
@@ -43,7 +51,7 @@ export const saveSettings = async (
                 body: JSON.stringify({
                     userId: user.id,
                     teamId: team.id,
-                    settings: settingsValue,
+                    settings: settings_,
                 }),
             }
         );

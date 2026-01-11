@@ -39,7 +39,7 @@
   width: 100%;
   background-color: colors.$main_body_background_color;
   /* Используем flex-grow для того, чтобы блок занял оставшееся пространство */
-  flex-grow: 1;  
+  flex-grow: 1;
 }
 
 .button_reset {
@@ -63,10 +63,10 @@
   display: flex;
   flex-direction: column;
   width: calc(100% - 200px);
-  margin-right: 20px;  
-  border-bottom: colors.$border;  
+  margin-right: 20px;
+  border-bottom: colors.$border;
   background-color: colors.$second_body_background_color;
-  
+
 }
 
 //ok
@@ -77,7 +77,7 @@
   padding-top: 10px;
   border-top-right-radius: colors.$border-radius;
   // background-color: rgb(223, 182, 130);
-  background-color: colors.$main_body_background_color;  
+  background-color: colors.$main_body_background_color;
 }
 
 //ok
@@ -221,12 +221,12 @@
 //  Временная шкала часы
 .timeBlock {
   display: flex;
-  flex-direction: column;  
+  flex-direction: column;
 }
 
 .workTime {
-    background-color: rgb(216, 226, 216);
-  }
+  background-color: rgb(216, 226, 216);
+}
 
 .breakTime {
   background-color: rgb(235, 224, 205);
@@ -242,12 +242,12 @@
   font-family: Arial, sans-serif;
   text-align: center;
   // background-color: salmon;
-   height: 100%;
+  height: 100%;
 }
 
 /* Риска для 4 часов, будет такой же, как для 1 часа, но по частоте */
 .interval4hours {
- 
+
   height: 66px;
   // background-color: #555;  /* Та же, что и для часового интервала */
   border-left: 1px solid #555;
@@ -312,7 +312,7 @@
 
 
 .interval1hour {
-  position: relative;  
+  position: relative;
   height: 100%;
   // background-color: #555;  /* Та же, что и для часового интервала */
   border-left: 1px solid #555;
@@ -332,26 +332,35 @@
 
 .unit_name {
   box-sizing: border-box;
-position: relative;
+  position: relative;
   height: 50px;
   min-height: 50px;
   max-height: 50px;
 
   display: flex;
-  align-items: center;
-
-  padding: 0 10px;     // убираем вертикальные padding
+  flex-direction: column;
+  // align-items: center;
+  justify-content: space-around;
+  padding: 0 10px; // убираем вертикальные padding
   width: 100%;
-
   font-weight: bold;
   cursor: pointer;
-
-  // overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   background-color: colors.$main_body_background_color;
   // background-color: rgb(188, 188, 199);
   //  border: #020202 1px solid;
+}
+
+.user_name {
+  box-sizing: border-box;
+  font-weight: lighter;
+  text-align: center;
+  
+  display: flex;
+  
+  width: 100%;
+  font-size: colors.$header4_font_size;
 }
 
 
@@ -379,24 +388,24 @@ position: relative;
   text-overflow: ellipsis;
 }
 
-.unit_load {  
+.unit_load {
   width: 100%;
   background-color: rgb(119, 116, 69);
   min-height: 50px;
   padding: 10px 0;
-  
+
 }
 
 .unit_unload {
-  position: relative;  
+  position: relative;
   width: 100%;
   // background-color: rgb(255, 251, 199);
-  min-height: 50px;  
+  min-height: 50px;
   border-bottom: 1px dashed #ccc;
 }
 
 .unit_gap {
   margin-top: 20px;
-  width: 100%;  
-  min-height: 30px;  
+  width: 100%;
+  min-height: 30px;
 }

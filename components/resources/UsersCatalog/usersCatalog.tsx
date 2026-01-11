@@ -1,14 +1,13 @@
 
 import styles from "./usersCatalog.module.scss";
 import { saveUsersUnits } from '@/services/resources/saveUsersUnits';
-import { getUsersUnits } from '@/services/resources/getUsersUnits';
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
 import DropdownSelectUnit from "./DropdownSelectUnit/dropdownSelectUnit";
 
 import { TeamItem, UserUnitItem, UserItem, UnitBelongEnum } from '@/types/types'
 import Image from 'next/image';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState  } from "react";
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store';
@@ -34,8 +33,12 @@ export default function UsersCatalog({
 }: usersCatalogProps) {
 
     const { t, i18n } = useTranslation();
-    const [users_units, setUsersUnits] = useState([] as UserUnitItem[]);
-    const users_units_old = useRef(users_units); // для восстановления по cancel    
+    const dispatch = useAppDispatch();
+
+
+
+    const [userUnitsValue, setUserUnitsValue] = useState([] as UserUnitItem[]);
+    // const users_units_old = useRef(users_units); // для восстановления по cancel    
 
     const [modified, setModified] = useState(false);
     const [showLoader, setShowLoader] = useState(false);
@@ -44,38 +47,33 @@ export default function UsersCatalog({
     const units = useAppSelector((state: RootState) => {
         return state.catalogSlice.units;
     })
-
-    const selectedUnits = users_units
+    const userUnits = useAppSelector((state: RootState) => {
+        return state.catalogSlice.userUnits;
+    })
+  
+    const selectedUnits = userUnits
         .map((u) => u.unit)
         .filter((unit) => unit !== undefined && unit !== null);  // Фильтруем null и undefined
-
-    // На сервере
-    const getUsersUnitsHandler = async () => {
-        setShowLoader(true);
-        await getUsersUnits(user, team, token, t, i18n.language,
-            setMessage, setUsersUnits, users_units_old,);
-
-        setShowLoader(false);
-    }
+   
 
     useEffect(() => {
-        getUsersUnitsHandler();
+        setUserUnitsValue(userUnits);
     }, []);
-
+  
     // На сервере
     const saveUsersUnitsHandler = async () => {
         setButtonLoader(true);
-        await saveUsersUnits(users_units, user, team, token, t, i18n.language,
-            setMessage, setUsersUnits, users_units_old)
+        await saveUsersUnits(userUnitsValue, user, team, token, t, i18n.language,
+            setMessage, setUserUnitsValue, dispatch)
             .then(() => {
-               setModified(false);
+                setModified(false);
             });
 
         setButtonLoader(false);
     };
     // На клиенте
     const cancelHandler = () => {
-        setUsersUnits(users_units_old.current);
+        setUserUnitsValue(userUnits);
         setModified(false);
     };
     // На клиенте
@@ -88,20 +86,20 @@ export default function UsersCatalog({
                     unit = units.find(unit => unit.id === value);
                     if (!unit) return;
                 }
-                const user_unit = users_units[indexToChange];
+                const user_unit = userUnitsValue[indexToChange];
                 const updated_user_unit = { ...user_unit, unit: unit };
-                const updated_users_units = [...users_units];
+                const updated_users_units = [...userUnitsValue];
                 updated_users_units.splice(indexToChange, 1, updated_user_unit);
-                setUsersUnits(updated_users_units);
+                setUserUnitsValue(updated_users_units);
                 break;
 
             case "active":
                 if (typeof value === 'boolean') {
-                    const user_unit = users_units[indexToChange];
+                    const user_unit = userUnitsValue[indexToChange];
                     const updated_user_unit = { ...user_unit, active: value };
-                    const updated_users_units = [...users_units];
+                    const updated_users_units = [...userUnitsValue];
                     updated_users_units.splice(indexToChange, 1, updated_user_unit);
-                    setUsersUnits(updated_users_units);
+                    setUserUnitsValue(updated_users_units);
                 }
                 break;
 
@@ -115,13 +113,13 @@ export default function UsersCatalog({
     };
     // На клиенте
     const deleteRowHandler = (indexToRemove: number) => {
-        const users_unitsUpdated = [...users_units]
+        const users_unitsUpdated = [...userUnits]
         users_unitsUpdated.splice(indexToRemove, 1)
-        setUsersUnits(users_unitsUpdated)
+        setUserUnitsValue(users_unitsUpdated)
         setModified(true);
     };
 
-    const users_unitsReactNodes = users_units.map((user, index) => {
+    const users_unitsReactNodes = userUnitsValue.map((user, index) => {
 
         return (
             <tr key={index}>

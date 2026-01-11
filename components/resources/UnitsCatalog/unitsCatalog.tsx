@@ -50,11 +50,9 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
     const token = useAppSelector((state: RootState) => {
         return state.authSlice.token;
     })
-
     const team = useAppSelector((state: RootState) => {
         return state.catalogSlice.team;
     })
-
     const user = useAppSelector((state: RootState) => {
         return state.authSlice.user;
     })
@@ -311,13 +309,13 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         unitModified();
 
         const exceptionsValueUpdated = [...exceptionsValue]
+        
         let indexToChange = -1;
 
-        if (!idcToChange) {
+        if (idcToChange) {
             indexToChange = exceptionsValueUpdated.findIndex(elem => elem.idc === idcToChange)
             if (indexToChange < 0) return
         }
-
 
         let exception = exceptionsValueUpdated[indexToChange];
 
@@ -362,7 +360,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
 
     // Юниты
     const unitsValueReactNodes = unitsValue.map((elem, index) => (
-        <tr key={index}>
+        <tr key={elem.idc}>
 
             <td>
                 <Image className={styles.icon_del}
@@ -466,7 +464,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         .filter(elem => elem.unitIdc === unitsValue[focusIndexUnit]?.idc)
         .map((elem, index) => (
 
-            <tr key={"ex" + index}>
+            <tr key={"ex" + elem.idc + index}>
                 <td>
                     <Image
                         // className={styles.icon_del}
@@ -541,7 +539,7 @@ export default function UnitsCatalog({ setMessage }: UnitsCatalogProps) {
         .map((elem, index) => {
             console.log(elem);
             return (
-                <tr key={"ac" + index}>
+                <tr key={"ac" + elem.idc + index}>
                     <td>
                         <Image
                             src={del} alt="del" width={20} height={20}

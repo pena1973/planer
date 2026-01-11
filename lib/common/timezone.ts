@@ -76,7 +76,7 @@ export function getTimeZoneDateFromDateString(dateStr: string, timeZoneValue: st
   const [y, m, d] = dateStr.split('-').map(Number);
   const utcMidnight = Date.UTC(y, m - 1, d, 0, 0, 0); // 00:00 UTC этой даты
 
-  const dtf = new Intl.DateTimeFormat('en-US', {
+  const dtf = new Intl.DateTimeFormat('en-CA', {
     timeZone,
     hour12: false,
     year: 'numeric', month: '2-digit', day: '2-digit',
@@ -136,13 +136,16 @@ export function getUserTimeZoneEnum(): TimeZoneEnum {
 
 // вспомогательный хелпер
 function getOffsetMinutes(tzIana: string, at: Date): number {
-  const s = new Intl.DateTimeFormat('en-US', {
+console.log("[tz] tzIana raw =", tzIana, "json=", JSON.stringify(tzIana));
+console.log("[tz] runtime isServer =", typeof window === "undefined");
+
+  const s = new Intl.DateTimeFormat('en-CA', {
     timeZone: tzIana,
     timeZoneName: 'shortOffset',
   }).format(at);
 
   const m = s.match(/GMT([+-]\d{1,2})(?::(\d{2}))?/);
-  if (!m) return 0;
+  if (!m) return 0;  
   const sign = m[1].startsWith('-') ? -1 : 1;
   const hh = Math.abs(parseInt(m[1], 10)) || 0;
   const mm = m[2] ? parseInt(m[2], 10) : 0;

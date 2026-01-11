@@ -4,7 +4,10 @@ import type { JSX } from "react";
 
 import styles from "./planScaleContainer.module.scss";
 
-import { CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum, UnitActionItem, TimeZoneEnum } from "@/types/types";
+import {
+  CalendarItem, UnitLoadItem, UnitBelongEnum, UnitExceptionItem, UnitItem,
+  SettingsItem, ScheduleItem, TCardItem, TimeTypeEnum, UnitActionItem, UserUnitItem
+} from "@/types/types";
 
 import { generateCalendarItem } from "@/lib/common/utils";
 import { isWeekend, isHoliday, isAdditionalTime, idDay } from "@/lib/common/utils";
@@ -137,6 +140,7 @@ export interface PlanScaleContainerProps {
   unitActions: UnitActionItem[],
   timezone: string,
   lightTCardHandler: (elem: TCardItem, lightOn: boolean) => void,
+  userUnits: UserUnitItem[]
 }
 
 export default function PlanScaleContainer({
@@ -154,6 +158,7 @@ export default function PlanScaleContainer({
   unitActions,
   timezone,
   lightTCardHandler,
+  userUnits
 
 }: PlanScaleContainerProps) {
 
@@ -180,10 +185,6 @@ export default function PlanScaleContainer({
 
   const [isLoadingDrop, setIsLoadingDrop] = useState(NaN); // для отработки задержки при перетаскивании 
 
-  // Прорисовка соединительных линий лоадов аутсорта
-  // const [linesPlusReactNodes, setLinesPlusReactNodes] = useState<JSX.Element[]>([]);
-  // const [linesMinusReactNodes, setLinesMinusReactNodes] = useState<JSX.Element[]>([]);
-
 
   const [timelineWidth, setTimelineWidth] = useState(0); //видимая ширина временной шкалы
   const [scale, setScale] = useState(30); // содержит Масштаб (10% - 100%)  
@@ -196,6 +197,7 @@ export default function PlanScaleContainer({
 
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
+  
 
   // ширина дня на шкале  зависит от масштаба и размера окна
   const dayWidth = React.useMemo(
@@ -240,52 +242,6 @@ export default function PlanScaleContainer({
     todayDateRef.current = idDay(today);
   }
 
-  // // ================= DEBUG HELPERS (вставь сюда) =================
-  // const DEBUG =
-  //   typeof window !== "undefined" &&
-  //   (process.env.NODE_ENV !== "production"
-  //     ? true
-  //     : window.localStorage.getItem("debugPlan") === "1");
-
-  // // включение в проде:
-  // // localStorage.setItem("debugPlan","1"); location.reload();
-  // // выключение:
-  // // localStorage.removeItem("debugPlan"); location.reload();
-
-  // const dbgCount = useRef<Record<string, number>>({});
-  // const dbg = (tag: string, data?: unknown) => {
-
-  //   dbgCount.current[tag] = (dbgCount.current[tag] ?? 0) + 1;
-  //   // важное: в проде лучше коротко
-  //   console.log(`[PlanScale][${tag}] #${dbgCount.current[tag]}`, data ?? "");
-  // };
-  // const dbgG = (tag: string, data?: unknown) => {
-
-  //   dbgCount.current[tag] = (dbgCount.current[tag] ?? 0) + 1;
-  //   console.groupCollapsed(`[PlanScale][${tag}] #${dbgCount.current[tag]}`);
-  //   if (data !== undefined) console.log(data);
-  //   console.groupEnd();
-  // };
-
-  // // счётчик рендера
-  // const renderN = useRef(0);
-  // renderN.current += 1;
-  // if ((renderN.current <= 5 || renderN.current % 20 === 0)) {
-  //   dbg("render", {
-  //     renderN: renderN.current,
-  //     shift,
-  //     scale,
-  //     timelineWidth,
-  //     dayWidth,
-  //     unitLoadsLen: unitLoads?.length,
-  //     calPlusLen: calendarPlus.current.length,
-  //     calMinusLen: calendarMinus.current.length,
-  //   });
-  // }
-  // // ===============================================================
-
-
-
   // ШКАЛА
   // сброс шкалы
   const scaleReset = () => {
@@ -309,10 +265,6 @@ export default function PlanScaleContainer({
 
     const rect = divRef.current.getBoundingClientRect();
     const newTimelineWidth = rect.width;
-    // // Дебаг
-    // dbg("updateSize", { newTimelineWidth });
-
-    // const newDayWidth = calculateWidthDay(newTimelineWidth, scale);
 
     setTimelineWidth(prevWidth => {
       // если реально не изменилось — не трогаем стейт
@@ -320,7 +272,7 @@ export default function PlanScaleContainer({
       return newTimelineWidth;
     });
 
-    
+
   }, [scale, shift, dayWidth, timelineWidth]);
 
   useResizeObserver(divRef, updateSize, 200);
@@ -438,43 +390,43 @@ export default function PlanScaleContainer({
 
   // отслеживание изменения текущей даты на клиенте
   useEffect(() => {
-  const todayId = todayDateRef.current; // YYYY-MM-DD
+    const todayId = todayDateRef.current; // YYYY-MM-DD
 
-  // ============ PLUS ============
-  // гарантируем, что "сегодня" есть
-  if (!calendarPlus.current.find(e => e.idDay === todayId)) {
-    insertCalendarSorted(calendarPlus, generateCalendarItem(todayId, schedule));
-  }
+    // ============ PLUS ============
+    // гарантируем, что "сегодня" есть
+    if (!calendarPlus.current.find(e => e.idDay === todayId)) {
+      insertCalendarSorted(calendarPlus, generateCalendarItem(todayId, schedule));
+    }
 
-  // плюс не должен содержать дни "в прошлом"
-  calendarPlus.current = calendarPlus.current.filter(item => item.date >= todayId);
+    // плюс не должен содержать дни "в прошлом"
+    calendarPlus.current = calendarPlus.current.filter(item => item.date >= todayId);
 
-  // обновляем view
-  setCalendarViewPlus([...calendarPlus.current]);
+    // обновляем view
+    setCalendarViewPlus([...calendarPlus.current]);
 
-  // ============ MINUS ============
-  // гарантируем, что "вчера" есть (первый день истории)
-  const todayDateObj = getTimeZoneDateFromDateString(todayId, timezone);
-  let dayPast = addDaysInZone(todayDateObj, -1, timezone);
+    // ============ MINUS ============
+    // гарантируем, что "вчера" есть (первый день истории)
+    const todayDateObj = getTimeZoneDateFromDateString(todayId, timezone);
+    let dayPast = addDaysInZone(todayDateObj, -1, timezone);
 
-  // уважаем настройки скрытия дней (как у тебя в minus-расчёте)
-  while (dayNeedToMissForTimeScale(dayPast, settings, schedule, timezone)) {
-    dayPast = addDaysInZone(dayPast, -1, timezone);
-  }
+    // уважаем настройки скрытия дней (как у тебя в minus-расчёте)
+    while (dayNeedToMissForTimeScale(dayPast, settings, schedule, timezone)) {
+      dayPast = addDaysInZone(dayPast, -1, timezone);
+    }
 
-  const pastId = idDay(dayPast);
+    const pastId = idDay(dayPast);
 
-  if (!calendarMinus.current.find(e => e.idDay === pastId)) {
-    insertCalendarSorted(calendarMinus, generateCalendarItem(pastId, schedule));
-  }
+    if (!calendarMinus.current.find(e => e.idDay === pastId)) {
+      insertCalendarSorted(calendarMinus, generateCalendarItem(pastId, schedule));
+    }
 
-  // минус — только прошлое, сегодня и будущее выкидываем
-  calendarMinus.current = calendarMinus.current.filter(item => item.date < todayId);
+    // минус — только прошлое, сегодня и будущее выкидываем
+    calendarMinus.current = calendarMinus.current.filter(item => item.date < todayId);
 
-  // обновляем view
-  setCalendarViewMinus([...calendarMinus.current]);
+    // обновляем view
+    setCalendarViewMinus([...calendarMinus.current]);
 
-}, [todayStr, schedule, timezone, settings]);
+  }, [todayStr, schedule, timezone, settings]);
 
 
 
@@ -731,8 +683,6 @@ export default function PlanScaleContainer({
       const next = startShift + diff; // Новый сдвиг на основе разницы
 
       if (rafId.current) cancelAnimationFrame(rafId.current);
-      // // дебуг
-      // if (Math.abs(diff) > 0) dbg("scaleMove", { diff, next });
 
       rafId.current = requestAnimationFrame(() => {
         setShift(next); // Сохраняем новый сдвиг
@@ -753,7 +703,6 @@ export default function PlanScaleContainer({
     window.addEventListener('mousemove', onMouseMove, true);
     window.addEventListener('mouseup', onMouseUp, true);
 
-    // dbg("handleMouseDownScale", { button: e.button, startX: e.clientX, shift });
 
   };
 
@@ -1111,10 +1060,16 @@ export default function PlanScaleContainer({
 
 
   const unitsReactNodesInner = unitsViewInner.current.map(elem => {
+    const userUnit = userUnits.find(u => u.unit?.id === elem.id);
+    const nickname = userUnit?.name || t("scale.notAssigned");
     return (
+
       <div key={elem.id} className={styles.unit_name} onClick={(event) => handletClickUnit(event, elem.idc)}> {elem.title}
         {unitMenuShow === elem.idc && (<UnitMenu unitActions={unitActions.filter(a => a.unitId === elem.id)} />)}
+        <div className={styles.user_name}>{nickname}</div>
       </div>
+
+
     )
   });
   const unitsReactNodesOuter = unitsViewOuter.current.map(elem => {

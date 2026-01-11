@@ -54,38 +54,7 @@ export function getCurrentDateInDate(timeZoneValue: string): Date {
   // Создаём Date → это UTC-время, эквивалентное полуночи в указанной TZ
   return new Date(iso);
 }
-// // получение даты  из строки в нужном часовом поясе  на выходе дата Date на начало дня переданной даты
-// export function getTimeZoneDateFromDateString(dateStr: string, timeZoneValue: string): Date {
-//   const timeZone = getEnumKeyByValue(TimeZoneEnum, timeZoneValue);
-//   // Разбираем yyyy-mm-dd вручную
-//   const [year, month, day] = dateStr.split('-').map(Number);
 
-//   // Получаем смещение таймзоны для этой даты
-//   const utcDate = new Date(Date.UTC(year, month - 1, day));
-
-//   // Берём время в этой TZ (00:00 по локали)
-//   const formatter = new Intl.DateTimeFormat('en-US', {
-//     timeZone,
-//     hour12: false,
-//     year: 'numeric',
-//     month: '2-digit',
-//     day: '2-digit',
-//     hour: '2-digit',
-//     minute: '2-digit',
-//     second: '2-digit',
-//   });
-
-//   const parts = formatter.formatToParts(utcDate);
-//   const y = parts.find(p => p.type === 'year')!.value;
-//   const m = parts.find(p => p.type === 'month')!.value;
-//   const d = parts.find(p => p.type === 'day')!.value;
-//   const h = parts.find(p => p.type === 'hour')!.value;
-//   const min = parts.find(p => p.type === 'minute')!.value;
-//   const s = parts.find(p => p.type === 'second')!.value;
-
-//   // Формируем ISO для UTC
-//   return new Date(`${y}-${m}-${d}T${h}:${min}:${s}Z`);
-// }
 // Возвращает Date = момент в UTC, соответствующий 00:00 в заданной TZ для yyyy-mm-dd
 export function getTimeZoneDateFromDateString(dateStr: string, timeZoneValue: string): Date {
  
@@ -93,7 +62,7 @@ export function getTimeZoneDateFromDateString(dateStr: string, timeZoneValue: st
   const [y, m, d] = dateStr.split('-').map(Number);
   const utcMidnight = Date.UTC(y, m - 1, d, 0, 0, 0); // 00:00 UTC этой даты
 
-  const dtf = new Intl.DateTimeFormat('en-US', {
+  const dtf = new Intl.DateTimeFormat('en-CA', {
     timeZone,
     hour12: false,
     year: 'numeric', month: '2-digit', day: '2-digit',
@@ -154,7 +123,7 @@ export function getUserTimeZoneEnum(): TimeZoneEnum {
 
 // вспомогательный хелпер
 function getOffsetMinutes(tzIana: string, at: Date): number {
-  const s = new Intl.DateTimeFormat('en-US', {
+  const s = new Intl.DateTimeFormat('en-CA', {
     timeZone: tzIana,
     timeZoneName: 'shortOffset',
   }).format(at);

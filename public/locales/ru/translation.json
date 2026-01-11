@@ -137,7 +137,8 @@
     "resetScale": "Cброс шкалы",
     "scaleSize": "Масштаб:",
     "inner": "свои",
-    "outer": "сторонние"
+    "outer": "сторонние",
+    "notAssigned": "не назначен"
   },
   "contexMenuI": {
     "card": "Тех карта",
