@@ -62,7 +62,7 @@ export async function getMain(
   at: Date | string
 ): Promise<MainItem | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const date = YYYYMMDD(at);
@@ -132,7 +132,7 @@ export async function getCostForDay(
   mainRepository: Repository<MainTable>,
 ): Promise<number | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     // тип минимум, который нужен для логики «включено/выключено»
@@ -274,7 +274,7 @@ export async function getUsage(
   balanceRepository: Repository<BalanceTable>
 ): Promise<UsageItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     // const target = YYYYMMDD(date) // yyyy-mm-dd
@@ -339,7 +339,7 @@ export async function getBalance(
   balanceRepository: Repository<BalanceTable>
 ): Promise<number | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const target = YYYYMMDD(date) // yyyy-mm-dd
@@ -400,7 +400,7 @@ export async function getBalances(
   teamIds?: number[] // опционально: посчитать только для заданных команд
 ): Promise<{ teamId: number; balance: number }[]> {
 
-  const t = getServerT("ru", 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT("ru", 'sermes'); 
 
   try {
     const target = typeof date === 'string'
@@ -480,7 +480,7 @@ export async function getJobSetting(
   jobSettingRepository: Repository<JobSettingsTable>,
 ) {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
   try {
 
     const existingJobSetting = await jobSettingRepository.find();
@@ -540,7 +540,7 @@ export async function getTeams(
   teamsRepository: Repository<TeamTable>
 ): Promise<TeamItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedTeams = await teamsRepository.find();
@@ -593,7 +593,7 @@ export async function getTeamActivity(
   activeTimeRepository: Repository<ActiveTimeTable>
 ): Promise<{ teamId: number; active: boolean }[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
 
@@ -663,7 +663,7 @@ export async function getTeamsByMainteamNumber(
   teamsRepository: Repository<TeamTable>
 ): Promise<TeamItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedAttachedTeams = await teamsRepository.find({
@@ -717,7 +717,7 @@ export async function getClient(
   teamId: number,
   clientRepository: Repository<ClientTable>
 ): Promise<ClientItem | undefined> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedClient = await clientRepository.findOne({
@@ -773,7 +773,7 @@ export async function getClients(
   locale: string,
   clientRepository: Repository<ClientTable>
 ): Promise<ClientItem[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedClients = await clientRepository.find();
@@ -832,7 +832,7 @@ export async function getUOMs(
   teamId: number,
   uomsRepository: Repository<UOMsTable>
 ): Promise<UOMItem[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedUOMS = await uomsRepository.find({
@@ -884,7 +884,7 @@ export async function getActions(
   teamId: number,
   actionsRepository: Repository<ActionTable>
 ): Promise<ActionItem[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     // Выполняем запрос с фильтрацией
@@ -941,7 +941,7 @@ export async function getUnitActions(
   unitId?: number
 ): Promise<UnitActionItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedUnitActions = await unitActionsRepository
@@ -1014,7 +1014,7 @@ export async function getUnits(
   unitRepository: Repository<UnitTable>,
   unitId?: number,
 ): Promise<UnitItem[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedUnits = await unitRepository.find({
@@ -1075,7 +1075,7 @@ export async function getTemplates(
   templatesRepository: Repository<TemplateTable>
 ): Promise<TemplateItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedTemplates = await templatesRepository.find({
@@ -1128,7 +1128,7 @@ export async function getLoadStatuses(
   teamId: number,
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<{ idc_load: number, status: StatusEnum }[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   if (!teamId) { return [] as { idc_load: number, status: StatusEnum }[]; }
   if (!userId) { return [] as { idc_load: number, status: StatusEnum }[]; }
@@ -1181,7 +1181,7 @@ export async function getUnitLoads(
   isControler: boolean = false,
 ): Promise<UnitLoadItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     if (units.length === 0) {
@@ -1291,7 +1291,7 @@ export async function getTCardOperationLoads(
   version: number, // Версия для фильтрации
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<number[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     // Получаем операции с фильтрацией по tCardId, operId и version
@@ -1342,7 +1342,7 @@ export async function getTCardLoadsToCheckforDelete(
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<UnitLoadItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     // Создаём карту операций для быстрого поиска
@@ -1435,7 +1435,7 @@ export async function getTCards(
   statuses: StatusEnum[],
   tCardRepository: Repository<TCardTable>
 ): Promise<TCardItem[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const tCards = await tCardRepository.find({
@@ -1489,7 +1489,7 @@ export async function getTCard(
   tCardRepository: Repository<TCardTable>
 ): Promise<TCardItem | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
 
@@ -1549,7 +1549,7 @@ export async function getStages(
   tcardId: number,
   tCardStageRepository: Repository<TCardStageTable>,
 ): Promise<TCardStageItem[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const tCardStagestab = await tCardStageRepository.find({
@@ -1601,7 +1601,7 @@ export async function getProductsCatalog(
   tcardId: number,
   productRepository: Repository<ProductTable>,
 ): Promise<ProductItem[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const productstab = await productRepository
@@ -1673,7 +1673,7 @@ export async function getTCardFull(
 
 ): Promise<TCardItem | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const tCardtab = tcardId ? await tCardRepository.findOne({ where: { id: tcardId } }) : null;
@@ -1828,7 +1828,7 @@ export async function getTCardsTerms(
   showClosed: boolean
 ): Promise<{ tCardsTerms: TCardTermsItem[], loads: UnitLoadItem[] }> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
 
@@ -2094,7 +2094,7 @@ export async function getUnitExceptions(
   unitId?: number
 ): Promise<UnitExceptionItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedExceptions = await unitExceptionsRepository.find({
@@ -2156,7 +2156,7 @@ export async function getTeamShedule(
   teamScheduleRepository: Repository<TeamScheduleTable>,
 ): Promise<ScheduleItem | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const scheduleTable = await teamScheduleRepository.findOne({ where: { team_id: teamId } });
@@ -2215,7 +2215,7 @@ export async function getTeamsShedule(
 
 ): Promise<ScheduleItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     if (teams.length === 0) return []; // нет команд - нет расписаний
@@ -2282,7 +2282,7 @@ export async function getSettings(
   settingsRepository: Repository<SettingsTable>
 ): Promise<SettingsItem | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const settingsTable = await settingsRepository.findOne({ where: { team_id: teamId } });
@@ -2330,7 +2330,7 @@ export async function getTCardOperation(
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
 
@@ -2399,7 +2399,7 @@ export async function getTCardOperations(
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   // 🛡️ 1) Санация и защита от пустого IN ()
   const ids = Array.isArray(operIds)
@@ -2496,7 +2496,7 @@ export async function getTCardOperationsByCardId(
   tCardOperationsRepository: Repository<TCardOperationTable>
 ): Promise<TCardOperationItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const tCardOperstab = await tCardOperationsRepository
@@ -2578,7 +2578,7 @@ export async function getUsersUnits(
   userIdforUnit?: number, // Добавляем необязательный параметр userId
 ): Promise<{ success: boolean, userUnits: UserUnitItem[], message: string }> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     // Шаг 1: Получаем юзеров 
@@ -2696,7 +2696,7 @@ export async function getUsers(
   usersRepository: Repository<UserTable>,
 ): Promise<{ success: boolean, users: UserItem[], message: string }> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
   try {
     // Шаг 1: Получаем всех пользователей команды
     const users = await usersRepository.find({ where: { team_id: teamId, isAdmin: false } });
@@ -2766,7 +2766,7 @@ export async function getBaner(
   banerRepository: Repository<BanerTable>
 ): Promise<BanerItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const currentDate = YYYYMMDD();
@@ -2815,7 +2815,7 @@ export async function getInvoices(
   teamId: number,
   invoicesRepository: Repository<InvoiceTable>
 ): Promise<InvoiceItem[]> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedInvoices = await invoicesRepository.find({
@@ -2871,7 +2871,7 @@ export async function getInvoice(
   invoiceId: number,
   invoicesRepository: Repository<InvoiceTable>
 ): Promise<InvoiceTable | null> {
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const receivedInvoice = await invoicesRepository.findOne({
@@ -2918,7 +2918,7 @@ export async function getSuportMails(
   supportRepository: Repository<MailTable>
 ): Promise<SupportMailItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     const where = teamId != null ? { team_id: teamId } : {};
@@ -2979,7 +2979,7 @@ export async function getLeads(
   leadRepository: Repository<LeadTable>
 ): Promise<LeadItem[]> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
 

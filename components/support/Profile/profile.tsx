@@ -210,7 +210,7 @@ export const Profile: React.FC<ProfileProps> = ({
         {teamNumberValue}
       </div>
       <div className={styles.title}>
-        <span className={styles.title_span}>Роль: &nbsp; &nbsp;</span>
+        <span className={styles.title_span}>{t('profile.role')}: &nbsp; &nbsp;</span>
         {userValue.isAdmin ? t('profile.admin') : unit ? unit.title : ""}
       </div>
 

@@ -35,7 +35,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const tCardOperationsRepository = getTypedRepository(db, 'TCardOperationTable', TCardOperationTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); 
 
     switch (req.method) {
       case 'POST':

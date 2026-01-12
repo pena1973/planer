@@ -17,7 +17,7 @@ import Link from 'next/link';
 // import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-const locales = ['en', 'ru'];
+const locales = ['en', 'ru', 'lv'];
 
 export default function Layout({ children }: PropsWithChildren) {
     const { t, i18n } = useTranslation();

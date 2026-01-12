@@ -32,7 +32,7 @@ export default function Monitor() {
   const token = useAppSelector((state: RootState) => {
     return state.authSlice.token;
   })
-  
+
   if (!token) push('/')
 
   const team = useAppSelector((state: RootState) => {
@@ -66,6 +66,10 @@ export default function Monitor() {
   const activeTeam = useAppSelector((state: RootState) => {
     return state.viewSlice.activeTeam;
   })
+  const userUnits = useAppSelector((state: RootState) => {
+    return state.catalogSlice.userUnits;
+  })
+
   if (!activeTeam) push('/support')
 
   const [day, setDay] = useState(() => {
@@ -82,11 +86,11 @@ export default function Monitor() {
     }
     // если  день приходится на праздники  и в настройках указано что мы скрываем праздники
     // крутим до первого буднего дня
-    while (!settings.showHoliday && isHoliday(YYYYMMDD(today), schedule) && !isAdditionalTime(YYYYMMDD(today), schedule)) {      
+    while (!settings.showHoliday && isHoliday(YYYYMMDD(today), schedule) && !isAdditionalTime(YYYYMMDD(today), schedule)) {
       today = addDaysInZone(today, 1, schedule.timeZone);
     }
     setDay(today);
-    
+
   }, []);
 
   //  меняем статус карты (если нужно) и операции и лоадов по событию
@@ -168,9 +172,13 @@ export default function Monitor() {
       });
       // юниты работники
       if (unit.type === UnitTypeEnum.process) {
+        const userUnit = userUnits.find(u => u.unit?.id === unit.id);
+        const nickname = userUnit?.name || t("scale.notAssigned");
+
         return <UnitTaskStackProcess
           key={unit.id}
           unit={unit}
+          nickname={nickname}
           tCards={tCards}
           day={YYYYMMDD(day)}
           unitLoads={unitLoads_}
@@ -190,10 +198,13 @@ export default function Monitor() {
       // юниты контролеры используется только если включен контроль качества в настройках
       if (settings.isQualControl && unit.type === UnitTypeEnum.control) {
         const performedLoads = unitLoads.filter((lo) => lo.status === StatusEnum.performed);
+        const userUnit = userUnits.find(u => u.unit?.id === unit.id);
+        const nickname = userUnit?.name || t("scale.notAssigned");
 
         return <UnitTaskStackControl
           key={unit.id}
           unit={unit}
+          nickname={nickname}
           tCards={tCards}
           day={YYYYMMDD(day)}
           performedLoads={performedLoads}
@@ -236,7 +247,7 @@ export default function Monitor() {
 
             <div className="catalog_title"> {t('monitor.unitLoading')}</div>
             <div className="monitor_container_navigation">
-              <BackwardButton onClick={() => {                
+              <BackwardButton onClick={() => {
                 const newDate = addDaysInZone(day, -1, schedule.timeZone);
                 // Пока новая дата является выходным или праздником и нет дополнительного времени,
                 // продолжаем уменьшать дату.
@@ -248,7 +259,7 @@ export default function Monitor() {
 
               <span className="current_day">{day.toLocaleDateString("en-CA")}</span>
 
-              <ForwardButton onClick={() => {                
+              <ForwardButton onClick={() => {
                 const newDate = addDaysInZone(day, 1, schedule.timeZone);
                 // Пока новая дата является выходным или праздником и нет дополнительного времени,
                 // продолжаем увеличивать дату.

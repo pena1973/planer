@@ -69,7 +69,7 @@ const LangMenu: React.FC = () => {
   const btnRef = React.useRef<HTMLButtonElement | null>(null);
   const menuRef = React.useRef<HTMLDivElement | null>(null);
 
-  const LANGS = ['ru', 'en']; // потом просто добавишь новые коды
+  const LANGS = [ 'en','ru','lv']; // потом просто добавишь новые коды
 
   React.useEffect(() => {
     const onDoc = (e: MouseEvent) => {

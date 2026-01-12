@@ -180,6 +180,7 @@ export default function UnitInterfase() {
       return <UnitTaskStackProcess
         key={unit?.id}
         unit={unit}
+        nickname={user.name}
         tCards={tCards}
         day={day.toLocaleDateString("en-CA")}
         unitLoads={unitLoads_}
@@ -203,6 +204,7 @@ export default function UnitInterfase() {
       return <UnitTaskStackControl
         key={unit?.id}
         unit={unit}
+        nickname={user.name}
         tCards={tCards}
         day={day.toLocaleDateString("en-CA")}
         performedLoads={performedLoads}

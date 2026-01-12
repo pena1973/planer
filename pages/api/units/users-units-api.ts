@@ -33,7 +33,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const usersUnitsRepository = getTypedRepository(db, 'UserUnitTable', UserUnitTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); 
 
     switch (req.method) {
 

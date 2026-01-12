@@ -71,7 +71,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const activeTimeRepository = getTypedRepository(db, 'ActiveTimeTable', ActiveTimeTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); 
 
     const { teamId, userId, oldpass, newpass, name, isAdmin } = req.body as RequestBody;
 

@@ -7,13 +7,13 @@ import { setOperationStatus } from '@/services/monitor/unitProcess/setOperationS
 
 import {
   CalendarItem, UnitLoadItem, UnitExceptionItem, UnitItem, SettingsItem, ScheduleItem,
-  TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum
+  TCardItem, TimeTypeEnum, TCardOperationItem, StatusEnum, UserUnitItem
 } from "@/types/types";
 
 import LoadMonitorProcess from "./LoadMonitorProcess/loadMonitorProcess";
 import LoadOperProcess from "./LoadOperProcess/loadOperProcess";
 import ButtonLoader from "@/components/ButtonLoader/buttonLoader";
-import {padNumberToFourDigits } from "@/lib/client/utils.client";
+import { padNumberToFourDigits } from "@/lib/client/utils.client";
 import { generateCalendarItem } from "@/lib/common/utils";
 
 import { useTranslation } from 'react-i18next';
@@ -33,6 +33,7 @@ function formatIntervTime(intervTime: number): string {
 
 interface UnitTaskStackProcessProps {
   unit: UnitItem,
+  nickname: string,
   tCards: TCardItem[],
   day: string; // "YYYY-MM-DD", например, текущая дата
   unitLoads: UnitLoadItem[]; // для именно этого юнита и этой даты
@@ -54,6 +55,7 @@ interface UnitTaskStackProcessProps {
 
 const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   unit,
+  nickname,
   tCards,
   day,
   unitLoads,
@@ -97,14 +99,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // }
 
 
-  // useEffect(() => {
-  //   const calendarView_ = generateCalendarItem(day, schedule);
-  //   setCalendarView(calendarView_);
-  //   setOperView(false);
-  //   setCurrentOper({} as TCardOperationItem);
-  //   setCurrentTCard({} as TCardItem);
-  //   setCurrentLoad({} as UnitLoadItem);
-  // }, [day, schedule])
+
   useEffect(() => {
     // день сменился — закрываем детали, очищаем выбор
     setOperView(false);
@@ -116,7 +111,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // Открываем операцию по нажатию кнопки юнитом 
   const openOperHandler = async (load: UnitLoadItem, id_oper: number, id_tCard: number) => {
     setOperView(true);
-    await openOperation(load, id_oper, id_tCard, userId, teamId, token, t, i18n.language,  setMessage,
+    await openOperation(load, id_oper, id_tCard, userId, teamId, token, t, i18n.language, setMessage,
       setCurrentTCard, setCurrentOper, setCurrentLoad);
   }
 
@@ -133,7 +128,7 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   // На сервере
   // Меняем статус операции по нажатию кнопки юнитом 
   const setOperStatusHandler = async (status: StatusEnum, operId: number, tCardId: number) => {
-    await setOperationStatus(status, operId, tCardId, currentLoad.version, teamId, userId, token, t, i18n.language, 
+    await setOperationStatus(status, operId, tCardId, currentLoad.version, teamId, userId, token, t, i18n.language,
       setMessage, setStatusLoadsHandler);
 
     setCurrentOper({} as TCardOperationItem);
@@ -260,7 +255,6 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
           let titleCard = "";
           const tCard = tCards.find(tCard => tCard.id === load.id_tCard); // ищем карточку          
           if (tCard)
-            // titleCard = `${padNumberToFourDigits(tCard.idc)} - ${new Date(tCard.date).toLocaleDateString("en-CA")};`
             titleCard = `${padNumberToFourDigits(tCard.idc)} - ${tCard.date};`
 
           return <LoadMonitorProcess
@@ -305,12 +299,14 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     result = Math.round((statistic.current.resultTime / statistic.current.busyTime) * 100);
     defect = Math.round((statistic.current.defectedTime / statistic.current.busyTime) * 100);
   }
-
+ 
   return (
     <div key={unit.id} className={styles.container}
       style={{ minHeight: `${containerHeight}px`, height: `${containerHeight + 120}px`, maxWidth: `${containerWidth}px` }} >
       <div className={styles.title_container}>
-        <div className={styles.title}>{unit.title}</div>
+        <div className={styles.title}>{unit.title}
+          <div className={styles.user}> {nickname}</div>
+        </div>
         <div className={styles.title}>{day}</div>
       </div>
 

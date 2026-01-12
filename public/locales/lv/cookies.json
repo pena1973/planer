@@ -1,0 +1,16 @@
+{
+  "title": "Sīkdatņu politika",
+  "intro": "Mēs izmantojam tikai tehniskās sīkdatnes lietotāju autentifikācijai un vietnes pareizai darbībai.",
+  "what_we_use": "Kādas sīkdatnes mēs izmantojam",
+  "refresh": "• refreshToken — saglabā autorizācijas marķieri, kas nepieciešams automātiskai pieteikšanās atjaunošanai. Tiek glabāts 7 dienas HttpOnly sīkdatnē.",
+  "session": "• sessionStorage — īslaicīgi saglabā lietotāja, komandas, lietotāja interfeisa stāvokli un kartes. Tiek dzēsts, aizverot pārlūkprogrammu.",
+  "not_used": "Kādas sīkdatnes mēs neizmantojam",
+  "not_used_text": "Mēs neizmantojam sīkdatnes reklāmai, analītikai vai izsekošanai. Sīkdatnes netiek nodotas trešajām personām.",
+  "disable": "Kā atspējot sīkdatnes",
+  "disable_text": "Sīkdatnes var atspējot pārlūkprogrammas iestatījumos, taču tas var ierobežot vietnes funkcionalitāti, tostarp pieteikšanos.",
+  "contact": "Kontakti",
+  "contact_text": "Ja jums ir jautājumi, lūdzu, sazinieties ar mums: example@yourdomain.com",
+  "text": "Mēs izmantojam tehniskās sīkdatnes autentifikācijai un vietnes pareizai darbībai.",
+  "link": "Plašāka informācija sīkdatņu politikā",
+  "accept": "Skaidrs"
+}

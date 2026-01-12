@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const settingsRepository = getTypedRepository(db, 'SettingsTable', SettingsTable);
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); 
     switch (req.method) {
       // получение настроек команды
       case 'GET':

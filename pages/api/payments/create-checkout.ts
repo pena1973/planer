@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
-    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); 
 
     const { amount, userId, teamId } = req.body as {
       amount: number; userId: number; teamId: number; customerId?: string;
@@ -71,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error('Cannot create Stripe customer');
     }
    
-    const appLocale = locale === 'ru' ? 'ru' : 'en'; // что у тебя реально бывает
+    const appLocale = locale === 'en' ? 'en' : 'ru'; // что у тебя реально бывает
    
     const params: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
@@ -109,10 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           metadata,
         },
       },
-
-      // success_url: `${baseUrl}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
-      // cancel_url: `${baseUrl}/payments/cancel`,
-
+     
 
       success_url: `${baseUrl}/payments/success?session_id={CHECKOUT_SESSION_ID}&lng=${encodeURIComponent(appLocale)}`,
       cancel_url: `${baseUrl}/payments/cancel?lng=${encodeURIComponent(appLocale)}`,

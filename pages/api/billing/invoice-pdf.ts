@@ -343,7 +343,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const invoicesRepository = getTypedRepository(db, 'InvoiceTable', InvoiceTable);
         const locale = getLocaleFromHeader(req.headers["x-lang"]);
 
-        const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+        const t = getServerT(locale, 'sermes'); 
 
         if (req.method !== 'GET') return res.status(405).send('Method Not Allowed');
 

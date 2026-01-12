@@ -340,7 +340,7 @@
     "apply": "Применить",
     "fixing": "исправление",
     "showClosed": "Показывать закрытые",
-     "comment": "Комментарий"
+    "comment": "Комментарий"
   },
   "reportUnitsKPI": {
     "wait": "Ждем...",
@@ -416,20 +416,20 @@
     "currency": "Валюта",
     "usage": "Использование",
     "coment": "Комментарий",
-     "qty": "Количество",
+    "qty": "Количество",
     "usageWillAdded": "Единицы использования будут добавлены в течение пары секунд.",
     "paymentAccepted": "Оплата принята! ",
     "paymentCanceled": "Оплата отменена! ",
     "paymentRepeat": "Вы можете попробовать снова.",
     "paymentReturn": "Возврат"
   },
-   "jobs": {
-    "job_key": "Ключ", 
-    "enabled": "Активно", 
-    "schedule": "Расписание", 
-    "next_run_at": "Следующий", 
-    "last_run_at": "Последний" 
-   },
+  "jobs": {
+    "job_key": "Ключ",
+    "enabled": "Активно",
+    "schedule": "Расписание",
+    "next_run_at": "Следующий",
+    "last_run_at": "Последний"
+  },
   "profile": {
     "buttonChangePass": "Сохранить",
     "buttonChangeName": "Сохранить",
@@ -448,7 +448,9 @@
     "login": "Введите логин",
     "buttondDeleteProfile": "Удалить профиль",
     "loginError": "Вы ввели неверный логин для удаления профиля",
-    "passUpdated": "Пароль обновлен"
+    "passUpdated": "Пароль обновлен",
+    "role": "Роль"
+
   },
   "manual": {
     "section1Title": "1. План",

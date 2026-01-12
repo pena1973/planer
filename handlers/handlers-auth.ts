@@ -41,7 +41,7 @@ export async function getUserById(
   usersRepository: Repository<UserTable>,
 ): Promise<UserItem | undefined> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); // locale
   try {
     // Шаг 1: Получаем всех пользователей команды
     const usertab = await usersRepository.findOne({ where: { id: userFindId } });
@@ -392,7 +392,7 @@ export async function updateUser(
   usersRepository: Repository<UserTable>,
 ): Promise<{ success: boolean, savedUser?: UserItem, message?: string }> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   try {
     // Ищем пользователя по ID

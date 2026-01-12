@@ -27,7 +27,7 @@ export interface AgreementItem {
   id: number;
   created_at: string; // ISO
   date: string;       // YYYY-MM-DD (дата начала действия)
-  locale: string;     // 'ru' | 'en' | ...
+  locale: string;     // 'ru' | 'en' | lv ...
   text: string;
 }
 

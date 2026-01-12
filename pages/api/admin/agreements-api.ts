@@ -15,7 +15,7 @@ import { AgreementTable } from "./../../../db/models/catalogs/agreements";
 interface CreateAgreementBody {
     userId: number;     // кто делает (админ)
     date: string;       // YYYY-MM-DD
-    locale: string;     // 'ru' | 'en' | ...
+    locale: string;     // 'ru' | 'en' | lv ...
     text: string;       // полный текст
 }
 

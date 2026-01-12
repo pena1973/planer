@@ -6,6 +6,7 @@ import i18n, { Resource } from 'i18next';
 
 import ruSerMes from '../../public/locales/ru/server_messages.json';
 import enSerMes from '../../public/locales/en/server_messages.json';
+import lvSerMes from '../../public/locales/lv/server_messages.json';
 
 // Защита от случайного импорта на клиент
 if (typeof window !== 'undefined') {
@@ -21,14 +22,17 @@ const resources: Resource = {
   en: {
     sermes: enSerMes,
   },
+  lv: {
+    sermes: lvSerMes,
+  },
 };
 
 if (!i18n.isInitialized) {
   i18n
     // .use(initReactI18next)
     .init({
-      lng: 'ru',
-      fallbackLng: 'ru',
+      lng: 'en',
+      fallbackLng: 'en',
       ns: NS,
       defaultNS: 'sermes',
       resources,
@@ -42,6 +46,6 @@ if (!i18n.isInitialized) {
 export default i18n;
 
 export function getServerT(locale: string, ns: 'sermes' = 'sermes') {
-  const lang = locale === 'ru' ? 'ru' : 'en'; // жёстко нормализуем
+  const lang = locale === 'en' ? 'en' : 'ru'; // жёстко нормализуем
   return i18n.getFixedT(lang, ns);
 }

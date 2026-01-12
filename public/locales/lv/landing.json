@@ -1,0 +1,162 @@
+{
+  "ui": {
+    "features": "Iespējas",
+    "pricing": "Cenrādis",
+    "faq": "BUJ",
+    "onlineConsult": "Tiešsaistes konsultācija",
+    "tryFree": "Izmēģināt bez maksas",
+    "changeLanguage": "Mainīt valodu"
+  },
+  "hero": {
+    "badge": "Plānošana bez haosa",
+    "title": "Plānojiet un kontrolējiet darbus ar vienu skatienu",
+    "p": "<strong>plan-track.pro</strong> palīdz redzēt komandas noslodzi un pārvaldīt pasūtījuma izpildes termiņus bez haosa. Plānojiet darbus, ņemot vērā izpildītāju individuālās prasmes, nezaudējot ne minūti darba laika — sistēma ieteiks optimālo variantu.",
+    "primaryCta": "Sākt 30 dienu izmēģinājumu",
+    "secondaryCta": "Skatīties 2 minūšu video",
+    "note": "Karte nav nepieciešama. Atcelšana jebkurā brīdī.",
+    "float": "Drag & Drop + Zoom dažu sekunžu laikā"
+  },
+  "featuresTitle": "Iespējas",
+  "features": [
+    {
+      "icon": "calendar",
+      "title": "Laika skala 180 dienām",
+      "desc": "90 dienas plānošanai un 90 dienas izpildes vēsturei. Izpildītāju individuālo grafiku uzskaite."
+    },
+    {
+      "icon": "layers",
+      "title": "Darbinieku / ražošanas centru noslodze",
+      "desc": "Sistēma piedāvā plānu tā, lai pasūtījumu izpildītu iespējami īsā laikā, ņemot vērā pašreizējo noslodzi."
+    },
+    {
+      "icon": "timer",
+      "title": "Elastīga konfigurēšana",
+      "desc": "Ņem vērā uzdevumu pārtraucamību, operāciju individuālo ilgumu un izpildītāju prasmes."
+    },
+    {
+      "icon": "timer",
+      "title": "Statusi un datumi",
+      "desc": "Katram objektam ir kods, un izgatavošanas statuss tiek izsekots sistēmā."
+    },
+    {
+      "icon": "bar",
+      "title": "KPI un atskaites",
+      "desc": "Kopsavilkumi par termiņiem, izpildītāju rezultativitāti, brāķi un izstrādi."
+    },
+    {
+      "icon": "shield",
+      "title": "Brāķa kontrole un labošana",
+      "desc": "Speciālas kvalitātes kontroles funkcijas un darbības brāķa novēršanai."
+    }
+  ],
+  "benefitsTitle": "Redzams efekts jau pirmajā mēnesī",
+  "benefits": [
+    "Plāns nedēļai uz priekšu — 15 minūtēs",
+    "−27% dīkstāves pirmajā mēnesī",
+    "Komandu un apakšuzņēmēju noslodzes caurspīdīgums",
+    "Termiņu kontrole: kavējumu riski redzami uzreiz"
+  ],
+  "kpi": [
+    { "num": "×3", "label": "ātrāks pārrēķins" },
+    { "num": "97%", "label": "logu precizitāte" },
+    { "num": "24/7", "label": "pieejamība mākonī" }
+  ],
+  "pricing": {
+    "title": "Cenrādis",
+    "subtitle": "30 dienas bez maksas. Pēc tam — fiksēta cena par komandu. 20% atlaide visām nākamajām komandām.",
+    "start": "Sākt",
+    "buy": "Noformēt",
+    "contact": "Sazināties",
+    "mainTag": "pamata",
+    "vatSuffix": "bez PVN",
+    "trial": {
+      "period": "30 dienas",
+      "points": [
+        "Visas funkcijas bez ierobežojumiem",
+        "1 komanda, 30 dienas lietošanas",
+        "Ievadwebinārs par iestatīšanu — bez maksas"
+      ]
+    },
+    "standard": {
+      "sub": "mēnesī par pirmo komandu",
+      "points": [
+        "Visas funkcijas bez ierobežojumiem",
+        "Neierobežots komandu skaits",
+        "−20% visām nākamajām komandām",
+        "Ievadwebinārs par iestatīšanu — bez maksas"
+      ]
+    },
+    "custom": {
+      "title": "Atsevišķa instance",
+      "sub": "pēc pieprasījuma",
+      "points": [
+        "Atsevišķa lietotne un datubāze",
+        "−20% visām nākamajām komandām",
+        "Visas funkcijas bez ierobežojumiem",
+        "Ievadwebinārs par iestatīšanu — bez maksas"
+      ]
+    }
+  },
+  "consult": {
+    "title": "Tiešsaistes konsultācija palaišanai",
+    "p": "Palīdzēsim ātri iestatīt plānošanu atbilstoši jūsu procesiem: darba grafiki, darbinieki, viņu prasmes; parādīsim, kā veidot tehnoloģiskās kartes, plānot un izsekot izpildi. Atstājiet pieteikumu — mēs sazināsimies un saskaņosim laiku.",
+    "labels": {
+      "name": "Jūsu vārds *",
+      "company": "Uzņēmums",
+      "time": "Ērts laiks (laika josla)",
+      "message": "Īsi par jūsu uzdevumu",
+      "agree": "Piekrītu personas datu apstrādei saziņai par šo pieteikumu *"
+    },
+    "submit": "Nosūtīt pieteikumu",
+    "errorAlert": "Lūdzu, norādiet vārdu, e-pastu un piekrišanu datu apstrādei.",
+    "successMsg": "Paldies! Pieteikums nosūtīts. Mēs ar jums sazināsimies tuvākajā laikā.",
+    "mailSubject": "Pieteikums tiešsaistes konsultācijai plan-track.pro"
+  },
+  "faq": {
+    "title": "Biežāk uzdotie jautājumi",
+    "items": [
+      {
+        "q": "Vai tiek ņemts vērā darbs ar ārējiem apakšuzņēmējiem?",
+        "a": "Jā. Operācijas var nodot ārējiem ražošanas centriem, kas strādā pēc līgumā noteiktiem termiņiem."
+      },
+      {
+        "q": "Kā tiek ņemta vērā izpildītāju atrašanās dažādās laika joslās?",
+        "a": "Komanda strādā vienotā laika joslā, kas izvēlēta projektam. Grafiki tiek veidoti attiecībā pret to."
+      },
+      {
+        "q": "Kā izpildītāji saņem uzdevumus?",
+        "a": "Izpildītājs reģistrējas un piesakās savā kontā. Dispečers piešķir lomu, pēc tam uzdevumi ir redzami kontā telefonā."
+      },
+      {
+        "q": "Kā dispečers un izpildītājs uzzina par statusa maiņu?",
+        "a": "Pēc statusa maiņas atjauninājums pārējiem dalībniekiem notiek minūtes laikā."
+      },
+      {
+        "q": "Kā tiek nodrošināta komandu datu nošķiršana?",
+        "a": "Dati ir nošķirti komandu līmenī: viena komanda neredz neko, kas attiecas uz citu."
+      },
+      {
+        "q": "Vai ir kontroliera funkcija?",
+        "a": "Jā. Atsevišķs kontrolieris ar kvalitātes pārbaudes interfeisu un atzīmēm «rezultāts»/«brāķis». Funkciju var atslēgt."
+      },
+      {
+        "q": "Vai ir paredzēta migrācija uz citām programmām?",
+        "a": "Jā. Ir vārteja tehnoloģisko karšu datu ielādei/izlādei."
+      },
+      {
+        "q": "Vai lietotāju personas dati tiek šifrēti?",
+        "a": "Mēs neievācam personas datus, izņemot e-pastu piekļuves atjaunošanai."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Gatavi ieviest kārtību plānošanā?",
+    "p": "Pievienojiet komandu — jebkurā brīdī var atcelt vai mainīt tarifu.",
+    "button": "Reģistrēties"
+  },
+  "footer": {
+    "privacy": "Privātuma politika",
+    "support": "Atbalsts",
+    "copyright": "© {{year}} plan-track.pro"
+  }
+}

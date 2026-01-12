@@ -13,6 +13,7 @@ import { padNumberToFourDigits } from "@/lib/client/utils.client"
 
 interface UnitTaskStackProcessProps {
   unit: UnitItem,
+  nickname: string,
   tCards: TCardItem[],
   day: string; // "YYYY-MM-DD", например, текущая дата
   performedLoads: UnitLoadItem[]; // Все которые ждут проверки
@@ -32,6 +33,7 @@ interface UnitTaskStackProcessProps {
 
 const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
   unit,
+   nickname,
   tCards,
   day,
   performedLoads,
@@ -155,7 +157,9 @@ const UnitTaskStackProcess: React.FC<UnitTaskStackProcessProps> = ({
     <div className={styles.container}
       style={{ minHeight: `${containerHeight}px`, height: `${containerHeight + 120}px`, maxWidth: `${containerWidth}px` }} >
       <div className={styles.title_container}>
-        <div className={styles.title}>{unit.title}</div>
+        <div className={styles.title}>{unit.title}
+          <div className={styles.user}> {nickname}</div>
+        </div>
         <div className={styles.title}>{day}</div>
       </div>
 

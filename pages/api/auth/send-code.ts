@@ -21,7 +21,7 @@ const APP_BASE_URL =
 const Body = z.object({
     email: z.string().email(),
     purpose: z.enum(['signup', 'password_reset']).default('signup'),
-    locale: z.enum(['ru', 'en']).optional(),
+    locale: z.enum(['ru', 'en','lv']).optional(),
 });
 
 const CODE_TTL_MIN = 10;
@@ -104,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { email, purpose, locale } = parsed.data;
 
-    const t = getServerT((locale) ? locale : 'en', 'sermes'); // locale = 'ru' | 'en'
+    const t = getServerT((locale) ? locale : 'en', 'sermes'); 
 
     try {
         // 1) Сгенерировать код

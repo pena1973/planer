@@ -59,7 +59,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
     const locale = getLocaleFromHeader(req.headers["x-lang"]);
-    const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+    const t = getServerT(locale, 'sermes'); 
 
     switch (req.method) {
       // ПЕРЕПЛАНИРОВАНИЕ по перемещению лоада
@@ -238,7 +238,7 @@ async function moveToOuterUnit(
 
 ): Promise<{ success: boolean, tCardLoads?: UnitLoadItem[], message: string, }> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   // запросим юниты
   const units_ = await getUnits(Number(userId), locale, Number(teamId), unitRepository)
@@ -675,7 +675,7 @@ async function moveToInnerUnit(
   unitLoadRepository: Repository<UnitLoadTable>,
 ): Promise<{ success: boolean, tCardLoads?: UnitLoadItem[], message: string, }> {
 
-  const t = getServerT(locale, 'sermes'); // locale = 'ru' | 'en'
+  const t = getServerT(locale, 'sermes'); 
 
   // запросим действия юнитов
   const unitActions_ = await getUnitActions(Number(userId), locale, Number(teamId), unitActionsRepository)

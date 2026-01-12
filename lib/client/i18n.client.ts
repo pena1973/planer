@@ -14,10 +14,20 @@ import enTranslation from '../../public/locales/en/translation.json';
 import enUi from '../../public/locales/en/ui.json';
 import enHelp from '../../public/locales/en/help.json';
 import enCookies from '../../public/locales/en/cookies.json';
+
+import lvTranslation from '../../public/locales/lv/translation.json';
+import lvUi from '../../public/locales/lv/ui.json';
+import lvHelp from '../../public/locales/lv/help.json';
+import lvCookies from '../../public/locales/lv/cookies.json';
+
+
 import ruSerMes from '../../public/locales/ru/server_messages.json';
 import enSerMes from '../../public/locales/en/server_messages.json';
+import lvSerMes from '../../public/locales/lv/server_messages.json';
+
 import ruLanding from '../../public/locales/ru/landing.json';
 import enLanding from '../../public/locales/en/landing.json';
+import lvLanding from '../../public/locales/lv/landing.json';
 
 const NS = ['translation', 'ui', 'help', 'cookies', 'sermes','landing'] as const;
 
@@ -38,14 +48,22 @@ const resources: Resource = {
     sermes: enSerMes,
     landing: enLanding       
   },
+  lv: {
+    translation: lvTranslation,
+    ui: lvUi,
+    help: lvHelp,
+    cookies: lvCookies, 
+    sermes: lvSerMes,
+    landing: lvLanding       
+  },
 };
 
 if (!i18n.isInitialized) {
   i18n
     .use(initReactI18next)
     .init({
-      lng: 'ru',
-      fallbackLng: 'ru',
+      lng: 'en',
+      fallbackLng: 'en',
       ns: NS,
       defaultNS: 'translation',
       resources, // ← единый набор ресурсов, без HttpBackend/require
