@@ -99,7 +99,10 @@ const createLines = (part: string, date: string, unitLoads: UnitLoadItem[]): Lin
 
 
 const dayNeedToMissForTimeScale = (_day: Date, settings: SettingsItem, schedule: ScheduleItem, timezone: string) => {
-
+  // console.log("day",_day)
+  //   console.log("isWeekend",isWeekend(_day, schedule))
+  //   console.log("!isAdditionalTime", !isAdditionalTime(_day, schedule))
+  //   console.log("!showWeekend", !settings.showWeekend)
   if (!settings.showWeekend && isWeekend(_day, schedule) && !isAdditionalTime(_day, schedule)) {
     return true
   }
@@ -197,7 +200,7 @@ export default function PlanScaleContainer({
 
   const unitsViewInner = useRef([] as UnitItem[]); // Список заголовков юнитов наших
   const unitsViewOuter = useRef([] as UnitItem[]); // Список заголовков юнитов внешних оутсортеров
-  
+
 
   // ширина дня на шкале  зависит от масштаба и размера окна
   const dayWidth = React.useMemo(
