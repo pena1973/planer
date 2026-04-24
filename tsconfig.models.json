@@ -1,16 +1,17 @@
-
-
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "build",
-     "rootDir": "."  ,
+    "rootDir": ".",
     "module": "commonjs",
+    "moduleResolution": "node",
     "target": "es2019",
     "noEmit": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "sourceMap": false
   },
-  "include": ["db/models/**/*"]
+  "include": [
+    "db/models/**/*"
+  ]
 }
