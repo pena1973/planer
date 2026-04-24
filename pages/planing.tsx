@@ -1,4 +1,5 @@
 
+//pages/planing.tsx
 import { unPinLoad } from '@/services/plan/unPinLoad';
 import { erazeLoad } from '@/services/plan/erazeLoad';
 import { erazeCard } from '@/services/plan/erazeCard';
@@ -114,7 +115,9 @@ export default function Planing() {
   const erazCardHandler = async (tCardId: number) => {
     setErazLoaderCard(tCardId)
     await erazeCard(tCardId, unitLoads, tCards, token, user.id, team.id,
-      today.toLocaleDateString("en-CA"), dispatch, t, i18n.language, setMessage,);
+      getCurrentDateInString(schedule.timeZone),
+      // today.toLocaleDateString("en-CA"), 
+      dispatch, t, i18n.language, setMessage,);
     setErazLoaderCard(NaN)
   };
   // На сервере

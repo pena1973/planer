@@ -240,10 +240,16 @@ export default function PlanScaleContainer({
     today = addDaysInZone(today, 1, timezone);
   }
 
-  const todayDateRef = useRef(idDay(today));
-  if (idDay(today) !== todayDateRef.current) {
-    todayDateRef.current = idDay(today);
+  // const todayDateRef = useRef(idDay(today));
+  // if (idDay(today) !== todayDateRef.current) {
+  //   todayDateRef.current = idDay(today);
+  // }
+  const todayDateRef = useRef(todayStr);
+
+  if (todayStr !== todayDateRef.current) {
+    todayDateRef.current = todayStr;
   }
+
 
   // ШКАЛА
   // сброс шкалы
@@ -305,6 +311,26 @@ export default function PlanScaleContainer({
     //  прорисовываем шкалу планирования
     // и убираем все что меньше текущей даты если случайно попали на смену дат
     const filteredCalendar = calendarPlus.current.filter(item => item.date >= todayDateRef.current);
+
+    // ДИАГНОСТИКА
+    console.log("CALENDAR PLUS DIAG", {
+  todayStr,
+  timezone,
+  calendarPlus: calendarPlus.current.map(x => ({
+    idDay: x.idDay,
+    date: x.date,
+    timeStartWork: x.timeStartWork,
+    timeFinishWork: x.timeFinishWork,
+  })),
+  filteredCalendar: filteredCalendar.map(x => ({
+    idDay: x.idDay,
+    date: x.date,
+    timeStartWork: x.timeStartWork,
+    timeFinishWork: x.timeFinishWork,
+  })),
+  visibleItemsPlus: visibleItemsPlus.current,
+});
+
     setCalendarViewPlus(filteredCalendar);
 
   }, [unitLoads]);
@@ -369,6 +395,26 @@ export default function PlanScaleContainer({
     // и убираем все что меньше текущей даты если случайно попали на смену дат
     const filteredCalendar = calendarPlus.current.filter(item => item.date >= todayStr);
     setCalendarViewPlus(filteredCalendar);
+
+    // ДИАГНОСТИКА
+    console.log("CALENDAR PLUS DIAG", {
+  todayStr,
+  timezone,
+  calendarPlus: calendarPlus.current.map(x => ({
+    idDay: x.idDay,
+    date: x.date,
+    timeStartWork: x.timeStartWork,
+    timeFinishWork: x.timeFinishWork,
+  })),
+  filteredCalendar: filteredCalendar.map(x => ({
+    idDay: x.idDay,
+    date: x.date,
+    timeStartWork: x.timeStartWork,
+    timeFinishWork: x.timeFinishWork,
+  })),
+  visibleItemsPlus: visibleItemsPlus.current,
+});
+
     //  прорисовываем шкалу истории
     setCalendarViewMinus(calendarMinus.current);
 
@@ -938,7 +984,7 @@ export default function PlanScaleContainer({
         className={styles.day_scale}
         style={{ width: `${dayWidth}px` }} key={`day-${index}`}>
 
-        {(scale > 0) && <span className={styles.day_title}>{elem.idDay}</span>}
+        {(scale > 0) && <span className={styles.day_title}>{elem.date}</span>}
 
         <div className={styles.time_container}>
           {hoursScaleReactNodes}
@@ -956,7 +1002,7 @@ export default function PlanScaleContainer({
         className={styles.day_scale}
         style={{ width: `${dayWidth}px` }} key={`day-${index}`}>
 
-        {(scale > 0) && <span className={styles.day_title}>{elem.idDay}</span>}
+        {(scale > 0) && <span className={styles.day_title}>{elem.date}</span>}
 
         {/* // это красная риска сегодня начало дня  */}
         {index === 0 && <div className={styles.today_scale}></div>}
@@ -1030,7 +1076,8 @@ export default function PlanScaleContainer({
     if (dayWidth === 0 || pxPerMinute === 0) return [];
     if (calendarPlus.current.length === 0) return [];
 
-    const todayIso = today.toLocaleDateString("en-CA");
+    // const todayIso = today.toLocaleDateString("en-CA");
+    const todayIso = todayStr;
     const plusLines = createLines("Plus", todayIso, unitLoads);
 
     return buildLineNodes(plusLines, calendarPlus.current, divRefPlus, shift);
@@ -1047,7 +1094,8 @@ export default function PlanScaleContainer({
     if (dayWidth === 0 || pxPerMinute === 0) return [];
     if (calendarMinus.current.length === 0) return [];
 
-    const todayIso = today.toLocaleDateString("en-CA");
+    // const todayIso = today.toLocaleDateString("en-CA");
+    const todayIso = todayStr;
     const minusLines = createLines("Minus", todayIso, unitLoads);
 
     return buildLineNodes(minusLines, calendarMinus.current, divRefMinus, shift);

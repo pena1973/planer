@@ -3,82 +3,13 @@ import { ulogger } from "./../lib/common/universal-logger";
 import { getServerT } from '@/lib/server/i18n.server';
 
 import { CalendarItem, UnitCalendarItem, UnitExceptionItem, UnitItem, ScheduleItem, DaysOfWeek, TimeTypeEnum } from "./../types/types";
-import { getTimeZoneDateFromDateString,addDaysInZone } from "./../lib/common/timezone"
+import { getTimeZoneDateFromDateString, addDaysInZone } from "./../lib/common/timezone"
 
 import { YYYYMMDD, isHoliday, idDay, isWeekend, isAdditionalTime } from "@/lib/common/utils"
-// //  функция определяемт входит ли  дата в список дат дополнительного времени работы
-// const isAdditionalTime = (date: string, schedule: ScheduleItem): boolean => {
-
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.teamId)
-//     return schedule.workdays.some(workday =>
-//       // new Date(workday.date).toLocaleDateString('en-CA').split(',')[0] === date
-//       workday.date === date
-//     ); else return false
-// }
-// //  функция определяемт входит ли  дата в список выходных расписания
-// const isWeekend = (date: string, schedule: ScheduleItem): boolean => {
-//   const d = new Date(date);        // преобразуем строку в Date  
-//   const dayOfWeek = d.getDay();  // Получаем день недели (0 - воскресенье, 6 - суббота)    
-
-//   let dayString = DaysOfWeek.SUNDAY;
-
-//   switch (dayOfWeek) {
-//     case 1:
-//       dayString = DaysOfWeek.MONDAY;
-//       break;
-//     case 2:
-//       dayString = DaysOfWeek.TUESDAY;
-//       break;
-//     case 3:
-//       dayString = DaysOfWeek.WEDNESDAY;
-//       break;
-//     case 4:
-//       dayString = DaysOfWeek.THURSDAY;
-//       break;
-//     case 5:
-//       dayString = DaysOfWeek.FRIDAY;
-//       break;
-//     case 6:
-//       dayString = DaysOfWeek.SATURDAY;
-//       break;
-//     default:
-//       dayString = DaysOfWeek.SUNDAY;
-//       break;
-//   }
-
-//   // Проверяем, является ли день выходным
-//   if (schedule.teamId) return schedule.weekends.includes(dayString);
-//   else return false
-// }
-// //  функция определяемт входит ли  дата в список праздниклв расписания
-// const isHoliday = (date: string, schedule: ScheduleItem): boolean => {
-//   // Преобразуем переданную дату в строку в формате YYYY-MM-DD, чтобы сравнить только даты (без времени)
-//   // const dateString = date.toLocaleDateString('en-CA').split(',')[0];
-
-//   // Проверяем, есть ли дата в массиве праздников
-//   if (schedule.teamId)
-//     return schedule.holidays.some(holiday =>
-//       // new Date(holiday).toLocaleDateString('en-CA').split(',')[0] === date
-//       holiday=== date
-//     ); else return false
-// }
-
-// // генерация привычной нам даты - ее использую как id дня
-// const idDay = (date: Date): string => {
-//   const day = date.getDate().toString().padStart(2, '0');  // День с ведущим нулем
-//   const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Месяц с ведущим нулем
-//   const year = date.getFullYear();  // Год
-
-//   return `${day}.${month}.${year}`;  // Возвращаем строку в формате "день.месяц.год"
-// };
 
 // генерация одного дня на шкале
 const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem => {
-  
+
   const _isWeekend = isWeekend(day, schedule);  // День недели для учета выходных
   const _isHoliday = isHoliday(day, schedule);  // День недели для учета Праздников
   const _isAdditionalTime = isAdditionalTime(day, schedule);  // День недели для учета Праздников
@@ -107,17 +38,28 @@ const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem
 
 
   // Создаем объект CalendarItem
+
   const calendarItem: CalendarItem = {
-    idDay: idDay(new Date(day)),
-    // date: new Date(currentDate),  // Текущая дата
-    date: day,  // Текущая дата
-    // mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
-    mounth: new Date(day).getDate() === 1,  // Если это первый день месяца, ставим true
-    day: true,  // Указываем, что это день
-    timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
-    timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
-    breaks: breaks,
+    idDay: day,
+    date: day,
+    mounth: day.slice(8, 10) === "01",
+    day: true,
+    timeStartWork,
+    timeFinishWork,
+    breaks,
   };
+
+  // const calendarItem: CalendarItem = {
+  //   idDay: idDay(new Date(day)),
+  //   // date: new Date(currentDate),  // Текущая дата
+  //   date: day,  // Текущая дата
+  //   // mounth: currentDate.getDate() === 1,  // Если это первый день месяца, ставим true
+  //   mounth: new Date(day).getDate() === 1,  // Если это первый день месяца, ставим true
+  //   day: true,  // Указываем, что это день
+  //   timeStartWork: timeStartWork,  // Время начала работы (если не выходной)
+  //   timeFinishWork: timeFinishWork,  // Время окончания работы (если не выходной)
+  //   breaks: breaks,
+  // };
   return calendarItem;  // Возвращаем один элемент календаря
 };
 
@@ -125,7 +67,7 @@ const generateCalendarItem = (day: string, schedule: ScheduleItem): CalendarItem
 // получение массива дней для списка юнитов с учеитом исключений 90  после даты и 90 дней до 
 export const getUnitsSchedule = (
   userId: number,
-  locale:string,  
+  locale: string,
   today: string,           // формат "YYYY-MM-DD"
   schedule: ScheduleItem,
   exceptions: UnitExceptionItem[],
@@ -136,14 +78,14 @@ export const getUnitsSchedule = (
   // Определяем диапазон: 90 дней до today и 90 дней после today
   // const startDate = new Date(today);
   // startDate.setHours(0, 0, 0, 0);
-  let  startDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
-  startDate = addDaysInZone(startDate,-90,schedule.timeZone)
+  let startDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
+  startDate = addDaysInZone(startDate, -90, schedule.timeZone)
   // startDate.setDate(startDate.getDate() - 90);
 
   // const endDate = new Date(today);  
   // endDate.setHours(0, 0, 0, 0);
   let endDate = getTimeZoneDateFromDateString(today, schedule.timeZone)
-  endDate = addDaysInZone(endDate,90,schedule.timeZone)
+  endDate = addDaysInZone(endDate, 90, schedule.timeZone)
   // endDate.setDate(endDate.getDate() + 90);
 
   // Итерируем по дням диапазона

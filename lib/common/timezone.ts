@@ -1,5 +1,6 @@
 
 
+// lib/common/timezone.ts
 import { TimeZoneEnum } from './../../types/types';
 // Получить ключ enum по значению
 export function getEnumKeyByValue<T extends Record<string, string>>(
