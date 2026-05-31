@@ -1,0 +1,25 @@
+name: Deploy PlanTrack to demo-server
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-plan-track-demo
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            /opt/demos/infra/scripts/deploy-project.sh plan-track
